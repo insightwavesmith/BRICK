@@ -819,6 +819,7 @@ def _sensitive_write_observation_fire(
 ) -> None:
     from brick_protocol.support.operator.worktree_sandbox import (
         WorktreeSandboxError,
+        anchor_wip_snapshot,
         commit_sandbox_output,
         create_worktree_sandbox,
         dispose_worktree_sandbox,
@@ -911,6 +912,44 @@ def _sensitive_write_observation_fire(
                     violations.append(
                         "sensitive-commit-RED: sensitive path was staged before the commit block"
                     )
+            finally:
+                dispose_worktree_sandbox(sandbox)
+
+            sandbox = create_worktree_sandbox(
+                repo,
+                building_id="sensitive-anchor-red",
+                base_sha=probe.base_sha,
+            )
+            try:
+                (sandbox.path / ".env").write_text("redacted\n", encoding="utf-8")
+                try:
+                    anchor_wip_snapshot(
+                        sandbox,
+                        "sensitive-anchor-red",
+                        message="should not anchor sensitive path",
+                    )
+                except WorktreeSandboxError as exc:
+                    anchor_error_text = str(exc)
+                else:
+                    anchor_error_text = ""
+                summary["sensitive_anchor_red_execution_log"] = {
+                    "attempted_wip_anchor": True,
+                    "sensitive_path": ".env",
+                    "blocked": bool(anchor_error_text),
+                    "error": anchor_error_text,
+                    "proof_limit": "mutation-RED support evidence only",
+                }
+                if (
+                    "observed_sensitive_path_writes" not in anchor_error_text
+                    or ".env" not in anchor_error_text
+                ):
+                    violations.append(
+                        "sensitive-anchor-RED: WIP anchor did not block .env with "
+                        f"observed_sensitive_path_writes evidence (error={anchor_error_text!r})"
+                    )
+                anchor_ref = _git_text(repo, "for-each-ref", "--format=%(refname)", "refs/brick/wip/")
+                if "sensitive-anchor-red" in anchor_ref:
+                    violations.append("sensitive-anchor-RED: sensitive WIP anchor ref was created")
             finally:
                 dispose_worktree_sandbox(sandbox)
 
@@ -1426,6 +1465,9 @@ def _w1_worktree_sandbox_fire(
     from brick_protocol.support.operator.worktree_sandbox import (
         _ENGINE_WORKTREE_MARKER,
         _engine_worktrees_root,
+        reclaim_wip_anchor,
+        release_wip_anchor,
+        reap_stale_wip_anchors,
         reap_stale_worktrees,
     )
 
@@ -1698,8 +1740,9 @@ def _w1_worktree_sandbox_fire(
         ):
             violations.append("w1-marker-loss: the live customer tree was mutated")
 
-        # CASE 3 (incomplete = no commit): a building that does NOT complete ->
-        # no commit produced; reported not-complete; live tree still untouched.
+        # CASE 3 (incomplete = WIP anchor, no completion commit): a building
+        # that does NOT complete produces no completion commit, but provider WIP
+        # is pinned under refs/brick/wip/* before dispose.
         customer3 = Path(cust_raw) / "customer-incomplete"
         customer3.mkdir(parents=True, exist_ok=True)
         head3_before = _seed_customer_repo(repo, customer3)
@@ -1715,14 +1758,88 @@ def _w1_worktree_sandbox_fire(
         status3_after = _git_text(customer3, "status", "--porcelain", "--untracked-files=all")
         summary["w1_incomplete_frontier"] = incomplete.frontier_kind
         summary["w1_incomplete_commit"] = incomplete.commit_sha
+        summary["w1_incomplete_wip_anchor_ref"] = incomplete.wip_anchor_ref
+        summary["w1_incomplete_wip_commit_sha"] = incomplete.wip_commit_sha
         if incomplete.frontier_kind == "complete":
             violations.append("w1-incomplete: a non-completing building reported a complete frontier")
         if incomplete.commit_sha:
             violations.append(
                 f"w1-incomplete: a non-completing building produced a commit {incomplete.commit_sha}"
             )
+        if not incomplete.wip_anchor_ref.startswith("refs/brick/wip/"):
+            violations.append(
+                f"w1-incomplete: WIP anchor ref used an unadmitted namespace "
+                f"{incomplete.wip_anchor_ref!r}"
+            )
+        if not incomplete.wip_commit_sha:
+            violations.append("w1-incomplete: non-complete provider WIP was not pinned")
+        else:
+            anchor_type = _git_text(customer3, "cat-file", "-t", incomplete.wip_commit_sha)
+            summary["w1_incomplete_wip_commit_type"] = anchor_type
+            if anchor_type != "commit":
+                violations.append("w1-incomplete: WIP commit did not survive worktree disposal")
+            anchor_files = _git_text(
+                customer3,
+                "diff-tree",
+                "--no-commit-id",
+                "--name-only",
+                "-r",
+                incomplete.wip_commit_sha,
+            )
+            summary["w1_incomplete_wip_commit_files"] = anchor_files
+            if anchor_files != _W1_WRITE_REL:
+                violations.append(
+                    f"w1-incomplete: WIP anchor did not capture exactly {_W1_WRITE_REL}: "
+                    f"{anchor_files!r}"
+                )
+            branch_contains_wip = _git_text(
+                customer3, "branch", "--contains", incomplete.wip_commit_sha
+            )
+            if branch_contains_wip:
+                violations.append(
+                    "w1-incomplete: WIP anchor moved or landed on a branch "
+                    f"{branch_contains_wip!r}"
+                )
+        reclaimed = reclaim_wip_anchor(customer3, "w1-incomplete-no-commit-0")
+        summary["w1_incomplete_reclaimed_anchor"] = reclaimed[0] if reclaimed else ""
+        summary["w1_incomplete_reclaimed_commit"] = reclaimed[1] if reclaimed else ""
+        if reclaimed != (incomplete.wip_anchor_ref, incomplete.wip_commit_sha):
+            violations.append(
+                "w1-incomplete: reclaim_wip_anchor did not return the recorded anchor/commit"
+            )
+        release_wip_anchor(customer3, "w1-incomplete-no-commit-0")
+        released = reclaim_wip_anchor(customer3, "w1-incomplete-no-commit-0")
+        summary["w1_incomplete_release_cleared"] = released is None
+        if released is not None:
+            violations.append("w1-incomplete: release_wip_anchor did not clear the WIP ref")
         if head3_before != head3_after or status3_after != "":
             violations.append("w1-incomplete: the live tree was mutated by a held building")
+
+        old_wip_customer = Path(cust_raw) / "customer-old-wip"
+        old_wip_customer.mkdir(parents=True, exist_ok=True)
+        old_wip_base = _seed_customer_repo(repo, old_wip_customer)
+        old_wip_ref = "refs/brick/wip/stale-anchor"
+        old_wip_sha = _git_text(
+            old_wip_customer,
+            "-c",
+            "user.name=brick-engine",
+            "-c",
+            "user.email=engine@brick.local",
+            "commit-tree",
+            f"{old_wip_base}^{{tree}}",
+            "-p",
+            old_wip_base,
+            "-m",
+            "stale WIP anchor",
+        )
+        if old_wip_sha:
+            _git_text(old_wip_customer, "update-ref", old_wip_ref, old_wip_sha)
+            reaped_wip = reap_stale_wip_anchors(old_wip_customer, stale_after_seconds=-1)
+            summary["w1_stale_wip_reaped_refs"] = list(reaped_wip)
+            if old_wip_ref not in reaped_wip:
+                violations.append("w1-stale-wip-anchor: old refs/brick/wip anchor was not reaped")
+        else:
+            violations.append("w1-stale-wip-anchor: could not create stale WIP fixture commit")
 
         # MUTATION-RED: bypass the worktree (run the SAME write dispatch directly
         # with adapter_cwd = the live customer repo). The live-tree-untouched
@@ -1823,9 +1940,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"stale_old_removed={summary.get('w1_stale_old_removed')} "
         f"stale_fresh_preserved={summary.get('w1_stale_fresh_preserved')} "
         f"stale_bad_preserved={summary.get('w1_stale_bad_preserved')}; "
-        f"incomplete frontier={summary.get('w1_incomplete_frontier')} commit={summary.get('w1_incomplete_commit')!r}; "
+        f"incomplete frontier={summary.get('w1_incomplete_frontier')} "
+        f"commit={summary.get('w1_incomplete_commit')!r} "
+        f"wip_anchor={summary.get('w1_incomplete_wip_anchor_ref')!r} "
+        f"wip_commit={summary.get('w1_incomplete_wip_commit_sha')!r} "
+        f"release_cleared={summary.get('w1_incomplete_release_cleared')} "
+        f"stale_wip_reaped={summary.get('w1_stale_wip_reaped_refs')}; "
         f"mutation-RED bypass_dirtied_live_tree={summary.get('w1_mutation_bypass_dirtied_live_tree')} "
-        f"execution_log={summary.get('w1_mutation_red_execution_log')}."
+        f"execution_log={summary.get('w1_mutation_red_execution_log')}; "
+        f"sensitive_anchor_RED={summary.get('sensitive_anchor_red_execution_log')}."
     )
     print(
         "H2a direct-graph intake FIRE passed: "

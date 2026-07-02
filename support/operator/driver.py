@@ -42,10 +42,12 @@ from brick_protocol.support.operator.run import (
 )
 from brick_protocol.support.operator.worktree_sandbox import (
     WorktreeSandboxError,
+    anchor_wip_snapshot,
     commit_sandbox_output,
     create_worktree_sandbox,
     dispose_worktree_sandbox,
     probe_worktree_capable,
+    reclaim_wip_anchor,
     temp_dir_fallback,
 )
 from brick_protocol.support.recording.capture import DEFAULT_BUILDINGS_ROOT, buildings_root_for
@@ -149,6 +151,8 @@ class CustomerSandboxRunResult:
     evidence_root: str
     frontier_kind: str
     commit_sha: str  # "" unless frontier_kind == "complete" with a real change
+    wip_anchor_ref: str  # "" unless a non-complete worktree run preserved WIP
+    wip_commit_sha: str  # "" unless wip_anchor_ref resolves to a commit
     worktree_disposed: bool
     intake_result: BuildingIntakeRunResult | None = None
 
@@ -830,6 +834,8 @@ def _run_in_worktree_sandbox(
                 evidence_root=str(intake.run_result.lifecycle_write.root),
                 frontier_kind=str(frontier.get("frontier_kind") or ""),
                 commit_sha="",  # a temp dir is not a repo: no commit, by design
+                wip_anchor_ref="",
+                wip_commit_sha="",
                 worktree_disposed=False,
                 intake_result=intake,
             )
@@ -853,6 +859,8 @@ def _run_in_worktree_sandbox(
     except WorktreeSandboxError as exc:
         return _run_with_temp_dir(f"worktree-create-failed:{type(exc).__name__}")
     commit_sha = ""
+    wip_anchor_ref = ""
+    wip_commit_sha = ""
     frontier_kind = ""
     evidence_root = ""
     intake_result: BuildingIntakeRunResult | None = None
@@ -880,7 +888,23 @@ def _run_in_worktree_sandbox(
                 ),
             )
     finally:
-        disposed = dispose_worktree_sandbox(sandbox)
+        try:
+            if not commit_sha:
+                wip_anchor_ref = anchor_wip_snapshot(
+                    sandbox,
+                    building_id,
+                    message=(
+                        f"BRICK WIP anchor: {building_id}\n\n"
+                        f"frontier={frontier_kind or 'unknown'} base={sandbox.base_sha}\n"
+                        f"evidence_root={evidence_root}\n"
+                    ),
+                )
+                if wip_anchor_ref:
+                    reclaimed = reclaim_wip_anchor(sandbox.repo_root, building_id)
+                    if reclaimed is not None:
+                        wip_anchor_ref, wip_commit_sha = reclaimed
+        finally:
+            disposed = dispose_worktree_sandbox(sandbox)
 
     return CustomerSandboxRunResult(
         building_id=building_id,
@@ -891,6 +915,8 @@ def _run_in_worktree_sandbox(
         evidence_root=evidence_root,
         frontier_kind=frontier_kind,
         commit_sha=commit_sha,
+        wip_anchor_ref=wip_anchor_ref,
+        wip_commit_sha=wip_commit_sha,
         worktree_disposed=disposed,
         intake_result=intake_result,
     )
