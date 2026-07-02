@@ -314,6 +314,7 @@ graph([
 4. 쓰기 노드 = 노드 `write=True` + 발사 `write_scope` **둘 다** (하나만이면 read-only smoke). glob은 `support/operator/**` 꼴 (★`support/` 금지 = fnmatch 함정).
 5. `adapter_timeout_seconds` 상향 — one-call build() 기본 120초는 정독/구현 레인에 짧다. resume엔 `adapter_cwd=<워크트리>` 절대 누락 금지.
 6. one-call `build()`엔 `gates=`/`write_scope=`/`output_root=` 인자가 **없다**(0702 실측) = 항상 완전무인 + 기본 워크트리 스코프 + goal-runs(벨 단절) + 완료 시 워크트리 자동처분(sandbox commit_sha만 남음 — 반드시 회수). 사람 게이트는 per-node `brick(gates=...)`, 좁은 스코프는 `node_write_scope=`, 벨/경로 지정은 `run_goal_approve_entry(output_root=...)` 계층으로.
+7. (임시 규칙 0702, 원인 미확정) **빌딩은 단독 발사** — 앞 빌딩 frontier 확인 후 다음을 쏜다. 병행 발사 창에서 워크트리 소실 사건 1회 실측(onecall-worktree-loss-incident-0702.md). 그리고 미완 처분은 작업물을 지운다 — 미완 빌딩은 처분 전에 워크트리 실존/유실부터 점검.
 
 ## 알아둘 것
 
@@ -374,6 +375,8 @@ graph([
 | **출생증명서 누락** | resume이 `declared-building-plan.json ... absent` 거부 | 같은 intent로 `overwrite_existing=True` 재발주 (손으로 파일 써넣기 금지) |
 | **증거 불일치 게이트 RED** | `raw_ref does not resolve through raw manifest` 류 | 증거 커밋 보류, 결함 빌딩 발주. 핀 완화 절대 금지 — 체커가 옳다 |
 | **방치 어댑터-에러 홀드** | 오래된 홀드 + 일은 딴 데서 완성 | ⚠ stop 처분은 멈춘 스텝을 LIVE 재실행함 — 종이-stop 생기기 전까지 함부로 stop 금지 |
+| **워크트리 소실 (병행 간섭 용의, 0702)** | adapter-error `error_kind=local_cli_missing` + 워크트리 경로 부재 — 다른 빌딩 발사 직후 창에서 발생 | 추격 금지. 즉시 유실 점검: `git fsck --lost-found`에 그 빌딩 커밋 있으면 회수, 없으면 재발주. 원인 확정 전까지 **빌딩 단독 발사**(직렬화 임시 규칙). 정본: onecall-worktree-loss-incident-0702.md |
+| **미완 처분 작업물 유실 (0702)** | `frontier=agent_incomplete` + `worktree_disposed=true` + `commit_sha` 빈값 | 완료 시에만 커밋하는 설계라 미완 처분 = 작업물 소멸 + resume 불가(adapter_cwd 소멸). agent-return의 주장 기록만 회수 가능 → 재발주가 정답. 미완 빌딩 발견 시 처분 전에 워크트리 실존부터 확인 |
 
 ## 3.3 처분 실행 규칙
 
