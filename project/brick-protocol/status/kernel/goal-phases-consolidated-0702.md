@@ -102,9 +102,11 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
   resume-defect-mechanisms-0702.md. 1차(-0702a)는 트리거 확정.
 
 **오늘 발견한 엔진 결함 5종 (전부 태스크 등록, 처방 대기)**
-1. **가짜 complete 무저지** — write 노드 complete에 diff 실물 요구하는 기계 게이트
-   부재. 처방 설계 완료(#17: write 노드 한정, diff 없으면 사람 HOLD — 크래시 아님).
-   route-complete 랜딩 직후 발사 예정, 표면 겹침으로 대기 중.
+1. **가짜 complete 무저지** — ✅ **랜딩 `00fcaa59`(0703, diff-reality-gate-0703b)**:
+   write 필요 플랜 + complete + write_scope 내 diff 부재 → human_review_waiting
+   (사유 fake_landing_write_scope_diff_absent), 커밋 없음, WIP 앵커 보존. read-only 면제.
+   zero-supply 픽스처는 COO 1건 승인으로 새 의미론 이행. 명시 후속 2건: 노드별
+   형제-가림 blind spot(빌딩 수준 판정이 v1 범위) / gitignored 쓰기 경로 엣지.
 2. **resume 예산 미소비**(#15) — raise가 쓴 예산 주입 행을 재개 걸음이 안 읽음.
 3. **처분 자기잠금**(#19) — 잘못된 종류 처분 시도가 거부되고도 원장에 남아 정정도
    재개도 막음. llm-alias에서 실측.
@@ -143,6 +145,10 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
   빌딩 사건 2건 기록: ①v1에서 COO가 reroute-제안 홀드에 forward 오판 — forward는 제안 채택이
   아니라 선언경로 계속(빌딩이 그대로 닫힘, 무피해, 메모리 각인) ②v2 code-attack-qa 레인
   SIGTERM(143)으로 agent_incomplete — COO가 그 렌즈를 손으로 대행 후 게이트 통과.
+- **#17 diff-실물 게이트 랜딩** `00fcaa59`(위 결함 1 참조) — 부검 처방 1이 기계가 됐다.
+  d2·#17 병합(onboard.py 자동병합)의 통합 스윕 33/33 격리 확인 후 push.
+- **주시 패턴**: claude 레인 SIGTERM(143) 2연속(d2 v2 code-qa, #17 v2 axis-qa — 둘 다 fan
+  안 claude-local 렌즈, 3600s 타임아웃 추정). 3회째면 원인파악 빌딩 발주.
 
 ## 현재 위치 (0702 심야)
 
