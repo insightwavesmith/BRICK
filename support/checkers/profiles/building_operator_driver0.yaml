@@ -69,6 +69,8 @@ text_contains:
       - w1_stale_fresh_preserved
       - w1_stale_bad_preserved
       - w1_mutation_red_execution_log
+      - w1_incomplete_wip_anchor_ref
+      - sensitive_anchor_red_execution_log
       - mutation-RED support evidence only
       # P3 thin fire(graph) sugar: drawn GraphSpec -> official customer graph
       # sandbox route, with no caller-authored JSON packet seam.

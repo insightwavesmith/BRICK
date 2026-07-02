@@ -1278,7 +1278,7 @@ modules:
     imports_axis: []
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
-    pinned_by: building_operator_driver0 (W1 thin worktree-sandbox lifecycle helper for customer-facing dispatch — create→run→commit-on-complete→dispose around run_building_intake; runs git plumbing only, chooses no Movement/target, judges no success/quality, reads no axis; commit gate is supplied by the caller's frontier observation)
+    pinned_by: building_operator_driver0 (W1 thin worktree-sandbox lifecycle helper for customer-facing dispatch — create→run→commit-on-complete or refs/brick/wip anchor-on-incomplete→dispose around run_building_intake; runs git plumbing only, chooses no Movement/target, judges no success/quality, reads no axis; commit/anchor gate is supplied by the caller's frontier observation)
 
   - module: support/operator/coo_operating_chain.py
     layer: operator

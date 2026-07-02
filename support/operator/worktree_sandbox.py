@@ -201,6 +201,7 @@ def commit_sandbox_output(
         )
     if _git(wt, "add", "--all") is None:
         raise WorktreeSandboxError(f"git add failed in worktree {wt}")
+    _unstage_engine_marker(wt)
     committed = _git(
         wt,
         "-c",
@@ -218,6 +219,112 @@ def commit_sandbox_output(
     if head is None or not head.strip():
         raise WorktreeSandboxError(f"could not read committed HEAD in worktree {wt}")
     return head.strip()
+
+
+def anchor_wip_snapshot(
+    sandbox: WorktreeSandbox,
+    building_id: str,
+    *,
+    message: str,
+) -> str:
+    """Pin incomplete provider WIP under ``refs/brick/wip/<building>``.
+
+    This is the non-complete twin of ``commit_sandbox_output``: it snapshots the
+    disposable worktree's current tree without moving any branch. The caller owns
+    the incomplete-frontier observation; this helper only preserves the bytes so
+    disposal does not destroy useful WIP evidence.
+    """
+
+    wt = sandbox.path
+    if not wt.is_dir():
+        raise WorktreeSandboxError(f"cannot anchor a disposed worktree: {wt}")
+    status = _git(wt, "status", "--porcelain", "--untracked-files=all")
+    if status is None:
+        raise WorktreeSandboxError(f"git status failed in worktree {wt}")
+    if not status.strip():
+        return ""
+    sensitive_paths = _raw_sensitive_path_writes(_git_status_paths(status))
+    if sensitive_paths:
+        raise WorktreeSandboxError(
+            "observed_sensitive_path_writes block sandbox WIP anchor: "
+            + ", ".join(sensitive_paths)
+        )
+    if _git(wt, "add", "--all") is None:
+        raise WorktreeSandboxError(f"git add failed in worktree {wt}")
+    _unstage_engine_marker(wt)
+    tree = _git(wt, "write-tree")
+    if tree is None or not tree.strip():
+        raise WorktreeSandboxError(f"git write-tree failed in worktree {wt}")
+    commit = _git(
+        wt,
+        "-c",
+        "user.name=brick-engine",
+        "-c",
+        "user.email=engine@brick.local",
+        "commit-tree",
+        tree.strip(),
+        "-p",
+        sandbox.base_sha,
+        "-m",
+        message,
+    )
+    if commit is None or not commit.strip():
+        raise WorktreeSandboxError(f"git commit-tree failed in worktree {wt}")
+    ref = _wip_anchor_ref(building_id)
+    if _git(sandbox.repo_root, "update-ref", ref, commit.strip()) is None:
+        raise WorktreeSandboxError(f"git update-ref failed for WIP anchor {ref}")
+    return ref
+
+
+def reclaim_wip_anchor(repo_root: Path | str, building_id: str) -> tuple[str, str] | None:
+    """Return the WIP anchor ref + commit for ``building_id``, when present."""
+
+    repo = Path(repo_root).resolve()
+    ref = _wip_anchor_ref(building_id)
+    sha = _git(repo, "rev-parse", "--verify", ref)
+    if sha is None or not sha.strip():
+        return None
+    return ref, sha.strip()
+
+
+def release_wip_anchor(repo_root: Path | str, building_id: str) -> bool:
+    """Delete the WIP anchor for ``building_id`` if it exists."""
+
+    repo = Path(repo_root).resolve()
+    ref = _wip_anchor_ref(building_id)
+    if _git(repo, "show-ref", "--verify", "--quiet", ref) is None:
+        return False
+    return _git(repo, "update-ref", "-d", ref) is not None
+
+
+def reap_stale_wip_anchors(
+    repo_root: Path | str,
+    *,
+    stale_after_seconds: int = _DEFAULT_STALE_AFTER_SECONDS,
+) -> tuple[str, ...]:
+    """Delete stale support-only WIP anchors under ``refs/brick/wip/``."""
+
+    repo = Path(repo_root).resolve()
+    refs = _git(repo, "for-each-ref", "--format=%(refname) %(committerdate:iso-strict)", "refs/brick/wip/")
+    if refs is None:
+        return ()
+    reaped: list[str] = []
+    for line in refs.splitlines():
+        ref, sep, stamp = line.partition(" ")
+        if not sep or not ref.startswith("refs/brick/wip/"):
+            continue
+        committed_at = _parse_marker_created_at(stamp.strip())
+        if committed_at is None:
+            continue
+        try:
+            age_seconds = (datetime.now(timezone.utc) - committed_at).total_seconds()
+        except (OverflowError, OSError):
+            continue
+        if age_seconds < int(stale_after_seconds):
+            continue
+        if _git(repo, "update-ref", "-d", ref) is not None:
+            reaped.append(ref)
+    return tuple(reaped)
 
 
 def dispose_worktree_sandbox(sandbox: WorktreeSandbox) -> bool:
@@ -286,6 +393,16 @@ def temp_dir_fallback(prefix: str = "bp-customer-sandbox-") -> tempfile.Temporar
 
 def _worktree_path_for(building_id: str) -> Path:
     return _engine_worktrees_root() / _slug(building_id)
+
+
+def _wip_anchor_ref(building_id: str) -> str:
+    return f"refs/brick/wip/{_slug(building_id)}"
+
+
+def _unstage_engine_marker(wt_path: Path) -> None:
+    # The marker is normally excluded, but keep commit/anchor output clean if the
+    # local exclude write was unavailable.
+    _git(wt_path, "reset", "-q", "--", _ENGINE_WORKTREE_MARKER)
 
 
 def _write_engine_marker(wt_path: Path, *, repo: Path, building_id: str, base: str) -> None:
@@ -548,10 +665,14 @@ __all__ = [
     "WorktreeProbe",
     "WorktreeSandbox",
     "WorktreeSandboxError",
+    "anchor_wip_snapshot",
     "commit_sandbox_output",
     "create_worktree_sandbox",
     "dispose_worktree_sandbox",
     "probe_worktree_capable",
+    "reap_stale_wip_anchors",
     "reap_stale_worktrees",
+    "reclaim_wip_anchor",
+    "release_wip_anchor",
     "temp_dir_fallback",
 ]
