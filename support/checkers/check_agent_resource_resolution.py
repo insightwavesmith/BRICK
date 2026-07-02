@@ -58,14 +58,6 @@ FIELD_PREFIX = {
     "discipline_refs": "discipline:",
 }
 OBJECTS_DIR = Path("agent/objects")
-AGENT_OBJECT_HEAD_FIELDS = frozenset(
-    {
-        "object_ref",
-        "name",
-        "lane",
-        "callable_performer_refs",
-    }
-)
 AGENT_OBJECT_RESOURCE_BLOCK_MARKER = "contain only provider-neutral references:"
 
 
@@ -127,8 +119,9 @@ def _agent_object_resource_doc_fields(repo: Path) -> frozenset[str]:
 def _allowlist_casting_fields(
     allowed_keys: frozenset[str],
     ref_fields: tuple[str, ...],
+    head_fields: tuple[str, ...],
 ) -> frozenset[str]:
-    return allowed_keys - AGENT_OBJECT_HEAD_FIELDS - frozenset(ref_fields)
+    return allowed_keys - frozenset(head_fields) - frozenset(ref_fields)
 
 
 def _casting_field_registry_violations(repo: Path) -> list[str]:
@@ -181,14 +174,16 @@ def _casting_field_registry_violations(repo: Path) -> list[str]:
         "operator Agent Object allowlist casting fields": _allowlist_casting_fields(
             primitives._AGENT_OBJECT_ALLOWED_KEYS,
             primitives._AGENT_OBJECT_REF_FIELDS,
+            agent_resources._AGENT_OBJECT_HEAD_KEYS,
         ),
         "agent resource resolver allowlist casting fields": _allowlist_casting_fields(
             agent_resources._AGENT_OBJECT_KEYS,
             agent_resources._REF_FIELDS,
+            agent_resources._AGENT_OBJECT_HEAD_KEYS,
         ),
         "AGENTS.md Agent Object prose casting fields": (
             _agent_object_resource_doc_fields(repo)
-            - AGENT_OBJECT_HEAD_FIELDS
+            - frozenset(agent_resources._AGENT_OBJECT_HEAD_KEYS)
             - frozenset(primitives._AGENT_OBJECT_REF_FIELDS)
         ),
     }

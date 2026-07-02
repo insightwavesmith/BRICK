@@ -82,6 +82,7 @@ _SPEC_REL = Path("agent/spec.py")
 # source must define (RULE 1 positive assertion).
 _SCHEMA_SYMBOL = "AGENT_OBJECT_SCHEMA"
 _REF_FIELDS_SYMBOL = "_AGENT_OBJECT_REF_FIELDS"
+_HEAD_KEYS_SYMBOL = "_AGENT_OBJECT_HEAD_KEYS"
 _FORBIDDEN_KEYS_SYMBOL = "_AGENT_OBJECT_FORBIDDEN_KEYS"
 _KEYSET_GATE_FN = "validate_agent_object_keys"
 
@@ -98,6 +99,14 @@ _REF_FIELD_MEMBERS: frozenset[str] = frozenset(
         "tool_policy_refs",
         "discipline_refs",
         "adapter_refs",
+    }
+)
+_HEAD_KEY_MEMBERS: frozenset[str] = frozenset(
+    {
+        "object_ref",
+        "name",
+        "lane",
+        "callable_performer_refs",
     }
 )
 _FORBIDDEN_KEY_MEMBERS: frozenset[str] = frozenset(
@@ -122,6 +131,7 @@ _FORBIDDEN_KEY_MEMBERS: frozenset[str] = frozenset(
 )
 # Named member-set -> its frozenset, for RULE 2 matching + violation text.
 _SEALED_MEMBER_SETS: dict[str, frozenset[str]] = {
+    "agent-object head-key set": _HEAD_KEY_MEMBERS,
     "agent-object ref-field set": _REF_FIELD_MEMBERS,
     "agent-object forbidden-key set": _FORBIDDEN_KEY_MEMBERS,
 }
@@ -270,6 +280,13 @@ def check_spec_single_source(module: ast.Module) -> list[str]:
             f"agent/spec.py defines no {_KEYSET_GATE_FN}() (the ONE key-set gate the "
             "load path and the compose path must both call)"
         )
+    head_members = _symbol_member_set(module, _HEAD_KEYS_SYMBOL)
+    if head_members != _HEAD_KEY_MEMBERS:
+        violations.append(
+            f"agent/spec.py {_HEAD_KEYS_SYMBOL} does not enumerate the agent-object "
+            f"head-key set (found {sorted(head_members) if head_members else None}, "
+            f"expected {sorted(_HEAD_KEY_MEMBERS)})"
+        )
     ref_members = _symbol_member_set(module, _REF_FIELDS_SYMBOL)
     if ref_members != _REF_FIELD_MEMBERS:
         violations.append(
@@ -390,6 +407,13 @@ def _assert_mutation_red() -> str:
     )
     refs_red = bool(check_no_member_set_enumeration(Path("synthetic_refs.py"), restated_refs))
 
+    restated_heads = ast.parse(
+        "HEAD_KEYS = ("
+        + ", ".join(f'"{name}"' for name in sorted(_HEAD_KEY_MEMBERS))
+        + ")"
+    )
+    heads_red = bool(check_no_member_set_enumeration(Path("synthetic_heads.py"), restated_heads))
+
     restated_forbidden = ast.parse(
         "FORBIDDEN = frozenset({"
         + ", ".join(f'"{name}"' for name in sorted(_FORBIDDEN_KEY_MEMBERS))
@@ -410,17 +434,17 @@ def _assert_mutation_red() -> str:
     )
     lone_clean = not check_no_member_set_enumeration(Path("synthetic_lone.py"), lone_read)
 
-    if not (refs_red and forbidden_red and lone_clean):
+    if not (heads_red and refs_red and forbidden_red and lone_clean):
         raise AgentObjectSchemaSingleSourceError(
             "mutation RED failed: "
-            f"refs_red={refs_red}, forbidden_red={forbidden_red}, lone_clean={lone_clean} "
-            "(a re-stated ref-field set and a re-stated forbidden-key set must both be "
-            "rejected, and a lone by-name read must NOT be)"
+            f"heads_red={heads_red}, refs_red={refs_red}, forbidden_red={forbidden_red}, "
+            f"lone_clean={lone_clean} (a re-stated head-key set, ref-field set, and "
+            "forbidden-key set must be rejected, and a lone by-name read must NOT be)"
         )
     return (
-        "mutation RED observed: a synthetic re-enumerated ref-field tuple and a "
-        "re-enumerated forbidden-key frozenset were both rejected by RULE 2, and a "
-        'lone `obj.get("adapter_refs")` by-name read was correctly left clean.'
+        "mutation RED observed: a synthetic re-enumerated head-key tuple, "
+        "ref-field tuple, and forbidden-key frozenset were rejected by RULE 2, "
+        'and a lone `obj.get("adapter_refs")` by-name read was correctly left clean.'
     )
 
 

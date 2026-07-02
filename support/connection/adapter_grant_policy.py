@@ -353,9 +353,17 @@ def _instruction_packet_for_prompt(
     request: AgentAdapterRequest,
     spec: LocalCliSpec,
 ) -> Mapping[str, Any]:
+    from .agent_adapter import _required_return_shape_fields
+
     if not request.agent_instruction_packet:
         return {}
-    return dict(request.agent_instruction_packet)
+    packet = dict(request.agent_instruction_packet)
+    required_labels = _required_return_shape_fields(request.required_return_shape)
+    if request.required_return_shape and "required_return_shape" not in packet:
+        packet["required_return_shape"] = request.required_return_shape
+    if required_labels and "required_return_labels" not in packet:
+        packet["required_return_labels"] = list(required_labels)
+    return packet
 
 
 def _extract_required_return_fields(

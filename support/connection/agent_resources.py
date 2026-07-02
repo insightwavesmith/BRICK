@@ -231,6 +231,7 @@ _NOT_PROVEN = (
 # green). Existing readers (the load path below, check_agent_resource_resolution)
 # keep their names through these aliases.
 _AGENT_OBJECT_KEYS = AGENT_OBJECT_SCHEMA.allowed_keys
+_AGENT_OBJECT_HEAD_KEYS = AGENT_OBJECT_SCHEMA.head_keys
 _REF_FIELDS = AGENT_OBJECT_SCHEMA.ref_fields
 _FORBIDDEN_AGENT_OBJECT_KEYS = AGENT_OBJECT_SCHEMA.forbidden_keys
 
