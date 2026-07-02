@@ -67,6 +67,9 @@ ROOT_FILES = {
     ".gitignore",
     "README.md",
     "AGENTS.md",
+    # Ratified single-source law (0702) -- lives at root so release_export
+    # (which excludes project/) ships it to customers.
+    "BRICK-CONSTITUTION.md",
     "pyproject.toml",
     "uv.lock",
 }
