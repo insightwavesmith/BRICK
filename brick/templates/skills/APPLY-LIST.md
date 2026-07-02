@@ -17,10 +17,10 @@
 | make-a-brick / make-a-gate / make-an-agent | agent 정본 → template/live 재복사 |
 | task_intake | live에 정본 이름으로 신규 배포 (구 `task-intake` 디렉토리는 아래 삭제 목록) |
 
-## DELETE (Smith 터미널에서 — 세션이 live를 삭제하지 않는다)
+## DELETE — 0702 집행 완료 (Smith 명시 위임으로 COO 세션이 수행, 사본은 아카이브에 보존)
 
 ```bash
-# 통합·흡수된 잔재 (내용은 전부 정본 스킬이 커버)
+# 통합·흡수된 잔재 — 아래 6건 삭제 완료(0702). 기록용으로 유지.
 rm -rf ~/.claude/skills/brick-hold-triage          # brick-task-author PHASE 3로 흡수
 rm -rf ~/.claude/skills/brick-declaration-author   # make-a-brick/-an-agent/-a-gate로 대체
 rm -rf ~/.claude/skills/axis-check                 # protocol-boundary-watch가 커버
