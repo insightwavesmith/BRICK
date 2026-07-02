@@ -43,7 +43,7 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
 | 항목 | 상태 |
 |---|---|
 | 온보딩 Phase 0~1 (provider registry/add, sink add, Slack·Dashboard) | ✅ 랜딩 (소넷세션, `dab4acb`/`60863f8`) |
-| **발사 인체공학 3종** — 결과 요약 패킷 / `llm=` 별칭 / `returns=` 계약 주입 (Smith 0702 채택) | 대기 — 배치6 뒤 최우선 |
+| **발사 인체공학 3종** — 결과 요약 패킷 / `llm=` 별칭 / `returns=` 계약 주입 | `returns=`✅랜딩 · `llm=`핵심 4/6 완료(잔여 진행중) · 결과 요약 패킷 대기 |
 | 온보딩 잔여 Phase 2~3 (대화형 등록/모델선택) | 대기 |
 | 갓모듈 소형 안전묶음 §4-5(registry phantom)/§4-8(게이트 6스텝)/§4-9(프로브 안전화) | ✅ 랜딩 (소넷세션 작업 B/C/D) |
 | §4-6 anti-toothless 가드 구현 (서베이로 리스크 소멸 — 걸릴 프로파일 1개) | 대기 (소형) |
@@ -71,30 +71,59 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
 3. **GP3은 P8 프로브 뒤** — 10k줄 이동 중 프로브를 돌리면 갭 추출 신호가 오염된다.
 4. Smith 게이트 잔여 2건: P8 프로브 진입 결정 / coo·dev 오브젝트 처분(엔진 바인딩 이의 제기됨).
 
-## 0702 저녁 갱신 (COO 실측 — push 735d1dd3 기준)
+## 0702 심야 갱신 (COO 실측 — push ee5e3061 기준, 21개 태스크 중 12 완료)
 
-**랜딩 완료(저녁분)**
-- AGENTS.md 984→517 리사이즈 + 법급 문구 COO 복원(헌법 포인터·packet 비권위 조항) — `8f19cacc`/`b690da91`
-- gemini 등록 완결: preflight ready 분류 + 실키 라이브 등록 실증(providers.yaml) — `42d37a47`
-- 인체공학 부분: llm= 별칭 기반 + returns 계약 스탬핑 + 체커 핀 — `3760741` (부분 랜딩 선언)
-- **compact DSL 기본예산(5) 스탬프** — `735d1dd3` (v2 재시공; 1차는 pin만 넣고 엔진 무변경
-  complete 자기보고 → COO 프로브 3필드 null로 **가짜 랜딩 반려**, 앵커 default-route-0702a-rejected)
+**저녁 랜딩(GP0/GP1 마무리 + GP2 인체공학 완결)**
+- AGENTS.md 리사이즈+법급 문구 복원, gemini 등록 완결(라이브 실증), 인체공학 llm=
+  기반+returns 계약 스탬핑 부분 랜딩, compact DSL 기본예산(5) 스탬프(가짜 랜딩 1회
+  반려 후 v2로 랜딩) — 전부 이전 갱신에 기록됨.
+- **route-complete 부분 랜딩**(`bfbcad85`): 재진입 스텝 증거·yaml 부재 명시에러·정책
+  provenance pin. 합성 무선언 e2e 픽스처만 잔여(→ #15).
+- **부검 완결**(`f26e57bc`): 3축 판정 Link>Agent>Brick, 처방 후보 3, 첫 자동 수리
+  재진입 실측. Smith 판정("축 분리가 브릭의 최대 장점") §6-0에 기록.
+- **3축 개선 배치**(`f38d0074`/`4625e81f`): Brick축(closure 반환 계약에
+  `deliverable_crosscheck` 필드 신설 — 엔진은 나르기만)·Agent축(qa.md/coo.md 표준
+  공격 항목)·Link축(#17로 차후+조건부 설계 확정) 전부 자기 선언 표면에 배치.
+- **returns-persistence 랜딩**(`dfc11ee0`): CLI 원문 전체 보존(`raw/agent-output-text.jsonl`)
+  — 1차는 write_scope 조사 누락(COO 실수)으로 5라운드 허비, 새 8항목 템플릿으로 v2b 정공.
+- **task.md 템플릿 8항목 확정**(`073a26fa`): Required Sources + Brick/Agent/Link
+  Boundary 신설(오늘 두 사고 직접 겨냥) — write_scope 누락·해석 모호함 재발 방지.
+- **PHASE 3 표준 진단 체크리스트 신설**(`5b69f872`): 홀드 마주치면 처분 전에 3축+엔진
+  4갈래 질문 — 전부 0702 실제 사고 인용. 이후 홀드 2건에서 즉시 실전 적용 확인.
+- **읽기 방법론 정정**(`ee5e3061`): `output_excerpt`는 의도적 600자 미리보기, 구조화
+  필드(`observed_evidence` 등)는 원래 안 잘림 — "returns 절단" 진단 일부는 COO의
+  읽기 오류였음을 정정(부검 §7).
 
 **진행 중 빌딩 2**
-- route-complete-0702a: e2e 재진입 픽스처 + reroute-defaults.yaml 부재 행동 + 정책 필드 판정
-- postmortem-default-route-0702b: 가짜 랜딩 3축 원인 판정 (1차 부검은 returns 절단+예산 홀드로 접힘)
+- `llm-alias-completion-0702a`: llm= Deliverable 5·6(동시사용 거부·단일출처) —
+  본편(1~4)은 두 라운드 QA 독립검증 통과, 남은 조각만 design-first로 재발주.
+- `resume-corrupt-investigation-0702b`: 원장 불일치("완주 스텝-출력은 있는데 raw
+  반환 기록이 없다")의 발생 기전 — 멀티모달 6렌즈(claude 3 + codex 2 + gemini 1,
+  gemini 첫 실전 디스패치 겸용). 1차 조사(같은 이름 -0702a)가 트리거 조건은 확정,
+  기전은 verification_gap으로 넘김.
 
-**신규 발견 엔진 구멍 3 (전부 태스크 등록)**
-1. 가짜 complete 무저지 — "구현 deliverable diff 실물 없으면 완주 불가" 기계 게이트 부재 (부검 v2가 처방 후보 산출 예정)
-2. claude-local 레인 returns 600자 절단 — 렌즈/조사 빌딩 전문 유실 (인체공학 #8 잔여와 한 가족)
-3. resume 예산 주입 브리지 부재 — walker_resume.py:196 가드가 raise budget_increment 행을 소비하지 않아 무예산 compose 그래프는 홀드 후 재개 불가
-4. (소음) admission 체커가 vessel 발사 표준의 중첩 레이아웃(buildings/<이름>/<노드>/) 미인지 — 라이브 --all rc=1 소음, push 무영향
+**오늘 발견한 엔진 결함 5종 (전부 태스크 등록, 처방 대기)**
+1. **가짜 complete 무저지** — write 노드 complete에 diff 실물 요구하는 기계 게이트
+   부재. 처방 설계 완료(#17: write 노드 한정, diff 없으면 사람 HOLD — 크래시 아님).
+   route-complete 랜딩 직후 발사 예정, 표면 겹침으로 대기 중.
+2. **resume 예산 미소비**(#15) — raise가 쓴 예산 주입 행을 재개 걸음이 안 읽음.
+3. **처분 자기잠금**(#19) — 잘못된 종류 처분 시도가 거부되고도 원장에 남아 정정도
+   재개도 막음. llm-alias에서 실측.
+4. **resume 원장 불일치**(#21) — 트리거는 확정(1차 조사), 발생 기전 조사 중(2차,
+   현재 진행). #15와 다른 코드 경로.
+5. (소음) admission 체커 중첩 vessel 레이아웃 미인지(#14) — push 무영향, 백로그.
 
-## 현재 위치 (0702 저녁)
+**엔진 개선 후보(설계만, 미착수)**
+- write_scope 캐스케이드(#20): design의 candidate_file_changes를 work의 실제
+  write_scope로 역산 — 오늘 예산 캐스케이드와 같은 모양. GP2 이후 순번.
 
-GP0 ✅(admission-gate + 중첩 레이아웃 잔여) · **GP1 ✅ 종료** · GP2 진행 중:
-진행 빌딩 2(route-complete·부검 v2) → resume 브리지 → D1 결과 요약 패킷 + returns 절단 수리(#8 잔여)
-→ 온보딩 Phase2-3 → §4-6/§4-7 → P7/P8(Smith 게이트) → GP3.
+## 현재 위치 (0702 심야)
+
+GP0 ✅(admission-gate + 중첩 레이아웃 잔여만) · **GP1 ✅ 종료** · **GP2 인체공학
+3종 사실상 완료**(llm= 잔여 조각만) · GP2 본대는:
+진행 빌딩 2 착지 → resume 계열 결함 3종(#15/#19/#21) 한 빌딩으로 정리 → diff-실물
+게이트(#17) → D1 결과 요약 패킷(#8 마지막 조각) → 온보딩 Phase2-3 → §4-6/§4-7 →
+P7/P8(Smith 게이트) → GP3.
 
 ## 미래 후보 (선언 원칙 보존 확장)
 
