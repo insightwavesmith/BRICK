@@ -365,6 +365,32 @@ node_write_scope는 assemble()/build() 호출 시점에 COO가 고정하고, des
 분류표·절차의 정본은 이 스킬 본문이므로 문서 부재 시에도 기능은 완결된다.)
 빌딩 루트는 읽기 전용 — 분석 중 어떤 파일도 수정하지 않는다. 실험은 /tmp 사본에서만.
 
+## 3.0 항상 먼저 던지는 질문 (3축 + 엔진 — 처분보다 먼저)
+
+실무(반복 재발주)에 빠지면 운영자 관점이 사라진다 — 처분 내기 전에 매번 이 4갈래를
+스스로 자문한다. 전부 0702 실측 사고가 근거(추상 원칙 아님):
+
+- **Brick(계약)**: 이 실패가 계약의 틈(허용돼 있었음) 때문인가, 명시했는데 무시됐기
+  때문인가?(postmortem-default-route-fake-landing-0702.md §2 판정 방식) 성공 기준을
+  리터럴 복붙 명령으로 못박았나, 해석 여지가 있는 산문이었나?(llm-alias v2 "brick(...,
+  llm=...) 파라미터" 문구가 두 가지로 읽혀 반려 2회) COO가 Required Sources로 실제
+  읽은 범위가 write_scope보다 좁지 않았나?(returns-persistence 1차, support/recording/
+  누락으로 5라운드 허비)
+- **Agent(수행)**: 이탈이 최초 어느 레인에서 시작됐고, 뒤 레인(QA)이 그걸 공격 목록에
+  넣어 잡았나 방치했나? 자기보고(returned)가 스스로 문제를 실토했는데 판정(closure)이
+  그걸 무시하고 complete로 갔나?(default-route v1 — "no local diff exists" 자기 기록
+  하고도 완주)
+- **Link(이동/게이트)**: write=True 노드의 complete에 diff 실물을 내가 직접 확인했나,
+  자기보고·체커 green만 믿었나? 처분 클래스를 먼저 확인했나 — hold_reason이
+  budget_exhaustion이면 raise, 그 외(예: runtime_handoff_address_unresolved_in_ledger)면
+  forward(0702 실측 2회 오판, walker_resume.py:410 `_require_budget_exhaustion_raise`가
+  잘못된 raise를 명시 거부)?
+- **엔진(support 기반)**: 지금 이 홀드가 콘텐츠 문제(레인이 뭘 잘못 짬)인가, 엔진 자체
+  결함(resume/disposition 메커니즘 — 0702 하루에만 3종: 예산 미소비/처분 자기잠금/
+  resume corrupt evidence)인가? 후자면 같은 그래프 모양에서 반복 재현되는지부터
+  확인하고, 더 안 파고 fresh 재발주로 우회한다(resume을 억지로 밀어붙이지 마라).
+  격리 워크트리에서 직접 재현했나, vessel 자기보고만 믿었나?
+
 ## 3.1 증거 수집 (전부 읽기 전용)
 
 빌딩 루트 = build 결과 packet이 반환한 `evidence_root`.
