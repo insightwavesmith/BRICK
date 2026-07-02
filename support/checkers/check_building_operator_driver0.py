@@ -304,6 +304,22 @@ def _git_text(cwd: Path, *args: str) -> str:
     return completed.stdout.strip()
 
 
+def _jsonl_records(path: Path) -> tuple[Mapping[str, Any], ...]:
+    if not path.is_file():
+        return ()
+    records: list[Mapping[str, Any]] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            value = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(value, Mapping):
+            records.append(value)
+    return tuple(records)
+
+
 # The minimal working-tree surfaces a customer install needs for the catalog +
 # plan materialization the wrapper exercises. Copying from the WORKING TREE (not
 # `git archive`) keeps this FIRE independent of whether the repo under test is a
@@ -1471,6 +1487,7 @@ def _w1_worktree_sandbox_fire(
         run_building_intake,
         run_customer_building_in_sandbox,
     )
+    from brick_protocol.support.operator.building_operation import observe_building_frontier
     from brick_protocol.support.operator.worktree_sandbox import (
         _ENGINE_WORKTREE_MARKER,
         _engine_worktrees_root,
@@ -1604,6 +1621,41 @@ def _w1_worktree_sandbox_fire(
         if read_only_gate_fired:
             violations.append("w1-read-only: zero-write-need plan triggered the fake-landing gate")
 
+        # D3(a): probe-write QA lenses are write-scope-capable because their
+        # normal product is probe evidence; net-zero source diff must not fire
+        # the product fake-landing gate.
+        probe_write_plan = evidence_root / "probe-write-plan.json"
+        probe_write_plan.write_text(
+            json.dumps(
+                {
+                    "brick_steps": [
+                        {
+                            "step_ref": "read-only-graph-qa-lens",
+                            "rows": [
+                                {
+                                    "axis": "Brick",
+                                    "requires_brick_write_scope": True,
+                                    "capability_class": "probe_write",
+                                    "write_scope": {
+                                        "allowed_paths": ["."],
+                                        "forbidden_paths": [],
+                                    },
+                                }
+                            ],
+                        }
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
+        probe_write_gate_fired = _write_need_complete_without_scoped_diff(
+            customer,
+            probe_write_plan,
+        )
+        summary["w1_probe_write_fake_landing_gate_fired"] = probe_write_gate_fired
+        if probe_write_gate_fired:
+            violations.append("w1-probe-write: probe-write plan triggered the fake-landing gate")
+
         # D1 fake-landing gate: a write-needed Building that reports a complete
         # frontier without any scoped sandbox diff is held on the existing human
         # review surface, so no empty completion commit lands.
@@ -1623,6 +1675,22 @@ def _w1_worktree_sandbox_fire(
         summary["w1_fake_empty_frontier_reason"] = fake_empty_result.frontier_reason
         summary["w1_fake_empty_commit"] = fake_empty_result.commit_sha
         summary["w1_fake_empty_wip_anchor"] = fake_empty_result.wip_anchor_ref
+        fake_empty_reobserved = observe_building_frontier(
+            fake_empty_result.evidence_root,
+            repo_root=fake_empty,
+        )
+        fake_empty_link_records = _jsonl_records(
+            Path(fake_empty_result.evidence_root) / "raw" / "link.jsonl"
+        )
+        fake_empty_hold_rows = [
+            record
+            for record in fake_empty_link_records
+            if record.get("hold_reason") == "fake_landing_write_scope_diff_absent"
+        ]
+        summary["w1_fake_empty_reobserved_frontier"] = fake_empty_reobserved.get(
+            "frontier_kind"
+        )
+        summary["w1_fake_empty_hold_row_count"] = len(fake_empty_hold_rows)
         if fake_empty_result.frontier_kind != "human_review_waiting":
             violations.append(
                 "w1-fake-empty: write-needed complete-without-diff did not hold "
@@ -1637,6 +1705,17 @@ def _w1_worktree_sandbox_fire(
             violations.append("w1-fake-empty: empty fake landing produced a completion commit")
         if fake_empty_head_before != fake_empty_head_after:
             violations.append("w1-fake-empty: fake landing moved the customer HEAD")
+        if fake_empty_reobserved.get("frontier_kind") != "human_review_waiting":
+            violations.append(
+                "w1-fake-empty: durable frontier re-observation did not match the hold "
+                f"(frontier={fake_empty_reobserved.get('frontier_kind')!r})"
+            )
+        if not fake_empty_hold_rows:
+            violations.append("w1-fake-empty: fake landing hold row was not persisted")
+        elif fake_empty_hold_rows[-1].get("transition_lifecycle_state") != "paused":
+            violations.append(
+                "w1-fake-empty: fake landing hold row did not carry paused lifecycle"
+            )
 
         # D1 out-of-scope variant: when bytes exist but none are inside the
         # declared write_scope, the same hold path preserves them under WIP.

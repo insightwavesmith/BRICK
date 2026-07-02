@@ -122,6 +122,12 @@ def observe_building_frontier(
     verdict = frontier_sufficiency_verdict(facts, _FRONTIER_SUFFICIENCY_VOCAB)
     frontier_kind = verdict.frontier_kind
     frontier_reason = verdict.frontier_reason
+    if (
+        frontier_kind == _FRONTIER_LINK_PAUSED
+        and _latest_hold_reason(link_records) == "fake_landing_write_scope_diff_absent"
+    ):
+        frontier_kind = _FRONTIER_HUMAN_REVIEW_WAITING
+        frontier_reason = "fake_landing_write_scope_diff_absent"
 
     return {
         "kind": "building_frontier_observation",
@@ -185,6 +191,14 @@ def _latest_transition_lifecycle_record(records: Sequence[Mapping[str, Any]]) ->
                 if record.get(key) not in (None, "")
             }
     return {}
+
+
+def _latest_hold_reason(records: Sequence[Mapping[str, Any]]) -> str:
+    for record in reversed(records):
+        reason = record.get("hold_reason")
+        if isinstance(reason, str) and reason.strip():
+            return reason.strip()
+    return ""
 
 
 def _closed_boundary_raw_record_after_latest_pause(records: Sequence[Mapping[str, Any]]) -> bool:
