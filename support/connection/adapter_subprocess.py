@@ -177,8 +177,10 @@ def preflight_provider(
         return status
 
     # Installed: run only the cheap --version probe (short timeout). This proves
-    # the CLI runs but NOT that it is logged in, so authed stays best-effort.
-    # We never run a real provider/building call here.
+    # the CLI runs but NOT that an OAuth login is present. Gemini's API-key path
+    # is different: a present API-key env var is enough to classify the adapter as
+    # ready while credential_validity stays explicitly not_proven because no live
+    # provider call happens here.
     authed = "unknown"
     version_ok = False
     try:
@@ -196,7 +198,7 @@ def preflight_provider(
                     "adapter_ref": ref,
                     "cli": cli,
                     "installed": True,
-                    "authed": "unknown",
+                    "authed": "yes",
                     "ok": True,
                     "api_key_env_present": True,
                     "credential_validity": "not_proven",

@@ -176,6 +176,14 @@ text_contains:
   - path: support/connection/adapter_subprocess.py
     texts:
       - def preflight_provider
+      - '"authed": "yes"'
+      - '"credential_validity": "not_proven"'
+      - "API-key env var is enough to classify the adapter as"
+  - path: support/checkers/lib/provider_preflight_check.py
+    texts:
+      - _assert_gemini_api_key_ready
+      - _assert_gemini_ready_mutation_red
+      - "mutation-RED observed: api_key_env_present=True with authed!='yes' is rejected"
   - path: support/connection/agent_resources.py
     texts:
       - adapter_is_write_capable
