@@ -33,7 +33,7 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
 | 3 | 사본 드리프트 + live 스킬 sync + APPLY-LIST 재작성 | ✅ `c7d7710` + 삭제 6건 집행 `e63426c` |
 | 4 | 헌법 한 화면 추출 (BRICK-CONSTITUTION.md) | ✅ **Smith 비준** `2d292fd` (단일출처·불변규칙만) |
 | 5 | 스킬 리사이즈 본편 | ✅ 1부 빌딩 `8c60b82` + 2부 COO `7be307c` (2,237→2,125 — pin 보존 우선, 잔여 감량은 pin 이동 비용상 종료) |
-| 6 | status/kernel 문서 ~108개 아카이브 | 🔄 빌딩 진행 중 (doc-archive-0702a) |
+| 6 | status/kernel 문서 아카이브 | ✅ `9fc9ebc` — 133건 archive/, 잔류 28, WIP 앵커 첫 실전 회수 |
 
 측정 기반: skill-doc-resize-audit-0702.md (24레인 감사). 부속 완료: inspector 레인
 기본 claude·sonnet·xhigh 재선언(`b956a17`) + 전 레인 모델 재선언(Smith 0702, `cf0fb03`/`dd445cc` — design/pm=opus·xhigh, qa=sonnet·xhigh, qa-lead/cto=codex·xhigh, pin 3사이트 동반).
@@ -73,8 +73,8 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
 
 ## 현재 위치 (0702)
 
-GP0 ✅(admission-gate 배선만 잔여) · GP1 배치6 빌딩 진행 중 → 랜딩 시 GP1 종료 →
-GP2: 발사 인체공학 3종 → 온보딩 Phase2-3 → §4-6/§4-7 소형 → P7/P8 → GP3.
+GP0 ✅(admission-gate만 잔여) · **GP1 ✅ 종료(9fc9ebc)** →
+GP2: 발사 인체공학 4종(+기본예산 배선) → 온보딩 Phase2-3 → §4-6/§4-7 → P7/P8 → GP3.
 
 ## 미래 후보 (선언 원칙 보존 확장)
 
