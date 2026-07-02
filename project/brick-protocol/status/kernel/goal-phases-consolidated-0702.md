@@ -43,7 +43,7 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
 | 항목 | 상태 |
 |---|---|
 | 온보딩 Phase 0~1 (provider registry/add, sink add, Slack·Dashboard) | ✅ 랜딩 (소넷세션, `dab4acb`/`60863f8`) |
-| **발사 인체공학 3종** — 결과 요약 패킷 / `llm=` 별칭 / `returns=` 계약 주입 | `returns=`✅랜딩 · `llm=`핵심 4/6 완료(잔여 진행중) · 결과 요약 패킷 대기 |
+| **발사 인체공학 3종** — 결과 요약 패킷 / `llm=` 별칭 / `returns=` 계약 주입 | `returns=`✅랜딩 · `llm=`✅랜딩 `9eb30ad9`(v9 확정 4조각, 0703 새벽 — D5/D6 동시사용·심화는 후속 소형, 현재 동시사용은 llm= 우선 silent-override) · 결과 요약 패킷 대기 |
 | 온보딩 잔여 Phase 2~3 (대화형 등록/모델선택) | 대기 |
 | 갓모듈 소형 안전묶음 §4-5(registry phantom)/§4-8(게이트 6스텝)/§4-9(프로브 안전화) | ✅ 랜딩 (소넷세션 작업 B/C/D) |
 | §4-6 anti-toothless 가드 구현 (서베이로 리스크 소멸 — 걸릴 프로파일 1개) | 대기 (소형) |
@@ -116,6 +116,23 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
 **엔진 개선 후보(설계만, 미착수)**
 - write_scope 캐스케이드(#20): design의 candidate_file_changes를 work의 실제
   write_scope로 역산 — 오늘 예산 캐스케이드와 같은 모양. GP2 이후 순번.
+
+## 0703 새벽 갱신 (COO 실측)
+
+- **llm= v9 랜딩** `9eb30ad9`: 확정 4조각(D1 팩토리 kwarg / D2 bare만 / D3 정확히 ValueError /
+  D4 단일출처 provider_registry.py:43). 빌딩 내 수리 루프 4라운드 — 1라운드에서 QA 2렌즈가
+  D4 개명·금지된 D5 구현·pin 부재·kwarg 삼킴 버그를 적중(렌즈 아키텍처 첫 실전 검증),
+  자동 재파견이 전부 수리. 최종 모양: llm=은 brick() 전용(agent()는 TypeError로 거부 —
+  삼킴 버그 원천 제거). 5게이트 전 통과(변이-RED는 계약-살해 변이로 rc=1 실측;
+  bare-약화 변이는 등가 변이로 판정 — QA의 "rc=1" 자기보고는 재현 안 됨, 불신 원칙 재확인).
+  잔여 홀드(5라운드 재파견 제안)는 맹목-design 잔재로 판정, 의도적 방치.
+- **레인 문서 전달 계약 각인** `9f69b064`/`bc0426d2`: 격리 워크트리에 untracked vessel이
+  안 보여 design 2건이 봉쇄/발명(0702 심야 실측). 교정: 계약은 work_statement 인라인 +
+  참고문서는 `source_facts=`(본문 프롬프트 탑재, 못 읽는 ref 조용히 스킵 주의) 또는 커밋된
+  트리 경로. 스킬 양 사본+골 루프 프롬프트+기전 정본(resume-defect-mechanisms-0702.md) 반영.
+- **resume 3결함 수리 v2 진행**: v1은 design 소스 봉쇄로 COO 정지→교정 재발주. v2는
+  2라운드 후 홀드 — D1(#15 raise 예산 브리지)은 QA 자체 프로브로 실증(오염 예산맵+raise 2
+  → 완주, base+2 소비), D2(#19 원장 청결)는 "부분" concern으로 COO 판정 대기 중.
 
 ## 현재 위치 (0702 심야)
 
