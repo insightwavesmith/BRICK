@@ -4,10 +4,16 @@ This repository is the clean-room home for Brick Protocol. Read this file before
 changing protocol, kernel, checker, module, contract, runner, Agent resource,
 Link gate, projection, evidence, or status surfaces.
 
-If this short constitution conflicts with older detailed prose, this file plus
-the current operating packet's AGENTS-governed operating context controls active
-operation. Historical records remain evidence; they do not rewrite current law
-by implication.
+Law (the invariant rules) lives in root `BRICK-CONSTITUTION.md` (three axes,
+support records facts and never judges, minimal graph, Rules 1-10; ratified by
+Smith 0702). This file carries operating detail — identity, paths, procedures,
+contract surfaces. Where the two conflict, the constitution wins.
+
+If this operating instruction set conflicts with older detailed prose, this file
+plus the current operating packet's AGENTS-governed operating context controls
+active operation. The packet is not independent constitutional authority.
+Historical records remain evidence; they do not rewrite current law by
+implication.
 
 ## Fixed Identity
 
