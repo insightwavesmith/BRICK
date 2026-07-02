@@ -61,6 +61,12 @@ from brick_protocol.support.operator.driver import run_building_intake
 from brick_protocol.support.operator.frontier_observation import (
     observe_building_frontier,
 )
+from brick_protocol.support.operator.building_operation_common import (
+    _jsonl_records,
+    _read_json_mapping,
+    _rel,
+    _repo_path,
+)
 from brick_protocol.support.operator.provider_registry import (
     register_ready_provider,
 )
@@ -70,6 +76,7 @@ from brick_protocol.support.operator.sink_registry import (
     brick_home as sink_brick_home,
     record_sink_reachability,
 )
+from brick_protocol.support.operator.worktree_sandbox import reclaim_wip_anchor
 from brick_protocol.link.transition import DISPOSITION_ACTIONS
 
 
@@ -2039,6 +2046,278 @@ GOAL_APPROVE_ACTIONS = ("forward", "stop")
 _GOAL_PROPOSAL_FILENAME = "proposed-building-graph.json"
 _BUILD_SELECTED_ADAPTER = "codex-local"
 
+
+_RESULT_SUMMARY_PROOF_LIMITS = [
+    "support evidence only",
+    "static evidence files only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+]
+
+_RESULT_SUMMARY_FORBIDDEN_KEYS = {
+    "ok",
+    "success",
+    "complete",
+    "quality",
+    "verdict",
+    "status",
+    "pass",
+    "fail",
+}
+
+_RESULT_SUMMARY_CARRIED_CLOSURE_KEYS = frozenset(
+    {
+        "deliverable_crosscheck",
+        "transition_concern_evidence",
+    }
+)
+
+
+def summarize_building_result(
+    evidence_root: str | Path,
+    *,
+    repo_root: Path | str = _REPO_ROOT,
+) -> dict[str, Any]:
+    """Gather a no-raise support summary from one Building evidence root.
+
+    This is a read-side support projection over already-written evidence. It
+    records facts only and never chooses Movement or judges success/quality.
+    """
+
+    try:
+        repo = _safe_repo_root(repo_root)
+        root = _repo_path(repo, evidence_root)
+        frontier = dict(observe_building_frontier(root, repo_root=repo))
+        summary: dict[str, Any] = {
+            "kind": "building_result_summary",
+            "schema_version": "building-result-summary-0",
+            "building_root": _rel(repo, root),
+            "frontier_kind": _text_or_none(frontier.get("frontier_kind")),
+            "frontier_reason": _text_or_none(frontier.get("frontier_reason")),
+            "step_attempts": _summary_step_attempts(root),
+            "closure": _summary_latest_closure(root),
+            "link_paused_rows": _summary_link_paused_rows(root),
+            "adapter_error_rows": _summary_adapter_error_rows(root),
+            "dispatch_timing_ms_total": _summary_dispatch_timing_ms_total(root),
+            "commit_sha_present": None,
+            "wip_anchor_present": None,
+            "proof_limits": list(_RESULT_SUMMARY_PROOF_LIMITS),
+            "not_proven": [
+                "commit SHA presence from evidence_root alone",
+                "WIP anchor presence from evidence_root alone",
+                "semantic correctness of recorded Agent returns",
+                "whether caller/COO should resume, reroute, or close",
+            ],
+        }
+        return _strip_result_summary_forbidden_keys(summary)
+    except Exception as exc:  # noqa: BLE001 -- no-raise support projection
+        return {
+            "kind": "building_result_summary",
+            "schema_version": "building-result-summary-0",
+            "building_root": None,
+            "frontier_kind": None,
+            "frontier_reason": None,
+            "step_attempts": None,
+            "closure": None,
+            "link_paused_rows": None,
+            "adapter_error_rows": None,
+            "dispatch_timing_ms_total": None,
+            "commit_sha_present": None,
+            "wip_anchor_present": None,
+            "proof_limits": list(_RESULT_SUMMARY_PROOF_LIMITS),
+            "not_proven": [
+                f"summary read raised {type(exc).__name__}",
+                "semantic correctness of recorded Agent returns",
+                "whether caller/COO should resume, reroute, or close",
+            ],
+        }
+
+
+def _text_or_none(value: Any) -> str | None:
+    if isinstance(value, str):
+        return value
+    return None
+
+
+def _summary_step_output_packets(root: Path) -> tuple[Mapping[str, Any], ...] | None:
+    step_outputs_dir = root / "work" / "step-outputs"
+    if not step_outputs_dir.is_dir():
+        return None
+    packets: list[Mapping[str, Any]] = []
+    for path in sorted(step_outputs_dir.glob("*/step-output.json")):
+        packet = _read_json_mapping(path)
+        if packet:
+            packets.append(packet)
+    return tuple(packets)
+
+
+def _summary_step_attempts(root: Path) -> list[dict[str, Any]] | None:
+    packets = _summary_step_output_packets(root)
+    if packets is None:
+        return None
+    attempts_by_step: dict[str, int] = {}
+    for packet in packets:
+        step_ref = packet.get("step_ref")
+        if not isinstance(step_ref, str) or not step_ref.strip():
+            continue
+        attempt = packet.get("attempt_index")
+        if isinstance(attempt, int) and attempt > 0:
+            attempts_by_step[step_ref] = max(attempts_by_step.get(step_ref, 0), attempt)
+        else:
+            attempts_by_step[step_ref] = max(attempts_by_step.get(step_ref, 0), 1)
+    return [
+        {"step_ref": step_ref, "attempt_count": attempt_count}
+        for step_ref, attempt_count in sorted(attempts_by_step.items())
+    ]
+
+
+def _summary_latest_closure(root: Path) -> dict[str, Any] | None:
+    packets = _summary_step_output_packets(root)
+    if packets is None:
+        return None
+    closure_packets = [packet for packet in packets if _summary_is_closure_packet(packet)]
+    if not closure_packets:
+        return None
+    packet = max(
+        closure_packets,
+        key=lambda item: item.get("attempt_index") if isinstance(item.get("attempt_index"), int) else 0,
+    )
+    returned = packet.get("returned")
+    if not isinstance(returned, Mapping):
+        returned = {}
+    return {
+        "deliverable_crosscheck": (
+            returned.get("deliverable_crosscheck")
+            if "deliverable_crosscheck" in returned
+            else None
+        ),
+        "transition_concern_evidence": (
+            returned.get("transition_concern_evidence")
+            if isinstance(returned.get("transition_concern_evidence"), Mapping)
+            else None
+        ),
+    }
+
+
+def _summary_is_closure_packet(packet: Mapping[str, Any]) -> bool:
+    step_ref = str(packet.get("step_ref") or "")
+    step_template_ref = str(packet.get("step_template_ref") or "")
+    brick_row = packet.get("brick_row")
+    if isinstance(brick_row, Mapping):
+        step_template_ref = step_template_ref or str(brick_row.get("step_template_ref") or "")
+    return step_ref.endswith("-closure") or step_template_ref.endswith(":closure")
+
+
+def _summary_link_paused_rows(root: Path) -> list[dict[str, Any]] | None:
+    path = root / "raw" / "link.jsonl"
+    if not path.is_file():
+        return None
+    rows: list[dict[str, Any]] = []
+    for record in _jsonl_records(path):
+        if record.get("transition_lifecycle_state") != "paused":
+            continue
+        reason_refs = record.get("transition_lifecycle_reason_refs")
+        rows.append(
+            {
+                "step_ref": _summary_text(record.get("step_ref")),
+                "pending_target_ref": _summary_text(
+                    record.get("transition_lifecycle_pending_target_ref")
+                ),
+                "reason_refs": [
+                    str(item)
+                    for item in reason_refs
+                    if isinstance(item, str)
+                ]
+                if isinstance(reason_refs, Sequence) and not isinstance(reason_refs, (str, bytes))
+                else [],
+                "required_disposition_owner": _summary_text(
+                    record.get("transition_lifecycle_required_disposition_owner")
+                ),
+            }
+        )
+    return rows
+
+
+def _summary_adapter_error_rows(root: Path) -> list[dict[str, Any]] | None:
+    path = root / "raw" / "adapter-error.jsonl"
+    if not path.is_file():
+        return None
+    return [
+        {
+            "step_ref": _summary_text(record.get("step_ref")),
+            "error_kind": _summary_text(record.get("error_kind")),
+            "exception_type": _summary_text(record.get("exception_type")),
+            "message_excerpt": _summary_text(record.get("message_excerpt")),
+        }
+        for record in _jsonl_records(path)
+    ]
+
+
+def _summary_dispatch_timing_ms_total(root: Path) -> float | None:
+    path = root / "raw" / "adapter-usage.jsonl"
+    if not path.is_file():
+        return None
+    total = 0.0
+    observed = False
+    for record in _jsonl_records(path):
+        if record.get("support_record_role") != "adapter-dispatch-timing":
+            continue
+        timing = record.get("adapter_dispatch_timing")
+        duration = timing.get("duration_ms") if isinstance(timing, Mapping) else None
+        if isinstance(duration, (int, float)):
+            total += float(duration)
+            observed = True
+    return round(total, 3) if observed else None
+
+
+def _summary_text(value: Any) -> str:
+    return value if isinstance(value, str) else ""
+
+
+def _strip_result_summary_forbidden_keys(value: Any, *, key: str | None = None) -> Any:
+    if key in _RESULT_SUMMARY_CARRIED_CLOSURE_KEYS:
+        return value
+    if isinstance(value, dict):
+        stripped: dict[str, Any] = {}
+        for raw_key, child in value.items():
+            if raw_key in _RESULT_SUMMARY_FORBIDDEN_KEYS:
+                continue
+            stripped[raw_key] = _strip_result_summary_forbidden_keys(child, key=raw_key)
+        return stripped
+    if isinstance(value, list):
+        return [_strip_result_summary_forbidden_keys(item) for item in value]
+    return value
+
+
+def _result_summary_wip_anchor_present(
+    repo_root: Path | str | None,
+    building_id: Any,
+) -> bool | None:
+    if repo_root is None:
+        return None
+    if not isinstance(building_id, str) or not building_id.strip():
+        return False
+    return reclaim_wip_anchor(repo_root, building_id) is not None
+
+
+def _result_summary_with_sandbox_anchors(
+    evidence_root: str | Path,
+    *,
+    repo_root: Path | str,
+    building_id: Any,
+    commit_sha: Any,
+) -> dict[str, Any]:
+    summary = summarize_building_result(evidence_root, repo_root=repo_root)
+    summary["commit_sha_present"] = bool(commit_sha)
+    summary["wip_anchor_present"] = _result_summary_wip_anchor_present(
+        repo_root,
+        building_id,
+    )
+    return _strip_result_summary_forbidden_keys(summary)
+
+
 def render_proposal_for_human(proposal_ref: Any) -> str:
     """Render a frozen proposal snapshot as a plain-Korean pre-run preview.
 
@@ -2259,8 +2538,16 @@ def run_goal_approve_entry(
             "isolation_mode": sandbox_result.isolation_mode,
             "isolation_reason": sandbox_result.isolation_reason,
             "commit_sha": sandbox_result.commit_sha,
+            "wip_anchor_ref": sandbox_result.wip_anchor_ref,
+            "wip_commit_sha": sandbox_result.wip_commit_sha,
             "worktree_path": sandbox_result.worktree_path,
             "worktree_disposed": sandbox_result.worktree_disposed,
+            "result_summary": _result_summary_with_sandbox_anchors(
+                sandbox_result.evidence_root,
+                repo_root=repo,
+                building_id=sandbox_result.building_id,
+                commit_sha=sandbox_result.commit_sha,
+            ),
             "proposal_root_reused": run_overwrite_existing and not overwrite_existing,
         }
     )
@@ -2465,8 +2752,16 @@ def launch_assembled_building(
             "isolation_mode": sandbox_result.isolation_mode,
             "isolation_reason": sandbox_result.isolation_reason,
             "commit_sha": sandbox_result.commit_sha,
+            "wip_anchor_ref": sandbox_result.wip_anchor_ref,
+            "wip_commit_sha": sandbox_result.wip_commit_sha,
             "worktree_path": sandbox_result.worktree_path,
             "worktree_disposed": sandbox_result.worktree_disposed,
+            "result_summary": _result_summary_with_sandbox_anchors(
+                sandbox_result.evidence_root,
+                repo_root=repo,
+                building_id=sandbox_result.building_id,
+                commit_sha=sandbox_result.commit_sha,
+            ),
         }
     )
     return result
