@@ -109,6 +109,19 @@ fallback이며, §AUTO 읽기목록 산출은 design 노드의 일이다.
 ## Objective
 <불변식 한 문장: "이후 X는 Z일 때도 항상 Y다.">
 
+## Required Sources (실측 근거 — 착수 전 실제로 읽은 파일 전수 나열)
+<이 task를 쓰기 전 직접 grep/read한 파일을 file:line까지 하나씩 나열. 산문에 묻지 마라 —
+ 체크리스트로 뽑아놓으면 "읽은 범위보다 write_scope가 좁은가"가 스스로 드러난다(0702
+ 실측: returns-persistence가 support/connection/만 grep하고 support/recording/의 진짜
+ 배선처를 놓쳐 write_scope 누락 → work 5라운드 허비). 이 리스트 밖의 write_scope 경로가
+ 있으면 그 자체가 위험 신호 — 다시 조사하거나 design에 확정을 넘겨라.>
+
+## Brick / Agent / Link Boundary (1줄씩 — 조사 없이 바로 아는 계약 사실)
+<이 task에서 Brick(계약)이 정확히 뭘 소유하나 — 특히 "정확히 어느 함수/어느 진입점"까지
+ 모호함 없이. Agent(수행)가 뭘 받고 뭘 반환하나. Link가 뭘 기록할 수 있나. 0702 실측:
+ llm= 별칭 1차가 "brick(..., llm=...) 파라미터"라고만 쓰고 정확한 호출 형태를 안 박아서
+ work가 다른 해석(리스트 리터럴 DSL)으로 갔다 — 2회 반려 후에야 복붙 코드블록으로 못박음.>
+
 ## Context (자급자족·실측 — 어디 보고 어디는 안 보나)
 <중요 표면을 모듈·영역 단위로 지명: 본뜰 파일·선례·무는 제약 하나.
  실측값(재현 행·ref·에러) 있으면 인라인. 마지막 줄 "다른 모듈은 훑지 마라." ← anti-stall 레버>
@@ -117,15 +130,27 @@ fallback이며, §AUTO 읽기목록 산출은 design 노드의 일이다.
 1. <변경 본체>
 2. <체커 핀: 픽스처+변이 RED 보임, 없으면 왜 없는지 한 줄>
 
+## Read Scope / Write Scope (Hard constraints에서 분리 — Required Sources와 대조하며 쓸 것)
+<read_scope는 대개 Required Sources+Context가 지명한 범위. write_scope는 glob 전수
+ 열거("support/operator/**" 식, ★"support/" 단독 금지 = fnmatch 함정). Required Sources에
+ 없는 폴더가 write_scope에 있거나(발명), write_scope에 없는 폴더를 Required Sources가
+ 가리키면(누락) — 둘 다 재검토 신호.>
+
 ## Proof required (직접 실행·정직 보고 — 주장은 실행 결과만)
 <포커스 체커 green + 변이 RED → check_profile.py --all은 /tmp 로그로 저장하고 rc/pass/failure-marker만 요약 → (코드면) compileall + git diff --check.
- 구현 task면 발주자가 직접 실행할 반려 시나리오 프로브 명령을 RED 기준으로 명시(0702 가짜 랜딩 교훈)>
+ 구현 task면 발주자가 직접 실행할 반려 시나리오 프로브 명령을 RED 기준으로 명시(0702 가짜 랜딩 교훈).
+ **새 인터페이스/신규 진입점이면 복붙 가능한 리터럴 성공 명령 + 리터럴 거부 명령을 코드블록으로 박아라**
+ (일반적 "확인해라" 문구 금지 — 해석의 여지를 없앤다. 0702 실측: llm= 2차가 일반 문구로
+ 썼다가 다른 해석으로 반려, 3차에서 리터럴 코드블록 강제 후 통과).
 
 ## Hard constraints (law)
-<write_scope는 "support/operator/**" glob(★"support/" 금지 = fnmatch 함정).
- 금지선: 실루트 수정 / 핀 완화 / 스케줄러·신규의존성 / project/ 손대기.
+<금지선: 실루트 수정 / 핀 완화 / 스케줄러·신규의존성 / project/ 손대기.
  구현 deliverable 있으면 필수 조항: "write_scope 안 diff 실물 없이 complete 반환 금지 — implementation_gap concern">
 ```
+
+인터뷰가 필요한 고객 기원 task(사람과 대화 루프로 요구사항을 뽑아야 하는 경우)는 이 샤프
+템플릿이 아니라 `task_intake` 스킬 + `brick/templates/tasks/source-template.md`(Deep
+Intake Result·Human/Review Gate·Risk 포함 정본)를 쓴다 — 용도가 다르다, 섞지 마라.
 
 부검은 `project/brick-protocol/status/kernel/evidence-postmortem-task-template-0612.md`를 쓴다.
 
