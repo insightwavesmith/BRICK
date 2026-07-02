@@ -135,8 +135,14 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
   + COO 변이-RED rc=1), **D3/#21 완결**(pre-resume 정합성 대조 `_require_return_frontier_consistency`,
   replay 채택 전 명시 거부 + claim_trace 실존 검사 — 처방 ② 그대로), **D2/#19 개선-부분**
   (리더 측 홀드-스코핑 랜딩; 잔여 갭 = 저작 경로 persist-before-validate — 무예산 타깃 raise가
-  행을 남긴 뒤 에러, QA 실측). 잔여는 d2-ledger-cleanliness-0703a 소형 빌딩으로 후속(발사됨).
-  게이트: 변이-RED 2종 COO 직접(rc=1/rc=1/복원 rc=0), 격리 --all 33/33.
+  행을 남긴 뒤 에러, QA 실측). 게이트: 변이-RED 2종 COO 직접(rc=1/rc=1/복원 rc=0), 격리 --all 33/33.
+- **D2/#19 완결** `42ad54b3`(d2-ledger-cleanliness-0703b): 공유 `resume_budget_recovery_decision()`
+  추출(walker_resume.py:428)로 resume 걸음과 승인 저작이 **동일 판정 집합** — v1의 브리지-거부
+  회귀가 구조적으로 소멸. 사전검사가 append 전 실행, 거부 시 `resume_budget_precheck_refused`+
+  원장 무기록(byte-equality pin). **#15/#19/#21 resume 결함 3종 전부 종결.**
+  빌딩 사건 2건 기록: ①v1에서 COO가 reroute-제안 홀드에 forward 오판 — forward는 제안 채택이
+  아니라 선언경로 계속(빌딩이 그대로 닫힘, 무피해, 메모리 각인) ②v2 code-attack-qa 레인
+  SIGTERM(143)으로 agent_incomplete — COO가 그 렌즈를 손으로 대행 후 게이트 통과.
 
 ## 현재 위치 (0702 심야)
 
