@@ -2806,6 +2806,17 @@ def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
         raise ProfileError("adapter prompt did not expose no_changes_reason waiver")
     if prompt.get("agent_instruction_packet", {}).get("kind") != "agent-instruction-packet":
         raise ProfileError("adapter prompt did not carry Agent instruction packet")
+    nested_instruction = prompt.get("agent_instruction_packet", {})
+    if nested_instruction.get("required_return_shape") != required_shape:
+        raise ProfileError("adapter prompt Agent instruction packet did not stamp required_return_shape")
+    if nested_instruction.get("required_return_labels") != [
+        "made_changes",
+        "observed_evidence",
+        "blocked_or_missing_evidence",
+        "not_proven",
+        "remaining_delta",
+    ]:
+        raise ProfileError("adapter prompt Agent instruction packet did not stamp required_return_labels")
     transition_required_shape = (
         "observed_evidence, transition_concern_evidence, not_proven"
     )

@@ -24,6 +24,7 @@ text_contains:
       - from brick_protocol.agent.spec import
       - validate_agent_object_keys
       - AGENT_OBJECT_SCHEMA.allowed_keys
+      - AGENT_OBJECT_SCHEMA.head_keys
       - AGENT_OBJECT_SCHEMA.ref_fields
       - AGENT_OBJECT_SCHEMA.forbidden_keys
   - path: support/operator/primitives.py

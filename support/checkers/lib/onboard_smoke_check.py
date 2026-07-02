@@ -10,6 +10,7 @@ from support.checkers.lib.yaml_subset import KernelResult, ProfileError, _ensure
 _ONBOARD_SMOKE_REQUIRED_KEYS = (
     "host",
     "preflight",
+    "preflight_readiness",
     "connect_hint",
     "example_result",
     "handoff_message_ko",
@@ -205,6 +206,11 @@ def _onboard_smoke_assert_shape(label: str, result: Any) -> None:
         )
     if not isinstance(result["ok"], bool):
         raise ProfileError(f"onboard_smoke: {label} 'ok' must be a bool")
+    readiness = result["preflight_readiness"]
+    if readiness not in {"ready", "unauthed", "missing", "unknown"}:
+        raise ProfileError(
+            f"onboard_smoke: {label} preflight_readiness must be an admitted readiness literal"
+        )
     handoff = result["handoff_message_ko"]
     if not isinstance(handoff, str) or not handoff.strip():
         raise ProfileError(
