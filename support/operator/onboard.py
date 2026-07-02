@@ -2970,6 +2970,32 @@ def run_approve_entry(
         )
         return result
 
+    try:
+        from brick_protocol.support.operator.walker_resume import (  # noqa: PLC0415
+            _read_written_dynamic_plan,
+            resume_budget_recovery_decision,
+        )
+
+        _plan_w, evidence_w = _read_written_dynamic_plan(building_root)
+        hold_record_w = evidence_w.get("hold") or {}
+        if not isinstance(hold_record_w, Mapping):
+            hold_record_w = {}
+        resume_budget_recovery_decision(
+            evidence=evidence_w,
+            action=action_text,
+            hold_record=hold_record_w,
+            pending_target=disposition_pending_target_ref,
+        )
+    except ValueError as exc:
+        result.update(
+            {
+                "error_kind": "resume_budget_precheck_refused",
+                "error_message": str(exc),
+                "message_ko": "예산 정합성 검증에서 걸려 disposition을 쓰지 않았어요.",
+            }
+        )
+        return result
+
     link_path = building_root / "raw" / "link.jsonl"
     if not link_path.parent.is_dir():
         result.update(

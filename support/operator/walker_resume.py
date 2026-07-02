@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -72,6 +73,12 @@ from brick_protocol.support.operator.walker_reroute_budget import (
 from brick_protocol.support.operator.walker_step_fixture import (
     _brick_instance_ref_from_linear_step,
 )
+
+
+@dataclass(frozen=True)
+class ResumeBudgetRecoveryDecision:
+    node_reroute_budgets: Mapping[str, int] | None = None
+    bridge_evidence: bool = False
 
 
 def _resume_dynamic_graph_walker(
@@ -164,61 +171,21 @@ def _resume_dynamic_graph_walker(
     # would see no budget and HOLD every reroute target (target_node_has_no_link_
     # assigned_budget). raise's budget_delta is applied separately in the kernel.
     declared_plan = dict(declared_plan)
-    recorded_budgets = evidence.get("node_reroute_budgets")
     bridged_evidence: Mapping[str, Any] = evidence
-    # FAIL-CLOSED gap-4: a building that ENGAGED the reroute mechanism (it carries
-    # reroute-adoption/HOLD records, or HELD on a budget-related reason) MUST carry
-    # its Link-owned node_reroute_budgets in the written evidence. The old code only
-    # re-attached the map `if isinstance(recorded_budgets, Mapping)` and otherwise
-    # SILENTLY delegated with NO budget map -- so the forward walk saw no budget and
-    # HOLDed every reroute target (target_node_has_no_link_assigned_budget) = a
-    # DIVERGENT HOLD. Validate instead: a present-but-malformed map (not a Mapping,
-    # or non-positive-int values) ALWAYS fails closed; a missing/empty map fails
-    # closed only when the building actually had reroute budgets.
-    had_reroute_budgets = _building_engaged_reroute_budgets(evidence)
-    if recorded_budgets is None:
-        if had_reroute_budgets:
-            raise ValueError(
-                "resume corrupt evidence: this Building engaged the reroute budget "
-                "mechanism (it carries reroute-adoption/HOLD budget records) but the "
-                "written dynamic_walker_evidence.node_reroute_budgets is MISSING; "
-                "refusing to resume with no budget map (would divergently HOLD every "
-                "reroute target on target_node_has_no_link_assigned_budget)"
-            )
-    elif not isinstance(recorded_budgets, Mapping):
-        raise ValueError(
-            "resume corrupt evidence: dynamic_walker_evidence.node_reroute_budgets is "
-            f"present but not a mapping ({type(recorded_budgets).__name__}); refusing to "
-            "resume from a malformed budget map"
-        )
-    else:
-        for node_ref, value in recorded_budgets.items():
-            if isinstance(value, bool) or not isinstance(value, int) or value < 1:
-                raise ValueError(
-                    "resume corrupt evidence: dynamic_walker_evidence.node_reroute_budgets "
-                    f"has a malformed budget for {node_ref!r} ({value!r}); a node budget must "
-                    "be a positive integer -- refusing to resume from a malformed budget map"
-                )
-        if recorded_budgets:
-            declared_plan["node_reroute_budgets"] = dict(recorded_budgets)
-        elif had_reroute_budgets:
-            if action == "raise" and hold_record.get("budget_exhausted"):
-                recovered_budget = _positive_int(
-                    hold_record.get("node_budget"),
-                    "dynamic_walker_evidence.hold.node_budget",
-                )
-                bridged_budgets = {pending_target: recovered_budget}
-                declared_plan["node_reroute_budgets"] = bridged_budgets
-                bridged_evidence = {
-                    **evidence,
-                    "node_reroute_budgets": bridged_budgets,
-                }
-            else:
-                raise ValueError(
-                    "resume corrupt evidence: this Building engaged the reroute budget "
-                    "mechanism but the written dynamic_walker_evidence.node_reroute_budgets "
-                    "is EMPTY; refusing to resume with no budget map"
-                )
+    budget_recovery = resume_budget_recovery_decision(
+        evidence=evidence,
+        action=action,
+        hold_record=hold_record,
+        pending_target=pending_target,
+    )
+    if budget_recovery.node_reroute_budgets is not None:
+        recovered_budgets = dict(budget_recovery.node_reroute_budgets)
+        declared_plan["node_reroute_budgets"] = recovered_budgets
+        if budget_recovery.bridge_evidence:
+            bridged_evidence = {
+                **evidence,
+                "node_reroute_budgets": recovered_budgets,
+            }
     seed_hold_record: Mapping[str, Any] = hold_record
     if action == "reroute":
         seed_hold_record = {**hold_record, "pending_target_ref": pending_target}
@@ -302,15 +269,6 @@ def _resume_dynamic_graph_walker(
         )
         if pending_target not in step_ref_by_brick_from_declared(declared_plan):
             raise ValueError("raise disposition pending_target_ref is not an existing Brick node")
-        # FAIL-CLOSED gap-4 (B2): a `raise` adds a budget increment to the held
-        # node. That is only meaningful when the HOLD was a BUDGET-EXHAUSTION hold
-        # (the landing was refused because its node budget was used up). On a
-        # human/COO gate pause (or any non-budget-exhaustion hold) the base budget
-        # was NEVER consumed/recovered, so bumping it MANUFACTURES a budget value
-        # that diverges from the Link-declared base. Admit the raise ONLY when the
-        # held record is a budget-exhaustion hold; otherwise fail closed (the human
-        # should use forward/stop on a gate pause, not raise).
-        _require_budget_exhaustion_raise(hold_record, bridged_evidence, pending_target)
         budget_delta[pending_target] = increment
 
     # MAIL-REPAIR (0611, B3 lane 2): THIS resume's disposition row is a
@@ -465,6 +423,90 @@ def _require_budget_exhaustion_raise(
             f"node_reroute_budget ({recorded_budget}); refusing to raise a budget "
             "that was not actually exhausted"
         )
+
+
+def resume_budget_recovery_decision(
+    *,
+    evidence: Mapping[str, Any],
+    action: str,
+    hold_record: Mapping[str, Any],
+    pending_target: str,
+) -> ResumeBudgetRecoveryDecision:
+    """Validate/recover reroute budgets exactly as resume does before walking.
+
+    Support wrappers use this pure helper before persisting a disposition so the
+    accept/refuse set stays identical to the resume path. It authors no
+    disposition, movement, route, sufficiency, quality, or success fact.
+    """
+
+    recorded_budgets = evidence.get("node_reroute_budgets")
+    # FAIL-CLOSED gap-4: a building that ENGAGED the reroute mechanism (it carries
+    # reroute-adoption/HOLD records, or HELD on a budget-related reason) MUST carry
+    # its Link-owned node_reroute_budgets in the written evidence. The old code only
+    # re-attached the map `if isinstance(recorded_budgets, Mapping)` and otherwise
+    # SILENTLY delegated with NO budget map -- so the forward walk saw no budget and
+    # HOLDed every reroute target (target_node_has_no_link_assigned_budget) = a
+    # DIVERGENT HOLD. Validate instead: a present-but-malformed map (not a Mapping,
+    # or non-positive-int values) ALWAYS fails closed; a missing/empty map fails
+    # closed only when the building actually had reroute budgets.
+    had_reroute_budgets = _building_engaged_reroute_budgets(evidence)
+    decision = ResumeBudgetRecoveryDecision()
+    if recorded_budgets is None:
+        if had_reroute_budgets:
+            raise ValueError(
+                "resume corrupt evidence: this Building engaged the reroute budget "
+                "mechanism (it carries reroute-adoption/HOLD budget records) but the "
+                "written dynamic_walker_evidence.node_reroute_budgets is MISSING; "
+                "refusing to resume with no budget map (would divergently HOLD every "
+                "reroute target on target_node_has_no_link_assigned_budget)"
+            )
+    elif not isinstance(recorded_budgets, Mapping):
+        raise ValueError(
+            "resume corrupt evidence: dynamic_walker_evidence.node_reroute_budgets is "
+            f"present but not a mapping ({type(recorded_budgets).__name__}); refusing to "
+            "resume from a malformed budget map"
+        )
+    else:
+        for node_ref, value in recorded_budgets.items():
+            if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+                raise ValueError(
+                    "resume corrupt evidence: dynamic_walker_evidence.node_reroute_budgets "
+                    f"has a malformed budget for {node_ref!r} ({value!r}); a node budget must "
+                    "be a positive integer -- refusing to resume from a malformed budget map"
+                )
+        if recorded_budgets:
+            decision = ResumeBudgetRecoveryDecision(
+                node_reroute_budgets=dict(recorded_budgets)
+            )
+        elif had_reroute_budgets:
+            if action == "raise" and hold_record.get("budget_exhausted"):
+                recovered_budget = _positive_int(
+                    hold_record.get("node_budget"),
+                    "dynamic_walker_evidence.hold.node_budget",
+                )
+                decision = ResumeBudgetRecoveryDecision(
+                    node_reroute_budgets={pending_target: recovered_budget},
+                    bridge_evidence=True,
+                )
+            else:
+                raise ValueError(
+                    "resume corrupt evidence: this Building engaged the reroute budget "
+                    "mechanism but the written dynamic_walker_evidence.node_reroute_budgets "
+                    "is EMPTY; refusing to resume with no budget map"
+                )
+    if action == "raise":
+        check_evidence: Mapping[str, Any] = evidence
+        if decision.bridge_evidence and decision.node_reroute_budgets is not None:
+            check_evidence = {
+                **evidence,
+                "node_reroute_budgets": dict(decision.node_reroute_budgets),
+            }
+        _require_budget_exhaustion_raise(
+            hold_record,
+            check_evidence,
+            pending_target,
+        )
+    return decision
 
 
 def _disposition_pending_target_ref(
