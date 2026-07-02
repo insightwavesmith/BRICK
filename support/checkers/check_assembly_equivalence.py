@@ -2429,14 +2429,25 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
                 declared_by=DECLARED_BY,
                 author_ref="human:smith",
                 action="forward",
+                write_scope={"allowed_paths": ["zero-supply-output.txt"], "forbidden_paths": []},
                 command_runner=_approval_runner(),
                 adapter_timeout_seconds=30,
             )
         forward_approval = forward_build.get("approval_result")
         if not isinstance(forward_approval, Mapping):
             raise AssemblyEquivalenceError(f"build forward returned no approval result: {forward_build!r}")
-        if not forward_approval.get("ran") or forward_approval.get("frontier_kind") != "complete":
-            raise AssemblyEquivalenceError(f"build forward did not complete deterministic run: {forward_build!r}")
+        if not forward_approval.get("ran") or forward_approval.get("frontier_kind") != "human_review_waiting":
+            raise AssemblyEquivalenceError(
+                f"build forward did not hold zero-supply write run: {forward_build!r}"
+            )
+        if forward_approval.get("frontier_reason") != "fake_landing_write_scope_diff_absent":
+            raise AssemblyEquivalenceError(
+                f"build forward did not report fake-landing hold reason: {forward_build!r}"
+            )
+        if forward_approval.get("commit_sha"):
+            raise AssemblyEquivalenceError(
+                f"build forward produced a commit for zero-supply write run: {forward_build!r}"
+            )
         evidence_root = Path(str(forward_approval.get("evidence_root", ""))).resolve()
         if not evidence_root.exists():
             raise AssemblyEquivalenceError(f"build forward evidence root missing: {evidence_root}")
@@ -2451,7 +2462,9 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
                 raise AssemblyEquivalenceError(
                     f"build forward evidence root lived inside disposable worktree: {evidence_root}"
                 )
-        outputs.append("build green: zero-supply graph ran forward with durable evidence outside worktree.")
+        outputs.append(
+            "build green: zero-supply write graph held with fake_landing reason and durable evidence outside worktree."
+        )
 
     return tuple(outputs)
 

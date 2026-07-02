@@ -42,6 +42,8 @@ from brick_protocol.support.operator.run import (
 )
 from brick_protocol.support.operator.worktree_sandbox import (
     WorktreeSandboxError,
+    _git,
+    _git_status_paths,
     anchor_wip_snapshot,
     commit_sandbox_output,
     create_worktree_sandbox,
@@ -50,6 +52,7 @@ from brick_protocol.support.operator.worktree_sandbox import (
     reclaim_wip_anchor,
     temp_dir_fallback,
 )
+from brick_protocol.support.operator.assembly import _write_path_covered_by
 from brick_protocol.support.recording.capture import DEFAULT_BUILDINGS_ROOT, buildings_root_for
 
 
@@ -91,6 +94,8 @@ _CUSTOMER_GRAPH_TEMPLATE_AUTHORITY_FIELDS = frozenset(
         "brick_template_refs",
     )
 )
+_FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_FRONTIER = "human_review_waiting"
+_FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_REASON = "fake_landing_write_scope_diff_absent"
 
 
 @dataclass(frozen=True)
@@ -155,6 +160,7 @@ class CustomerSandboxRunResult:
     wip_commit_sha: str  # "" unless wip_anchor_ref resolves to a commit
     worktree_disposed: bool
     intake_result: BuildingIntakeRunResult | None = None
+    frontier_reason: str = ""
 
 
 def _customer_graph_node_items(value: Any) -> tuple[Mapping[str, Any], ...]:
@@ -825,6 +831,18 @@ def _run_in_worktree_sandbox(
             frontier = observe_building_frontier(
                 intake.run_result.lifecycle_write.root, repo_root=repo
             )
+            frontier_kind = str(frontier.get("frontier_kind") or "")
+            frontier_reason = str(frontier.get("frontier_reason") or "")
+            if (
+                reason.startswith("worktree-create-failed:")
+                and frontier_kind == "complete"
+                and _write_need_complete_without_scoped_diff(
+                    sandbox_cwd,
+                    intake.plan_path,
+                )
+            ):
+                frontier_kind = _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_FRONTIER
+                frontier_reason = _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_REASON
             return CustomerSandboxRunResult(
                 building_id=intake.building_id,
                 isolation_mode="temp_dir",
@@ -832,12 +850,13 @@ def _run_in_worktree_sandbox(
                 base_sha="",
                 worktree_path="",
                 evidence_root=str(intake.run_result.lifecycle_write.root),
-                frontier_kind=str(frontier.get("frontier_kind") or ""),
+                frontier_kind=frontier_kind,
                 commit_sha="",  # a temp dir is not a repo: no commit, by design
                 wip_anchor_ref="",
                 wip_commit_sha="",
                 worktree_disposed=False,
                 intake_result=intake,
+                frontier_reason=frontier_reason,
             )
         finally:
             temp_dir.cleanup()
@@ -862,6 +881,7 @@ def _run_in_worktree_sandbox(
     wip_anchor_ref = ""
     wip_commit_sha = ""
     frontier_kind = ""
+    frontier_reason = ""
     evidence_root = ""
     intake_result: BuildingIntakeRunResult | None = None
     try:
@@ -878,6 +898,13 @@ def _run_in_worktree_sandbox(
             repo_root=sandbox.path,
         )
         frontier_kind = str(frontier.get("frontier_kind") or "")
+        frontier_reason = str(frontier.get("frontier_reason") or "")
+        if frontier_kind == "complete" and _write_need_complete_without_scoped_diff(
+            sandbox.path,
+            intake_result.plan_path,
+        ):
+            frontier_kind = _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_FRONTIER
+            frontier_reason = _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_REASON
         if frontier_kind == "complete":
             commit_sha = commit_sandbox_output(
                 sandbox,
@@ -896,6 +923,7 @@ def _run_in_worktree_sandbox(
                     message=(
                         f"BRICK WIP anchor: {building_id}\n\n"
                         f"frontier={frontier_kind or 'unknown'} base={sandbox.base_sha}\n"
+                        f"frontier_reason={frontier_reason}\n"
                         f"evidence_root={evidence_root}\n"
                     ),
                 )
@@ -919,7 +947,90 @@ def _run_in_worktree_sandbox(
         wip_commit_sha=wip_commit_sha,
         worktree_disposed=disposed,
         intake_result=intake_result,
+        frontier_reason=frontier_reason,
     )
+
+
+def _write_need_complete_without_scoped_diff(
+    sandbox_path: Path,
+    plan_path: Path,
+) -> bool:
+    """Observe a completed write-needed plan with no diff inside write_scope."""
+
+    scopes = _write_need_scopes_from_plan_path(plan_path)
+    if not scopes:
+        return False
+    changed_paths = _sandbox_changed_paths(sandbox_path)
+    if not changed_paths:
+        return True
+    return not any(
+        _path_allowed_by_write_scope(path, scope)
+        for path in changed_paths
+        for scope in scopes
+    )
+
+
+def _write_need_scopes_from_plan_path(plan_path: Path) -> tuple[Mapping[str, Any], ...]:
+    try:
+        payload = _load_declared_plan_mapping(plan_path)
+    except (OSError, TypeError, ValueError, json.JSONDecodeError):
+        return ()
+    scopes: list[Mapping[str, Any]] = []
+    for row in _walk_mappings(payload):
+        if row.get("requires_brick_write_scope") is not True:
+            continue
+        scope = row.get("write_scope")
+        if isinstance(scope, Mapping):
+            scopes.append(scope)
+    return tuple(scopes)
+
+
+def _walk_mappings(value: Any) -> Iterable[Mapping[str, Any]]:
+    if isinstance(value, Mapping):
+        yield value
+        for child in value.values():
+            yield from _walk_mappings(child)
+    elif isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+        for child in value:
+            yield from _walk_mappings(child)
+
+
+def _sandbox_changed_paths(sandbox_path: Path) -> tuple[str, ...]:
+    status = _git(sandbox_path, "status", "--porcelain", "--untracked-files=all")
+    if status is None:
+        return ()
+    return _git_status_paths(status)
+
+
+def _path_allowed_by_write_scope(path: str, write_scope: Mapping[str, Any]) -> bool:
+    clean_path = str(path).strip().replace("\\", "/")
+    if not clean_path:
+        return False
+    raw_forbidden = write_scope.get("forbidden_paths", ())
+    forbidden_items = (
+        raw_forbidden
+        if isinstance(raw_forbidden, Sequence) and not isinstance(raw_forbidden, (str, bytes, bytearray))
+        else ()
+    )
+    forbidden = tuple(
+        str(item).strip()
+        for item in forbidden_items
+        if str(item).strip()
+    )
+    if any(_write_path_covered_by(clean_path, pattern) for pattern in forbidden):
+        return False
+    raw_allowed = write_scope.get("allowed_paths", ())
+    allowed_items = (
+        raw_allowed
+        if isinstance(raw_allowed, Sequence) and not isinstance(raw_allowed, (str, bytes, bytearray))
+        else ()
+    )
+    allowed = tuple(
+        str(item).strip()
+        for item in allowed_items
+        if str(item).strip()
+    )
+    return any(_write_path_covered_by(clean_path, pattern) for pattern in allowed)
 
 
 def run_declared_portfolio(

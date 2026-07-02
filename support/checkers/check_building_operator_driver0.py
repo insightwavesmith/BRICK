@@ -360,7 +360,12 @@ def _w1_intent(building_id: str) -> dict[str, Any]:
     }
 
 
-def _w1_completing_codex_runner(*, write: bool, delete_engine_marker: bool = False):
+def _w1_completing_codex_runner(
+    *,
+    write: bool,
+    delete_engine_marker: bool = False,
+    write_rel: str = _W1_WRITE_REL,
+):
     """A deterministic stand-in for codex. Optionally writes the in-scope file
     into the dispatch cwd, then returns a completing AgentFact JSON."""
 
@@ -372,7 +377,7 @@ def _w1_completing_codex_runner(*, write: bool, delete_engine_marker: bool = Fal
         if "--version" in call:
             return LocalCliCompleted(call, 0, "codex test-version", "")
         if write:
-            target = Path(cwd) / _W1_WRITE_REL
+            target = Path(cwd) / write_rel
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text("fixed by the W1 FIRE runner\n", encoding="utf-8")
         if delete_engine_marker:
@@ -381,8 +386,8 @@ def _w1_completing_codex_runner(*, write: bool, delete_engine_marker: bool = Fal
             except FileNotFoundError:
                 pass
         payload = {
-            "observed_evidence": [f"wrote {_W1_WRITE_REL}"],
-            "changed_files": [_W1_WRITE_REL],
+            "observed_evidence": [f"wrote {write_rel}" if write else "observed no file write"],
+            "changed_files": [write_rel] if write else [],
             "commands_run": ["echo fix"],
             "handoff_refs": ["handoff:w1-work-done"],
             "received_work_ref": "work:w1-fast-fix",
@@ -966,15 +971,18 @@ def _customer_graph_fluent_runner():
     def _runner(args: Sequence[str], cwd: Path, timeout_seconds: int):
         from brick_protocol.support.connection.agent_adapter import LocalCliCompleted
 
-        del cwd, timeout_seconds
+        del timeout_seconds
         call = tuple(str(arg) for arg in args)
         if "--version" in call:
             return LocalCliCompleted(call, 0, "codex test-version", "")
+        write_rel = "customer-graph-fluent-output.txt"
+        target = Path(cwd) / write_rel
+        target.write_text("customer graph fluent sandbox checker output\n", encoding="utf-8")
         payload = {
             "received_work_ref": "work:customer-graph-fluent",
-            "made_changes": False,
-            "changed_files": [],
-            "commands_run": [],
+            "made_changes": True,
+            "changed_files": [write_rel],
+            "commands_run": [f"write {write_rel}"],
             "blocked_or_missing_evidence": [],
             "handoff_refs": {},
             "observed_evidence": ["customer graph fluent sandbox checker ran"],
@@ -1459,6 +1467,7 @@ def _w1_worktree_sandbox_fire(
     summary: dict[str, Any],
 ) -> None:
     from brick_protocol.support.operator.driver import (
+        _write_need_complete_without_scoped_diff,
         run_building_intake,
         run_customer_building_in_sandbox,
     )
@@ -1565,6 +1574,121 @@ def _w1_worktree_sandbox_fire(
             survived = _git_text(customer, "cat-file", "-t", result.commit_sha)
             if survived != "commit":
                 violations.append("w1-live-tree: output commit did not survive worktree disposal")
+
+        # D2 read-only exemption: a declared plan with zero write-need rows is
+        # outside the fake-landing gate even when the sandbox has no diff.
+        read_only_plan = evidence_root / "read-only-plan.json"
+        read_only_plan.write_text(
+            json.dumps(
+                {
+                    "brick_steps": [
+                        {
+                            "step_ref": "read-only-development",
+                            "rows": [
+                                {
+                                    "axis": "Brick",
+                                    "requires_brick_write_scope": False,
+                                }
+                            ],
+                        }
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
+        read_only_gate_fired = _write_need_complete_without_scoped_diff(
+            customer,
+            read_only_plan,
+        )
+        summary["w1_read_only_fake_landing_gate_fired"] = read_only_gate_fired
+        if read_only_gate_fired:
+            violations.append("w1-read-only: zero-write-need plan triggered the fake-landing gate")
+
+        # D1 fake-landing gate: a write-needed Building that reports a complete
+        # frontier without any scoped sandbox diff is held on the existing human
+        # review surface, so no empty completion commit lands.
+        fake_empty = Path(cust_raw) / "customer-fake-empty"
+        fake_empty.mkdir(parents=True, exist_ok=True)
+        fake_empty_head_before = _seed_customer_repo(repo, fake_empty)
+        fake_empty_result = run_customer_building_in_sandbox(
+            _w1_intent("w1-fake-empty-write-0"),
+            customer_repo_root=fake_empty,
+            output_root=evidence_root / "fake-empty",
+            overwrite_existing=True,
+            command_runner=_w1_completing_codex_runner(write=False),
+            adapter_timeout_seconds=30,
+        )
+        fake_empty_head_after = _git_text(fake_empty, "rev-parse", "HEAD")
+        summary["w1_fake_empty_frontier"] = fake_empty_result.frontier_kind
+        summary["w1_fake_empty_frontier_reason"] = fake_empty_result.frontier_reason
+        summary["w1_fake_empty_commit"] = fake_empty_result.commit_sha
+        summary["w1_fake_empty_wip_anchor"] = fake_empty_result.wip_anchor_ref
+        if fake_empty_result.frontier_kind != "human_review_waiting":
+            violations.append(
+                "w1-fake-empty: write-needed complete-without-diff did not hold "
+                f"(frontier={fake_empty_result.frontier_kind!r})"
+            )
+        if fake_empty_result.frontier_reason != "fake_landing_write_scope_diff_absent":
+            violations.append(
+                "w1-fake-empty: hold did not surface fake landing frontier_reason "
+                f"(reason={fake_empty_result.frontier_reason!r})"
+            )
+        if fake_empty_result.commit_sha:
+            violations.append("w1-fake-empty: empty fake landing produced a completion commit")
+        if fake_empty_head_before != fake_empty_head_after:
+            violations.append("w1-fake-empty: fake landing moved the customer HEAD")
+
+        # D1 out-of-scope variant: when bytes exist but none are inside the
+        # declared write_scope, the same hold path preserves them under WIP.
+        fake_outside = Path(cust_raw) / "customer-fake-outside"
+        fake_outside.mkdir(parents=True, exist_ok=True)
+        _seed_customer_repo(repo, fake_outside)
+        outside_rel = "outside-scope.txt"
+        fake_outside_result = run_customer_building_in_sandbox(
+            _w1_intent("w1-fake-outside-write-0"),
+            customer_repo_root=fake_outside,
+            output_root=evidence_root / "fake-outside",
+            overwrite_existing=True,
+            command_runner=_w1_completing_codex_runner(
+                write=True,
+                write_rel=outside_rel,
+            ),
+            adapter_timeout_seconds=30,
+        )
+        summary["w1_fake_outside_frontier"] = fake_outside_result.frontier_kind
+        summary["w1_fake_outside_frontier_reason"] = fake_outside_result.frontier_reason
+        summary["w1_fake_outside_commit"] = fake_outside_result.commit_sha
+        summary["w1_fake_outside_wip_anchor"] = fake_outside_result.wip_anchor_ref
+        summary["w1_fake_outside_wip_commit"] = fake_outside_result.wip_commit_sha
+        if fake_outside_result.frontier_kind != "human_review_waiting":
+            violations.append(
+                "w1-fake-outside: out-of-scope-only diff did not hold "
+                f"(frontier={fake_outside_result.frontier_kind!r})"
+            )
+        if fake_outside_result.frontier_reason != "fake_landing_write_scope_diff_absent":
+            violations.append(
+                "w1-fake-outside: hold did not surface fake landing frontier_reason "
+                f"(reason={fake_outside_result.frontier_reason!r})"
+            )
+        if fake_outside_result.commit_sha:
+            violations.append("w1-fake-outside: out-of-scope-only fake landing produced a completion commit")
+        if not fake_outside_result.wip_commit_sha:
+            violations.append("w1-fake-outside: out-of-scope WIP bytes were not pinned")
+        else:
+            fake_wip_files = _git_text(
+                fake_outside,
+                "diff-tree",
+                "--no-commit-id",
+                "--name-only",
+                "-r",
+                fake_outside_result.wip_commit_sha,
+            )
+            summary["w1_fake_outside_wip_files"] = fake_wip_files
+            if fake_wip_files != outside_rel:
+                violations.append(
+                    "w1-fake-outside: WIP anchor did not preserve the out-of-scope diff "
+                    f"{outside_rel!r}: {fake_wip_files!r}"
+                )
 
         # CASE 1b (stale liveness gate): stale reap touches only parseable
         # engine markers older than the threshold, and it runs inside the
@@ -1933,6 +2057,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"commit_files={summary.get('w1_commit_files')} "
         f"head_unchanged={summary.get('w1_head_unchanged')} "
         f"live_status_clean={summary.get('w1_live_status_clean')}; "
+        f"fake_landing read_only_gate_fired={summary.get('w1_read_only_fake_landing_gate_fired')} "
+        f"empty_frontier={summary.get('w1_fake_empty_frontier')} "
+        f"empty_reason={summary.get('w1_fake_empty_frontier_reason')} "
+        f"outside_frontier={summary.get('w1_fake_outside_frontier')} "
+        f"outside_reason={summary.get('w1_fake_outside_frontier_reason')} "
+        f"outside_wip_files={summary.get('w1_fake_outside_wip_files')}; "
+        "deliverable_crosscheck deferred: gate is building-level, so per-node "
+        "masking by a sibling in-scope diff remains follow-up evidence work; "
         f"non-git-refuse mode={summary.get('w1_degraded_mode')} reason={summary.get('w1_degraded_reason')}; "
         f"dirty-worktree mode={summary.get('w1_dirty_mode')} reason={summary.get('w1_dirty_reason')} "
         f"base={summary.get('w1_dirty_base_sha')}; "
