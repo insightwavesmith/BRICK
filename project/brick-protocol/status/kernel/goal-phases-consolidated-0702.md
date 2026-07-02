@@ -94,13 +94,12 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
   필드(`observed_evidence` 등)는 원래 안 잘림 — "returns 절단" 진단 일부는 COO의
   읽기 오류였음을 정정(부검 §7).
 
-**진행 중 빌딩 2**
-- `llm-alias-completion-0702a`: llm= Deliverable 5·6(동시사용 거부·단일출처) —
-  본편(1~4)은 두 라운드 QA 독립검증 통과, 남은 조각만 design-first로 재발주.
-- `resume-corrupt-investigation-0702b`: 원장 불일치("완주 스텝-출력은 있는데 raw
-  반환 기록이 없다")의 발생 기전 — 멀티모달 6렌즈(claude 3 + codex 2 + gemini 1,
-  gemini 첫 실전 디스패치 겸용). 1차 조사(같은 이름 -0702a)가 트리거 조건은 확정,
-  기전은 verification_gap으로 넘김.
+**진행 중이던 빌딩 2 — 둘 다 착지 (0702 심야 정정)**
+- `llm-alias-completion-0702a`: 착지. llm= 본편은 이후 main 기준 미랜딩으로 재확인되어
+  v9(llm-alias-0702h)로 확정 4조각 재발주(0702 심야, 진행 중).
+- `resume-corrupt-investigation-0702b`: **착지 — 기전 규명 완료.** step-output
+  즉시쓰기 vs raw-return 걸음종료 일괄쓰기(별개 트랜잭션). 기전 정본(커밋됨):
+  resume-defect-mechanisms-0702.md. 1차(-0702a)는 트리거 확정.
 
 **오늘 발견한 엔진 결함 5종 (전부 태스크 등록, 처방 대기)**
 1. **가짜 complete 무저지** — write 노드 complete에 diff 실물 요구하는 기계 게이트
@@ -109,8 +108,9 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
 2. **resume 예산 미소비**(#15) — raise가 쓴 예산 주입 행을 재개 걸음이 안 읽음.
 3. **처분 자기잠금**(#19) — 잘못된 종류 처분 시도가 거부되고도 원장에 남아 정정도
    재개도 막음. llm-alias에서 실측.
-4. **resume 원장 불일치**(#21) — 트리거는 확정(1차 조사), 발생 기전 조사 중(2차,
-   현재 진행). #15와 다른 코드 경로.
+4. **resume 원장 불일치**(#21) — 트리거 확정(1차) + **기전 규명 완료(2차 착지, 0702 심야)**:
+   step-output은 스텝종료 즉시쓰기, raw-return은 걸음종료 후 일괄쓰기 — 별개 트랜잭션.
+   기전 정본(커밋됨, 레인 가독): resume-defect-mechanisms-0702.md. #15와 다른 코드 경로.
 5. (소음) admission 체커 중첩 vessel 레이아웃 미인지(#14) — push 무영향, 백로그.
 
 **엔진 개선 후보(설계만, 미착수)**
