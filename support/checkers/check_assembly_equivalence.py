@@ -1401,6 +1401,27 @@ def _gate_sequence_policy_for_edge(
     raise AssemblyEquivalenceError(f"{source_kind}->{target_kind} edge was not present")
 
 
+def _declared_gate_refs_for_edge(
+    plan: Mapping[str, Any],
+    *,
+    source_kind: str,
+    target_kind: str,
+) -> tuple[str, ...]:
+    labels, _endpoint_to_label, _node_kinds = _canonical_labels(plan)
+    for edge in plan.get("link_edges", ()):
+        if not isinstance(edge, Mapping):
+            continue
+        source_label = labels.get(str(edge.get("source_step_ref", "")).strip())
+        target_label = labels.get(str(edge.get("target_step_ref", "")).strip())
+        if source_label != source_kind or target_label != target_kind:
+            continue
+        declared_refs = _link_row(edge).get("declared_gate_refs")
+        if not isinstance(declared_refs, Sequence) or isinstance(declared_refs, (str, bytes)):
+            raise AssemblyEquivalenceError(f"{source_kind}->{target_kind} did not carry declared_gate_refs")
+        return tuple(str(item).strip() for item in declared_refs)
+    raise AssemblyEquivalenceError(f"{source_kind}->{target_kind} edge was not present")
+
+
 def _assert_gate_sequence_policy_equivalent_to_engine_preset(
     policy: Sequence[Mapping[str, Any]],
     *,
@@ -2124,6 +2145,100 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
             raise AssemblyEquivalenceError(f"build stop wrote more than the proposal snapshot: {stop_entries!r}")
         outputs.append("build green: stop approval wrote only the frozen proposal and ran nothing.")
 
+        explicit_scope = {
+            "allowed_paths": ["support/checkers/**"],
+            "forbidden_paths": [".git/**"],
+        }
+        explicit_graph = chain(
+            [
+                brick("design", "explicit build pass-through design"),
+                brick("work", "explicit build pass-through work", write=True),
+                brick(
+                    "code-attack-qa",
+                    "explicit build pass-through code attack",
+                    returns=CODE_ATTACK_RETURN_SHAPE,
+                ),
+                brick("closure", "explicit build pass-through closure"),
+            ]
+        )
+        explicit_root = tmp / "build-explicit-root"
+        with _with_temp_home(tmp / "build-explicit-home"):
+            explicit = build(
+                explicit_graph,
+                goal="build explicit pass-through checker task",
+                declared_by=DECLARED_BY,
+                author_ref="coo:smith",
+                action="stop",
+                output_root=explicit_root,
+                write_scope=explicit_scope,
+                gates=(Gate.STRICT_EVIDENCE,),
+                command_runner=_approval_runner(),
+                adapter_timeout_seconds=30,
+            )
+        explicit_approval = explicit.get("approval_result")
+        if not isinstance(explicit_approval, Mapping):
+            raise AssemblyEquivalenceError(f"build explicit pass-through returned no approval result: {explicit!r}")
+        if explicit_approval.get("ran") is not False or not explicit_approval.get("ok"):
+            raise AssemblyEquivalenceError(f"build explicit pass-through did not stop cleanly: {explicit!r}")
+        explicit_proposal = Path(str(explicit.get("proposal_ref", ""))).resolve()
+        if explicit_proposal.parent.parent != explicit_root.resolve():
+            raise AssemblyEquivalenceError(f"build output_root was not used as proposal root: {explicit_proposal}")
+        explicit_plan = json.loads(explicit_proposal.read_text(encoding="utf-8"))
+        explicit_work_row = _brick_row(_step_for_kind(explicit_plan, "work"))
+        if explicit_work_row.get("write_scope") != explicit_scope:
+            raise AssemblyEquivalenceError(
+                "build write_scope pass-through did not preserve caller declaration: "
+                f"{explicit_work_row.get('write_scope')!r}"
+            )
+        explicit_gate_refs = _declared_gate_refs_for_edge(
+            explicit_plan,
+            source_kind="code-attack-qa",
+            target_kind="closure",
+        )
+        if explicit_gate_refs != (DEFAULT_GATE, STRICT_GATE):
+            raise AssemblyEquivalenceError(f"build gates pass-through did not preserve strict gate: {explicit_gate_refs!r}")
+        outputs.append("build green: output_root/write_scope/gates pass-through preserved caller declarations.")
+
+        import brick_protocol.support.operator.assembly as assembly_module  # noqa: PLC0415
+
+        real_assemble = assembly_module.assemble
+
+        def mutant_assemble(*args: Any, **kwargs: Any) -> Any:
+            mutant_kwargs = dict(kwargs)
+            mutant_kwargs.pop("write_scope", None)
+            mutant_kwargs.pop("gates", None)
+            return real_assemble(*args, **mutant_kwargs)
+
+        assembly_module.assemble = mutant_assemble
+        try:
+            with _with_temp_home(tmp / "build-mutant-home"):
+                mutant = build(
+                    explicit_graph,
+                    goal="build severed pass-through mutation checker task",
+                    declared_by=DECLARED_BY,
+                    author_ref="coo:smith",
+                    action="stop",
+                    output_root=tmp / "build-mutant-root",
+                    write_scope=explicit_scope,
+                    gates=(Gate.STRICT_EVIDENCE,),
+                    command_runner=_approval_runner(),
+                    adapter_timeout_seconds=30,
+                )
+            mutant_plan = json.loads(Path(str(mutant.get("proposal_ref", ""))).read_text(encoding="utf-8"))
+            mutant_scope = _brick_row(_step_for_kind(mutant_plan, "work")).get("write_scope")
+            mutant_gate_refs = _declared_gate_refs_for_edge(
+                mutant_plan,
+                source_kind="code-attack-qa",
+                target_kind="closure",
+            )
+            if mutant_scope == explicit_scope or mutant_gate_refs == (DEFAULT_GATE, STRICT_GATE):
+                raise AssemblyEquivalenceError(
+                    "build mutation-RED did not discriminate severed write_scope/gates pass-through"
+                )
+        finally:
+            assembly_module.assemble = real_assemble
+        outputs.append("build mutation-RED observed: severed write_scope/gates wiring changed the frozen proposal.")
+
         zero_supply_graph = chain(
             [
                 brick("work", "zero-supply write work", write=True),
@@ -2458,6 +2573,7 @@ def run(repo: Path) -> list[str]:
     outputs.extend(_node_gates_fire(repo))
     outputs.extend(_write_scope_derivation_fire(repo))
     outputs.extend(_graph_write_scope_default_fire(repo))
+    outputs.extend(_proposal_approval_fire(repo))
     outputs.append(_tiny_work_qa_return_shape_red(repo))
     outputs.append(PROOF_LIMIT)
     return outputs
