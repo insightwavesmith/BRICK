@@ -118,11 +118,13 @@ fallback이며, §AUTO 읽기목록 산출은 design 노드의 일이다.
 2. <체커 핀: 픽스처+변이 RED 보임, 없으면 왜 없는지 한 줄>
 
 ## Proof required (직접 실행·정직 보고 — 주장은 실행 결과만)
-<포커스 체커 green + 변이 RED → check_profile.py --all은 /tmp 로그로 저장하고 rc/pass/failure-marker만 요약 → (코드면) compileall + git diff --check>
+<포커스 체커 green + 변이 RED → check_profile.py --all은 /tmp 로그로 저장하고 rc/pass/failure-marker만 요약 → (코드면) compileall + git diff --check.
+ 구현 task면 발주자가 직접 실행할 반려 시나리오 프로브 명령을 RED 기준으로 명시(0702 가짜 랜딩 교훈)>
 
 ## Hard constraints (law)
 <write_scope는 "support/operator/**" glob(★"support/" 금지 = fnmatch 함정).
- 금지선: 실루트 수정 / 핀 완화 / 스케줄러·신규의존성 / project/ 손대기>
+ 금지선: 실루트 수정 / 핀 완화 / 스케줄러·신규의존성 / project/ 손대기.
+ 구현 deliverable 있으면 필수 조항: "write_scope 안 diff 실물 없이 complete 반환 금지 — implementation_gap concern">
 ```
 
 부검은 `project/brick-protocol/status/kernel/evidence-postmortem-task-template-0612.md`를 쓴다.
