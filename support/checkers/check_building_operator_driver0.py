@@ -17,6 +17,7 @@ import sys
 import tempfile
 
 from collections.abc import Mapping, Sequence
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -1422,16 +1423,28 @@ def _w1_worktree_sandbox_fire(
         run_building_intake,
         run_customer_building_in_sandbox,
     )
+    from brick_protocol.support.operator.worktree_sandbox import (
+        _ENGINE_WORKTREE_MARKER,
+        _engine_worktrees_root,
+        reap_stale_worktrees,
+    )
 
     with tempfile.TemporaryDirectory(prefix="bp-w1-customer-") as cust_raw, \
             tempfile.TemporaryDirectory(prefix="bp-w1-evidence-") as ev_raw, \
-            _TemporaryHome(Path(cust_raw) / "engine-home"):
+            _TemporaryHome(Path(cust_raw) / "engine-home") as engine_home:
         # Each customer "repo" is its OWN subdir so the shared temp root is never
         # itself a git repo (otherwise a subdir whose .git we remove would still
         # resolve UP to the root repo and misreport its probe reason).
         customer = Path(cust_raw) / "customer-live"
         customer.mkdir(parents=True, exist_ok=True)
         evidence_root = Path(ev_raw)
+        engine_root = _engine_worktrees_root()
+        summary["w1_fixture_engine_root"] = str(engine_root)
+        summary["w1_fixture_engine_root_isolated"] = _is_under(engine_root, engine_home)
+        if not _is_under(engine_root, engine_home):
+            violations.append(
+                "w1-fixture-route-isolation: checker worktree root was not under temporary HOME"
+            )
 
         # CASE 1 (THE proof): customer-facing WRITE dispatch through the worktree
         # wrapper leaves the live tree UNTOUCHED; writes land in the worktree;
@@ -1510,6 +1523,57 @@ def _w1_worktree_sandbox_fire(
             survived = _git_text(customer, "cat-file", "-t", result.commit_sha)
             if survived != "commit":
                 violations.append("w1-live-tree: output commit did not survive worktree disposal")
+
+        # CASE 1b (stale liveness gate): stale reap touches only parseable
+        # engine markers older than the threshold, and it runs inside the
+        # checker's temporary HOME route. Fresh or unparseable marker bodies are
+        # preserved so a stale sweep cannot delete uncertain work.
+        old_marker = engine_root / "stale-old-marker"
+        fresh_marker = engine_root / "stale-fresh-marker"
+        bad_marker = engine_root / "stale-bad-marker"
+        for marker_dir in (old_marker, fresh_marker, bad_marker):
+            marker_dir.mkdir(parents=True, exist_ok=True)
+        old_created = (datetime.now(timezone.utc) - timedelta(days=2)).isoformat(
+            timespec="microseconds"
+        ).replace("+00:00", "Z")
+        fresh_created = datetime.now(timezone.utc).isoformat(
+            timespec="microseconds"
+        ).replace("+00:00", "Z")
+        (old_marker / _ENGINE_WORKTREE_MARKER).write_text(
+            "engine-created\n"
+            f"repo_root={customer}\n"
+            "building_id=stale-old-marker\n"
+            f"base_sha={head_before}\n"
+            f"created_at={old_created}\n",
+            encoding="utf-8",
+        )
+        (fresh_marker / _ENGINE_WORKTREE_MARKER).write_text(
+            "engine-created\n"
+            f"repo_root={customer}\n"
+            "building_id=stale-fresh-marker\n"
+            f"base_sha={head_before}\n"
+            f"created_at={fresh_created}\n",
+            encoding="utf-8",
+        )
+        (bad_marker / _ENGINE_WORKTREE_MARKER).write_text(
+            "engine-created\n"
+            f"repo_root={customer}\n"
+            "building_id=stale-bad-marker\n"
+            f"base_sha={head_before}\n"
+            "created_at=not-a-timestamp\n",
+            encoding="utf-8",
+        )
+        reaped = reap_stale_worktrees(customer, stale_after_seconds=60 * 60)
+        summary["w1_stale_reaped_paths"] = list(reaped)
+        summary["w1_stale_old_removed"] = not old_marker.exists()
+        summary["w1_stale_fresh_preserved"] = fresh_marker.exists()
+        summary["w1_stale_bad_preserved"] = bad_marker.exists()
+        if str(old_marker) not in reaped or old_marker.exists():
+            violations.append("w1-stale-liveness: old parseable engine marker was not reaped")
+        if not fresh_marker.exists():
+            violations.append("w1-stale-liveness: fresh engine marker was reaped")
+        if not bad_marker.exists():
+            violations.append("w1-stale-liveness: unparseable engine marker did not fail closed")
 
         # CASE 2 (non-git refuse): point the wrapper at a NON-git dir that still
         # carries the Brick catalog (a checkout whose .git was removed) -> the
@@ -1687,6 +1751,15 @@ def _w1_worktree_sandbox_fire(
             or status4_after != ""
             or head4_before != head4_after
         )
+        summary["w1_mutation_red_execution_log"] = {
+            "bypassed_wrapper": True,
+            "adapter_cwd_was_live_repo": True,
+            "head_moved": head4_before != head4_after,
+            "status_after": status4_after,
+            "write_landed_in_live_tree": (customer4 / _W1_WRITE_REL).exists(),
+            "bypass_dirtied_live_tree": bypass_left_live_tree_dirty,
+            "proof_limit": "mutation-RED support evidence only",
+        }
         summary["w1_mutation_bypass_dirtied_live_tree"] = bypass_left_live_tree_dirty
         if not bypass_left_live_tree_dirty:
             violations.append(
@@ -1746,8 +1819,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"non-git-refuse mode={summary.get('w1_degraded_mode')} reason={summary.get('w1_degraded_reason')}; "
         f"dirty-worktree mode={summary.get('w1_dirty_mode')} reason={summary.get('w1_dirty_reason')} "
         f"base={summary.get('w1_dirty_base_sha')}; "
+        f"fixture_root_isolated={summary.get('w1_fixture_engine_root_isolated')} "
+        f"stale_old_removed={summary.get('w1_stale_old_removed')} "
+        f"stale_fresh_preserved={summary.get('w1_stale_fresh_preserved')} "
+        f"stale_bad_preserved={summary.get('w1_stale_bad_preserved')}; "
         f"incomplete frontier={summary.get('w1_incomplete_frontier')} commit={summary.get('w1_incomplete_commit')!r}; "
-        f"mutation-RED bypass_dirtied_live_tree={summary.get('w1_mutation_bypass_dirtied_live_tree')}."
+        f"mutation-RED bypass_dirtied_live_tree={summary.get('w1_mutation_bypass_dirtied_live_tree')} "
+        f"execution_log={summary.get('w1_mutation_red_execution_log')}."
     )
     print(
         "H2a direct-graph intake FIRE passed: "

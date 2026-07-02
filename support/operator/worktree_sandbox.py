@@ -60,6 +60,7 @@ def __getattr__(name: str) -> object:
         return _engine_worktrees_root()
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 _ENGINE_WORKTREE_MARKER = ".brick-engine-worktree"
+_DEFAULT_STALE_AFTER_SECONDS = 24 * 60 * 60
 
 
 class WorktreeSandboxError(RuntimeError):
@@ -88,6 +89,16 @@ class WorktreeSandbox:
     path: Path
     base_sha: str
     repo_root: Path
+
+
+@dataclass(frozen=True)
+class EngineWorktreeMarker:
+    """Support-only parsed marker fields; not an authority record."""
+
+    created_at: datetime
+    repo_root: str
+    building_id: str
+    base_sha: str
 
 
 def probe_worktree_capable(repo_root: Path | str) -> WorktreeProbe:
@@ -135,9 +146,17 @@ def create_worktree_sandbox(
     reap_stale_worktrees(repo)
     wt_path = _worktree_path_for(building_id)
     if wt_path.exists():
-        # A prior live or stale worktree at the same building id -> remove it
-        # (engine-gated) before re-creating, honoring per-building granularity.
-        _force_remove_worktree(repo, wt_path)
+        # Same-building residue is removed only when the marker proves it is
+        # stale. A live/young or unparseable marker fails closed so the wrapper
+        # can degrade without deleting uncertain work.
+        if not _force_remove_stale_worktree(
+            repo,
+            wt_path,
+            stale_after_seconds=_DEFAULT_STALE_AFTER_SECONDS,
+        ):
+            raise WorktreeSandboxError(
+                f"refusing to replace a non-stale engine worktree path: {wt_path}"
+            )
     wt_path.parent.mkdir(parents=True, exist_ok=True)
     added = _git(repo, "worktree", "add", "--detach", str(wt_path), base)
     if added is None or not wt_path.is_dir():
@@ -214,12 +233,18 @@ def dispose_worktree_sandbox(sandbox: WorktreeSandbox) -> bool:
     return _force_remove_active_worktree(sandbox)
 
 
-def reap_stale_worktrees(repo_root: Path | str) -> tuple[str, ...]:
+def reap_stale_worktrees(
+    repo_root: Path | str,
+    *,
+    stale_after_seconds: int = _DEFAULT_STALE_AFTER_SECONDS,
+) -> tuple[str, ...]:
     """Force-remove stale ENGINE-created worktrees under ~/.brick/worktrees.
 
     Crash-safety: a run that died before dispose leaves a stale engine worktree.
-    The next run reaps them. ONLY engine-marked paths under ENGINE_WORKTREES_ROOT
-    are touched (gated -- never a user path). Returns the reaped paths.
+    The next run reaps only paths whose marker ``created_at`` is older than the
+    caller-supplied threshold. ONLY parseable engine-marked paths under
+    ENGINE_WORKTREES_ROOT are touched (gated -- never a user path). Missing,
+    older-format, or unparseable markers fail closed. Returns the reaped paths.
     """
 
     repo = Path(repo_root).resolve()
@@ -232,7 +257,11 @@ def reap_stale_worktrees(repo_root: Path | str) -> tuple[str, ...]:
             continue
         if not _is_engine_worktree(child):
             continue
-        if _force_remove_worktree(repo, child):
+        if _force_remove_stale_worktree(
+            repo,
+            child,
+            stale_after_seconds=stale_after_seconds,
+        ):
             reaped.append(str(child))
     _git(repo, "worktree", "prune")
     return tuple(reaped)
@@ -287,6 +316,60 @@ def _write_engine_marker(wt_path: Path, *, repo: Path, building_id: str, base: s
             # Best effort: if we cannot write the exclude, fall back to removing
             # the marker right before commit (handled in the wrapper).
             pass
+
+
+def _read_engine_marker(path: Path) -> EngineWorktreeMarker | None:
+    marker = path / _ENGINE_WORKTREE_MARKER
+    try:
+        body = marker.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    fields: dict[str, str] = {}
+    lines = body.splitlines()
+    if not lines or lines[0].strip() != "engine-created":
+        return None
+    for line in lines[1:]:
+        key, sep, value = line.partition("=")
+        if sep:
+            fields[key.strip()] = value.strip()
+    created_at = _parse_marker_created_at(fields.get("created_at", ""))
+    if created_at is None:
+        return None
+    repo_root = fields.get("repo_root", "")
+    building_id = fields.get("building_id", "")
+    base_sha = fields.get("base_sha", "")
+    if not (repo_root and building_id and base_sha):
+        return None
+    return EngineWorktreeMarker(
+        created_at=created_at,
+        repo_root=repo_root,
+        building_id=building_id,
+        base_sha=base_sha,
+    )
+
+
+def _parse_marker_created_at(value: str) -> datetime | None:
+    raw = str(value).strip()
+    if not raw:
+        return None
+    try:
+        parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return None
+    return parsed.astimezone(timezone.utc)
+
+
+def _is_stale_engine_worktree(path: Path, *, stale_after_seconds: int) -> bool:
+    marker = _read_engine_marker(path)
+    if marker is None:
+        return False
+    try:
+        age_seconds = (datetime.now(timezone.utc) - marker.created_at).total_seconds()
+    except (OverflowError, OSError):
+        return False
+    return age_seconds >= max(int(stale_after_seconds), 0)
 
 
 def _is_engine_worktree(path: Path) -> bool:
@@ -350,6 +433,26 @@ def _force_remove_worktree(repo: Path, wt_path: Path) -> bool:
         raise WorktreeSandboxError(
             f"refusing to force-remove a non-engine worktree path: {wt_path}"
         )
+    return _force_remove_worktree_unchecked(repo, wt_path)
+
+
+def _force_remove_stale_worktree(
+    repo: Path,
+    wt_path: Path,
+    *,
+    stale_after_seconds: int,
+) -> bool:
+    if not _is_engine_worktree(wt_path):
+        if wt_path.exists():
+            raise WorktreeSandboxError(
+                f"refusing to force-remove a non-engine worktree path: {wt_path}"
+            )
+        return True
+    if not _is_stale_engine_worktree(
+        wt_path,
+        stale_after_seconds=stale_after_seconds,
+    ):
+        return False
     return _force_remove_worktree_unchecked(repo, wt_path)
 
 
