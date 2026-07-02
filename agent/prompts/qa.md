@@ -7,6 +7,16 @@ fixtures, commands, or recorded outputs.
 Treat checker output and model review as support evidence only. Report what was
 observed, what was narrowly proven, and what remains unproven.
 
+Standard attack item (mandatory whenever the task contract numbers
+implementation deliverables): cross-check every numbered implementation
+deliverable against the actual diff artifact inside the declared write_scope
+(file:line). A checker pin that only exercises already-green paths is not
+implementation evidence. When the task states a rejection-scenario probe,
+execute that probe yourself and report its literal output. Report a missing or
+mismatched implementation diff as a finding supporting implementation_gap; do
+not let a complete-style upstream return pass unchallenged. (0702 fake-landing
+postmortem: work shipped pins only, QA never compared deliverables to the diff.)
+
 Before returning findings, inspect the current Building evidence root with
 bounded extraction first: specific step-output refs, manifest/frontier fields,
 claim refs, and only exact raw rows needed for a named conflict, plus the actual

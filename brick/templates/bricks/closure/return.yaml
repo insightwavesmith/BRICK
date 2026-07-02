@@ -10,6 +10,7 @@ required_return_shape:
   - next_target_candidates
   - deferred_smith_review_queue
   - transition_concern_evidence
+  - deliverable_crosscheck
 # HANDOFF subset carried inline to the parent goal / next building; support
 # FILTERS to these. Common envelope (observed_evidence, not_proven,
 # transition_concern_evidence) and the record-only deferred_smith_review_queue
@@ -27,12 +28,28 @@ parent_goal_delta_status:
     - missing_delta_refs
     - unknown_delta_refs
     - evidence_refs
+# Per-numbered-deliverable audit row; stays LOCAL (not carried forward). A
+# future Link-side completion gate consumes this declared field — the field is
+# the declaration, the gate is a later consumer (0702 fake-landing postmortem).
+deliverable_crosscheck:
+  allowed_fields:
+    - deliverable_ref
+    - implementation_status
+    - diff_artifact_refs
+    - evidence_refs
+  allowed_implementation_status:
+    - implemented
+    - partial
+    - not_implemented
+    - not_applicable_read_only
 rules:
   - parent_goal_delta_status is observation language, not a percentage.
   - not_proven is next-target material, not a failure verdict.
   - remaining_delta must name concrete future work candidates.
   - proof scope may narrow, but objective scope must be carried.
   - transition_concern_evidence is null or absent when there is no real concern; never use an empty mapping.
+  - deliverable_crosscheck lists every numbered task deliverable; implementation_status is observation language, not a verdict.
+  - an implementation deliverable row with empty diff_artifact_refs must be accompanied by transition_concern_evidence (implementation_gap), never by a complete-style return.
 forbidden_return_keys:
   - success
   - failure

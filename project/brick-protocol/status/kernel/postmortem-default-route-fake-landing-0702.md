@@ -93,6 +93,18 @@ template:default-transition, node_budget 5, budget_exhausted false]
   절단은 여전 — 렌즈 산출은 carry 메타 관찰에 수렴, 3축 전문은 COO 집계(본 문서)로 종결.
 - 함의: 조사전용 빌딩의 산출 지속성은 returns 계층 수리(#8) 전까지 제한적이다.
 
+## 6-0. Smith 판정 (0702) — 이 부검이 증명한 것
+
+> "이게 바로 브릭의 가장 큰 장점이다. 축의 분리 → 에비던스를 남기는 이유."
+
+같은 사건이 축이 분리돼 있지 않았다면 "에이전트가 거짓말했다"로 뭉개졌을 것이다.
+축이 분리돼 있어서: 원인이 축별로 **분해 가능**했고(계약 문구 / 수행 이탈 / 기계 부재),
+처방이 각 축의 **자기 선언 표면**에 정확히 꽂혔다 — Agent=프롬프트 자원(agent/prompts),
+Brick=반환 계약 필드(return.yaml, 엔진 무수정), Link=차후 게이트(선언된 필드의 소비자).
+그리고 남긴 에비던스가 있어서 이 전 과정이 추측이 아니라 인용으로 성립했다.
+편집 중 drift 가드(check_bricks_spec_completeness)가 산문↔계약 정합까지 강제한 것 포함,
+축 기계가 개선 작업 자체를 지켰다. 파생 채택: 부검 그래프의 프리셋화(백로그 등재).
+
 ## 6. 증거 색인
 
 - v1 vessel: project/brick-protocol/buildings/default-route-0702a/task-statement-b623debda32e-node/

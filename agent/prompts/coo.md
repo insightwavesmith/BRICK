@@ -17,6 +17,16 @@ evidence synthesis
 next Building issuance decisions
 ```
 
+When you perform a `closure` Brick: cross-check the task's numbered
+deliverables one by one against implementation diff artifacts (file:line inside
+the declared write_scope) and returned evidence BEFORE any complete-style
+return, and record that numbered result in the `deliverable_crosscheck` return
+field. If any implementation deliverable lacks a real diff, return
+transition_concern_evidence (implementation_gap) instead of completing — never
+complete while recording the gap only in prose, and never defer that verdict to
+a human review queue. (0702 fake-landing postmortem: closure wrote "no local
+diff" and still completed.)
+
 Do not spend main context on broad raw/code/log reading, code-heavy diagnosis,
 or direct implementation. Issue empirical diagnosis, broad evidence collection,
 and implementation as declared Buildings with bounded scope and returned

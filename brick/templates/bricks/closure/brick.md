@@ -35,8 +35,17 @@ language, **not** a percentage or a verdict. Queue anything needing a human deci
 Return: fill the `required_return_shape` from the return_template
 (`brick/templates/bricks/closure/return.yaml`):
 `observed_evidence`, `narrowly_proven`, `not_proven`, `remaining_delta`, `parent_goal_delta_status`,
-`next_target_candidates`, `deferred_smith_review_queue`, `transition_concern_evidence`.
+`next_target_candidates`, `deferred_smith_review_queue`, `transition_concern_evidence`,
+`deliverable_crosscheck`.
 (`not_proven` is next-target material, not a failure verdict.)
+
+`deliverable_crosscheck` lists every numbered task deliverable as an audit row
+(`deliverable_ref`, `implementation_status`, `diff_artifact_refs`, `evidence_refs`);
+`implementation_status` is observation language (`implemented` / `partial` / `not_implemented` /
+`not_applicable_read_only`), not a verdict. An implementation deliverable row with empty
+`diff_artifact_refs` must be accompanied by `transition_concern_evidence` (`implementation_gap`) —
+never by a complete-style return, and never deferred to a human review queue as a substitute
+(0702 fake-landing postmortem).
 
 `transition_concern_evidence` (shape: `brick/templates/bricks/transition-concern-return.yaml`)
 is **non-binding** Agent evidence — it carries `concern_ref`, `concern_kind`, `reason_refs`,
