@@ -1,0 +1,49 @@
+schema: checker-profile/v1
+profile_id: sink-registry
+description: Fixture-only sink registry persistence, reachability checks, and standalone CLI dispatch guard.
+kernel_checks:
+  - sink_registry
+path_exists:
+  - support/operator/sink_registry.py
+  - support/operator/onboard.py
+  - support/operator/cli.py
+  - support/checkers/check_sink_registry.py
+  - support/checkers/profiles/sink_registry.yaml
+text_contains:
+  - path: support/checkers/check_sink_registry.py
+    texts:
+      - 'tempfile.TemporaryDirectory(prefix="bp-sink-registry-")'
+      - 'os.environ["BRICK_HOME"] = tmp'
+      - '_fake_slack_call'
+      - '_fake_dashboard_unreachable'
+      - 'brick sink add dashboard'
+  - path: support/operator/sink_registry.py
+    texts:
+      - 'SINKS_FILENAME = "sinks.yaml"'
+      - 'record_sink_reachability'
+      - 'last_reachability_check'
+      - 'registry_path.chmod(0o600)'
+  - path: support/operator/onboard.py
+    texts:
+      - 'def run_dashboard_provision_step'
+      - 'chat.postMessage'
+      - 'BRICK_DASHBOARD_INGEST_URL'
+      - 'record_sink_reachability'
+  - path: support/operator/cli.py
+    texts:
+      - 'provider_add.add_argument("host"'
+      - 'sink_add.add_argument("sink_name"'
+      - 'run_dashboard_provision_step'
+text_absent:
+  - path: support/checkers/check_sink_registry.py
+    texts:
+      - 'Path.home() / ".brick"'
+      - 'urllib.request.urlopen'
+proof_limits:
+  - support evidence only
+  - fixture-only sink registry checker
+  - mocked Slack and Dashboard reachability
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority

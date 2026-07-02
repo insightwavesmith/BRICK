@@ -64,6 +64,12 @@ from brick_protocol.support.operator.frontier_observation import (
 from brick_protocol.support.operator.provider_registry import (
     register_ready_provider,
 )
+from brick_protocol.support.operator.sink_registry import (
+    SINK_REF_DASHBOARD,
+    SINK_REF_SLACK,
+    brick_home as sink_brick_home,
+    record_sink_reachability,
+)
 from brick_protocol.link.transition import DISPOSITION_ACTIONS
 
 
@@ -1127,6 +1133,13 @@ def _skill_body_without_front_matter(body: str) -> str:
 # no-ops on an absent file. This step provisions/validates that file (0600).
 _SLACK_BOT_TOKEN_KEY = "BRICK_REPORT_SLACK_BOT_TOKEN"
 _SLACK_CHANNEL_ID_KEY = "BRICK_REPORT_SLACK_CHANNEL_ID"
+_DASHBOARD_INGEST_URL_KEY = "BRICK_DASHBOARD_INGEST_URL"
+_DASHBOARD_SECRET_KEY = "BRICK_DASHBOARD_INGEST_SECRET"
+_DASHBOARD_SA_KEY_PATH = "BRICK_DASHBOARD_SA_KEY_PATH"
+
+
+def _report_env_path() -> Path:
+    return sink_brick_home() / "report.env"
 
 
 def _env_key_has_value(text: str, key: str) -> bool:
@@ -1151,10 +1164,110 @@ def _env_key_has_value(text: str, key: str) -> bool:
     return False
 
 
+def _env_key_value(text: str, key: str) -> str:
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        body = line[len("export "):].strip() if line.startswith("export ") else line
+        prefix = key + "="
+        if not body.startswith(prefix):
+            continue
+        return body[len(prefix):].strip().strip("\"'").strip()
+    return ""
+
+
+def _append_report_env_values(target: Path, values: Mapping[str, str]) -> None:
+    import os  # noqa: PLC0415
+
+    target.parent.mkdir(parents=True, exist_ok=True)
+    body = "".join(f"export {key}={value}\n" for key, value in values.items() if value)
+    flags = os.O_WRONLY | os.O_CREAT | os.O_APPEND
+    fd = os.open(str(target), flags, 0o600)
+    try:
+        os.write(fd, body.encode("utf-8"))
+    finally:
+        os.close(fd)
+
+
+def _default_slack_api_call(
+    *,
+    token: str,
+    channel_id: str,
+    text: str,
+    timeout: float,
+) -> dict[str, Any]:
+    import json as json_mod  # noqa: PLC0415
+    import urllib.error  # noqa: PLC0415
+    import urllib.request  # noqa: PLC0415
+
+    payload = json_mod.dumps({"channel": channel_id, "text": text}).encode("utf-8")
+    request = urllib.request.Request(
+        "https://slack.com/api/chat.postMessage",
+        data=payload,
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json; charset=utf-8",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310
+            status_code = int(getattr(response, "status", 0) or 0)
+            body = response.read(65536).decode("utf-8", errors="replace")
+    except urllib.error.HTTPError as exc:
+        return {"ok": False, "status_code": int(exc.code), "error_kind": "HTTPError"}
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error_kind": type(exc).__name__}
+    try:
+        parsed = json_mod.loads(body) if body else {}
+    except json_mod.JSONDecodeError:
+        parsed = {}
+    return {
+        "ok": bool(parsed.get("ok")),
+        "status_code": status_code,
+        "slack_error": str(parsed.get("error") or "")[:80],
+    }
+
+
+def _default_dashboard_http_call(
+    *,
+    ingest_url: str,
+    secret: str,
+    timeout: float,
+) -> dict[str, Any]:
+    import urllib.error  # noqa: PLC0415
+    import urllib.request  # noqa: PLC0415
+
+    request = urllib.request.Request(
+        ingest_url,
+        headers={
+            "X-Brick-Dashboard-Secret": secret,
+            "User-Agent": "brick-onboarding/1",
+        },
+        method="HEAD",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310
+            status_code = int(getattr(response, "status", 0) or 0)
+    except urllib.error.HTTPError as exc:
+        status_code = int(exc.code)
+        return {
+            "ok": 200 <= status_code < 500,
+            "status_code": status_code,
+            "error_kind": "HTTPError",
+        }
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error_kind": type(exc).__name__}
+    return {"ok": 200 <= status_code < 500, "status_code": status_code}
+
+
 def run_slack_provision_step(
     *,
     slack_bot_token: str | None = None,
     slack_channel_id: str | None = None,
+    slack_api_call: Any | None = None,
+    timeout_seconds: float = 8.0,
 ) -> dict[str, Any]:
     """B3: provision/validate ~/.brick/report.env (0600) with the two Slack keys.
 
@@ -1166,19 +1279,21 @@ def run_slack_provision_step(
     secret value back). NEVER raises.
     """
 
-    import os  # noqa: PLC0415
     import stat as stat_mod  # noqa: PLC0415
 
-    target = Path("~/.brick/report.env").expanduser()
+    target = _report_env_path()
     result: dict[str, Any] = {
         "ok": True,
         "path": str(target),
         "action": "",
         "slack_configured": False,
+        "slack_ready": False,
         "perms_ok": None,
         "message_ko": "",
     }
     try:
+        token = (slack_bot_token or "").strip()
+        channel = (slack_channel_id or "").strip()
         if target.exists():
             mode = stat_mod.S_IMODE(target.stat().st_mode)
             perms_ok = not (mode & (stat_mod.S_IRWXG | stat_mod.S_IRWXO))
@@ -1206,13 +1321,60 @@ def run_slack_provision_step(
                     "슬랙 알림을 켜려면 BRICK_REPORT_SLACK_BOT_TOKEN + "
                     "BRICK_REPORT_SLACK_CHANNEL_ID 를 채우세요 (없어도 로컬 기록은 작동)."
                 )
+                if token and channel:
+                    values: dict[str, str] = {}
+                    if not has_token:
+                        values[_SLACK_BOT_TOKEN_KEY] = token
+                    if not has_channel:
+                        values[_SLACK_CHANNEL_ID_KEY] = channel
+                    _append_report_env_values(target, values)
+                    text = target.read_text(encoding="utf-8")
+                    result["action"] = "installed"
+                    result["slack_configured"] = True
+                else:
+                    record_sink_reachability(
+                        SINK_REF_SLACK,
+                        credentials_present=False,
+                        reachability_status="not_configured",
+                    )
+                    return result
+            if not token:
+                token = _env_key_value(text, _SLACK_BOT_TOKEN_KEY)
+            if not channel:
+                channel = _env_key_value(text, _SLACK_CHANNEL_ID_KEY)
+            check = (slack_api_call or _default_slack_api_call)(
+                token=token,
+                channel_id=channel,
+                text="BRICK setup readiness check: Slack report sink is configured.",
+                timeout=timeout_seconds,
+            )
+            ready = bool(check.get("ok"))
+            result["slack_ready"] = ready
+            result["reachability_status"] = "ready" if ready else "unreachable"
+            record_sink_reachability(
+                SINK_REF_SLACK,
+                credentials_present=True,
+                reachability_status=str(result["reachability_status"]),
+                detail={
+                    "status_code": check.get("status_code"),
+                    "error_kind": check.get("error_kind") or check.get("slack_error"),
+                },
+            )
+            if ready:
+                result["message_ko"] = "슬랙 test message 확인까지 끝났어요 ✅"
+            else:
+                result["ok"] = False
+                result["message_ko"] = "슬랙 test message 전송이 실패했어요. 토큰/채널을 확인하세요."
             return result
 
-        token = (slack_bot_token or "").strip()
-        channel = (slack_channel_id or "").strip()
         if not token or not channel:
             # Friendly fallback: no file, no credentials -> advisory, NOT an error.
             result["action"] = "skipped"
+            record_sink_reachability(
+                SINK_REF_SLACK,
+                credentials_present=False,
+                reachability_status="not_configured",
+            )
             result["message_ko"] = (
                 "슬랙 알림은 아직 안 켰어요 (선택). 켜려면 ~/.brick/report.env (0600) 에 "
                 "BRICK_REPORT_SLACK_BOT_TOKEN 과 BRICK_REPORT_SLACK_CHANNEL_ID 를 넣으세요. "
@@ -1220,25 +1382,155 @@ def run_slack_provision_step(
             )
             return result
 
-        target.parent.mkdir(parents=True, exist_ok=True)
-        body = (
-            f"export {_SLACK_BOT_TOKEN_KEY}={token}\n"
-            f"export {_SLACK_CHANNEL_ID_KEY}={channel}\n"
+        _append_report_env_values(
+            target,
+            {
+                _SLACK_BOT_TOKEN_KEY: token,
+                _SLACK_CHANNEL_ID_KEY: channel,
+            },
         )
-        fd = os.open(str(target), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-        try:
-            os.write(fd, body.encode("utf-8"))
-        finally:
-            os.close(fd)
         result["action"] = "installed"
         result["slack_configured"] = True
         result["perms_ok"] = True
-        result["message_ko"] = "슬랙 키 2개를 ~/.brick/report.env (0600) 에 저장했어요 ✅"
+        check = (slack_api_call or _default_slack_api_call)(
+            token=token,
+            channel_id=channel,
+            text="BRICK setup readiness check: Slack report sink is configured.",
+            timeout=timeout_seconds,
+        )
+        ready = bool(check.get("ok"))
+        result["slack_ready"] = ready
+        result["reachability_status"] = "ready" if ready else "unreachable"
+        record_sink_reachability(
+            SINK_REF_SLACK,
+            credentials_present=True,
+            reachability_status=str(result["reachability_status"]),
+            detail={
+                "status_code": check.get("status_code"),
+                "error_kind": check.get("error_kind") or check.get("slack_error"),
+            },
+        )
+        if ready:
+            result["message_ko"] = "슬랙 키 저장 + test message 확인까지 끝났어요 ✅"
+        else:
+            result["ok"] = False
+            result["message_ko"] = "슬랙 키는 저장했지만 test message 전송이 실패했어요."
         return result
     except Exception as exc:  # noqa: BLE001 -- friendly field, never raise
         result["ok"] = False
         result["action"] = "error"
         result["message_ko"] = "report.env 설정 중 문제가 생겼어요 (아래 안내 확인)."
+        result["error_kind"] = type(exc).__name__
+        result["error_message"] = str(exc)
+        return result
+
+
+def run_dashboard_provision_step(
+    *,
+    dashboard_ingest_url: str | None = None,
+    dashboard_secret: str | None = None,
+    dashboard_sa_key_path: str | None = None,
+    dashboard_http_call: Any | None = None,
+    timeout_seconds: float = 8.0,
+) -> dict[str, Any]:
+    """Provision/validate Dashboard sink env and cache a reachability check.
+
+    No configured dashboard is a distinct non-fatal skip. Configured but
+    unreachable is recorded as not-ready evidence.
+    """
+
+    import stat as stat_mod  # noqa: PLC0415
+
+    target = _report_env_path()
+    result: dict[str, Any] = {
+        "ok": True,
+        "path": str(target),
+        "action": "",
+        "dashboard_configured": False,
+        "dashboard_ready": False,
+        "perms_ok": None,
+        "message_ko": "",
+    }
+    try:
+        ingest_url = (dashboard_ingest_url or "").strip()
+        secret = (dashboard_secret or "").strip()
+        sa_key_path = (dashboard_sa_key_path or "").strip()
+        if target.exists():
+            mode = stat_mod.S_IMODE(target.stat().st_mode)
+            perms_ok = not (mode & (stat_mod.S_IRWXG | stat_mod.S_IRWXO))
+            result["perms_ok"] = perms_ok
+            text = target.read_text(encoding="utf-8")
+            if not ingest_url:
+                ingest_url = _env_key_value(text, _DASHBOARD_INGEST_URL_KEY)
+            if not secret:
+                secret = _env_key_value(text, _DASHBOARD_SECRET_KEY)
+            if not sa_key_path:
+                sa_key_path = _env_key_value(text, _DASHBOARD_SA_KEY_PATH)
+            if not perms_ok:
+                result["ok"] = False
+                result["action"] = "validated"
+                result["message_ko"] = (
+                    f"report.env 권한이 느슨해요 → chmod 600 {target} 를 실행하세요 "
+                    "(0600이어야 대시보드 설정이 로드돼요)."
+                )
+                return result
+
+        if not ingest_url or not secret:
+            result["action"] = "skipped_not_configured"
+            record_sink_reachability(
+                SINK_REF_DASHBOARD,
+                credentials_present=False,
+                reachability_status="not_configured",
+            )
+            result["message_ko"] = (
+                "대시보드 싱크는 아직 안 켰어요 (선택). 켜려면 ingest URL과 secret을 "
+                "제공한 뒤 `brick sink add dashboard`를 다시 실행하세요."
+            )
+            return result
+
+        values: dict[str, str] = {}
+        existing_text = target.read_text(encoding="utf-8") if target.exists() else ""
+        if not _env_key_has_value(existing_text, _DASHBOARD_INGEST_URL_KEY):
+            values[_DASHBOARD_INGEST_URL_KEY] = ingest_url
+        if not _env_key_has_value(existing_text, _DASHBOARD_SECRET_KEY):
+            values[_DASHBOARD_SECRET_KEY] = secret
+        if sa_key_path and not _env_key_has_value(existing_text, _DASHBOARD_SA_KEY_PATH):
+            values[_DASHBOARD_SA_KEY_PATH] = sa_key_path
+        if values:
+            _append_report_env_values(target, values)
+            result["action"] = "installed"
+            result["perms_ok"] = True
+        else:
+            result["action"] = "validated"
+            result["perms_ok"] = result["perms_ok"] if result["perms_ok"] is not None else True
+        result["dashboard_configured"] = True
+        check = (dashboard_http_call or _default_dashboard_http_call)(
+            ingest_url=ingest_url,
+            secret=secret,
+            timeout=timeout_seconds,
+        )
+        ready = bool(check.get("ok"))
+        result["dashboard_ready"] = ready
+        result["reachability_status"] = "ready" if ready else "unreachable"
+        record_sink_reachability(
+            SINK_REF_DASHBOARD,
+            credentials_present=True,
+            reachability_status=str(result["reachability_status"]),
+            detail={
+                "status_code": check.get("status_code"),
+                "error_kind": check.get("error_kind"),
+            },
+        )
+        if ready:
+            result["message_ko"] = "대시보드 설정 저장/검증 + reachability 확인까지 끝났어요 ✅"
+        else:
+            result["ok"] = False
+            result["message_ko"] = "대시보드 설정은 저장했지만 reachability 확인이 실패했어요."
+        return result
+    except Exception as exc:  # noqa: BLE001 -- friendly field, never raise
+        result["ok"] = False
+        result["action"] = "error"
+        result["message_ko"] = "대시보드 설정 중 문제가 생겼어요 (아래 안내 확인)."
         result["error_kind"] = type(exc).__name__
         result["error_message"] = str(exc)
         return result

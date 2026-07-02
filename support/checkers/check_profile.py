@@ -522,6 +522,10 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "provider_registry_ladder",
         "support.checkers.check_provider_registry_ladder",
     ),
+    "sink_registry": _repo_main(
+        "sink_registry",
+        "support.checkers.check_sink_registry",
+    ),
     # F1 RETURN-FIELD MERGE-SET PARITY (return-LANDING binds to brick contract).
     # AST-parses (no import) support/connection/adapter_grant_policy.py and
     # support/connection/agent_adapter.py: every field in the structured-return

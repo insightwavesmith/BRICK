@@ -795,6 +795,103 @@ def _render_wizard_steps(wizard: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _render_provider_add(result: dict[str, Any]) -> str:
+    action = str(result.get("action") or "")
+    adapter_ref = str(result.get("adapter_ref") or "")
+    if action in {"registered", "refreshed"}:
+        state = "registered+ready"
+    elif action.startswith("skipped"):
+        state = "registered+not-ready-yet"
+    else:
+        state = "failed" if not result.get("ok", True) else action or "observed"
+    lines = [
+        "Brick provider add support evidence",
+        f"provider: {adapter_ref or 'unknown'}",
+        f"state: {state}",
+    ]
+    if result.get("message_ko"):
+        lines.append(f"message: {result['message_ko']}")
+    return "\n".join(lines)
+
+
+def _render_sink_add(sink_name: str, result: dict[str, Any]) -> str:
+    ready_key = "slack_ready" if sink_name == "slack" else "dashboard_ready"
+    configured_key = "slack_configured" if sink_name == "slack" else "dashboard_configured"
+    if result.get(ready_key) is True:
+        state = "registered+ready"
+    elif result.get(configured_key) is True:
+        state = "registered+not-ready-yet"
+    elif str(result.get("action") or "").startswith("skipped"):
+        state = "not-configured"
+    else:
+        state = "failed" if not result.get("ok", True) else str(result.get("action") or "observed")
+    lines = [
+        f"Brick sink add {sink_name} support evidence",
+        f"sink: {sink_name}",
+        f"state: {state}",
+    ]
+    if result.get("message_ko"):
+        lines.append(f"message: {result['message_ko']}")
+    return "\n".join(lines)
+
+
+def _cmd_provider_add(args: argparse.Namespace) -> int:
+    result = onboard.run_provider_register_step(args.host)
+    if args.json:
+        print(
+            _json_dump(
+                {
+                    "command": "provider-add",
+                    "host": args.host,
+                    "result": result,
+                    "proof_limits": list(PROOF_LIMITS),
+                    "not_proven": list(NOT_PROVEN),
+                }
+            )
+        )
+    else:
+        print(_render_provider_add(result))
+        print(f"proof_limits: {', '.join(PROOF_LIMITS)}")
+    return 0 if result.get("ok", True) else 1
+
+
+def _cmd_sink_add(args: argparse.Namespace) -> int:
+    sink_name = str(args.sink_name)
+    if sink_name == "slack":
+        result = onboard.run_slack_provision_step(
+            slack_bot_token=getattr(args, "slack_bot_token", None),
+            slack_channel_id=getattr(args, "slack_channel_id", None),
+        )
+    elif sink_name == "dashboard":
+        result = onboard.run_dashboard_provision_step(
+            dashboard_ingest_url=getattr(args, "dashboard_ingest_url", None),
+            dashboard_secret=getattr(args, "dashboard_secret", None),
+            dashboard_sa_key_path=getattr(args, "dashboard_sa_key_path", None),
+        )
+    else:
+        result = {
+            "ok": False,
+            "action": "unsupported_sink",
+            "message_ko": "지원하지 않는 sink예요.",
+        }
+    if args.json:
+        print(
+            _json_dump(
+                {
+                    "command": "sink-add",
+                    "sink": sink_name,
+                    "result": result,
+                    "proof_limits": list(PROOF_LIMITS),
+                    "not_proven": list(NOT_PROVEN),
+                }
+            )
+        )
+    else:
+        print(_render_sink_add(sink_name, result))
+        print(f"proof_limits: {', '.join(PROOF_LIMITS)}")
+    return 0 if result.get("ok", True) else 1
+
+
 def _cmd_auth_login(args: argparse.Namespace) -> int:
     # Guided readiness funnel. This NEVER enters credentials -- it observes
     # provider readiness (doctor) and prints per-provider login guidance so the
@@ -934,6 +1031,27 @@ def build_parser() -> argparse.ArgumentParser:
     _add_common(auth_login)
     auth_login.set_defaults(func=_cmd_auth_login)
     auth.set_defaults(func=_cmd_auth_login)
+
+    provider = subparsers.add_parser("provider", help="Provider registration commands.")
+    _add_common(provider)
+    provider_sub = provider.add_subparsers(dest="provider_command")
+    provider_add = provider_sub.add_parser("add", help="Register one ready provider host.")
+    _add_common(provider_add)
+    provider_add.add_argument("host", choices=onboard.SUPPORTED_HOSTS, help="Provider host to register.")
+    provider_add.set_defaults(func=_cmd_provider_add)
+
+    sink = subparsers.add_parser("sink", help="Report sink registration commands.")
+    _add_common(sink)
+    sink_sub = sink.add_subparsers(dest="sink_command")
+    sink_add = sink_sub.add_parser("add", help="Register or validate one report sink.")
+    _add_common(sink_add)
+    sink_add.add_argument("sink_name", choices=("slack", "dashboard"), help="Sink to register.")
+    sink_add.add_argument("--slack-bot-token", dest="slack_bot_token", default=None)
+    sink_add.add_argument("--slack-channel-id", dest="slack_channel_id", default=None)
+    sink_add.add_argument("--dashboard-ingest-url", dest="dashboard_ingest_url", default=None)
+    sink_add.add_argument("--dashboard-secret", dest="dashboard_secret", default=None)
+    sink_add.add_argument("--dashboard-sa-key-path", dest="dashboard_sa_key_path", default=None)
+    sink_add.set_defaults(func=_cmd_sink_add)
     return parser
 
 

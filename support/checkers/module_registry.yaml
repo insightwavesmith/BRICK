@@ -227,6 +227,16 @@ modules:
     decomposition_target: ""
     pinned_by: provider_registry_ladder profile (fixture-only providers.yaml ladder regression probes; never reads live ~/.brick/providers.yaml)
 
+  - module: support/checkers/check_sink_registry.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: sink_registry profile (fixture-only sinks.yaml and mocked Slack/Dashboard reachability probes; never reads live ~/.brick/sinks.yaml)
+
   - module: support/checkers/check_evidence_spine.py
     layer: checkers
     role: checker
@@ -1048,6 +1058,16 @@ modules:
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
     pinned_by: provider_registry_ladder profile (per-user providers.yaml persistence and support-only adapter-resolution registry reader; no credentials, no source truth, no Movement)
+
+  - module: support/operator/sink_registry.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: sink_registry profile (per-user sinks.yaml persistence and support-only sink reachability registry reader; no credentials, no source truth, no Movement)
 
   # BUILDING-EASE-0 (0623): the make-a-brick skill's scaffold helper. Pure support
   # operator mechanics: WRITES a new brick kind's two template files

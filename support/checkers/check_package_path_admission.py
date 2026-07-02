@@ -220,6 +220,13 @@ PROVIDER_REGISTRY_LADDER0_TARGETS = {
     "support/operator/provider_registry.py",
 }
 
+# SINK-REGISTRY-0: per-user report sink registry persistence plus mocked/live
+# reachability observation cache. Runtime code may read the live registry;
+# checker coverage must use injected/temp fixtures only.
+SINK_REGISTRY0_TARGETS = {
+    "support/operator/sink_registry.py",
+}
+
 # BRICK-CLI-ENTRYPOINT-0: the customer-facing `brick` console-script support
 # wrapper. It bootstraps repo/import-identity paths, then delegates to existing
 # doctor/build/verify/status seams. Support operator mechanics only: owns no
@@ -393,6 +400,7 @@ ELEGANT_REFACTOR_BUILDING_OPERATION_TARGETS = {
     "support/operator/coo_operating_chain.py",
     "support/operator/plan_rendering.py",
     *PROVIDER_REGISTRY_LADDER0_TARGETS,
+    *SINK_REGISTRY0_TARGETS,
     # MODULE-SEP composition god-module split: composition.py (was 4489 lines)
     # was decomposed into these single-concern sibling collaborators (pure
     # relocation; callers import the real homes directly — the facade is gone).
@@ -1830,6 +1838,9 @@ def allowed_path(path: str) -> bool:
         return True
 
     if clean in ONBOARD_WIZARD0_TARGETS:
+        return True
+
+    if clean in SINK_REGISTRY0_TARGETS:
         return True
 
     if clean in BRICK_CLI_ENTRYPOINT0_TARGETS:
