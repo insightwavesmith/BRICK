@@ -56,9 +56,7 @@ Single active context only: a second `set_brick_context` overwrites the first
 A malformed/`building_id`-less record reads as `None` (fail to NO-OP, never to a
 forged recording).
 
-> Superseded note: an older "B1 voluntary" model keyed recording on a per-prompt
-> `BRICK-TRACK:<building_id>` marker the agent had to type. That mechanism is
-> GONE. Recording is now driven by the brick context above; no marker is typed.
+> Superseded: 구 "B1 voluntary"의 `BRICK-TRACK:<building_id>` 마커 타이핑 방식은 폐기 — brick context가 유일한 드라이버다.
 
 ## Convention: open -> dispatch -> gate -> close
 
@@ -186,25 +184,7 @@ this checkout's `.claude/hooks/` + `.codex/hooks/` and merges the entries
 below into `.claude/settings.local.json` / `.codex/hooks.json`, with
 `BRICK_REPO_ROOT` and the hook paths computed from the ACTUAL repo root
 (idempotent; a user-modified file is compared, skipped, and warned about,
-never silently overwritten). Generic example of what it writes (`<repo>` =
-your checkout root):
-
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      { "matcher": "Agent",
-        "hooks": [ { "type": "command",
-          "command": "BRICK_REPO_ROOT=<repo> python3 <repo>/.claude/hooks/open-recording.py" } ] }
-    ],
-    "PostToolUse": [
-      { "matcher": "Agent",
-        "hooks": [ { "type": "command",
-          "command": "BRICK_REPO_ROOT=<repo> python3 <repo>/.claude/hooks/close-recording.py" } ] }
-    ]
-  }
-}
-```
+never silently overwritten). 구체 JSON: PreToolUse/PostToolUse의 `Agent` matcher가 `BRICK_REPO_ROOT=<repo>`와 함께 open/close-recording.py를 호출하는 두 항목 — 원형은 `support/onboarding/claude-hooks/` 템플릿 참조.
 
 Until the onboard recording step (or an equivalent manual merge) has wired
 this config, NO recording happens — on a fresh clone auto-recording is OFF.
@@ -242,9 +222,5 @@ Claude Pre/PostToolUse hooks (.claude/hooks/...)      = optional Claude config,
 native_dispatch_brick_backstop checker profile       = the enforcement surface.
 ```
 
-The hooks are a convenience caller, not the proof. Even with no hook wired, the
-seam plus the checker backstop
-(`support/checkers/profiles/native_dispatch_brick_backstop.yaml`) enforce the
-native-dispatch recording convention. In short, the checker backstop is the enforcement surface;
-the hooks are only a convenience caller. Do not let the hooks become the only thing
-that records or checks a native-dispatch Brick.
+훅은 편의 호출자일 뿐 증명이 아니다 — the checker backstop is the enforcement surface;
+the hooks are only a convenience caller.

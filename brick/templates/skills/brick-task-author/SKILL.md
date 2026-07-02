@@ -32,8 +32,7 @@ Profile compatibility note: `brick build --graph <packet.json>` /
 `support.operator.cli build --graph <packet.json>`, "같은 공식 route의 저수준 입력", "같은 공식 build surface로 들어가는 두 입력 모드" are retained once as historical checker text.
 P3 이후 zero-ritual 운영자 경로는 `task_intake` 확인 뒤 **`build()` 하나로** compact graph를
 넣는 것이다. 운영자-facing 언어는 `build()`다. `fan()`은 병렬 블록 재료이고
-`fire()`/`launch_assembled_building`은 내부 구현·debug/advanced 용어다. helper를 별도 공식
-route처럼 말하지 마라. 별도 공식 route처럼 말하지 마라.
+`fire()`/`launch_assembled_building`은 내부 구현·debug/advanced 용어다. helper를 별도 공식 route처럼 말하지 마라.
 
 ## 한눈 결정나무
 

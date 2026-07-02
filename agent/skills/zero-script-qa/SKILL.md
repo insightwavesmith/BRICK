@@ -1,20 +1,7 @@
 ---
 name: zero-script-qa
-description: Use when QA should inspect declared evidence before asking for extra scripts or broad tool execution.
+description: (0702 evidence-shape-check로 흡수) Use evidence-shape-check §Evidence-first QA lens.
 ---
 
-# Zero Script QA
-
-Start with existing evidence:
-
-```text
-changed files
-declared verification refs
-step outputs
-raw refs
-claim_trace refs
-Building map refs
-```
-
-Request extra commands only when the Brick work contract needs them. Do not
-run mutation, approve success, or choose a route target.
+이 스킬은 0702 리사이즈에서 **evidence-shape-check**의 "Evidence-first QA lens" 섹션으로
+흡수됐다. 그쪽을 사용하라. 이 파일은 경로 참조 보존용 포인터다.
