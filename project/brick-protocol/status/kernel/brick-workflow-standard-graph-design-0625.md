@@ -88,7 +88,7 @@ code in `support/connection/adapter_local_cli.py` appends
 `--tools` and `--allowedTools`, including absence of `Bash`.
 
 Commit `ac73c86` added the fresh support record
-`project/brick-protocol/status/kernel/claude-qa-execution-fresh-smoke-0625.md`.
+`project/brick-protocol/status/kernel/archive/0702-doc-archive/claude-qa-execution-fresh-smoke-0625.md`.
 That record states the target failure mode: Claude QA had reported harmless
 shell/checker execution as approval-gated even when effective write scope and
 Bash were intended to be available. It also records local command observations

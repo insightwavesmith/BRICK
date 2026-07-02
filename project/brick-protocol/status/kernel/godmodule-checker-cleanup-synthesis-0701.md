@@ -252,8 +252,8 @@ Organized by target file.
   refuted by its own quality-judge pass at the time, and further superseded
   since: the file's dispatch surface has changed substantially via 8
   subsequent extractions.
-- **`godmodule-decision-merged-0626.md` and
-  `godmodule-decomposition-decision-table-0626.md` LOC/coordinate tables** —
+- **`archive/0702-doc-archive/research-0626/godmodule-decision-merged-0626.md` and
+  `archive/0702-doc-archive/research-0626/godmodule-decomposition-decision-table-0626.md` LOC/coordinate tables** —
   superseded wholesale by the 0628 doc, which is itself superseded by this
   document. Keep only for historical trail, not for coordinates.
 - **0630 audit's S4-F8 line citation (`kernel_checks.py:8541`)** — the
@@ -308,12 +308,12 @@ re-measurable facts.
 start only after `brick-6-surface-audit-repair`'s P9 (final dynamic proof)
 closes. P9 closed 2026-07-01 19:57 via a two-attempt Building sequence with
 attempt 2 adopted (commit `46d02e4`; see
-`brick-6-p9-dynamic-proof-closure-disposition-0701.md`, which concludes "P9's
+`archive/0702-doc-archive/brick-6-p9-dynamic-proof-closure-disposition-0701.md`, which concludes "P9's
 live dynamic proof is demonstrated and adopted"). Note: that disposition doc
 itself says P9 closure does not by itself declare the entire P0-P9 goal
 complete — a separate final COO/Smith review across all phases plus Rules
 8/9/10 was still pending at that time (since independently closed and
-pushed — see `brick-6-goal-completion-definition-final-audit-0701.md`). None
+pushed — see `archive/0702-doc-archive/brick-6-goal-completion-definition-final-audit-0701.md`). None
 of this scope folds into that goal's own P0-P9. This is the P6-class "engine
 cleanup / godmodule decomposition" work the 0628 doc already scoped as
 post-customer-path.

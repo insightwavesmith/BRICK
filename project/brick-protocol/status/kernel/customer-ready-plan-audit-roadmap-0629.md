@@ -12,7 +12,7 @@ window; this document recommends explicit re-admission now (ratified by Smith 06
 - Live checkout: `/Users/smith/.brick/worktrees/struct-surgery-0623` (HEAD `515a7b2`, branch `struct-surgery-0623`; tracked diff clean; untracked evidence/debris present).
 - Museum/frozen: `/Users/smith/projects/brick-protocol` (`0d698a0`).
 - Plan source chain: `customer-ready-goal-current-definition-0627.md` → (Phase Plan §) → `customer-ready-p2..p6-*-0628.md`.
-- ⚠️ Stale/historical: `customer-ready-goal-plan-2track-0626.md` and the C6-era `-0627` docs. Current graph packets live under `status/kernel/GOAL/`.
+- ⚠️ Stale/historical: `archive/0702-doc-archive/customer-ready-goal-plan-2track-0626.md` and the C6-era `-0627` docs. Current graph packets live under `status/kernel/GOAL/`.
 
 ## Verdict: plan is SOUND, HONEST, adoptable (a few fixes, NOT a redesign)
 - Goal unchanged: customer installs → connects LLMs → `make X` → official `brick build` route declares Brick/Agent/Link work → returns artifact + evidence. Final proof = self-dogfood through that same customer path.
