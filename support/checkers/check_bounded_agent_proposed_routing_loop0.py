@@ -1122,6 +1122,13 @@ def _run(plan: Mapping[str, Any], callable_, repo: Path):
         return result, frontier, records
 
 
+def _run_with_retained_root(plan: Mapping[str, Any], callable_, repo: Path):
+    tmp = tempfile.TemporaryDirectory(prefix="bp-bapr-loop0-retained-")
+    result, frontier, records = _run_to_output_root(plan, callable_, repo, Path(tmp.name))
+    object.__setattr__(result, "_checker_tempdir", tmp)
+    return result, frontier, records
+
+
 def _run_to_output_root(
     plan: Mapping[str, Any],
     callable_,
@@ -1234,6 +1241,10 @@ def _resume_with_fanout_pool(
 
 def _step_output_recorded(root: Path, step_ref: str) -> bool:
     return (root / "work" / "step-outputs" / f"{step_ref}-attempt-1" / "step-output.json").is_file()
+
+
+def _step_output_path(root: Path, step_ref: str, attempt: int) -> Path:
+    return root / "work" / "step-outputs" / f"{step_ref}-attempt-{attempt}" / "step-output.json"
 
 
 def _f1_assert_surviving_sibling_outputs(
@@ -1977,6 +1988,108 @@ def check(repo: Path) -> list[str]:
     else:
         violations.append("guard: non-positive per-node budget was not rejected")
 
+    # Compose-time route-policy field consumers: the checker exercises the REAL
+    # support functions that read default budgets, closure target policy, and
+    # provenance. These are observation guards only; they author no routes.
+    from brick_protocol.support.operator.composition_route_policy import (
+        _composition_route_policy_provenance,
+        _materializer_closure_policy,
+        _materializer_reroute_budget_cascade,
+    )
+
+    declared_budgets, budget_provenance, default_budget = _materializer_reroute_budget_cascade(
+        {"node_reroute_budgets": {"work": 3}},
+        repo=repo,
+        override_reroute_budgets={"qa": 2},
+    )
+    if declared_budgets != {"work": 3, "qa": 2}:
+        violations.append(
+            "route-policy-fields: preset/per-building budget cascade drifted "
+            f"({declared_budgets})"
+        )
+    if budget_provenance != {"work": "preset-default", "qa": "per-building"}:
+        violations.append(
+            "route-policy-fields: budget provenance matrix drifted "
+            f"({budget_provenance})"
+        )
+    if default_budget is not None:
+        violations.append(
+            "route-policy-fields: preset budgets should suppress yaml default load "
+            f"(default_budget={default_budget})"
+        )
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-route-policy-yaml-absent-") as tmp:
+        try:
+            _materializer_reroute_budget_cascade(
+                {},
+                repo=Path(tmp),
+                override_reroute_budgets=None,
+            )
+        except ValueError as exc:
+            if "Brick reroute defaults file is missing" not in str(exc):
+                violations.append(
+                    "route-policy-yaml-absent-red: missing reroute defaults raised "
+                    f"the wrong error ({exc})"
+                )
+        else:
+            violations.append(
+                "route-policy-yaml-absent-red: absent preset budgets did not "
+                "declare missing yaml by failing closed"
+            )
+    resolved_policy = _materializer_closure_policy(
+        {
+            "implementation_gap": {
+                "action": "reroute",
+                "target_step_template_ref": "brick/templates/bricks/work/brick.md",
+            }
+        },
+        building_slug="route-policy-field-real",
+    )
+    if resolved_policy != {
+        "implementation_gap": {
+            "action": "reroute",
+            "target_ref": "route-policy-field-real-brick-templates-bricks-work-brick-md",
+        }
+    }:
+        violations.append(
+            "route-policy-fields: closure target policy did not resolve the "
+            f"declared template target ({resolved_policy})"
+        )
+    provenance = _composition_route_policy_provenance(
+        [
+            {
+                "node_id": "route-policy-field-real-work",
+                "node_reroute_budget": 2,
+                "node_reroute_budget_provenance": "per-building",
+                "closure_transition_target_policy": resolved_policy,
+                "closure_transition_target_policy_provenance": "preset-default",
+            }
+        ]
+    )
+    by_node = provenance.get("by_node", {}) if isinstance(provenance, Mapping) else {}
+    if by_node.get("route-policy-field-real-work") != {
+        "node_reroute_budget": "per-building",
+        "closure_transition_target_policy": "preset-default",
+    }:
+        violations.append(
+            "route-policy-fields: provenance observation did not record the real "
+            f"policy field owners ({provenance})"
+        )
+    try:
+        _composition_route_policy_provenance(
+            [{"node_id": "route-policy-field-real-red", "node_reroute_budget": 1}]
+        )
+    except ValueError as exc:
+        if "non-HUMAN provenance" not in str(exc):
+            violations.append(
+                "route-policy-fields-red: missing budget provenance raised the "
+                f"wrong error ({exc})"
+            )
+    else:
+        violations.append(
+            "route-policy-fields-red: missing route-policy provenance was not "
+            "rejected fail-closed"
+        )
+
     # Invariant E: B3 fan-out / fan-in happy path is a serial adapter:local walk:
     # root fans to both lanes, join runs only after both sources, and link_edge_id
     # values remain unique.
@@ -2426,7 +2539,7 @@ def check(repo: Path) -> list[str]:
     # reroute landing consumes only the target budget; replay-scope executions
     # do not consume their own node budgets.
     plan_c3, c3_refs = _full_chain_replay_plan()
-    res_c3, fr_c3, rec_c3 = _run(
+    res_c3, fr_c3, rec_c3 = _run_with_retained_root(
         plan_c3,
         _reroute_callable(c3_refs["target"], {c3_refs["source"]}),
         repo,
@@ -2465,6 +2578,50 @@ def check(repo: Path) -> list[str]:
             violations.append(
                 f"b5-c3-full-chain-replay: {brick} did not re-execute exactly once "
                 f"(count={bricks_c3.count(brick)})"
+            )
+    step_refs_c3 = [r.preparation.step_rows.step_ref for r in res_c3.step_results]
+    expected_reentry_steps_c3 = [
+        c3_refs["target_step"],
+        c3_refs["replay_1_step"],
+        c3_refs["replay_2_step"],
+    ]
+    try:
+        source_step_index_c3 = step_refs_c3.index("bapr-loop0-b5-c3-c1")
+        reentry_step_window_c3 = step_refs_c3[source_step_index_c3 + 1 : source_step_index_c3 + 4]
+    except ValueError:
+        reentry_step_window_c3 = []
+    if reentry_step_window_c3 != expected_reentry_steps_c3:
+        violations.append(
+            "b5-c3-reentry-step-evidence: re-entry steps did not execute in the "
+            "declared target+replay order "
+            f"(got={reentry_step_window_c3}, expected={expected_reentry_steps_c3})"
+        )
+    root_c3 = res_c3.lifecycle_write.root
+    manifest_path_c3 = root_c3 / "evidence" / "evidence-manifest.json"
+    manifest_c3 = (
+        json.loads(manifest_path_c3.read_text(encoding="utf-8"))
+        if manifest_path_c3.is_file()
+        else {}
+    )
+    manifest_step_outputs_c3 = set(manifest_c3.get("step_output_refs", []))
+    for step_ref in expected_reentry_steps_c3:
+        redo_path = _step_output_path(root_c3, step_ref, 2)
+        redo_ref = redo_path.relative_to(root_c3).as_posix()
+        if not redo_path.is_file():
+            violations.append(
+                "b5-c3-reentry-step-evidence: missing redo step-output "
+                f"for {step_ref} at {redo_ref}"
+            )
+            continue
+        if redo_ref not in manifest_step_outputs_c3:
+            violations.append(
+                "b5-c3-reentry-step-evidence: evidence manifest missing redo "
+                f"step-output ref {redo_ref}"
+            )
+        if _step_output_path(root_c3, step_ref, 3).exists():
+            violations.append(
+                "b5-c3-reentry-step-evidence-red: replay step executed more "
+                f"than once after re-entry ({step_ref})"
             )
     if landings_c3.get(c3_refs["target"]) != 1:
         violations.append(
