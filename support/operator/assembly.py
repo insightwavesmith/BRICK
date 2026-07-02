@@ -1626,9 +1626,13 @@ def _validated_write_scope(value: Mapping[str, Any] | None) -> Mapping[str, Any]
         raise ValueError("write_scope.allowed_paths must be non-empty")
     if not isinstance(forbidden, Sequence) or isinstance(forbidden, (str, bytes)):
         raise ValueError("write_scope.forbidden_paths must be an array")
+    allowed_paths = [str(path).strip() for path in allowed if str(path).strip()]
+    forbidden_paths = [str(path).strip() for path in forbidden if str(path).strip()]
+    for path in (*allowed_paths, *forbidden_paths):
+        _normalized_write_path(path)
     return {
-        "allowed_paths": [str(path).strip() for path in allowed if str(path).strip()],
-        "forbidden_paths": [str(path).strip() for path in forbidden if str(path).strip()],
+        "allowed_paths": allowed_paths,
+        "forbidden_paths": forbidden_paths,
     }
 
 

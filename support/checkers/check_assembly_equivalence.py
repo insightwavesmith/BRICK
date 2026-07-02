@@ -25,8 +25,10 @@ from typing import Any
 
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-if str(_REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(_REPO_ROOT))
+_IMPORT_IDENTITY_ROOT = _REPO_ROOT / "support" / "import_identity"
+for _path in (str(_REPO_ROOT), str(_IMPORT_IDENTITY_ROOT)):
+    if _path not in sys.path:
+        sys.path.insert(0, _path)
 
 from brick_protocol.support.operator.assembly import (
     Authority,
@@ -1072,9 +1074,45 @@ def _write_scope_derivation_fire(repo: Path) -> tuple[str, ...]:
             write_scope={"allowed_paths": [], "forbidden_paths": []},
         )
 
+    def parent_escape_write_scope_probe() -> None:
+        assemble(
+            chain(
+                [
+                    brick("development", "graph write scope parent escape setup"),
+                    brick("work", "graph write scope parent escape is rejected", write=True),
+                ]
+            ),
+            declared_by=DECLARED_BY,
+            authority=Authority.COO,
+            task="parent escape write scope probe",
+            building_id="heart-phase0-parent-escape-write-scope",
+            adapter="codex-local",
+            repo_root=repo,
+            write_scope={"allowed_paths": [".."], "forbidden_paths": [".git/**"]},
+        )
+
+    def absolute_escape_write_scope_probe() -> None:
+        assemble(
+            chain(
+                [
+                    brick("development", "graph write scope absolute escape setup"),
+                    brick("work", "graph write scope absolute escape is rejected", write=True),
+                ]
+            ),
+            declared_by=DECLARED_BY,
+            authority=Authority.COO,
+            task="absolute escape write scope probe",
+            building_id="heart-phase0-absolute-escape-write-scope",
+            adapter="codex-local",
+            repo_root=repo,
+            write_scope={"allowed_paths": ["/etc/passwd"], "forbidden_paths": [".git/**"]},
+        )
+
     return (
         "construction green observed: write=True omitted write_scope derived worktree-bounded allowed_paths ['.'].",
         _assert_raises("malformed explicit write_scope", ValueError, malformed_write_scope_probe),
+        _assert_raises("parent-escape explicit write_scope", ValueError, parent_escape_write_scope_probe),
+        _assert_raises("absolute explicit write_scope", ValueError, absolute_escape_write_scope_probe),
     )
 
 
@@ -2418,6 +2456,7 @@ def run(repo: Path) -> list[str]:
     outputs.extend(_sibling_independence_dsl_fire(repo))
     outputs.extend(_node_write_scope_fire(repo))
     outputs.extend(_node_gates_fire(repo))
+    outputs.extend(_write_scope_derivation_fire(repo))
     outputs.extend(_graph_write_scope_default_fire(repo))
     outputs.append(_tiny_work_qa_return_shape_red(repo))
     outputs.append(PROOF_LIMIT)
