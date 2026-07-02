@@ -281,7 +281,7 @@ build 결과 packet의 `build_input_mode`, `building_id`, `evidence_root`, `fron
 4. 쓰기 노드 = 노드 `write=True` + 발사 `write_scope` **둘 다** (하나만이면 read-only smoke). glob은 `support/operator/**` 꼴 (★`support/` 금지 = fnmatch 함정).
 5. `adapter_timeout_seconds` 상향 — one-call build() 기본 120초는 정독/구현 레인에 짧다. resume엔 `adapter_cwd=<워크트리>` 절대 누락 금지.
 6. one-call `build()`엔 `gates=`/`write_scope=`/`output_root=` 인자가 **없다**(0702 실측) = 항상 완전무인 + 기본 워크트리 스코프 + goal-runs(벨 단절) + 완료 시 워크트리 자동처분(sandbox commit_sha만 남음 — 반드시 회수). 사람 게이트는 per-node `brick(gates=...)`, 좁은 스코프는 `node_write_scope=`, 벨/경로 지정은 `run_goal_approve_entry(output_root=...)` 계층으로.
-7. (0702 원인 확정 — reaper liveness 수리 전까지) **빌딩 실행 중엔 아무것도 쏘지 마라**: 새 발사도, 체커 스윕/프로파일 실행도 금지. 어떤 샌드박스 생성이든 `reap_stale_worktrees()`(무생존검사)를 불러 도는 빌딩 워크트리를 전부 부순다. 그리고 미완 처분은 작업물을 지운다 — 미완 빌딩은 처분 전 워크트리 실존/유실부터 점검. 정본: onecall-worktree-loss-incident-0702.md
+7. (0702 저녁 해소) 병행 발사·홀드 모두 안전 — reap liveness(bec5b16)+WIP 보존(0741a56) 랜딩. 미완/홀드 빌딩의 작업물은 `refs/brick/wip/<building_id>`에서 회수(`git log <ref>` → checkout). 홀드는 raise/forward로 처분하면 된다.
 
 ## 알아둘 것
 
@@ -308,6 +308,7 @@ build 결과 packet의 `build_input_mode`, `building_id`, `evidence_root`, `fron
 - build 결과는 support evidence다. closure가 엉키면(temp-HOME concern 연쇄→resume divergence) **추격 금지** — 코드만 독립검증되면 declared follow-up Building으로 처리한다.
 - 미완/홀드 빌딩은 untracked로 `--all`을 RED로 만듦 → merge·게이트 전 `mv project/.../buildings/<미완id> /tmp/`로 치움(비파괴).
 - 라이브 repo를 다른 세션/빌딩과 공유 중이면 게이트 지문이 시점마다 흔들린다(0702 실측: 병행 아카이브로 같은 프로파일 실패 6→1→0). 공유 중 측정은 detached 워크트리에서 하거나, 내 변경만 stash로 걷어낸 baseline과 실패 지문 diff로 무죄/유죄를 가려라.
+- 수동/레거시 워크트리에서 게이트 변이·복원 조작 전에 **작업물부터 커밋**하라 — 미커밋 워크트리에 `git checkout --` 복원은 작업물을 지운다(0702 실측, COO 자가 유실 1회). 커밋 위에서만 변이가 안전하다.
 - 게이트의 closure 대조는 **task Deliverables 번호별 전수**로 한다 — 포커스 green·변이 RED·스윕이 전부 통과해도 deliverable 하나가 통째로 미구현일 수 있다(0702 3차 유실 실측: reaper 빌딩 deliverable 2 누락 랜딩).
 
 ---
@@ -353,6 +354,7 @@ build 결과 packet의 `build_input_mode`, `building_id`, `evidence_root`, `fron
 - forward/stop 처분 행 append 후 `resume_building_plan(ROOT, adapter_cwd=<워크트리>, adapter_timeout_seconds=3600)`.
 - **adapter_cwd 절대 누락 금지** — 누락 시 codex가 실repo를 작업장으로 받는다 (0612 실측).
 - resume 전 `set -a; source ~/.brick/report.env; set +a` — 벨+대시보드 자동.
+- **예산 주입(0702 실전 검증)**: `run_approve_entry(ROOT, action="raise", author_ref="coo:smith", budget_increment=N, adapter_cwd=<격리경로>)` — "예산 미선언" 홀드는 `budget_exhausted`로 분류돼 raise 대상. concern 접수·완주는 `action="forward"`. 기본 예산 5는 brick/templates/reroute-defaults.yaml(Smith 선언) — compact DSL 자동 적용은 인체공학 4번 대기.
 
 ## 3.4 스톨 사건 귀속 주의 (Smith 0613 정본)
 
