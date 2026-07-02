@@ -1,64 +1,36 @@
-# Operator skill APPLY-LIST (building-ease 0623)
+# Operator skill APPLY-LIST (0702 세대)
 
-> The running operator session uses `~/.claude/skills` LIVE. This pass authored all
-> skill content IN-REPO under `brick/templates/skills/` and did NOT touch the live
-> dir. Smith runs the commands below in their own terminal to apply. Every step is
-> a directory copy or a delete — no in-place edit of a live file.
+> 3면 동기화 계약: **agent/skills/ = 운영 정본**(체커 pin 대상), `brick/templates/skills/` =
+> 선적(ship) 사본, `~/.claude/skills/` = live 배포면. 정본이 바뀌면 template과 live로
+> 복사한다(방향 고정: agent → template → live). 그래프 발주의 공식 authoring/launch
+> interface는 `assemble()`/`build()`/`fan()` DSL이다(Rule 10) — `brick build --graph
+> <packet>` 저수준 CLI 입력은 retired고, 이 목록의 과거 세대(0623)가 그것을 현행처럼
+> 안내했다.
 
-## What changed (in-repo, this pass)
+## 0702 적용 기록 (COO 세션이 수행)
 
-NEW in-repo ship dir: `brick/templates/skills/` (sibling of `tasks/` and `presets/`).
+| 스킬 | 조치 |
+|---|---|
+| brick-task-author | agent 정본 → template/live 재복사 (DSL 구조규칙·에러표·체크리스트 포함 세대) |
+| building-sizing-method | agent 정본 → template/live 재복사 (4축 카드 포함; template은 pin 호환문구 추가 보유) |
+| building-coordination / evidence-verification | live 최초 동기화 (이전 APPLY-LIST 누락분) |
+| make-a-brick / make-a-gate / make-an-agent | agent 정본 → template/live 재복사 |
+| task_intake | live에 정본 이름으로 신규 배포 (구 `task-intake` 디렉토리는 아래 삭제 목록) |
 
-| In-repo skill | Role | Live action |
-|---|---|---|
-| `building-sizing-method/` | NEW — dimensions → graph packet shape (sizes the official graph input) | COPY in (new) |
-| `brick-task-author/` | CONSOLIDATED — PHASE 1 task body → PHASE 2 official build route (`brick build --graph <packet>` for graph mode) → PHASE 3 hold-triage (folded in); graph-syntax block MOVED OUT to building-sizing-method | COPY over (replaces live) |
-| `make-a-brick/` | NEW — replaces `brick-declaration-author` mode 1 (scaffold-then-register a KIND) | COPY in (new) |
-| `make-an-agent/` | NEW — replaces `brick-declaration-author` mode 2 (a lane) | COPY in (new) |
-| `make-a-gate/` | NEW — replaces `brick-declaration-author` mode 3 (a gate) | COPY in (new) |
-
-## APPLY (run in a terminal; absolute in-repo source = the BRICK product tree)
-
-Set `BRICK` to the product repo root (e.g. `/path/to/BRICK`):
+## DELETE (Smith 터미널에서 — 세션이 live를 삭제하지 않는다)
 
 ```bash
-BRICK=/path/to/BRICK
-
-# 1. NEW: sizing skill (sizes the input the launch skill consumes)
-cp -R "$BRICK/brick/templates/skills/building-sizing-method"  ~/.claude/skills/building-sizing-method
-
-# 2. REPLACE: consolidated launch skill (absorbs hold-triage as PHASE 3,
-#    syntax block moved out, graph mode uses brick build --graph <packet>)
-cp -R "$BRICK/brick/templates/skills/brick-task-author/SKILL.md"  ~/.claude/skills/brick-task-author/SKILL.md
-
-# 3. NEW: three creation skills (replace brick-declaration-author's 3 modes)
-cp -R "$BRICK/brick/templates/skills/make-a-brick"   ~/.claude/skills/make-a-brick
-cp -R "$BRICK/brick/templates/skills/make-an-agent"  ~/.claude/skills/make-an-agent
-cp -R "$BRICK/brick/templates/skills/make-a-gate"    ~/.claude/skills/make-a-gate
+# 통합·흡수된 잔재 (내용은 전부 정본 스킬이 커버)
+rm -rf ~/.claude/skills/brick-hold-triage          # brick-task-author PHASE 3로 흡수
+rm -rf ~/.claude/skills/brick-declaration-author   # make-a-brick/-an-agent/-a-gate로 대체
+rm -rf ~/.claude/skills/axis-check                 # protocol-boundary-watch가 커버
+rm -rf ~/.claude/skills/gap-detector               # evidence-shape-check가 커버
+rm -rf ~/.claude/skills/structure-validator        # evidence-shape-check가 커버
+rm -rf ~/.claude/skills/task-intake                # task_intake로 개명 배포됨
 ```
 
-## DELETE (run in a terminal — do NOT delete live from a session)
+## 검증
 
-```bash
-# brick-hold-triage is now PHASE 3 of brick-task-author
-rm -rf ~/.claude/skills/brick-hold-triage
-
-# brick-declaration-author is superseded by make-a-brick / make-an-agent / make-a-gate
-rm -rf ~/.claude/skills/brick-declaration-author
-```
-
-## RESULT — operator launch surface after apply
-
-- **2 launch-path skills:** `building-sizing-method` (sizes the shape) → `brick-task-author`
-  (launches + triages). ONE skill launches a building. Satisfied.
-- **3 creation skills:** `make-a-brick`, `make-an-agent`, `make-a-gate` (scaffold-then-register;
-  each ends with the made component USABLE, proven by an in-repo checker).
-- **Deleted:** `brick-hold-triage` (folded), `brick-declaration-author` (superseded).
-
-## NOTE — verify after apply
-
-The live skills only carry the procedure text; graph mode enters the official
-`brick build --graph <packet>` route, while scaffold helpers such as
-`support.operator.brick_kind_scaffold.scaffold_brick_kind` ship in the BRICK repo.
-After `git merge` of this branch into the product tree, the skills resolve their
-helpers from the installed BRICK package. No live-env Python changes.
+적용 후 `PYTHONPATH=support/import_identity uv run python3 support/checkers/check_profile.py
+--repo . --profile building_skill_preset_builder_composition` (template pin) 및
+`--profile coo_operating_chain` (agent 정본 pin) green 확인.
