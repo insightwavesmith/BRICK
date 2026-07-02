@@ -372,7 +372,16 @@ def run_release_gate_contract(repo: Path) -> KernelResult:
         "set -eu",
         "uv run python3 -m compileall -q brick agent link support",
         "uv run python3 support/checkers/check_profile.py --all",
+        "uv run brick verify --self-test",
+        "command -v node",
+        "command -v npm",
+        "( cd \"$repo_root/support/dashboard\" && npm ci )",
+        "( cd \"$repo_root/support/dashboard\" && npm run build )",
         "sh support/onboarding/release_export.sh --output",
+        "release_export negative probe",
+        ".env.release-export-deny-probe",
+        "--include-untracked --allow-dirty",
+        "secret/local/provider/session path denylist matched export input",
         "mktemp -d",
         "trap cleanup EXIT HUP INT TERM",
         "does not prove source truth, success, quality, Movement authority, "
@@ -403,7 +412,13 @@ def run_release_gate_contract(repo: Path) -> KernelResult:
             )
 
     required_workflow_texts = (
+        "actions/setup-node@v4",
+        "node-version:",
+        "cache-dependency-path: support/dashboard/package-lock.json",
         "uv sync --locked",
+        "brick verify --self-test",
+        "dashboard build",
+        "release_export negative probe",
         "sh support/onboarding/release_gate.sh",
         "permissions:",
         "contents: read",
@@ -426,9 +441,12 @@ def run_release_gate_contract(repo: Path) -> KernelResult:
         inspected=2,
         output=(
             "release gate contract passed: support/onboarding/release_gate.sh "
-            "runs compileall, check_profile.py --all, and a release-export dry-run; "
+            "runs compileall, check_profile.py --all, brick verify --self-test, "
+            "a hard-fail dashboard npm ci/build, a release-export negative probe, "
+            "and a release-export dry-run; "
             "the GitHub workflow invokes that local gate after uv sync --locked "
-            "with read-only contents permission. PROOF LIMIT: support evidence "
+            "with read-only contents permission and an explicit Node setup for the "
+            "dashboard build. PROOF LIMIT: support evidence "
             "only; this does not prove branch protection, publication, source "
             "truth, success, quality, or Movement authority."
         ),
