@@ -47,3 +47,11 @@ proof_limits:
   - not success judgment
   - not quality judgment
   - not Movement authority
+not_proven:
+  - real Slack API delivery, dashboard ingest reachability, or webhook persistence
+  - persistence behavior in a live user BRICK_HOME or ~/.brick directory
+  - credential validity, external network behavior, or notification reliability
+  - source truth
+  - success judgment
+  - quality judgment
+  - Movement authority
