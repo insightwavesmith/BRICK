@@ -40,7 +40,7 @@ import copy
 import json
 import sys
 import tempfile
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
@@ -2058,6 +2058,9 @@ def build(
     declared_by: str,
     author_ref: str,
     action: str = "forward",
+    output_root: Path | str | None = None,
+    write_scope: Mapping[str, Any] | None = None,
+    gates: Sequence[Any] = (),
     command_runner: Any | None = None,
     local_callables: Mapping[str, Any] | None = None,
     adapter_timeout_seconds: int = 120,
@@ -2080,14 +2083,17 @@ def build(
         task=goal,
         repo_root=_REPO_ROOT,
         adapter=_BUILD_SELECTED_ADAPTER,
+        gates=gates,
+        write_scope=write_scope,
     )
-    output_root = _build_output_root(composed.building_id)
-    proposal_path = persist_proposed_building_graph(composed, output_root)
+    proposal_root = _build_output_root(composed.building_id, output_root)
+    proposal_path = persist_proposed_building_graph(composed, proposal_root)
     rendered = render_proposal_for_human(proposal_path)
     approval = run_goal_approve_entry(
         proposal_path,
         action=action,
         author_ref=author_ref,
+        output_root=proposal_root,
         repo_root=_REPO_ROOT,
         local_callables=local_callables,
         command_runner=command_runner,
@@ -2536,7 +2542,9 @@ def _goal_approval_plan_path(
     return plan_path
 
 
-def _build_output_root(building_id: str) -> Path:
+def _build_output_root(building_id: str, output_root: Path | str | None = None) -> Path:
+    if output_root is not None:
+        return Path(output_root).expanduser().resolve()
     stamp = _utc_timestamp_slug()
     return Path.home() / ".brick" / "goal-runs" / f"{_path_slug(building_id)}-{stamp}"
 
