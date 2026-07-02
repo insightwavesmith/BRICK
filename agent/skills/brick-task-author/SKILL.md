@@ -106,6 +106,8 @@ quality/success judge가 아니다.
 
 **스톨의 진짜 레버(실측 0615):** 엔진은 task.md로 인한 스톨 0(불투명 텍스트). 60분 vs 2분은 **에이전트의 읽기범위 바운디드냐**다 — "fix the adapter"(무바운드)=트리 전체 훑어 60분 / "이 영역만, 딴 데 훑지 마"=2분. **레버 = 바운디드 스코프 한 줄(모듈·영역 단위면 충분).** file:line 좌표 박기는 목표 아니라 **fallback**(설계 노드 못 믿을 때만). §AUTO엔 그 읽기목록 산출이 **design 노드의 일**이다.
 
+**task.md 주입 없음(0702 실측):** `task=`/`goal=`은 `work/task.md` **증거물**로만 쓰이고, 어떤 경로도 레인 프롬프트에 주입하지 않는다. 레인이 반드시 봐야 할 계약(반환 스키마·경계·금지선)은 각 노드 `work_statement`에 직접 박아라. 프리셋 materializer 요약도 `## First-Line Contract`/`## Objective`/`## Desired Outcome` 헤딩만 스캔한다.
+
 ## 샤프 템플릿 (이대로 — 더 보태지 마라)
 
 ```
@@ -278,6 +280,11 @@ judgment, 또는 Link Movement 선택이 아니다.
 | `write_scope.forbidden_paths must be an array` | `forbidden_paths: []`라도 키를 명시 |
 | `brick() got unexpected keyword argument(s): label` | 직접 `brick()` 호출은 `alias=` — `label`/`effort` 별칭은 build() 노드 리터럴 `[kind, work, opts]` 전용 |
 | `ModuleNotFoundError: No module named 'support'` | `PYTHONPATH=support/import_identity:.` — repo 루트(`:.`) 누락이 원인, cd만으론 부족 |
+| `route= must be a list of reroute()/hold() marks` 등 route 계열 | route=는 fan 수렴 노드에만, reroute()/hold() 마크 리스트로 |
+| `require exactly one outgoing completion edge` 등 gates 계열 | per-node gates 단 노드는 outgoing edge 1개(분기점에 달지 마라), human-review/coo-review만 |
+| write_scope 경로 상세 거부 (절대경로/`..`/.git·.env·.pem·secret·token 세그먼트/bare dir) | 상대 glob만, 금지 세그먼트 회피, 디렉토리는 `dir/**` 꼴 |
+| `brick kind ... repeats; declare alias=` | 같은 kind를 직접 brick()으로 반복 선언 시 alias= 부여 (build() sugar는 자동 mint) |
+| `declared_by must be bare text ... colon is not admitted` | declared_by는 `coo-smith` 꼴(콜론 금지) — 콜론 ref는 author_ref에 |
 
 올바른 이중 fan + write_scope 승계 예시:
 
@@ -306,11 +313,13 @@ graph([
 3. `output_root` — one-call `build()`는 `~/.brick/goal-runs/`에 하드코딩한다(0702 실측, `_build_output_root`) = 슬랙 벨 끊김. 벨이 필요하면 `run_goal_approve_entry(output_root=REPO/project/brick-protocol/buildings/...)`로 발사하거나 goal-runs 산출을 발사자가 직접 회수.
 4. 쓰기 노드 = 노드 `write=True` + 발사 `write_scope` **둘 다** (하나만이면 read-only smoke). glob은 `support/operator/**` 꼴 (★`support/` 금지 = fnmatch 함정).
 5. `adapter_timeout_seconds` 상향 — one-call build() 기본 120초는 정독/구현 레인에 짧다. resume엔 `adapter_cwd=<워크트리>` 절대 누락 금지.
+6. one-call `build()`엔 `gates=`/`write_scope=`/`output_root=` 인자가 **없다**(0702 실측) = 항상 완전무인 + 기본 워크트리 스코프 + goal-runs(벨 단절) + 완료 시 워크트리 자동처분(sandbox commit_sha만 남음 — 반드시 회수). 사람 게이트는 per-node `brick(gates=...)`, 좁은 스코프는 `node_write_scope=`, 벨/경로 지정은 `run_goal_approve_entry(output_root=...)` 계층으로.
 
 ## 알아둘 것
 
-- **assemble의 top-level `adapter=`는 roled 노드에 무효.** design/closure/review/QA는 Agent Object와 per-node override가 이긴다. 주말 default는 work+closure+code QA=codex-local, axis/evidence/review QA=gemini-local이다. 노드를 role 디폴트에서 옮기려면 **per-node** `brick("design","...", adapter="codex-local")` override만이 레버.
-- **Claude는 퇴역이 아니라 주말 active pool 제외다.** Claude token이 복귀하면 `step_selection_overrides`나 per-node adapter override로 다시 쓸 수 있다. 지금 고객-ready dogfood 기본은 **codex=구현/closure/code QA · gemini=axis/evidence/review QA · QA fan=codex+gemini**다.
+- **assemble의 top-level `adapter=`는 roled 노드에 무효.** design/closure/review/QA는 Agent Object와 per-node override가 이긴다. 현재 dogfood 기본(0630 채택 — 날짜 조건부 로직 아님, 서술일 뿐)은 work+closure+code QA=codex-local, axis/evidence/review QA=gemini-local이다. 노드를 role 디폴트에서 옮기려면 **per-node** `brick("design","...", adapter="codex-local")` override만이 레버.
+- **Claude adapter는 active다(0702 실사용).** per-node `adapter="claude-local"` override로 즉시 사용 가능. dogfood 기본 풀은 **codex=구현/closure/code QA · gemini=axis/evidence/review QA · QA fan=codex+gemini**, claude는 override로 정독/합성 등에 투입.
+- **캐스팅 다이얼 어휘(실측, agent/spec.py EFFORT_LEVELS/EFFORT_SCOPE):** `effort=`는 {none, minimal, low, medium, high, xhigh} (bare `"xhigh"` 또는 `"effort:xhigh"` ref형). 적용 어댑터는 codex-local/codex-fugu-local/claude-local뿐 — gemini는 다이얼 자체가 없어 선언하면 out-of-scope. `model=`은 SHAPE 검증(`model:<provider>:<name>` 꼴), 예: `model:claude:sonnet`, `model:claude:opus`.
 - **verdict 노드는 `adapter:local` 금지.** design/closure/review/inspect는 verdict-bearing → `adapter:local` 거부. local 스텁 무인발사는 **work 노드로만** 가능. verdict 노드는 진짜 CLI(codex/gemini/claude) 필요.
 - **부하 주의.** raw graph packet CLI 입력은 retired다. 검증은 가능하면 DSL/materialization 체크로, 진짜 실행이 필요하면 `adapter:local` 또는 단일 `codex-local`/`gemini-local` 노드 1개로.
 - **QA 주의.** QA는 inspect/probe evidence를 만들 수 있지만 source-truth mutation 권한이 아니다. QA source mutation이 관찰되면 HOLD로 보고한다.
@@ -318,7 +327,8 @@ graph([
 ## 게이트 진실 (실측)
 - `gates=()` ⇒ **완전 무인**(최종 closure→boundary 포함 전 edge가 `link-gate:default-transition`만 달고 자동전진).
 - `gates=("human-review",)` ⇒ **최종 boundary edge에만** HOLD. 중간 design→work는 그대로 auto.
-- `coo-review`는 link-gate만 붙이고 **HOLD 안 박음**. 머지에서 진짜 멈추려면 `human-review`.
+- top-level `gates=("coo-review",)`(assemble 프로파일 경로)는 link-gate ref만 붙이고 **HOLD 안 박음** — 머지에서 진짜 멈추려면 `human-review`.
+- **per-node는 다르다(0702 실측, `_node_gate_sequence_entry`)**: `brick(..., gates=("coo-review",))`는 coo-review도 human-review도 **HOLD를 박는다**(owner=coo/caller-or-coo). 노드 단위 사람게이트는 per-node로. gates 단 노드는 outgoing completion edge가 정확히 1개여야 한다.
 - 프리셋도 박음: `engine-feature-hard`=design→work HOLD; `fast-fix`/`quick-check`는 안 박음.
 - 홀드된 빌딩은 `observe_building_frontier`로 보이고 `resume_building_plan`으로 전진.
 
