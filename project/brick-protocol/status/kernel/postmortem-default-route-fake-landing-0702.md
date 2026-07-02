@@ -84,14 +84,33 @@ walker **자동 채택** → timeline-brick attempt-2 재파견 → 완주가 **
 template:default-transition, node_budget 5, budget_exhausted false]
 당일 7회 홀드나던 지점의 자가치유 — bounded repair loop 라이브 첫 작동.
 
-## 5. 부검 빌딩 2회 시도의 운명 (그 자체가 Link축 증거)
+## 5. 부검 빌딩 2회 시도의 운명 (그 자체가 Link축 증거 — 단, §5 원인 진단 정정됨 §7 참조)
 
-- 1차(postmortem-default-route-0702a): 4레인 정독 완료 후 ①claude-local returns 600자
-  절단으로 렌즈 전문 유실 ②재파견 제안이 예산 홀드(당일 7번째) ③raise 처분 행이
-  기록됐으나 resume 가드가 "예산 지도 EMPTY=corrupt"로 재개 거부. 잔류 closure_pending.
-- 2차(postmortem-default-route-0702b): 자동 재진입 성공(§4)으로 완주했으나 returns
-  절단은 여전 — 렌즈 산출은 carry 메타 관찰에 수렴, 3축 전문은 COO 집계(본 문서)로 종결.
-- 함의: 조사전용 빌딩의 산출 지속성은 returns 계층 수리(#8) 전까지 제한적이다.
+- 1차(postmortem-default-route-0702a): 4레인 정독 완료 후 ①claude-local returns
+  절단으로 렌즈 전문 유실**로 당시 판단**(§7에서 오진 확인) ②재파견 제안이 예산
+  홀드(당일 7번째) ③raise 처분 행이 기록됐으나 resume 가드가 "예산 지도
+  EMPTY=corrupt"로 재개 거부. 잔류 closure_pending.
+- 2차(postmortem-default-route-0702b): 자동 재진입 성공(§4)으로 완주했으나 같은
+  절단 증상 재관측 — 렌즈 산출은 carry 메타 관찰에 수렴, 3축 전문은 COO 집계(본
+  문서)로 종결.
+- 함의(원 판단, §7에서 정정): 조사전용 빌딩의 산출 지속성은 returns 계층 수리(#8)
+  전까지 제한적이라 봤다.
+
+## 7. 정정 (Smith 0702 저녁 지적으로 확인) — §5의 "절단" 원인 진단 오류
+
+`output_excerpt`(step-output.json)는 `_safe_excerpt`(adapter_local_cli.py:518)로
+**의도적으로 600자 미리보기**만 담는 필드다. 그 직후 `_extract_required_return_fields`가
+원문 `output_text` 전체를 다시 파싱해 `observed_evidence`/`narrowly_proven`/
+`transition_concern_evidence` 등 구조화 필드에 **절단 없이** 병합한다(default-route-0702a
+closure로 직접 재검증: `narrowly_proven` 6항목 전문 확보, `output_excerpt`만 600자).
+즉 §5의 "1차 부검 렌즈 전문 유실"은 **`output_excerpt`만 읽고 판단한 COO 읽기 방식의
+오진**이었다 — 엔진이 정보를 파괴한 사실은 없었다. 1차 부검이 실제로 유실 상태였다면
+그 원인은 다른 데(예: carry 메타 관찰 자체가 빈 값이었을 가능성, work_statement의
+필드 요구 불일치)일 수 있으나 본 문서 재작성 범위 밖 — §5의 "returns 절단" 표현은
+읽기 오류로 재분류하고, §6-0 Smith 판정과 별개로 남긴다(축 분리는 여전히 유효).
+returns-persistence 빌딩(dfc11ee0)이 새로 보존한 것은 구조화 필드가 아니라 **원문 CLI
+트랜스크립트 자체**(`raw/agent-output-text.jsonl`) — 구조화 필드 밖의 원문이 필요한
+케이스에 여전히 유효한 별개 기능이다. 교훈은 스킬에 반영(brick-task-author §3.1).
 
 ## 6-0. Smith 판정 (0702) — 이 부검이 증명한 것
 

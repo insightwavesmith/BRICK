@@ -395,6 +395,19 @@ node_write_scope는 assemble()/build() 호출 시점에 COO가 고정하고, des
 
 빌딩 루트 = build 결과 packet이 반환한 `evidence_root`.
 
+**`output_excerpt`는 600자 미리보기일 뿐이다 — 진짜 내용은 옆 필드에 전문 그대로 있다.**
+0702 실측 정정: `support/connection/adapter_local_cli.py:518`이 `output_excerpt`를
+`_safe_excerpt`(600자 절단)로 채운 **직후**, `_extract_required_return_fields`가 원문
+`output_text` 전체를 다시 파싱해 `observed_evidence`/`narrowly_proven`/
+`deliverable_crosscheck`/`transition_concern_evidence`/`remaining_delta`/`not_proven`
+등을 **절단 없이** `returned`에 병합한다. step-output.json을 읽을 때
+`returned.output_excerpt`만 보고 "이게 전부"라고 판단하지 마라 — `returned.keys()`로
+전체 필드를 먼저 확인하고, 필요한 실제 내용은 해당 구조화 필드에서 직접 읽어라
+(default-route-0702a closure로 직접 검증: `narrowly_proven` 6항목 전문 확보, 옆의
+`output_excerpt`만 600자였다). 원문 CLI 트랜스크립트 자체(구조화 필드 밖의 모델
+사고과정·도구호출 로그)가 필요하면 `raw/agent-output-text.jsonl`(0702 랜딩, dfc11ee0)
+side-channel을 봐라 — 이건 구조화 필드에도 안 잡히는 원문 전체용이다.
+
 ```bash
 # (a) 마지막 홀드 행: raw/link.jsonl에서 transition_lifecycle_state=paused 마지막 행
 #     → raw_ref, pending_target_ref, reason_refs, required_disposition_owner
