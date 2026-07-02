@@ -61,6 +61,15 @@ text_contains:
       - sensitive-commit-RED
       - observed_sensitive_path_writes evidence
       - provider-session-like paths
+      # W1 stale/liveness + fixture route isolation pins: checker-created
+      # worktrees must live only under its temporary HOME, stale reap must be
+      # marker-age gated, and mutation-RED must log the bypass evidence.
+      - w1_fixture_engine_root_isolated
+      - w1_stale_old_removed
+      - w1_stale_fresh_preserved
+      - w1_stale_bad_preserved
+      - w1_mutation_red_execution_log
+      - mutation-RED support evidence only
       # P3 thin fire(graph) sugar: drawn GraphSpec -> official customer graph
       # sandbox route, with no caller-authored JSON packet seam.
       - def _fire_graph_sugar_fire
@@ -116,6 +125,10 @@ text_contains:
       - observed_sensitive_path_writes
   - path: support/operator/worktree_sandbox.py
     texts:
+      - def _read_engine_marker
+      - stale_after_seconds
+      - unparseable markers fail closed
+      - refusing to replace a non-stale engine worktree path
       - observed_sensitive_path_writes block sandbox commit
       - _git_status_paths
       - commit_sandbox_output
