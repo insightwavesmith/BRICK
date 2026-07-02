@@ -146,6 +146,9 @@ text_contains:
       - "route-policy-fields-red: missing route-policy provenance"
       - "b5-c3-reentry-step-evidence: missing redo step-output"
       - "b5-c3-reentry-step-evidence-red: replay step executed more"
+      - "fc-15-raise-budget-bridge: EMPTY node_reroute_budgets blocked"
+      - "fc-19-ledger-cleanliness: rejected raise left an applied resume observation"
+      - "fc-21-pre-integrity-red: corrupt route failed with the wrong"
   # MAIL-REPAIR (0611): the engine-side mail lane stays wired -- the kernel
   # carries runtime_handoffs on adopted-reroute redo items, reads the recorded
   # row back from the ledger, and HOLDs loudly on a broken ledger address.

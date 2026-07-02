@@ -148,6 +148,14 @@ def _resume_dynamic_graph_walker(
             "unreadable -- refusing to resume from the linearized snapshot alone "
             "(would drop fan-in/cohort/nested behaviour)"
         )
+    action = _required_disposition_action(disposition)
+    pending_target = _disposition_pending_target_ref(
+        action,
+        disposition=disposition,
+        hold_record=hold_record,
+        declared_plan=declared_plan,
+    )
+
     # RE-ATTACH the Link-owned node_reroute_budgets onto the recovered declared
     # plan. The birth-certificate STRIPS runtime walker keys (incl.
     # node_reroute_budgets, see declaration_packets._DECLARED_PLAN_RUNTIME_KEYS),
@@ -157,6 +165,7 @@ def _resume_dynamic_graph_walker(
     # assigned_budget). raise's budget_delta is applied separately in the kernel.
     declared_plan = dict(declared_plan)
     recorded_budgets = evidence.get("node_reroute_budgets")
+    bridged_evidence: Mapping[str, Any] = evidence
     # FAIL-CLOSED gap-4: a building that ENGAGED the reroute mechanism (it carries
     # reroute-adoption/HOLD records, or HELD on a budget-related reason) MUST carry
     # its Link-owned node_reroute_budgets in the written evidence. The old code only
@@ -193,19 +202,23 @@ def _resume_dynamic_graph_walker(
         if recorded_budgets:
             declared_plan["node_reroute_budgets"] = dict(recorded_budgets)
         elif had_reroute_budgets:
-            raise ValueError(
-                "resume corrupt evidence: this Building engaged the reroute budget "
-                "mechanism but the written dynamic_walker_evidence.node_reroute_budgets "
-                "is EMPTY; refusing to resume with no budget map"
-            )
-
-    action = _required_disposition_action(disposition)
-    pending_target = _disposition_pending_target_ref(
-        action,
-        disposition=disposition,
-        hold_record=hold_record,
-        declared_plan=declared_plan,
-    )
+            if action == "raise" and hold_record.get("budget_exhausted"):
+                recovered_budget = _positive_int(
+                    hold_record.get("node_budget"),
+                    "dynamic_walker_evidence.hold.node_budget",
+                )
+                bridged_budgets = {pending_target: recovered_budget}
+                declared_plan["node_reroute_budgets"] = bridged_budgets
+                bridged_evidence = {
+                    **evidence,
+                    "node_reroute_budgets": bridged_budgets,
+                }
+            else:
+                raise ValueError(
+                    "resume corrupt evidence: this Building engaged the reroute budget "
+                    "mechanism but the written dynamic_walker_evidence.node_reroute_budgets "
+                    "is EMPTY; refusing to resume with no budget map"
+                )
     seed_hold_record: Mapping[str, Any] = hold_record
     if action == "reroute":
         seed_hold_record = {**hold_record, "pending_target_ref": pending_target}
@@ -263,6 +276,11 @@ def _resume_dynamic_graph_walker(
     # live. FAIL CLOSED if the two ledgers disagree the WRONG way (more recorded
     # returns than completed step-outputs = an unaccounted occurrence).
     expected_replay_counts = _completed_step_frontier(root)
+    _require_return_frontier_consistency(
+        expected_replay_counts,
+        replay_returns,
+        root=root,
+    )
     for step_ref, returns in replay_returns.items():
         completed = expected_replay_counts.get(step_ref, 0)
         if len(returns) > completed:
@@ -292,7 +310,7 @@ def _resume_dynamic_graph_walker(
         # that diverges from the Link-declared base. Admit the raise ONLY when the
         # held record is a budget-exhaustion hold; otherwise fail closed (the human
         # should use forward/stop on a gate pause, not raise).
-        _require_budget_exhaustion_raise(hold_record, evidence, pending_target)
+        _require_budget_exhaustion_raise(hold_record, bridged_evidence, pending_target)
         budget_delta[pending_target] = increment
 
     # MAIL-REPAIR (0611, B3 lane 2): THIS resume's disposition row is a
@@ -1166,6 +1184,31 @@ def _completed_step_frontier(root: Path) -> dict[str, int]:
             )
         slots.add(attempt)
     return {step_ref: len(slots) for step_ref, slots in attempts_by_step.items()}
+
+
+def _require_return_frontier_consistency(
+    expected_replay_counts: Mapping[str, int],
+    replay_returns: Mapping[str, list[Any]],
+    *,
+    root: Path,
+) -> None:
+    for step_ref, completed in expected_replay_counts.items():
+        recorded = len(replay_returns.get(step_ref, []))
+        if completed > recorded:
+            raise ValueError(
+                f"resume corrupt evidence: step {step_ref!r} has {completed} completed "
+                f"step-output(s) on disk but only {recorded} recorded Agent return(s); "
+                "the step-output frontier is ahead of raw/agent-return.jsonl -- "
+                "refusing to resume before replay adoption"
+            )
+    if expected_replay_counts and not (
+        root / "evidence" / "claim_trace" / "agent" / "returned_claims.json"
+    ).is_file():
+        raise ValueError(
+            "resume corrupt evidence: required claim_trace agent/returned_claims.json "
+            "is absent while completed step-output replay obligations exist -- "
+            "refusing to resume before replay adoption"
+        )
 
 
 def _step_output_field_matches(root: Path, step_ref: str, field: str) -> list[Any]:

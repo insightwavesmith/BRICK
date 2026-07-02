@@ -5561,6 +5561,10 @@ def check(repo: Path) -> list[str]:
     # ============================================================================
     from brick_protocol.support.operator.run import run_building_plan, resume_building_plan
     from brick_protocol.support.operator.building_operation import observe_building_frontier
+    from brick_protocol.support.operator.walker_resume import (
+        _read_written_dynamic_plan,
+        _resume_observations,
+    )
 
     def _build_held_fc(prefix: str, tmp: str, callable_, *, budget: int = 1):
         plan_fc, b2_fc = _checker_plan(prefix, budget=budget)
@@ -5854,6 +5858,159 @@ def check(repo: Path) -> list[str]:
             violations.append(
                 f"fc-gap4b-exh: a legitimate budget-exhaustion raise was wrongly rejected "
                 f"by the B2 admission check ({exc4be})")
+
+    # fc-15: a budget-exhaustion raise whose persisted evidence carries an EMPTY
+    # node_reroute_budgets map bridges the human/COO-authored budget_increment into
+    # the resume seed before the EMPTY guard; non-raise empty maps still fail above.
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-fc-15-raise-budget-bridge-") as tmp:
+        pfx = "bapr-loop0-fc-15-raise-budget-bridge"
+        cb15 = _reroute_callable(
+            f"brick-{pfx}-build",
+            {f"brick-{pfx}-design", f"brick-{pfx}-review"},
+        )
+        res15, b2_15 = _build_held_fc(pfx, tmp, cb15, budget=1)
+        root15 = res15.lifecycle_write.root
+        if observe_building_frontier(root15, repo_root=repo)["frontier_kind"] != "link_paused":
+            violations.append("fc-15-raise-budget-bridge: setup did not produce a budget-exhaustion HOLD")
+        mp15, man15, plan15 = _read_evidence_plan(root15)
+        ev15 = plan15["dynamic_walker_evidence"]
+        hold15 = ev15.get("hold", {})
+        base_budget15 = hold15.get("node_budget") if isinstance(hold15, Mapping) else None
+        ev15["node_reroute_budgets"] = {}
+        _write_evidence_plan(mp15, man15, plan15)
+        _append_disposition_row(root15, building_id=res15.building_id,
+                                pending_target_ref=b2_15, action="raise",
+                                author_ref="coo:smith", budget_increment=2)
+        try:
+            resumed15 = resume_building_plan(
+                root15, local_callables={"callable:local:agent-invoke0-smoke": cb15},
+                adapter_cwd=repo, adapter_timeout_seconds=30)
+        except ValueError as exc15:
+            violations.append(
+                "fc-15-raise-budget-bridge: EMPTY node_reroute_budgets blocked a "
+                f"budget-exhaustion raise instead of consuming budget_increment ({exc15})")
+        else:
+            fr15 = observe_building_frontier(resumed15.lifecycle_write.root, repo_root=repo)
+            if fr15["frontier_kind"] not in {"complete", "closure_pending", "link_paused"}:
+                violations.append(
+                    "fc-15-raise-budget-bridge: resumed route reached an unexpected "
+                    f"frontier ({fr15['frontier_kind']})")
+            _plan15_after, evidence15_after = _read_written_dynamic_plan(resumed15.lifecycle_write.root)
+            budgets15_after = evidence15_after.get("node_reroute_budgets")
+            if isinstance(base_budget15, int) and not isinstance(base_budget15, bool) and isinstance(budgets15_after, Mapping):
+                expected15 = base_budget15 + 2
+                if budgets15_after.get(b2_15) != expected15:
+                    violations.append(
+                        "fc-15-raise-budget-bridge: bridged budget did not preserve "
+                        f"the exhausted base plus increment (got {budgets15_after.get(b2_15)!r}, "
+                        f"expected {expected15})")
+
+    # fc-19: a rejected raise on a non-budget HOLD does not write an applied resume
+    # observation, and a later forward disposition for the same hold is still chosen.
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-fc-19-ledger-cleanliness-") as tmp:
+        pfx = "bapr-loop0-fc-19-ledger-cleanliness"
+        plan19, b2_19 = _checker_plan(pfx, budget=1)
+        plan19 = _with_link_edge_gate(
+            plan19,
+            f"edge:{pfx}-review-to-close",
+            ["link-gate:default-transition", "link-gate:human"],
+        )
+        cb19 = _reroute_callable(b2_19, {f"brick-{pfx}-review"})
+        res19 = run_building_plan(
+            plan19, output_root=Path(tmp), overwrite_existing=True,
+            local_callables={"callable:local:agent-invoke0-smoke": cb19},
+            adapter_cwd=repo, adapter_timeout_seconds=30)
+        root19 = res19.lifecycle_write.root
+        if observe_building_frontier(root19, repo_root=repo)["frontier_kind"] != "link_paused":
+            violations.append("fc-19-ledger-cleanliness: setup did not HOLD on a human gate pause")
+        _append_disposition_row(root19, building_id=res19.building_id,
+                                pending_target_ref=b2_19, action="raise",
+                                author_ref="coo:smith", budget_increment=1)
+        try:
+            resume_building_plan(root19, local_callables={"callable:local:agent-invoke0-smoke": cb19},
+                                 adapter_cwd=repo, adapter_timeout_seconds=30)
+        except ValueError:
+            pass
+        else:
+            violations.append("fc-19-ledger-cleanliness: non-budget raise was not rejected")
+        _plan19_after_bad, evidence19_after_bad = _read_written_dynamic_plan(root19)
+        if not evidence19_after_bad.get("held"):
+            violations.append("fc-19-ledger-cleanliness: rejected raise cleared held evidence")
+        if _resume_observations(evidence19_after_bad):
+            violations.append("fc-19-ledger-cleanliness: rejected raise left an applied resume observation")
+        _append_disposition_row(root19, building_id=res19.building_id,
+                                pending_target_ref=b2_19, action="forward", author_ref="coo:smith")
+        try:
+            resumed19 = resume_building_plan(
+                root19, local_callables={"callable:local:agent-invoke0-smoke": cb19},
+                adapter_cwd=repo, adapter_timeout_seconds=30)
+        except ValueError as exc19:
+            violations.append(
+                "fc-19-ledger-cleanliness: later forward disposition was blocked "
+                f"after a rejected raise ({exc19})")
+        else:
+            fr19 = observe_building_frontier(resumed19.lifecycle_write.root, repo_root=repo)
+            if fr19["frontier_kind"] not in {"complete", "closure_pending"}:
+                violations.append(
+                    "fc-19-ledger-cleanliness: later forward disposition did not "
+                    f"resume to a terminal frontier (frontier={fr19['frontier_kind']})")
+
+    # fc-21: step-output frontier > raw returns fails before replay adoption with
+    # one explicit reason; the healthy route still resumes under the same fixture.
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-fc-21-pre-integrity-") as tmp:
+        pfx = "bapr-loop0-fc-21-pre-integrity"
+        cb21 = _reroute_callable(
+            f"brick-{pfx}-build",
+            {f"brick-{pfx}-design", f"brick-{pfx}-review"},
+        )
+        res21, b2_21 = _build_held_fc(pfx, tmp, cb21, budget=1)
+        root21 = res21.lifecycle_write.root
+        _append_disposition_row(root21, building_id=res21.building_id,
+                                pending_target_ref=b2_21, action="forward", author_ref="coo:smith")
+        try:
+            healthy21 = resume_building_plan(
+                root21, local_callables={"callable:local:agent-invoke0-smoke": cb21},
+                adapter_cwd=repo, adapter_timeout_seconds=30)
+        except ValueError as exc21h:
+            violations.append(f"fc-21-pre-integrity-parity: healthy resume was rejected ({exc21h})")
+        else:
+            fr21h = observe_building_frontier(healthy21.lifecycle_write.root, repo_root=repo)
+            if fr21h["frontier_kind"] not in {"complete", "closure_pending", "link_paused"}:
+                violations.append(
+                    "fc-21-pre-integrity-parity: healthy resume reached unexpected "
+                    f"frontier ({fr21h['frontier_kind']})")
+
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-fc-21-pre-integrity-red-") as tmp:
+        pfx = "bapr-loop0-fc-21-pre-integrity-red"
+        cb21r = _reroute_callable(
+            f"brick-{pfx}-build",
+            {f"brick-{pfx}-design", f"brick-{pfx}-review"},
+        )
+        res21r, b2_21r = _build_held_fc(pfx, tmp, cb21r, budget=1)
+        root21r = res21r.lifecycle_write.root
+        ar21r = root21r / "raw" / "agent-return.jsonl"
+        lines21r = [l for l in ar21r.read_text(encoding="utf-8").splitlines() if l.strip()]
+        kept21r = [l for l in lines21r if json.loads(l).get("step_ref") != f"{pfx}-design"]
+        ar21r.write_text("\n".join(kept21r) + "\n", encoding="utf-8")
+        _append_disposition_row(root21r, building_id=res21r.building_id,
+                                pending_target_ref=b2_21r, action="forward", author_ref="coo:smith")
+        live_calls_21r = []
+        def _sentinel21r(request):
+            live_calls_21r.append(request.brick_instance_ref)
+            return {"observed_evidence": [f"obs {request.brick_instance_ref}"], "not_proven": ["x"]}
+        try:
+            resume_building_plan(root21r, local_callables={"callable:local:agent-invoke0-smoke": _sentinel21r},
+                                 adapter_cwd=repo, adapter_timeout_seconds=30)
+        except ValueError as exc21r:
+            msg21r = str(exc21r)
+            if "step-output frontier is ahead of raw/agent-return.jsonl" not in msg21r:
+                violations.append(
+                    "fc-21-pre-integrity-red: corrupt route failed with the wrong "
+                    f"reason ({exc21r})")
+        else:
+            violations.append("fc-21-pre-integrity-red: corrupt route did not fail before replay adoption")
+        if f"brick-{pfx}-design" in live_calls_21r:
+            violations.append("fc-21-pre-integrity-red: corrupt pre-HOLD step ran live")
 
     # GAP 5: a replayed step that DECLARED a gate_sequence_policy but has NO recorded
     # gate decision must FAIL CLOSED (not silently treated as no-action).
