@@ -249,6 +249,54 @@ build 결과 packet은 `build_input_mode`, `building_id`, `evidence_root`, `fron
 `worktree_path` 같은 support evidence를 보여준다. 이것은 source truth, success/quality
 judgment, 또는 Link Movement 선택이 아니다.
 
+## 발사 전 DSL 구조 규칙 (0702 엔진 실측 — 재발사 루프 방지)
+
+발사 실패의 대부분이 이 두 가족이다. 그리기 전에 확인하고, 에러가 나면 아래 표에서 메시지로 찾아라.
+
+**fan() 위치 3법칙** (`support/operator/assembly.py` build() 하강부 실측):
+1. fan 블록 **바로 뒤는 반드시 단일 수렴 노드**다. fan 뒤에 fan을 붙이면
+   `a fan() block needs a following convergence node`. 두 팬 사이에 수렴 브릭(review/closure 등) 1개를 넣어라.
+2. build() 리스트는 **fan으로 끝날 수 없다**: `build() cannot end with a fan() block`.
+3. fan이 첫 항목인 것은 **허용**된다(가지=병렬 루트, 다음 항목=수렴). `route=` 마크는 수렴 노드에만 —
+   가지에 달면 `route= is a fan-in opt; declare it on the convergence node, not a fan branch`.
+
+**write_scope 승계 2법칙** (`_validate_node_write_scope_subset` 실측):
+1. write_scope 매핑은 `allowed_paths`(비어있으면 안 됨) + `forbidden_paths`(빈 배열이라도 키 자체 필수) 둘 다 요구한다.
+2. 노드별 스코프를 좁힐 때: 노드 allowed는 그래프 allowed glob에 커버되는 부분집합이어야 하고,
+   그래프 forbidden_paths는 **전부 문자 그대로** 노드 forbidden_paths에 포함해야 한다.
+
+**에러 → 처방 표:**
+
+| 에러 (부분 문자열) | 처방 |
+|---|---|
+| `needs a following convergence node` | 두 fan 사이에 수렴 브릭 1개 삽입 |
+| `cannot end with a fan() block` | 마지막에 closure 등 수렴 노드 추가 |
+| `a Fan block cannot be coerced to a node` | fan을 노드 자리(가지 안 등)에 넣었음 — build() 항목으로만 |
+| `route= is a fan-in opt` | route=를 가지에서 수렴 노드로 이동 |
+| `allowed_paths must be a proven subset` | 노드 allowed를 그래프 allowed glob 안쪽으로 좁힘 |
+| `must preserve assemble() write_scope forbidden_paths` | 그래프 forbidden 전체를 노드 forbidden에 복사-포함 |
+| `write_scope.forbidden_paths must be an array` | `forbidden_paths: []`라도 키를 명시 |
+
+올바른 이중 fan + write_scope 승계 예시:
+
+```python
+graph([
+    brick("design", "범위를 좁혀라"),
+    fan([
+        brick("work", "영역 A만 변경", write=True),
+        brick("work", "영역 B만 변경", write=True),
+    ]),
+    brick("review", "두 레인 반환 대조"),      # ← fan 뒤 수렴 노드 (필수)
+    fan([
+        brick("code-attack-qa", "구현 공격"),
+        brick("axis-attack-qa", "축 위반 공격"),
+    ]),
+    brick("closure", "종합·판정"),             # ← 마지막 = 수렴 노드 (필수)
+])
+# 발사 write_scope={"allowed_paths": ["support/operator/**"], "forbidden_paths": [".git/**"]}
+# 노드 스코프를 좁히면: allowed ⊂ 위 glob + forbidden에 ".git/**" 그대로 포함
+```
+
 ## 알아둘 것
 
 - **assemble의 top-level `adapter=`는 roled 노드에 무효.** design/closure/review/QA는 Agent Object와 per-node override가 이긴다. 주말 default는 work+closure+code QA=codex-local, axis/evidence/review QA=gemini-local이다. 노드를 role 디폴트에서 옮기려면 **per-node** `brick("design","...", adapter="codex-local")` override만이 레버.
