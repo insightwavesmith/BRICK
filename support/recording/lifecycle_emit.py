@@ -180,6 +180,24 @@ def _accumulated_raw_manifest(
 ) -> dict[str, Any]:
     graph_raw_refs = _graph_link_raw_refs(graph_context)
     dynamic_reroute_raw_refs = _dynamic_reroute_raw_refs(plan)
+    output_text_raw_refs = [
+        _raw_ref("agent-output-text", index)
+        for index, result in enumerate(step_results, start=1)
+        if result.adapter_result.adapter_output_text
+    ]
+    output_text_entries = []
+    if output_text_raw_refs:
+        output_text_entries.append(
+            {
+                "path": "raw/agent-output-text.jsonl",
+                "source": "support/operator/run.py adapter output text side-channel",
+                "content_shape": "jsonl full adapter output text side-channel rows",
+                "proof_limit": "support evidence only",
+                "axis_owner": "Agent",
+                "record_role": "primary",
+                "raw_refs": output_text_raw_refs,
+            }
+        )
     return {
         "building_id": building_id,
         "raw_refs": [
@@ -187,6 +205,7 @@ def _accumulated_raw_manifest(
             for index in range(1, len(step_results) + 1)
             for ref in (_raw_ref("brick", index), _raw_ref("agent", index), _raw_ref("link", index))
         ]
+        + output_text_raw_refs
         + dynamic_reroute_raw_refs
         + graph_raw_refs,
         "entries": [
@@ -208,6 +227,7 @@ def _accumulated_raw_manifest(
                 "record_role": "primary",
                 "raw_refs": [_raw_ref("agent", index) for index in range(1, len(step_results) + 1)],
             },
+            *output_text_entries,
             {
                 "path": "raw/link.jsonl",
                 "source": "support/operator/run.py run_building_plan declared Link rows",
