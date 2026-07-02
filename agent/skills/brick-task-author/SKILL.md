@@ -310,6 +310,7 @@ build 결과 packet의 `build_input_mode`, `building_id`, `evidence_root`, `fron
 - 라이브 repo를 다른 세션/빌딩과 공유 중이면 게이트 지문이 시점마다 흔들린다(0702 실측: 병행 아카이브로 같은 프로파일 실패 6→1→0). 공유 중 측정은 detached 워크트리에서 하거나, 내 변경만 stash로 걷어낸 baseline과 실패 지문 diff로 무죄/유죄를 가려라.
 - 수동/레거시 워크트리에서 게이트 변이·복원 조작 전에 **작업물부터 커밋**하라 — 미커밋 워크트리에 `git checkout --` 복원은 작업물을 지운다(0702 실측, COO 자가 유실 1회). 커밋 위에서만 변이가 안전하다.
 - 게이트의 closure 대조는 **task Deliverables 번호별 전수**로 한다 — 포커스 green·변이 RED·스윕이 전부 통과해도 deliverable 하나가 통째로 미구현일 수 있다(0702 3차 유실 실측: reaper 빌딩 deliverable 2 누락 랜딩).
+- 구현 deliverable은 **diff 실물(file:line) 대조 + 반려 시나리오 직접 프로브**까지 — 체커 pin green은 이미-작동하는 경로만 pin했을 수 있다(0702 실측: default-route 1차가 pin +189줄만 넣고 엔진 무변경 complete 자기보고; COO 무선언 compact 프로브 3필드 null로 반려).
 
 ---
 
