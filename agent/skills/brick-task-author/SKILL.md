@@ -329,6 +329,7 @@ graph([
 - 워크트리에서 `REAL HOME에서 `PYTHONPATH=support/import_identity:. python3 support/checkers/check_profile.py --all > /tmp/<id>-all.txt 2>&1` 실행 후 rc/pass count/failure-marker count만 보고 + 포커스 체커 green + **변이 RED 직접 확인**.
 - build 결과는 support evidence다. closure가 엉키면(temp-HOME concern 연쇄→resume divergence) **추격 금지** — 코드만 독립검증되면 declared follow-up Building으로 처리한다.
 - 미완/홀드 빌딩은 untracked로 `--all`을 RED로 만듦 → merge·게이트 전 `mv project/.../buildings/<미완id> /tmp/`로 치움(비파괴).
+- 라이브 repo를 다른 세션/빌딩과 공유 중이면 게이트 지문이 시점마다 흔들린다(0702 실측: 병행 아카이브로 같은 프로파일 실패 6→1→0). 공유 중 측정은 detached 워크트리에서 하거나, 내 변경만 stash로 걷어낸 baseline과 실패 지문 diff로 무죄/유죄를 가려라.
 
 ---
 
