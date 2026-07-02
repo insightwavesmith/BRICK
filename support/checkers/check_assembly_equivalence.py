@@ -1973,6 +1973,52 @@ def _verdict_adapter_guard_fire(repo: Path) -> tuple[str, ...]:
     )
 
 
+def _llm_alias_fire(repo: Path) -> tuple[str, ...]:
+    claude = assemble(
+        chain([brick("design", "llm alias expands once", llm="claude")]),
+        declared_by=DECLARED_BY,
+        authority=Authority.COO,
+        task="llm alias expansion probe",
+        building_id="heart-phase0-llm-alias-claude",
+        repo_root=repo,
+    )
+    claude_step = _step_for_kind(claude.composed_plan, "design")
+    if _effective_step_adapter(claude.composed_plan, claude_step) != "adapter:claude-local":
+        raise AssemblyEquivalenceError("brick(llm='claude') did not select adapter:claude-local")
+    if _effective_step_model(claude.composed_plan, claude_step) != "model:claude:inherit":
+        raise AssemblyEquivalenceError("brick(llm='claude') did not select model:claude:inherit")
+
+    def non_bare_probe() -> None:
+        brick("design", "llm non-bare", llm="claude:sonnet")
+
+    def unknown_probe() -> None:
+        brick("design", "llm unknown", llm="gpt9")
+
+    declaration_name = "LLM" + "_ALIAS_DECLARATIONS"
+    declaration_hits: list[str] = []
+    for root_name in ("brick", "agent", "support"):
+        for path in (repo / root_name).rglob("*.py"):
+            for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+                stripped = line.strip()
+                if stripped.startswith(f"{declaration_name} =") or stripped.startswith(
+                    f"{declaration_name}:"
+                ):
+                    declaration_hits.append(f"{path.relative_to(repo)}:{lineno}")
+    declaration_paths = [hit.rsplit(":", 1)[0] for hit in declaration_hits]
+    if declaration_paths != ["support/operator/provider_registry.py"]:
+        raise AssemblyEquivalenceError(
+            "llm alias declaration must exist only in support/operator/provider_registry.py; "
+            f"observed {declaration_hits}"
+        )
+
+    return (
+        "llm alias green: brick(llm='claude') expanded through the normal selected_* casting bag.",
+        _assert_raises("brick llm non-bare alias", ValueError, non_bare_probe),
+        _assert_raises("brick llm unknown alias", ValueError, unknown_probe),
+        "llm alias green: LLM_ALIAS_DECLARATIONS declaration body is support/operator/provider_registry.py only.",
+    )
+
+
 def _approval_runner():
     """Deterministic codex-local stand-in for frozen proposal FIRE runs."""
 
@@ -2706,6 +2752,7 @@ def run(repo: Path) -> list[str]:
     outputs.extend(_graph_write_scope_default_fire(repo))
     outputs.extend(_route_default_fire(repo))
     outputs.extend(_proposal_approval_fire(repo))
+    outputs.extend(_llm_alias_fire(repo))
     outputs.append(_tiny_work_qa_return_shape_red(repo))
     outputs.append(PROOF_LIMIT)
     return outputs

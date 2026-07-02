@@ -71,6 +71,7 @@ from brick_protocol.brick.comparison import (  # noqa: F401  (re-exported for ca
 from brick_protocol.agent.spec import (
     _CASTING_KWARG_BY_NAME,
     _build_casting_bag,
+    _expand_llm_alias,
 )
 
 if TYPE_CHECKING:
@@ -572,6 +573,7 @@ def brick(
     kind: str,
     work: str,
     *,
+    llm: str | None = None,
     alias: str | None = None,
     write: bool = False,
     returns: str | None = None,
@@ -601,6 +603,7 @@ def brick(
         raise ValueError("node_write_scope requires write=True")
     if isinstance(gates, (str, bytes)) or not isinstance(gates, Sequence):
         raise TypeError("brick() gates must be a sequence")
+    casting_kwargs = _expand_llm_alias("brick()", llm, casting_kwargs)
     return BrickSpec(
         kind=clean_kind,
         work=clean_work,
