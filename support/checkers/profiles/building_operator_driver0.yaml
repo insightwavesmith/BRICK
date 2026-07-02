@@ -4,6 +4,7 @@ description: BUILDING-OPERATOR-DRIVER-0 enforcement over the admitted bounded de
 kernel_checks:
   - building_operator_driver0
   - onboard_smoke
+  - building_result_summary
 path_exists:
   - support/operator/driver.py
   - support/checkers/check_building_operator_driver0.py

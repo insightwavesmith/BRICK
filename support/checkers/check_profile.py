@@ -129,6 +129,7 @@ from support.checkers.lib.kernel_checks import (
     run_building_plans_boundary_sweep,
     run_agent_adapter_return_shape,
     run_provider_preflight,
+    run_building_result_summary,
     run_codex_connect_stall_classification,
     run_design_ai_text_seams,
     run_gemini_local_only_adapter,
@@ -704,6 +705,7 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
     # If run_onboard ever raises, this kernel check goes RED and --all EXITs
     # non-zero. This is the no-raise guard for the guided onboarding experience.
     "onboard_smoke": run_onboard_smoke,
+    "building_result_summary": run_building_result_summary,
     # ONBOARDING-INSTALL-SCRIPT-0. Structural/safety lint of the one-line
     # installer support/onboarding/install.sh IN-PROCESS: asserts set -eu, all
     # logic in main() invoked as 'main "$@"' on the LAST non-empty line
