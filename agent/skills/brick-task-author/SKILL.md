@@ -101,6 +101,11 @@ fallback이며, §AUTO 읽기목록 산출은 design 노드의 일이다.
 
 **task.md 주입 없음(0702 실측):** `task=`/`goal=`은 `work/task.md` **증거물**로만 쓰이고, 어떤 경로도 레인 프롬프트에 주입하지 않는다. 레인이 반드시 봐야 할 계약(반환 스키마·경계·금지선)은 각 노드 `work_statement`에 직접 박아라. 프리셋 materializer 요약도 `## First-Line Contract`/`## Objective`/`## Desired Outcome` 헤딩만 스캔한다.
 
+**참고문서 전달 2채널(0702 심야 실측 — 참조 지시만 쓰면 사고난다):** 레인은 격리 워크트리에서 걷기 때문에 **untracked 파일(vessel task.md·조사 vessel·발주 문서)은 레인에게 안 보인다** — resume-ledger-repair-0702a design이 "조사 closure가 이 트리에 없다"고 정직 봉쇄를 실토했고, 같은 날 llm-alias-0702h design은 같은 봉쇄에서 요구사항을 발명(D5 오라벨)했다. "문서 X를 정독하라" 지시는 다음 둘 중 하나와 함께만 유효하다:
+① **`brick(source_facts=("<repo 상대경로>", ...))`** — 엔진이 파일 **본문을 읽어 레인 프롬프트에 실어준다**(run.py `_source_fact_bodies`, "declared task file body lands in the prompt"와 동격). 경로는 repo 루트 기준(repo 밖·scratchpad는 거부), untracked여도 walker가 라이브 repo에서 읽으므로 전달된다. ★**못 읽는 ref는 에러 없이 조용히 스킵**되므로 발사 전 `test -f`로 실존 확인.
+② **커밋된 트리 경로** — 레인 워크트리에 실존하므로 "읽어라" 지시가 이행 가능. 여러 빌딩이 참조할 정본(조사 기전 등)은 status/kernel 집계 문서로 커밋해두는 편이 낫다(선례: resume-defect-mechanisms-0702.md).
+어느 쪽이든 **규범 계약(Deliverables 원문·리터럴 프로브·금지선)은 work_statement 인라인이 정본** — source_facts는 참고자료 전달이지 계약 전달이 아니다.
+
 ## 샤프 템플릿 (이대로 — 더 보태지 마라)
 
 ```
