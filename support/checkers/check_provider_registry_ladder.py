@@ -130,11 +130,21 @@ def _unknown_registry_adapter_refs(repo: Path, registry: Mapping[str, Any]) -> l
 
 
 def run(repo: Path) -> None:
+    import json as _json
+
+    # The lane-preference expectation derives from the DECLARED Agent Object so a
+    # ratified policy change (e.g. inspector 0702 gemini->claude) moves the pin
+    # with the declaration instead of freezing a stale provider here.
+    _lane = _json.loads(
+        (repo / "agent" / "objects" / "inspector.yaml").read_text(encoding="utf-8")
+    )
+    lane_adapter_ref = str(_lane["preferred_adapter_ref"])
+    lane_model_ref = str(_lane["preferred_model_ref"])
     with _temp_brick_home() as home:
         _assert_selection(
             _selection(repo),
-            adapter_ref="adapter:gemini-local",
-            model_ref="model:gemini:default",
+            adapter_ref=lane_adapter_ref,
+            model_ref=lane_model_ref,
             label="absent providers.yaml preserves legacy lane preference",
         )
 
@@ -247,8 +257,8 @@ providers:
         )
         _assert_selection(
             _selection(repo),
-            adapter_ref="adapter:gemini-local",
-            model_ref="model:gemini:default",
+            adapter_ref=lane_adapter_ref,
+            model_ref=lane_model_ref,
             label="fallback outside Agent Object allow-list is rejected",
         )
 
@@ -268,8 +278,8 @@ providers:
         )
         _assert_selection(
             _selection(repo),
-            adapter_ref="adapter:gemini-local",
-            model_ref="model:gemini:default",
+            adapter_ref=lane_adapter_ref,
+            model_ref=lane_model_ref,
             label="BRICK_PROVIDER_LADDER=0 forces legacy behavior",
         )
         os.environ.pop("BRICK_PROVIDER_LADDER", None)

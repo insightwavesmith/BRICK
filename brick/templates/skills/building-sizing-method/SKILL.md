@@ -86,8 +86,8 @@ plan/development    리더 변형
 ```
 
 **제약(brick-task-author §알아둘 것에서):** verdict/추론 KIND(design/closure/review/inspect)에
-`adapter:local` 사용 금지(스텁이라 verdict 못 냄). 주말 active default는
-**codex=구현+closure+code-attack-qa · gemini=axis-attack-qa/evidence-integrity/inspect · 검증 fan=codex+gemini**다.
+`adapter:local` 사용 금지(스텁이라 verdict 못 냄). 현재 dogfood 기본(0702)은
+**codex=구현+closure+code-attack-qa · claude(sonnet·xhigh)=inspect/axis-attack-qa/evidence-integrity · gemini=review(qa-lead) · 검증 fan=codex+claude+gemini 교차**다.
 Claude adapter refs는 퇴역이 아니라 월요일 token 복귀 후 launch-time override로 다시 쓸 수 있는
 능력 연결이다. **codex-FUGU(Sakana fugu-ultra·high)는 design 노드에 허용한다** — Fugu의 깊은 설계가
 표준 구조의 한 축이고, 운영자가 명시 채택(Smith 0624). Fugu는 가두지 않는다: 깊은 설계를 직접

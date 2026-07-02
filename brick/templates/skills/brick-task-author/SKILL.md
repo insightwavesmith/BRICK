@@ -317,8 +317,8 @@ graph([
 
 ## 알아둘 것
 
-- **assemble의 top-level `adapter=`는 roled 노드에 무효.** design/closure/review/QA는 Agent Object와 per-node override가 이긴다. 현재 dogfood 기본(0630 채택 — 날짜 조건부 로직 아님, 서술일 뿐)은 work+closure+code QA=codex-local, axis/evidence/review QA=gemini-local이다. 노드를 role 디폴트에서 옮기려면 **per-node** `brick("design","...", adapter="codex-local")` override만이 레버.
-- **Claude adapter는 active다(0702 실사용).** per-node `adapter="claude-local"` override로 즉시 사용 가능. dogfood 기본 풀은 **codex=구현/closure/code QA · gemini=axis/evidence/review QA · QA fan=codex+gemini**, claude는 override로 정독/합성 등에 투입.
+- **assemble의 top-level `adapter=`는 roled 노드에 무효.** design/closure/review/QA는 Agent Object와 per-node override가 이긴다. 현재 dogfood 기본(날짜 조건부 로직 아님)은 work+closure+code QA=codex-local, **inspect/axis/evidence QA=claude-local sonnet·xhigh**(0702 Smith 채택 — agent/objects/inspector.yaml 선언), review QA(qa-lead)=gemini-local이다. 노드를 role 디폴트에서 옮기려면 **per-node** `brick("design","...", adapter="codex-local")` override만이 레버.
+- **Claude adapter는 active다(0702 실사용).** inspector 레인 기본이자 per-node `adapter="claude-local"` override로 어디든 투입 가능. 3-way 풀: **codex=구현/closure/code QA · claude=조사/축·증거 QA · gemini=review QA**.
 - **캐스팅 다이얼 어휘(실측, agent/spec.py EFFORT_LEVELS/EFFORT_SCOPE):** `effort=`는 {none, minimal, low, medium, high, xhigh} (bare `"xhigh"` 또는 `"effort:xhigh"` ref형). 적용 어댑터는 codex-local/codex-fugu-local/claude-local뿐 — gemini는 다이얼 자체가 없어 선언하면 out-of-scope. `model=`은 SHAPE 검증(`model:<provider>:<name>` 꼴), 예: `model:claude:sonnet`, `model:claude:opus`.
 - **verdict 노드는 `adapter:local` 금지.** design/closure/review/inspect는 verdict-bearing → `adapter:local` 거부. local 스텁 무인발사는 **work 노드로만** 가능. verdict 노드는 진짜 CLI(codex/gemini/claude) 필요.
 - **부하 주의.** raw graph packet CLI 입력은 retired다. 검증은 가능하면 DSL/materialization 체크로, 진짜 실행이 필요하면 `adapter:local` 또는 단일 `codex-local`/`gemini-local` 노드 1개로.
