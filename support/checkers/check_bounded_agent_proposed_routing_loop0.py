@@ -5905,9 +5905,11 @@ def check(repo: Path) -> list[str]:
                         f"the exhausted base plus increment (got {budgets15_after.get(b2_15)!r}, "
                         f"expected {expected15})")
 
-    # fc-19: a rejected raise on a non-budget HOLD does not write an applied resume
-    # observation, and a later forward disposition for the same hold is still chosen.
+    # fc-19: run_approve_entry refuses budget-incoherent dispositions before
+    # raw/link mutation, accepts the EMPTY-map budget-exhaustion recovery path
+    # that resume accepts, and never calls resume_building_plan on a refusal.
     with tempfile.TemporaryDirectory(prefix="bp-bapr-fc-19-ledger-cleanliness-") as tmp:
+        sandbox19 = Path(tmp)
         pfx = "bapr-loop0-fc-19-ledger-cleanliness"
         plan19, b2_19 = _checker_plan(pfx, budget=1)
         plan19 = _with_link_edge_gate(
@@ -5923,37 +5925,184 @@ def check(repo: Path) -> list[str]:
         root19 = res19.lifecycle_write.root
         if observe_building_frontier(root19, repo_root=repo)["frontier_kind"] != "link_paused":
             violations.append("fc-19-ledger-cleanliness: setup did not HOLD on a human gate pause")
-        _append_disposition_row(root19, building_id=res19.building_id,
-                                pending_target_ref=b2_19, action="raise",
-                                author_ref="coo:smith", budget_increment=1)
+        adapter_cwd19 = sandbox19 / "adapter-cwd"
+        adapter_cwd19.mkdir(parents=True, exist_ok=True)
+        link19 = root19 / "raw" / "link.jsonl"
+        link19_before = link19.read_bytes()
+        resume_calls19: list[Path] = []
+        original_resume19 = run_module.resume_building_plan
+
+        def _spy_resume_refused19(building_root, **kwargs):
+            resume_calls19.append(Path(building_root))
+            return original_resume19(building_root, **kwargs)
+
+        run_module.resume_building_plan = _spy_resume_refused19
         try:
-            resume_building_plan(root19, local_callables={"callable:local:agent-invoke0-smoke": cb19},
-                                 adapter_cwd=repo, adapter_timeout_seconds=30)
-        except ValueError:
-            pass
-        else:
-            violations.append("fc-19-ledger-cleanliness: non-budget raise was not rejected")
+            malformed19 = run_approve_entry(
+                root19,
+                action="raise",
+                author_ref="coo:smith",
+                budget_increment="malformed",  # type: ignore[arg-type]
+                adapter_cwd=adapter_cwd19,
+                adapter_timeout_seconds=30,
+                repo_root=repo,
+            )
+            rejected19 = run_approve_entry(
+                root19,
+                action="raise",
+                author_ref="coo:smith",
+                budget_increment=1,
+                adapter_cwd=adapter_cwd19,
+                adapter_timeout_seconds=30,
+                repo_root=repo,
+            )
+        finally:
+            run_module.resume_building_plan = original_resume19
+        if malformed19.get("error_kind") != "invalid_budget_increment":
+            violations.append(
+                "fc-19-ledger-cleanliness: malformed raise did not return "
+                f"invalid_budget_increment ({malformed19.get('error_kind')})"
+            )
+        if rejected19.get("error_kind") != "resume_budget_precheck_refused":
+            violations.append(
+                "fc-19-ledger-cleanliness: non-budget raise did not return "
+                f"resume_budget_precheck_refused ({rejected19.get('error_kind')})"
+            )
+        if malformed19.get("disposition_written") is not False or rejected19.get("disposition_written") is not False:
+            violations.append("fc-19-ledger-cleanliness: refused raise reported disposition_written")
+        if link19.read_bytes() != link19_before:
+            violations.append("fc-19-ledger-cleanliness: refused raise changed raw/link bytes")
+        if resume_calls19:
+            violations.append("fc-19-ledger-cleanliness: refused raise called resume_building_plan")
         _plan19_after_bad, evidence19_after_bad = _read_written_dynamic_plan(root19)
         if not evidence19_after_bad.get("held"):
             violations.append("fc-19-ledger-cleanliness: rejected raise cleared held evidence")
         if _resume_observations(evidence19_after_bad):
             violations.append("fc-19-ledger-cleanliness: rejected raise left an applied resume observation")
-        _append_disposition_row(root19, building_id=res19.building_id,
-                                pending_target_ref=b2_19, action="forward", author_ref="coo:smith")
+        original_resume19f = run_module.resume_building_plan
+
+        def _resume_with_local_callables19(building_root, **kwargs):
+            kwargs["local_callables"] = {"callable:local:agent-invoke0-smoke": cb19}
+            return original_resume19f(building_root, **kwargs)
+
+        run_module.resume_building_plan = _resume_with_local_callables19
         try:
-            resumed19 = resume_building_plan(
-                root19, local_callables={"callable:local:agent-invoke0-smoke": cb19},
-                adapter_cwd=repo, adapter_timeout_seconds=30)
-        except ValueError as exc19:
+            forward19 = run_approve_entry(
+                root19,
+                action="forward",
+                author_ref="coo:smith",
+                adapter_cwd=adapter_cwd19,
+                adapter_timeout_seconds=30,
+                repo_root=repo,
+            )
+        finally:
+            run_module.resume_building_plan = original_resume19f
+        if forward19.get("ok") is not True:
             violations.append(
                 "fc-19-ledger-cleanliness: later forward disposition was blocked "
-                f"after a rejected raise ({exc19})")
+                f"after a rejected raise ({forward19.get('error_kind')}: "
+                f"{forward19.get('error_message')})")
         else:
-            fr19 = observe_building_frontier(resumed19.lifecycle_write.root, repo_root=repo)
+            fr19 = observe_building_frontier(root19, repo_root=repo)
             if fr19["frontier_kind"] not in {"complete", "closure_pending"}:
                 violations.append(
                     "fc-19-ledger-cleanliness: later forward disposition did not "
                     f"resume to a terminal frontier (frontier={fr19['frontier_kind']})")
+
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-fc-19-budget-target-red-") as tmp:
+        sandbox19b = Path(tmp)
+        pfx = "bapr-loop0-fc-19-budget-target-red"
+        cb19b = _reroute_callable(
+            f"brick-{pfx}-build",
+            {f"brick-{pfx}-design", f"brick-{pfx}-review"},
+        )
+        res19b, b2_19b = _build_held_fc(pfx, tmp, cb19b, budget=1)
+        root19b = res19b.lifecycle_write.root
+        mp19b, man19b, plan19b = _read_evidence_plan(root19b)
+        plan19b["dynamic_walker_evidence"]["node_reroute_budgets"] = {
+            f"brick-{pfx}-other": 1
+        }
+        _write_evidence_plan(mp19b, man19b, plan19b)
+        adapter_cwd19b = sandbox19b / "adapter-cwd"
+        adapter_cwd19b.mkdir(parents=True, exist_ok=True)
+        link19b = root19b / "raw" / "link.jsonl"
+        link19b_before = link19b.read_bytes()
+        resume_calls19b: list[Path] = []
+        original_resume19b = run_module.resume_building_plan
+
+        def _spy_resume_refused19b(building_root, **kwargs):
+            resume_calls19b.append(Path(building_root))
+            return original_resume19b(building_root, **kwargs)
+
+        run_module.resume_building_plan = _spy_resume_refused19b
+        try:
+            rejected19b = run_approve_entry(
+                root19b,
+                action="raise",
+                author_ref="coo:smith",
+                budget_increment=1,
+                adapter_cwd=adapter_cwd19b,
+                adapter_timeout_seconds=30,
+                repo_root=repo,
+            )
+        finally:
+            run_module.resume_building_plan = original_resume19b
+        if rejected19b.get("error_kind") != "resume_budget_precheck_refused":
+            violations.append(
+                "fc-19-budget-target-red: no-budget target raise did not return "
+                f"resume_budget_precheck_refused ({rejected19b.get('error_kind')})"
+            )
+        if rejected19b.get("disposition_written") is not False:
+            violations.append("fc-19-budget-target-red: refused raise reported disposition_written")
+        if link19b.read_bytes() != link19b_before:
+            violations.append("fc-19-budget-target-red: refused raise changed raw/link bytes")
+        if resume_calls19b:
+            violations.append("fc-19-budget-target-red: refused raise called resume_building_plan")
+
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-fc-19-empty-map-accept-") as tmp:
+        sandbox19c = Path(tmp)
+        pfx = "bapr-loop0-fc-19-empty-map-accept"
+        cb19c = _reroute_callable(
+            f"brick-{pfx}-build",
+            {f"brick-{pfx}-design", f"brick-{pfx}-review"},
+        )
+        res19c, _b2_19c = _build_held_fc(pfx, tmp, cb19c, budget=1)
+        root19c = res19c.lifecycle_write.root
+        mp19c, man19c, plan19c = _read_evidence_plan(root19c)
+        plan19c["dynamic_walker_evidence"]["node_reroute_budgets"] = {}
+        _write_evidence_plan(mp19c, man19c, plan19c)
+        adapter_cwd19c = sandbox19c / "adapter-cwd"
+        adapter_cwd19c.mkdir(parents=True, exist_ok=True)
+        resume_calls19c: list[Path] = []
+        original_resume19c = run_module.resume_building_plan
+
+        def _resume_with_local_callables19c(building_root, **kwargs):
+            resume_calls19c.append(Path(building_root))
+            kwargs["local_callables"] = {"callable:local:agent-invoke0-smoke": cb19c}
+            return original_resume19c(building_root, **kwargs)
+
+        run_module.resume_building_plan = _resume_with_local_callables19c
+        try:
+            accepted19c = run_approve_entry(
+                root19c,
+                action="raise",
+                author_ref="coo:smith",
+                budget_increment=2,
+                adapter_cwd=adapter_cwd19c,
+                adapter_timeout_seconds=30,
+                repo_root=repo,
+            )
+        finally:
+            run_module.resume_building_plan = original_resume19c
+        if accepted19c.get("disposition_written") is not True:
+            violations.append("fc-19-empty-map-accept: recovery raise did not write disposition")
+        if accepted19c.get("error_kind"):
+            violations.append(
+                "fc-19-empty-map-accept: recovery raise was refused "
+                f"({accepted19c.get('error_kind')}: {accepted19c.get('error_message')})"
+            )
+        if not resume_calls19c:
+            violations.append("fc-19-empty-map-accept: recovery raise did not call resume_building_plan")
 
     # fc-21: step-output frontier > raw returns fails before replay adoption with
     # one explicit reason; the healthy route still resumes under the same fixture.
