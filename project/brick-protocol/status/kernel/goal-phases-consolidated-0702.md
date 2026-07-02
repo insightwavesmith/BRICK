@@ -130,9 +130,13 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
   안 보여 design 2건이 봉쇄/발명(0702 심야 실측). 교정: 계약은 work_statement 인라인 +
   참고문서는 `source_facts=`(본문 프롬프트 탑재, 못 읽는 ref 조용히 스킵 주의) 또는 커밋된
   트리 경로. 스킬 양 사본+골 루프 프롬프트+기전 정본(resume-defect-mechanisms-0702.md) 반영.
-- **resume 3결함 수리 v2 진행**: v1은 design 소스 봉쇄로 COO 정지→교정 재발주. v2는
-  2라운드 후 홀드 — D1(#15 raise 예산 브리지)은 QA 자체 프로브로 실증(오염 예산맵+raise 2
-  → 완주, base+2 소비), D2(#19 원장 청결)는 "부분" concern으로 COO 판정 대기 중.
+- **resume 3결함 수리 랜딩** `2a085b90`: v1은 design 소스 봉쇄로 COO 정지→교정 재발주,
+  v2가 2라운드로 착지. **D1/#15 완결**(raise 예산 브리지 — QA 행동 프로브 base+2 소비 실증
+  + COO 변이-RED rc=1), **D3/#21 완결**(pre-resume 정합성 대조 `_require_return_frontier_consistency`,
+  replay 채택 전 명시 거부 + claim_trace 실존 검사 — 처방 ② 그대로), **D2/#19 개선-부분**
+  (리더 측 홀드-스코핑 랜딩; 잔여 갭 = 저작 경로 persist-before-validate — 무예산 타깃 raise가
+  행을 남긴 뒤 에러, QA 실측). 잔여는 d2-ledger-cleanliness-0703a 소형 빌딩으로 후속(발사됨).
+  게이트: 변이-RED 2종 COO 직접(rc=1/rc=1/복원 rc=0), 격리 --all 33/33.
 
 ## 현재 위치 (0702 심야)
 
