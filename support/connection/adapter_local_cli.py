@@ -533,6 +533,7 @@ def _invoke_local_cli_adapter(
         _merge_texts(not_proven, request.not_proven),
         completed.adapter_usage,
         tuple(observed_non_granted_gemini_tools),
+        output_text,
     )
 
 

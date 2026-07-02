@@ -389,15 +389,16 @@ def test_behavioral_probe_usage_only_stdout() -> str:
         required_return_shape="returned_summary, input_tokens, usage",
     )
 
-    # REDO (Smith 0623 struct-surgery): _invoke_local_cli_adapter now returns a 5th
-    # RAW element (observed non-granted gemini tool names) alongside the existing
-    # 4-tuple; the codex path observes none, so it is the empty tuple here.
+    # REDO (Smith 0623 struct-surgery): _invoke_local_cli_adapter returns raw
+    # side-channel elements alongside the existing 4-tuple; the codex path
+    # observes no non-granted gemini tools here.
     (
         returned,
         _proof_limits,
         _not_proven,
         adapter_usage,
         _observed_non_granted_gemini_tools,
+        _adapter_output_text,
     ) = adapter_local_cli._invoke_local_cli_adapter(
         request,
         cwd=_REPO_ROOT,

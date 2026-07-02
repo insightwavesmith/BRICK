@@ -46,6 +46,42 @@ def _agent_raw_records(
     return tuple(records)
 
 
+def _agent_output_text_raw_records(
+    building_id: str,
+    step_results: tuple[BuildingRunSupportResult, ...],
+) -> tuple[Mapping[str, Any], ...]:
+    records: list[Mapping[str, Any]] = []
+    for index, result in enumerate(step_results, start=1):
+        output_text = result.adapter_result.adapter_output_text
+        if not output_text:
+            continue
+        prepared = result.preparation
+        records.append(
+            {
+                "raw_ref": _raw_ref("agent-output-text", index),
+                "raw_refs": [_raw_ref("agent-output-text", index)],
+                "building_id": building_id,
+                "step_ref": prepared.step_rows.step_ref,
+                "agent_object_ref": prepared.agent_object.object_ref,
+                "record_role": "full adapter output text side-channel",
+                "output_text": output_text,
+                "proof_limits": [
+                    "support raw output-text evidence only",
+                    "not AgentFact.returned",
+                    "not source truth",
+                    "not success judgment",
+                    "not quality judgment",
+                    "not Movement authority",
+                ],
+                "not_proven": [
+                    "provider behavior beyond captured output text",
+                    "semantic completeness of scrub-sensitive payload classes",
+                ],
+            }
+        )
+    return tuple(records)
+
+
 def _agent_claim_facts(
     step_results: tuple[BuildingRunSupportResult, ...],
     *,
@@ -54,11 +90,14 @@ def _agent_claim_facts(
     facts: list[Mapping[str, Any]] = []
     for index, result in enumerate(step_results, start=1):
         prepared = result.preparation
+        raw_refs = [_raw_ref("agent", index)]
+        if result.adapter_result.adapter_output_text:
+            raw_refs.append(_raw_ref("agent-output-text", index))
         facts.append(
             _claim_fact(
                 axis="Agent",
                 fact_ref=_step_fact_ref("agent-fact", index, prepared.step_rows.step_ref),
-                raw_refs=[_raw_ref("agent", index)],
+                raw_refs=raw_refs,
                 proof_limits=proof_limits,
                 not_proven=result.not_proven,
                 fact={

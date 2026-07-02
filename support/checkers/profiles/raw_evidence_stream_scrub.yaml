@@ -1,6 +1,6 @@
 schema: checker-profile/v1
 profile_id: raw-evidence-stream-scrub
-description: Pins raw BRICK JSONL stream persistence scrub behavior. The active raw stream writer must block credential, PII, and provider-session-like body detail before raw JSONL persistence for raw/brick-work.jsonl, raw/agent-received.jsonl, raw/agent-return.jsonl, and raw/adapter-error.jsonl while preserving raw refs, proof limits, not_proven evidence, and ordinary nested non-secret words such as status/result.
+description: Pins raw BRICK JSONL stream persistence scrub behavior. The active raw stream writer must block credential, PII, and provider-session-like body detail before raw JSONL persistence for raw/brick-work.jsonl, raw/agent-received.jsonl, raw/agent-return.jsonl, raw/agent-output-text.jsonl, and raw/adapter-error.jsonl while preserving raw refs, proof limits, not_proven evidence, and ordinary nested non-secret words such as status/result.
 kernel_checks:
   - raw_evidence_stream_scrub
 path_exists:
@@ -22,6 +22,7 @@ text_contains:
       - brick-work.jsonl
       - agent-received.jsonl
       - agent-return.jsonl
+      - agent-output-text.jsonl
       - adapter-error.jsonl
 proof_limits:
   - support raw JSONL scrub evidence only

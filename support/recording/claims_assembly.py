@@ -20,6 +20,7 @@ from typing import Any
 from brick_protocol.support.operator.contracts import BuildingRunSupportResult
 from brick_protocol.support.recording.claims_agent import (
     _agent_claim_facts,
+    _agent_output_text_raw_records,
     _agent_raw_records,
 )
 from brick_protocol.support.recording.claims_brick import (
@@ -83,4 +84,5 @@ def _raw_claim_trace_packet(
         link_policy_action_claim_facts=tuple(
             _link_policy_action_claim_facts(step_results, proof_limits=proof_limits)
         ),
+        agent_output_text_raw_records=_agent_output_text_raw_records(building_id, step_results),
     )

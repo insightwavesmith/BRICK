@@ -512,6 +512,9 @@ class AgentAdapterResult:
     #   ignored_forbidden_return_key_names -> ignored_forbidden_return_key fact
     # Empty mapping when the adapter saw none of these.
     adapter_raw_observations: Mapping[str, Any] = field(default_factory=dict)
+    # Full provider/local-CLI output text side-channel. This is support raw
+    # evidence only: it rides alongside returned_value and never inside it.
+    adapter_output_text: str = ""
 
 
 class AgentAdapterParked(RuntimeError):
@@ -715,6 +718,7 @@ def connect_agent_brain(
     # local-callable path carries no per-turn usage, so it stays None.
     adapter_usage: Mapping[str, Any] | None = None
     observed_non_granted_gemini_tools: tuple[str, ...] = ()
+    adapter_output_text = ""
     if request.adapter_ref == ADAPTER_LOCAL:
         returned_value = _invoke_local_callable(request, local_callables)
         proof_limits = _merge_texts(_DEFAULT_PROOF_LIMITS, request.proof_limits)
@@ -731,6 +735,7 @@ def connect_agent_brain(
             not_proven,
             adapter_usage,
             observed_non_granted_gemini_tools,
+            adapter_output_text,
         ) = _invoke_local_cli_adapter(
             request,
             cwd=dispatch_cwd,
@@ -766,6 +771,7 @@ def connect_agent_brain(
         not_proven=not_proven,
         adapter_usage=adapter_usage,
         adapter_raw_observations=raw_observations,
+        adapter_output_text=adapter_output_text,
     )
 
 

@@ -95,6 +95,7 @@ class RawClaimTracePacket:
     # disposition. Default to empty so existing constructors stay valid.
     link_gate_receipt_claim_facts: tuple[Mapping[str, Any], ...] = ()
     link_policy_action_claim_facts: tuple[Mapping[str, Any], ...] = ()
+    agent_output_text_raw_records: tuple[Mapping[str, Any], ...] = ()
 
 
 @dataclass(frozen=True)

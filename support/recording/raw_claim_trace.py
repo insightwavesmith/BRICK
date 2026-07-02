@@ -49,6 +49,18 @@ def write_raw_and_claim_trace(
         ),
         written,
     )
+    if packet.agent_output_text_raw_records:
+        _write_jsonl(
+            raw_dir / "agent-output-text.jsonl",
+            _graph_ready_records(
+                packet.agent_output_text_raw_records,
+                building_id=building_id,
+                local_prefix="raw/agent-output-text.jsonl",
+                recorded_at=recorded_at,
+                event_type="bp.raw.agent_output_text",
+            ),
+            written,
+        )
     _write_jsonl(
         raw_dir / "link.jsonl",
         _graph_ready_records(
@@ -763,6 +775,7 @@ def _raw_manifest_entry(rel_path: str, raw_refs: list[str]) -> dict[str, Any]:
         }
     if rel_path in {
         "raw/agent-return.jsonl",
+        "raw/agent-output-text.jsonl",
         "raw/agent-received.jsonl",
         "raw/adapter-error.jsonl",
         "raw/chat-session-park.jsonl",
@@ -794,6 +807,8 @@ def _raw_manifest_entry(rel_path: str, raw_refs: list[str]) -> dict[str, Any]:
 def _agent_raw_content_shape(rel_path: str) -> str:
     if rel_path == "raw/agent-received.jsonl":
         return "jsonl Agent receipt rows"
+    if rel_path == "raw/agent-output-text.jsonl":
+        return "jsonl full adapter output text side-channel rows"
     if rel_path == "raw/adapter-error.jsonl":
         return "jsonl adapter exception observation rows"
     if rel_path == "raw/chat-session-park.jsonl":
