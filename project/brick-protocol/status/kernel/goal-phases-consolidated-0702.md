@@ -80,10 +80,14 @@ raw-return 0 자기잠금을 남겨 #21 정합성 검사가 옳게 재개 거부
 세션ID 포함 scratchpad 경로를 쓰면 vessel이 redaction 위반자가 됨(중립 경로 규칙 각인)
 ④렌즈 concern의 실질(신규 파일 언트래킹)은 기우 — WIP 앵커 패키징이 언트래킹 포함 실증.
 
+**슬라이스 2 ✅ 랜딩(0703 심야)** — building_plan_graph_check.py(258L, 무클로저 2본).
+kernel_checks 10,861→10,734. **전 노드 1라운드 자가 완주·concern 0** — 선례 명시+렌즈
+주소규칙 인라인의 효과 실증(슬라이스 1의 정지 클래스 재발 없음). 게이트: 순수-이동 AST
+동일 2/2·프로브 기계 5·변이-RED rc=0·격리+라이브 --all 35/35. 머지 후 push.
+
 다음 순서:
-1. **슬라이스 2(building_plan_graph_check.py, 663-816, 헬퍼 무클로저 — 가장 얕음) 발주**,
-   이후 직렬 슬라이스 3~11 (raw_scrub·output_text→result_summary→cli→mcp→redaction→
-   chat_session→dashboard→adapter_error→agent_adapter 順)
+1. **슬라이스 3(raw_evidence_stream_scrub + agent_output_text_preservation — 무클로저 2본
+   한 빌딩, 지도 순서 3) 발주**, 이후 4~11 직렬
 2. 후속 조사(소형): 렌즈 구형 주소 저작 시 반려-재시도 루프 미발화(link_paused로 정지)의
    기전 — Part4 D1의 접수 지점이 렌즈 반환 경로를 덮는지
 2. 틈새: P8 신뢰성 반복 프로브 / #23 레거시 정리(903MB worktrees·3주치 vessels·inbox —
