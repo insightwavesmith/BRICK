@@ -171,6 +171,10 @@ from brick_protocol.support.operator.write_observation import (
     _write_adapter_observation_before,
     _write_scope_from_brick_row,
 )
+from brick_protocol.support.operator.proof_observation import (
+    _adapter_result_with_proof_observation,
+    _proof_obligations_from_brick_row,
+)
 from brick_protocol.support.recording.building_map import BuildingMapWriteResult
 from brick_protocol.support.recording.capture import (
     BuildingLifecycleWriteResult,
@@ -1317,9 +1321,14 @@ def _adapter_result_or_interrupt(
             cwd=adapter_cwd,
             timeout_seconds=adapter_timeout_seconds,
         )
-        return _adapter_result_with_write_observation(
+        observed_write_result = _adapter_result_with_write_observation(
             adapter_result,
             write_observation_before,
+            adapter_cwd=adapter_cwd,
+        )
+        return _adapter_result_with_proof_observation(
+            observed_write_result,
+            _proof_obligations_from_brick_row(prepared.step_rows.brick_row),
             adapter_cwd=adapter_cwd,
         )
     except AgentAdapterParked as parked:

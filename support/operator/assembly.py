@@ -458,6 +458,7 @@ def _with_fields(spec: BrickSpec, *, alias: str | None = None, returns: str | No
         casting=spec.casting,
         source_facts=spec.source_facts,
         node_write_scope=spec.node_write_scope,
+        proof_obligations=spec.proof_obligations,
     )
 
 
@@ -1402,6 +1403,8 @@ def _lower_node(
             node[field_name] = value
     if spec.source_facts:
         node["source_facts"] = list(spec.source_facts)
+    if spec.proof_obligations:
+        node["proof_obligations"] = [dict(item) for item in spec.proof_obligations]
     template_write_need = isinstance(step_template, Mapping) and bool(step_template.get("write_need"))
     if spec.node_write_scope is not None and not template_write_need:
         raise ValueError("node_write_scope requires a step template with write_need")

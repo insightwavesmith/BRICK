@@ -610,7 +610,21 @@ def _comparison_fact_from_observation(
                 ),
             ),
         )
-    return _comparison_with_artifact_grounding(prepared, comparison, returned_value)
+    comparison = _comparison_with_artifact_grounding(prepared, comparison, returned_value)
+    return BrickComparisonFact.apply_proof_obligation_comparison(
+        comparison,
+        returned_value=returned_value,
+        declared_obligations=_proof_obligations_from_prepared(prepared),
+    )
+
+
+def _proof_obligations_from_prepared(
+    prepared: AgentRunPreparationRecord,
+) -> tuple[Mapping[str, Any], ...]:
+    value = prepared.step_rows.brick_row.get("proof_obligations")
+    if not isinstance(value, list):
+        return ()
+    return tuple(item for item in value if isinstance(item, Mapping))
 
 
 def _comparison_with_artifact_grounding(

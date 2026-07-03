@@ -205,10 +205,11 @@ def _classify_reroute_target(
             resolved=tuple(resolved),
             hold_reason="unresolvable_reroute_address",
         )
+    strip_source = source_brick_ref and not _is_machine_authored_proof_concern(concern)
     classified_resolved = [
         brick_ref
         for brick_ref in resolved
-        if not source_brick_ref or brick_ref != source_brick_ref
+        if not strip_source or brick_ref != source_brick_ref
     ]
     source_was_stripped = (
         bool(source_brick_ref) and len(classified_resolved) != len(resolved)
@@ -238,6 +239,11 @@ def _classify_reroute_target(
     return _RerouteTargetClassification(kind="none", resolved=())
 
 
+def _is_machine_authored_proof_concern(concern: Mapping[str, Any]) -> bool:
+    concern_ref = _optional_text_value(concern.get("concern_ref")) or ""
+    return concern_ref.startswith("transition-concern:proof-obligation:")
+
+
 def _transition_concern_from_step_result(
     step_result: BuildingRunSupportResult,
 ) -> Mapping[str, Any] | None:
@@ -256,14 +262,47 @@ def _transition_concern_observation_from_step_result(
 
     returned = getattr(step_result.adapter_result, "returned_value", None)
     if not isinstance(returned, Mapping):
-        return _TransitionConcernObservation()
+        return _proof_obligation_transition_concern_observation(step_result)
     concern = returned.get("transition_concern_evidence")
     if concern in (None, False, ""):
-        return _TransitionConcernObservation()
+        return _proof_obligation_transition_concern_observation(step_result)
     if not isinstance(concern, Mapping):
         return _TransitionConcernObservation(
             invalid_reason="transition_concern_evidence must be a JSON-compatible mapping when present"
         )
+    try:
+        checked = validate_transition_concern_evidence(concern)
+    except (TypeError, ValueError) as exc:
+        return _TransitionConcernObservation(
+            invalid_reason=str(exc),
+            raw_concern=concern,
+        )
+    return _TransitionConcernObservation(concern=checked)
+
+
+def _proof_obligation_transition_concern_observation(
+    step_result: BuildingRunSupportResult,
+) -> _TransitionConcernObservation:
+    comparison = getattr(getattr(step_result, "completion", None), "brick_comparison", None)
+    if comparison is None:
+        return _TransitionConcernObservation()
+    proof_missing = tuple(
+        field
+        for field in comparison.missing_return_fields()
+        if field.startswith("proof_obligation.")
+    )
+    if not proof_missing:
+        return _TransitionConcernObservation()
+    step_ref = step_result.preparation.step_rows.step_ref
+    building_id = step_result.building_id
+    source_brick_ref = step_result.preparation.brick_instance_ref
+    concern = {
+        "concern_ref": f"transition-concern:proof-obligation:{building_id}:{step_ref}",
+        "concern_kind": "implementation_gap",
+        "binding": False,
+        "reason_refs": [f"brick-comparison:{building_id}:{step_ref}"],
+        "related_boundary_refs": [f"brick:{source_brick_ref}"],
+    }
     try:
         checked = validate_transition_concern_evidence(concern)
     except (TypeError, ValueError) as exc:

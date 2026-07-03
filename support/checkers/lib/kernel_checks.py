@@ -2999,21 +2999,422 @@ def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
     else:
         raise ProfileError("agent adapter admitted nested raw secret text")
 
+    proof_obligation_inspected = _proof_obligation_pipeline_probe(repo)
+
     return KernelResult(
         check_id="agent_adapter_return_shape",
         inspected=10
         + effective_write_inspected
         + read_tier_inspected
-        + artifact_grounding_inspected,
+        + artifact_grounding_inspected
+        + proof_obligation_inspected,
         output=(
             "agent adapter return shape passed: no_changes_reason waiver "
             "extraction, Brick comparison waiver, prompt projection, runtime "
             "Agent instruction packet rendering, and AgentAdapterRequest "
             "injection plus effective_write, read-tier rendering, tier-safety, "
-            "artifact-grounding, and deterministic nested list-field "
+            "artifact-grounding, proof-obligation, and deterministic nested list-field "
             "normalization probes inspected."
         ),
     )
+
+
+def _proof_obligation_pipeline_probe(repo: Path) -> int:
+    _ensure_import_identity(repo)
+    comparison = importlib.import_module("brick_protocol.brick.comparison")
+    proof_observation = importlib.import_module("brick_protocol.support.operator.proof_observation")
+    plan_validation = importlib.import_module("brick_protocol.support.operator.plan_validation")
+    agent_adapter = importlib.import_module("brick_protocol.support.connection.agent_adapter")
+    link_gate = importlib.import_module("brick_protocol.link.gate")
+    run_module = importlib.import_module("brick_protocol.support.operator.run")
+    walker_concern = importlib.import_module(
+        "brick_protocol.support.operator.walker_transition_concern"
+    )
+
+    sentinel = object()
+    if proof_observation._adapter_result_with_proof_observation(
+        sentinel,
+        (),
+        adapter_cwd=repo,
+    ) is not sentinel:
+        raise ProfileError("proof observation without obligations did not preserve object identity")
+
+    adapter_result = agent_adapter.AgentAdapterResult(
+        request=SimpleNamespace(),
+        returned_value={"mutation_red_runs": []},
+    )
+    with tempfile.TemporaryDirectory(prefix="bp-proof-mutation-red-") as tmpdir:
+        mutated_marker = Path(tmpdir) / "mutated.txt"
+        mutation_command = (
+            "python3 -c \"from pathlib import Path; Path("
+            + repr(str(mutated_marker))
+            + ").write_text('bad')\""
+        )
+        observed_mutation = proof_observation._adapter_result_with_proof_observation(
+            adapter_result,
+            [{"kind": "mutation_red", "command": mutation_command}],
+            adapter_cwd=repo,
+        )
+        if mutated_marker.exists():
+            raise ProfileError("mutation_red proof obligation was executed by support")
+    if observed_mutation.returned_value.get("observed_proof_runs") != []:
+        raise ProfileError("mutation_red proof obligation produced an executed proof run")
+    mutation_red = comparison.compare_proof_runs_to_declared_obligations(
+        observed_mutation.returned_value.get("observed_proof_runs", []),
+        [{"kind": "mutation_red", "command": mutation_command}],
+        returned_value=observed_mutation.returned_value,
+    )
+    if "mutation_red_missing_or_malformed_fields" not in mutation_red:
+        raise ProfileError(
+            f"malformed mutation_red return was not bucketed, observed {mutation_red!r}"
+        )
+
+    with tempfile.TemporaryDirectory(prefix="bp-proof-observation-") as tmpdir:
+        observed = proof_observation._run_proof_obligation(
+            {"command": "python3 -c 'import sys; sys.exit(1)'", "expect_rc": 0},
+            cwd=Path(tmpdir),
+        )
+    buckets = comparison.compare_proof_runs_to_declared_obligations(
+        [observed],
+        [{"command": observed["command"], "expect_rc": 0}],
+    )
+    if "proof_run_expect_rc_mismatch" not in buckets:
+        raise ProfileError(f"proof rc mismatch was not bucketed, observed {buckets!r}")
+    duplicate = comparison.compare_proof_runs_to_declared_obligations(
+        [{"command": "cmd", "rc": 0}, {"command": "cmd", "rc": 1}],
+        [{"command": "cmd", "expect_rc": 0}, {"command": "cmd", "expect_rc": 1}],
+    )
+    if duplicate:
+        raise ProfileError(
+            "multi-run per-command proof grouping did not consume runs independently: "
+            f"{duplicate!r}"
+        )
+    unrun = comparison.compare_proof_runs_to_declared_obligations(
+        [],
+        [{"command": "python3 -c 'print(1)'", "expect_rc": 0}],
+    )
+    if "proof_obligation_unrun" not in unrun:
+        raise ProfileError(f"unrun proof obligation was not bucketed, observed {unrun!r}")
+
+    base = comparison.BrickComparisonFact.from_returned_value(
+        work_reference="proof-obligation-probe",
+        required_fields=("observed_evidence",),
+        returned_value={
+            "observed_evidence": [],
+            "observed_proof_runs": [observed],
+            "made_changes": True,
+            "worktree_observation": {"observed_changed_files": []},
+        },
+        comparison_rule="Probe proof obligation comparison only.",
+        required_return_shape_evidence="observed_evidence",
+    )
+    no_declared = comparison.apply_proof_obligation_comparison(
+        base,
+        returned_value={"observed_evidence": [], "observed_proof_runs": [observed]},
+        declared_obligations=[],
+    )
+    if no_declared is not base:
+        raise ProfileError("proof comparison without declarations changed the comparison object")
+    no_declared_prepared = SimpleNamespace(
+        building_id="proof-obligation-no-declared-building",
+        brick_instance_ref="brick-proof-obligation-no-declared-build",
+        brick_work=SimpleNamespace(
+            work_statement="proof-obligation-no-declared-probe",
+            comparison_rule="Probe no-declared proof obligation comparison only.",
+            required_return_shape="observed_evidence",
+        ),
+        step_rows=SimpleNamespace(
+            step_ref="proof-obligation-no-declared-build",
+            brick_row={},
+            link_row={"declared_gate_refs": ["link-gate:default-transition"]},
+        ),
+    )
+    no_declared_return = {
+        "observed_evidence": ["no declared proof obligations"],
+        "observed_proof_runs": [observed],
+    }
+    no_declared_comparison_before = comparison.BrickComparisonFact.from_returned_value(
+        work_reference=no_declared_prepared.brick_work.work_statement,
+        required_fields=link_gate.gate_required_return_fields(
+            ("link-gate:default-transition",),
+            ("observed_evidence",),
+        ),
+        returned_value=no_declared_return,
+        comparison_rule=no_declared_prepared.brick_work.comparison_rule,
+        required_return_shape_evidence=no_declared_prepared.brick_work.required_return_shape,
+        forbidden_shortcut_evidence=(
+            "support/run did not classify Agent return",
+            "support/run did not judge success or quality",
+            "support/run used caller-supplied Link facts",
+        ),
+    )
+    no_declared_plan_validation = plan_validation._comparison_fact_from_observation(
+        no_declared_prepared,
+        None,
+        returned_value=no_declared_return,
+    )
+    no_declared_gate_before = link_gate.evaluate_declared_movement_gate(
+        gate_refs=("link-gate:default-transition",),
+        required_return_fields=no_declared_comparison_before.required_return_fields(),
+        missing_return_fields=no_declared_comparison_before.missing_return_fields(),
+        observed_match_kind=no_declared_comparison_before.observed_match_kind,
+        human_review_present=False,
+        override_present=False,
+        base_required_return_fields=no_declared_comparison_before.required_return_fields(),
+        checked_public_fact="brick-comparison:no-declared-proof-probe",
+        evidence_reference="brick-comparison:no-declared-proof-probe",
+    )
+    no_declared_gate_after = link_gate.evaluate_declared_movement_gate(
+        gate_refs=("link-gate:default-transition",),
+        required_return_fields=no_declared_plan_validation.required_return_fields(),
+        missing_return_fields=no_declared_plan_validation.missing_return_fields(),
+        observed_match_kind=no_declared_plan_validation.observed_match_kind,
+        human_review_present=False,
+        override_present=False,
+        base_required_return_fields=no_declared_plan_validation.required_return_fields(),
+        checked_public_fact="brick-comparison:no-declared-proof-probe",
+        evidence_reference="brick-comparison:no-declared-proof-probe",
+    )
+    no_declared_before_bytes = _json_probe_bytes(
+        {
+            "comparison": _comparison_probe_record(no_declared_comparison_before),
+            "gate": _gate_probe_record(no_declared_gate_before),
+        }
+    )
+    no_declared_after_bytes = _json_probe_bytes(
+        {
+            "comparison": _comparison_probe_record(no_declared_plan_validation),
+            "gate": _gate_probe_record(no_declared_gate_after),
+        }
+    )
+    if no_declared_after_bytes != no_declared_before_bytes:
+        raise ProfileError(
+            "undeclared proof_obligations changed plan_validation/comparison/gate bytes: "
+            f"before={no_declared_before_bytes!r} after={no_declared_after_bytes!r}"
+        )
+    applied = comparison.apply_proof_obligation_comparison(
+        base,
+        returned_value={
+            "observed_evidence": [],
+            "observed_proof_runs": [observed],
+            "made_changes": True,
+            "worktree_observation": {"observed_changed_files": []},
+        },
+        declared_obligations=[{"command": observed["command"], "expect_rc": 0}],
+    )
+    missing = applied.missing_return_fields()
+    if "proof_obligation.proof_run_expect_rc_mismatch" not in missing:
+        raise ProfileError("proof mismatch did not become a gate-visible missing_return_field")
+    if "proof_obligation.made_changes_claim_without_observed_change" not in missing:
+        raise ProfileError("made_changes contradiction did not become declaration-gated missing fact")
+    prepared = SimpleNamespace(
+        building_id="proof-obligation-building",
+        brick_instance_ref="brick-proof-obligation-build",
+        brick_work=SimpleNamespace(
+            work_statement="proof-obligation-probe",
+            comparison_rule="Probe proof obligation comparison only.",
+            required_return_shape="observed_evidence",
+        ),
+        step_rows=SimpleNamespace(
+            step_ref="proof-obligation-build",
+            brick_row={
+                "proof_obligations": [
+                    {"command": observed["command"], "expect_rc": 0},
+                    {"kind": "mutation_red", "command": mutation_command},
+                ],
+            },
+            link_row={"declared_gate_refs": ["link-gate:default-transition"]},
+        ),
+    )
+    through_plan_validation = plan_validation._comparison_fact_from_observation(
+        prepared,
+        None,
+        returned_value={
+            "observed_evidence": [],
+            "observed_proof_runs": [observed],
+            "mutation_red_runs": [{"red_cmd": mutation_command, "red_rc": "1"}],
+        },
+    )
+    if (
+        "proof_obligation.proof_run_expect_rc_mismatch"
+        not in through_plan_validation.missing_return_fields()
+        or "proof_obligation.mutation_red_missing_or_malformed_fields"
+        not in through_plan_validation.missing_return_fields()
+    ):
+        raise ProfileError("plan_validation did not connect proof observations to comparison facts")
+    proof_gate = link_gate.evaluate_declared_movement_gate(
+        gate_refs=("link-gate:default-transition",),
+        required_return_fields=through_plan_validation.required_return_fields(),
+        missing_return_fields=through_plan_validation.missing_return_fields(),
+        observed_match_kind=through_plan_validation.observed_match_kind,
+        human_review_present=False,
+        override_present=False,
+        base_required_return_fields=through_plan_validation.required_return_fields(),
+        checked_public_fact="brick-comparison:proof-probe",
+        evidence_reference="brick-comparison:proof-probe",
+    )
+    if proof_gate is None or not proof_gate.missing_required_facts:
+        raise ProfileError("default-transition gate did not consume proof missing facts")
+    malformed_plan = _proof_obligation_linear_plan(
+        command=mutation_command,
+        kind="mutation_red",
+        building_id="proof-obligation-malformed-e2e",
+    )
+
+    def _malformed_mutation_red_callable(request: Any) -> Mapping[str, Any]:
+        return {
+            "observed_evidence": ["malformed mutation_red e2e probe"],
+            "mutation_red_runs": [{"red_cmd": mutation_command, "red_rc": "1"}],
+        }
+
+    with tempfile.TemporaryDirectory(prefix="bp-proof-malformed-e2e-") as tmpdir:
+        malformed_result = run_module.run_building_plan(
+            malformed_plan,
+            output_root=Path(tmpdir),
+            overwrite_existing=True,
+            local_callables={
+                "callable:local:agent-invoke0-smoke": _malformed_mutation_red_callable
+            },
+            adapter_cwd=repo,
+            adapter_timeout_seconds=30,
+        )
+    if len(malformed_result.step_results) != 1:
+        raise ProfileError("malformed mutation_red e2e fixture did not run exactly one step")
+    malformed_step = malformed_result.step_results[0]
+    malformed_missing = malformed_step.completion.brick_comparison.missing_return_fields()
+    if "proof_obligation.mutation_red_missing_or_malformed_fields" not in malformed_missing:
+        raise ProfileError(
+            "real adapter return -> run.py -> plan_validation did not flag malformed "
+            f"mutation_red_runs ({malformed_missing!r})"
+        )
+    malformed_gate = malformed_step.completion.crossing_record.movement_gate_fact
+    if malformed_gate is None or not any(
+        "proof_obligation.mutation_red_missing_or_malformed_fields" in item
+        for item in malformed_gate.missing_required_facts
+    ):
+        raise ProfileError(
+            "real adapter return -> run.py -> plan_validation -> gate did not carry "
+            "malformed mutation_red_runs missing fact"
+        )
+    step_result = SimpleNamespace(
+        building_id=prepared.building_id,
+        preparation=prepared,
+        adapter_result=agent_adapter.AgentAdapterResult(
+            request=SimpleNamespace(),
+            returned_value={"observed_evidence": [], "observed_proof_runs": [observed]},
+        ),
+        completion=SimpleNamespace(brick_comparison=through_plan_validation),
+    )
+    concern_observation = walker_concern._transition_concern_observation_from_step_result(
+        step_result
+    )
+    if concern_observation.concern is None:
+        raise ProfileError("proof mismatch did not produce a reroute-eligible transition concern")
+    classification = walker_concern._classify_reroute_target(
+        concern_observation.concern,
+        declared_bricks={"brick-proof-obligation-build"},
+        source_brick_ref="brick-proof-obligation-build",
+    )
+    if classification.kind != "single" or classification.target != "brick-proof-obligation-build":
+        raise ProfileError(
+            "machine-authored proof concern did not resolve to the declared source Brick: "
+            f"{classification!r}"
+        )
+    return 15
+
+
+def _json_probe_bytes(value: Mapping[str, Any]) -> bytes:
+    return json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+
+def _comparison_probe_record(value: Any) -> Mapping[str, Any]:
+    return {
+        "work_reference": value.work_reference,
+        "comparison_evidence": list(value.comparison_evidence),
+        "observed_match_kind": value.observed_match_kind,
+        "comparison_rule": value.comparison_rule,
+        "required_return_shape_evidence": value.required_return_shape_evidence,
+        "forbidden_shortcut_evidence": list(value.forbidden_shortcut_evidence),
+    }
+
+
+def _gate_probe_record(value: Any) -> Mapping[str, Any] | None:
+    if value is None:
+        return None
+    return {
+        "stage": value.stage,
+        "sufficiency": value.sufficiency,
+        "checked_public_fact": value.checked_public_fact,
+        "required_public_facts": list(value.required_public_facts),
+        "missing_required_facts": list(value.missing_required_facts),
+        "reason": value.reason,
+        "evidence_reference": value.evidence_reference,
+    }
+
+
+def _proof_obligation_linear_plan(
+    *,
+    command: str,
+    kind: str,
+    building_id: str,
+) -> Mapping[str, Any]:
+    step_ref = "proof-obligation-build"
+    brick_ref = "brick-proof-obligation-build"
+    edge_ref = "edge:proof-obligation-build-to-boundary"
+    return {
+        "plan_ref": f"building-plan:{building_id}",
+        "owner_axis": "Brick",
+        "building_id": building_id,
+        "plan_shape": "graph",
+        "selected_adapter_ref": "adapter:local",
+        "proof_limits": ["checker proof-obligation fixture support evidence only"],
+        "not_proven": ["semantic correctness of proof obligation command"],
+        "execution_order": [step_ref],
+        "brick_steps": [
+            {
+                "step_ref": step_ref,
+                "completion_edge_ref": edge_ref,
+                "rows": [
+                    {
+                        "axis": "Brick",
+                        "row_ref": f"brick-row:{step_ref}",
+                        "brick_work_ref": f"work:{step_ref}",
+                        "brick_instance_ref": brick_ref,
+                        "work_statement": "proof obligation e2e probe",
+                        "required_return_shape": "observed_evidence",
+                        "comparison_rule": "Probe malformed mutation_red e2e flow only.",
+                        "proof_obligations": [
+                            {"kind": kind, "command": command, "expect_rc": 0}
+                        ],
+                    },
+                    {
+                        "axis": "Agent",
+                        "row_ref": f"agent-row:{step_ref}",
+                        "agent_object_ref": "agent-object:dev",
+                    },
+                ],
+            }
+        ],
+        "link_edges": [
+            {
+                "edge_ref": edge_ref,
+                "source_step_ref": step_ref,
+                "rows": [
+                    {
+                        "axis": "Link",
+                        "row_ref": f"link-row:{edge_ref}",
+                        "movement": "forward",
+                        "target_ref": "building-boundary:proof-obligation-e2e",
+                        "building_lifecycle": {
+                            "state": "closed",
+                            "reason": "proof obligation e2e probe closed",
+                        },
+                        "declared_gate_refs": ["link-gate:default-transition"],
+                    },
+                ],
+            }
+        ],
+    }
 
 
 def _gemini_api_classify_error_kind(exc: Exception) -> str:
