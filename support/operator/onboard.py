@@ -3452,6 +3452,36 @@ def run_approve_entry(
             adapter_timeout_seconds=adapter_timeout_seconds,
         )
         frontier_after = dict(observe_building_frontier(building_root, repo_root=repo))
+        if (
+            action_text == "forward"
+            and str(frontier_after.get("frontier_kind") or "") == "complete"
+        ):
+            from brick_protocol.support.operator.driver import (  # noqa: PLC0415
+                _record_fake_landing_hold_for_plan,
+                _write_need_complete_without_scoped_diff_for_plan,
+            )
+
+            manifest_path = building_root / "evidence" / "evidence-manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            if not isinstance(manifest, Mapping):
+                raise ValueError("evidence-manifest.json must contain a mapping")
+            snapshot = manifest.get("plan_snapshot")
+            if not isinstance(snapshot, Mapping):
+                raise ValueError("evidence-manifest.json plan_snapshot must contain a mapping")
+            plan_rows_copy = snapshot.get("plan_rows_copy")
+            if not isinstance(plan_rows_copy, str) or not plan_rows_copy.strip():
+                raise ValueError("evidence-manifest.json is missing plan_snapshot.plan_rows_copy")
+            plan_copy = json.loads(plan_rows_copy)
+            if not isinstance(plan_copy, Mapping):
+                raise ValueError("plan_snapshot.plan_rows_copy must decode to a mapping")
+            if _write_need_complete_without_scoped_diff_for_plan(
+                Path(adapter_cwd),
+                plan_copy,
+            ):
+                _record_fake_landing_hold_for_plan(building_root, plan_copy)
+                frontier_after = dict(
+                    observe_building_frontier(building_root, repo_root=repo)
+                )
     except Exception as exc:  # noqa: BLE001 -- disposition is already written
         result.update(
             {

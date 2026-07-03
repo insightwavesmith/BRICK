@@ -54,6 +54,7 @@ from brick_protocol.support.operator.worktree_sandbox import (
     temp_dir_fallback,
 )
 from brick_protocol.support.operator.assembly import _write_path_covered_by
+from brick_protocol.support.operator.walker_hold import _hold_paused_at_ref
 from brick_protocol.support.recording.capture import (
     DEFAULT_BUILDINGS_ROOT,
     buildings_root_for,
@@ -988,7 +989,20 @@ def _write_need_complete_without_scoped_diff(
 ) -> bool:
     """Observe a completed write-needed plan with no diff inside write_scope."""
 
-    scopes = _write_need_scopes_from_plan_path(plan_path)
+    try:
+        payload = _load_declared_plan_mapping(plan_path)
+    except (OSError, TypeError, ValueError, json.JSONDecodeError):
+        return False
+    return _write_need_complete_without_scoped_diff_for_plan(sandbox_path, payload)
+
+
+def _write_need_complete_without_scoped_diff_for_plan(
+    sandbox_path: Path,
+    plan: Mapping[str, Any],
+) -> bool:
+    """Observe a completed write-needed plan copy with no diff inside write_scope."""
+
+    scopes = _write_need_scopes_from_plan(plan)
     if not scopes:
         return False
     changed_paths = _sandbox_changed_paths(sandbox_path)
@@ -1006,6 +1020,10 @@ def _write_need_scopes_from_plan_path(plan_path: Path) -> tuple[Mapping[str, Any
         payload = _load_declared_plan_mapping(plan_path)
     except (OSError, TypeError, ValueError, json.JSONDecodeError):
         return ()
+    return _write_need_scopes_from_plan(payload)
+
+
+def _write_need_scopes_from_plan(payload: Mapping[str, Any]) -> tuple[Mapping[str, Any], ...]:
     scopes: list[Mapping[str, Any]] = []
     for row in _walk_mappings(payload):
         if row.get("requires_brick_write_scope") is not True:
@@ -1030,8 +1048,21 @@ def _capability_class_is_product_write(capability_class: str) -> bool:
 def _record_fake_landing_hold(evidence_root: Path, plan_path: Path) -> None:
     """Persist the fake-landing HOLD so frontier re-observation matches return."""
 
+    try:
+        payload = _load_declared_plan_mapping(plan_path)
+    except (OSError, TypeError, ValueError, json.JSONDecodeError):
+        payload = {}
+    _record_fake_landing_hold_for_plan(evidence_root, payload)
+
+
+def _record_fake_landing_hold_for_plan(
+    evidence_root: Path,
+    plan: Mapping[str, Any],
+) -> None:
+    """Persist the fake-landing HOLD for an already-loaded plan copy."""
+
     building_id = evidence_root.name
-    source = _fake_landing_hold_source(plan_path, building_id=building_id)
+    source = _fake_landing_hold_source(plan, building_id=building_id)
     link_path = evidence_root / "raw" / "link.jsonl"
     raw_ref = _next_driver_link_raw_ref(link_path)
     hold_record = build_hold_record(
@@ -1063,11 +1094,13 @@ def _record_fake_landing_hold(evidence_root: Path, plan_path: Path) -> None:
             "transition_lifecycle": {
                 "state": "paused",
                 "progress_state": "in_progress",
+                "paused_at_ref": _hold_paused_at_ref(hold_record),
                 "required_disposition_owner": "caller-or-coo",
                 "pending_target_ref": source["brick_instance_ref"],
             }
         }
     )
+    _stamp_fake_landing_dynamic_hold(evidence_root, hold_record)
     link_record = graph_ready_json_object(
         {
             **hold_record,
@@ -1095,22 +1128,67 @@ def _record_fake_landing_hold(evidence_root: Path, plan_path: Path) -> None:
     _append_driver_jsonl_record(link_path, link_record)
 
 
-def _fake_landing_hold_source(plan_path: Path, *, building_id: str) -> dict[str, str]:
-    try:
-        payload = _load_declared_plan_mapping(plan_path)
-    except (OSError, TypeError, ValueError, json.JSONDecodeError):
-        payload = {}
-    for row in _walk_mappings(payload):
+def _stamp_fake_landing_dynamic_hold(
+    evidence_root: Path,
+    hold_record: Mapping[str, Any],
+) -> None:
+    """Make the post-run fake-landing HOLD resumable by the existing resume reader."""
+
+    manifest_path = evidence_root / "evidence" / "evidence-manifest.json"
+    value = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise ValueError("evidence-manifest.json must contain a mapping")
+    snapshot = value.get("plan_snapshot")
+    if not isinstance(snapshot, dict):
+        raise ValueError("evidence-manifest.json plan_snapshot must contain a mapping")
+    plan_rows_copy = snapshot.get("plan_rows_copy")
+    if not isinstance(plan_rows_copy, str) or not plan_rows_copy.strip():
+        raise ValueError("evidence-manifest.json is missing plan_snapshot.plan_rows_copy")
+    plan = json.loads(plan_rows_copy)
+    if not isinstance(plan, dict):
+        raise ValueError("plan_snapshot.plan_rows_copy must decode to a mapping")
+    dynamic_evidence = plan.get("dynamic_walker_evidence")
+    if isinstance(dynamic_evidence, Mapping):
+        stamped_dynamic_evidence = dict(dynamic_evidence)
+    else:
+        stamped_dynamic_evidence = {
+            "kind": "dynamic_walker_evidence",
+            "walker_mode": "dynamic",
+            "reroute_adoption_records": [],
+            "node_reroute_budgets": {},
+            "node_reroute_landings": {},
+            "proof_limits": list(PROOF_LIMITS),
+            "not_proven": list(NOT_PROVEN),
+        }
+    stamped_dynamic_evidence["kind"] = "dynamic_walker_evidence"
+    stamped_dynamic_evidence["walker_mode"] = "dynamic"
+    stamped_dynamic_evidence["held"] = True
+    stamped_dynamic_evidence["hold"] = dict(hold_record)
+    plan["dynamic_walker_evidence"] = stamped_dynamic_evidence
+    snapshot["plan_rows_copy"] = json.dumps(plan, sort_keys=True, separators=(",", ":"))
+    manifest_path.write_text(
+        json.dumps(value, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+
+
+def _fake_landing_hold_source(
+    plan: Mapping[str, Any],
+    *,
+    building_id: str,
+) -> dict[str, str]:
+    for row, context_step_ref, context_brick_ref in _walk_mappings_with_context(plan):
         if row.get("requires_brick_write_scope") is not True:
             continue
         capability_class = str(row.get("capability_class") or "").strip()
         if not _capability_class_is_product_write(capability_class):
             continue
-        step_ref = str(row.get("step_ref") or "").strip()
+        step_ref = str(row.get("step_ref") or context_step_ref).strip()
         brick_ref = str(
             row.get("brick_instance_ref")
             or row.get("target_brick")
             or row.get("brick_ref")
+            or context_brick_ref
             or ""
         ).strip()
         return {
@@ -1121,6 +1199,36 @@ def _fake_landing_hold_source(plan_path: Path, *, building_id: str) -> dict[str,
         "step_ref": f"step:{building_id}:fake-landing",
         "brick_instance_ref": f"brick:{building_id}:fake-landing",
     }
+
+
+def _walk_mappings_with_context(
+    value: Any,
+    *,
+    step_ref: str = "",
+    brick_ref: str = "",
+) -> Iterable[tuple[Mapping[str, Any], str, str]]:
+    if isinstance(value, Mapping):
+        next_step_ref = str(value.get("step_ref") or step_ref).strip()
+        next_brick_ref = str(
+            value.get("brick_instance_ref")
+            or value.get("target_brick")
+            or value.get("brick_ref")
+            or brick_ref
+        ).strip()
+        yield value, next_step_ref, next_brick_ref
+        for child in value.values():
+            yield from _walk_mappings_with_context(
+                child,
+                step_ref=next_step_ref,
+                brick_ref=next_brick_ref,
+            )
+    elif isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+        for child in value:
+            yield from _walk_mappings_with_context(
+                child,
+                step_ref=step_ref,
+                brick_ref=brick_ref,
+            )
 
 
 def _next_driver_link_index(link_path: Path) -> int:

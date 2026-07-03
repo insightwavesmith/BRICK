@@ -1487,7 +1487,10 @@ def _w1_worktree_sandbox_fire(
         run_building_intake,
         run_customer_building_in_sandbox,
     )
+    from brick_protocol.support.operator import run as run_module
     from brick_protocol.support.operator.building_operation import observe_building_frontier
+    from brick_protocol.support.operator.onboard import run_approve_entry
+    from brick_protocol.support.operator.walker_hold import _hold_paused_at_ref
     from brick_protocol.support.operator.worktree_sandbox import (
         _ENGINE_WORKTREE_MARKER,
         _engine_worktrees_root,
@@ -1712,10 +1715,86 @@ def _w1_worktree_sandbox_fire(
             )
         if not fake_empty_hold_rows:
             violations.append("w1-fake-empty: fake landing hold row was not persisted")
-        elif fake_empty_hold_rows[-1].get("transition_lifecycle_state") != "paused":
-            violations.append(
-                "w1-fake-empty: fake landing hold row did not carry paused lifecycle"
+        else:
+            fake_empty_hold = fake_empty_hold_rows[-1]
+            if fake_empty_hold.get("transition_lifecycle_state") != "paused":
+                violations.append(
+                    "w1-fake-empty: fake landing hold row did not carry paused lifecycle"
+                )
+            fake_empty_paused_at_ref = str(
+                fake_empty_hold.get("transition_lifecycle_paused_at_ref") or ""
             )
+            fake_empty_expected_ref = _hold_paused_at_ref(fake_empty_hold)
+            summary["w1_fake_empty_paused_at_ref"] = fake_empty_paused_at_ref
+            summary["w1_fake_empty_expected_paused_at_ref"] = fake_empty_expected_ref
+            if not fake_empty_paused_at_ref:
+                violations.append(
+                    "w1-fake-empty: fake landing hold row did not carry paused_at_ref"
+                )
+            elif fake_empty_paused_at_ref != fake_empty_expected_ref:
+                violations.append(
+                    "w1-fake-empty: fake landing paused_at_ref did not match hold identity "
+                    f"{fake_empty_expected_ref!r}: {fake_empty_paused_at_ref!r}"
+                )
+            if fake_empty_reobserved.get("latest_transition_lifecycle", {}).get(
+                "transition_lifecycle_paused_at_ref"
+            ) != fake_empty_expected_ref:
+                violations.append(
+                    "w1-fake-empty: frontier did not publish the fake landing hold identity"
+                )
+
+            original_resume_building_plan = run_module.resume_building_plan
+
+            def _resume_with_w1_runner(building_root: Path | str, **kwargs: Any):
+                kwargs["command_runner"] = _w1_completing_codex_runner(write=True)
+                return original_resume_building_plan(building_root, **kwargs)
+
+            run_module.resume_building_plan = _resume_with_w1_runner
+            try:
+                with tempfile.TemporaryDirectory(prefix="bp-w1-fake-resume-") as resume_raw:
+                    resume_cwd = Path(resume_raw)
+                    _seed_customer_repo(repo, resume_cwd)
+                    resume_target = resume_cwd / _W1_WRITE_REL
+                    resume_target.parent.mkdir(parents=True, exist_ok=True)
+                    resume_target.write_text(
+                        "fixed by the W1 forward disposition fixture\n",
+                        encoding="utf-8",
+                    )
+                    forward_disposition = run_approve_entry(
+                        fake_empty_result.evidence_root,
+                        action="forward",
+                        author_ref="coo:d2-checker",
+                        adapter_cwd=resume_cwd,
+                        adapter_timeout_seconds=30,
+                        repo_root=fake_empty,
+                    )
+                    summary["w1_fake_empty_forward_wrote_file"] = (
+                        resume_target
+                    ).is_file()
+            finally:
+                run_module.resume_building_plan = original_resume_building_plan
+            summary["w1_fake_empty_forward_error"] = forward_disposition.get("error_kind")
+            summary["w1_fake_empty_forward_frontier"] = forward_disposition.get(
+                "frontier_kind"
+            )
+            summary["w1_fake_empty_forward_disposition_written"] = (
+                forward_disposition.get("disposition_written")
+            )
+            if forward_disposition.get("error_kind") == "missing_paused_at_ref":
+                violations.append(
+                    "w1-fake-empty: forward disposition still failed missing_paused_at_ref"
+                )
+            if forward_disposition.get("frontier_kind") != "complete":
+                violations.append(
+                    "w1-fake-empty: forward disposition did not close the resumed boundary "
+                    f"(frontier={forward_disposition.get('frontier_kind')!r}, "
+                    f"error={forward_disposition.get('error_kind')!r}, "
+                    f"message={forward_disposition.get('error_message')!r})"
+                )
+            if not summary["w1_fake_empty_forward_wrote_file"]:
+                violations.append(
+                    "w1-fake-empty: resumed forward disposition had no in-scope bytes"
+                )
 
         # D1 out-of-scope variant: when bytes exist but none are inside the
         # declared write_scope, the same hold path preserves them under WIP.
@@ -1768,6 +1847,59 @@ def _w1_worktree_sandbox_fire(
                     "w1-fake-outside: WIP anchor did not preserve the out-of-scope diff "
                     f"{outside_rel!r}: {fake_wip_files!r}"
                 )
+
+        with tempfile.TemporaryDirectory(prefix="bp-w1-no-diff-forward-") as no_diff_raw:
+            no_diff_forward = run_approve_entry(
+                fake_outside_result.evidence_root,
+                action="forward",
+                author_ref="coo:d2-checker",
+                adapter_cwd=Path(no_diff_raw),
+                adapter_timeout_seconds=30,
+                repo_root=fake_outside,
+            )
+        summary["w1_fake_no_diff_forward_frontier"] = no_diff_forward.get("frontier_kind")
+        summary["w1_fake_no_diff_forward_reason"] = no_diff_forward.get("frontier_reason")
+        if no_diff_forward.get("frontier_kind") != "human_review_waiting":
+            violations.append(
+                "w1-fake-no-diff-forward-RED: forward disposition without scoped diff "
+                f"did not re-hold (frontier={no_diff_forward.get('frontier_kind')!r}, "
+                f"error={no_diff_forward.get('error_kind')!r})"
+            )
+        if no_diff_forward.get("frontier_reason") != "fake_landing_write_scope_diff_absent":
+            violations.append(
+                "w1-fake-no-diff-forward-RED: re-hold did not preserve fake-landing reason "
+                f"(reason={no_diff_forward.get('frontier_reason')!r})"
+            )
+
+        fake_outside_link_path = Path(fake_outside_result.evidence_root) / "raw" / "link.jsonl"
+        fake_outside_link_records = _jsonl_records(fake_outside_link_path)
+        for record in reversed(fake_outside_link_records):
+            if record.get("hold_reason") == "fake_landing_write_scope_diff_absent":
+                record.pop("transition_lifecycle_paused_at_ref", None)
+                break
+        fake_outside_link_path.write_text(
+            "\n".join(
+                json.dumps(record, separators=(",", ":"), ensure_ascii=False)
+                for record in fake_outside_link_records
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        with tempfile.TemporaryDirectory(prefix="bp-w1-missing-paused-at-") as missing_raw:
+            missing_identity = run_approve_entry(
+                fake_outside_result.evidence_root,
+                action="forward",
+                author_ref="coo:d2-checker",
+                adapter_cwd=Path(missing_raw),
+                adapter_timeout_seconds=30,
+                repo_root=fake_outside,
+            )
+        summary["w1_fake_missing_paused_at_error"] = missing_identity.get("error_kind")
+        if missing_identity.get("error_kind") != "missing_paused_at_ref":
+            violations.append(
+                "w1-fake-missing-paused-at-RED: missing fake-landing paused_at_ref "
+                f"was not refused (error={missing_identity.get('error_kind')!r})"
+            )
 
         # CASE 1b (stale liveness gate): stale reap touches only parseable
         # engine markers older than the threshold, and it runs inside the
