@@ -94,6 +94,10 @@ from support.checkers.lib.axis_vocab_drift_check import (
     _axis_vocab_check_concern_kind_parity,
     run_axis_vocab_drift,
 )
+from support.checkers.lib.building_plan_graph_check import (
+    run_building_map_graph,
+    run_building_plans_boundary_sweep,
+)
 
 
 
@@ -142,35 +146,6 @@ def call_main(check_id: str, module_name: str, argv: list[str] | None) -> Kernel
     return KernelResult(check_id=check_id, inspected=1, output=output)
 
 
-def run_building_map_graph(repo: Path) -> KernelResult:
-    module = importlib.import_module("support.checkers.check_building_map_graph")
-    map_paths = sorted(repo.glob("project/*/buildings/*/work/building-map.json"))
-    if not map_paths:
-        return KernelResult(
-            check_id="building_map_graph",
-            inspected=0,
-            output="building map graph skipped: no project/*/buildings/*/work/building-map.json maps present.",
-        )
-    all_violations: list[str] = []
-    historical = 0
-    for map_path in map_paths:
-        _, violations, historical_map = module.check_one(map_path, fixture_mode=False)
-        if historical_map:
-            historical += 1
-        all_violations.extend(violations)
-    if all_violations:
-        detail = "\n".join(f"- {violation}" for violation in all_violations)
-        raise ProfileError(f"kernel check building_map_graph rejected evidence:\n{detail}")
-    return KernelResult(
-        check_id="building_map_graph",
-        inspected=len(map_paths),
-        output=(
-            "building map graph passed: "
-            f"{len(map_paths)} map(s) inspected, {historical} historical support map(s) preserved."
-        ),
-    )
-
-
 def _minimal_reporter_packet() -> Mapping[str, Any]:
     return {
         "report_id": "reporter-negative-probe-valid",
@@ -194,108 +169,6 @@ def _minimal_reporter_packet() -> Mapping[str, Any]:
         "not_proven": ["negative probe"],
         "proof_limits": ["negative probe support evidence only"],
     }
-
-
-def run_building_plans_boundary_sweep(repo: Path) -> KernelResult:
-    """Global building-plan boundary sweep (checker consolidation, pass-1).
-
-    REHOME target: the per-profile ``building_plan_boundary`` pins (bar_v2,
-    real_route_repair, provider_json_return_smoke, current_context_prune, ...)
-    each pinned ONE frozen/live plan because no global walk existed. This sweep
-    runs the SAME ``validate_building_plan_boundary`` over EVERY linear and
-    graph plan in brick/building_plans/, so those single-sourced per-plan
-    structural guards survive as one general kernel-check and the per-profile
-    pins can retire.
-
-    Stepless / non-Building-plan fixtures are skipped; their count is reported,
-    never silently absorbed. A real boundary violation on any linear or graph
-    plan raises ProfileError -> --all RED.
-
-    HARDENED (guard-before-retire): when the linear yaml-subset parser fails on a
-    plan, fall back to PyYAML (yaml.safe_load). If PyYAML yields a dict with a
-    non-empty ``steps`` list or ``plan_shape: graph``, the plan is a real
-    Building Plan that the subset parser merely could not read, so it is
-    validated via the SAME ``validate_building_plan_boundary`` (no silent skip).
-    Only truly stepless / non-Building-plan fixtures are skipped. A now-included
-    plan that genuinely fails validation is surfaced (--all RED), never hidden.
-    The number of PyYAML-recovered plans is reported separately.
-    """
-    plans_dir = repo / "brick" / "building_plans"
-    if not plans_dir.is_dir():
-        raise ProfileError("brick/building_plans must exist for the boundary sweep")
-    import yaml
-    from support.checkers.lib.yaml_subset import load_yaml_subset_file
-    from support.checkers.lib.rule_runners import (
-        validate_building_plan_boundary,
-        _admitted_agent_object_refs,
-    )
-
-    admitted = _admitted_agent_object_refs(repo)
-    linear_validated = 0
-    graph_validated = 0
-    skipped = 0
-    pyyaml_recovered = 0
-    for path in sorted(plans_dir.glob("*.yaml")):
-        rel = to_posix(path.relative_to(repo))
-        try:
-            plan = load_yaml_subset_file(repo, rel)
-        except Exception:
-            # Subset parser could not read it. Fall back to PyYAML: a real LINEAR
-            # plan (dict with non-empty steps) must still be covered, not skipped.
-            recovered = yaml.safe_load(path.read_text(encoding="utf-8"))
-            if not isinstance(recovered, Mapping):
-                skipped += 1
-                continue
-            recovered_steps = recovered.get("steps")
-            recovered_is_linear = isinstance(recovered_steps, list) and bool(recovered_steps)
-            recovered_is_graph = recovered.get("plan_shape") == "graph"
-            if not (recovered_is_linear or recovered_is_graph):
-                skipped += 1  # stepless / non-Building-plan fixture
-                continue
-            # Real linear/graph plan the subset parser missed; validate it
-            # (surface any genuine failure rather than hiding it). This is
-            # STRUCTURAL validation of historical plans, so retired write-adapter
-            # refs are tolerated here (adapter activeness is enforced at run time,
-            # not in the boundary sweep).
-            validate_building_plan_boundary(
-                recovered, rel, admitted, repo, allow_retired_write_adapter_refs=True
-            )
-            if recovered_is_graph:
-                graph_validated += 1
-            else:
-                linear_validated += 1
-            pyyaml_recovered += 1
-            continue
-        steps = plan.get("steps")
-        is_linear = isinstance(steps, list) and bool(steps)
-        is_graph = plan.get("plan_shape") == "graph"
-        if not (is_linear or is_graph):
-            skipped += 1  # stepless / non-Building-plan fixture
-            continue
-        # Reuses the EXACT per-profile boundary validator; a violation raises
-        # ProfileError, which fails the check (no swallowing of real failures).
-        # Structural sweep over historical plans: retired write-adapter refs are
-        # tolerated here (adapter activeness is enforced at run time, not here).
-        validate_building_plan_boundary(
-            plan, rel, admitted, repo, allow_retired_write_adapter_refs=True
-        )
-        if is_graph:
-            graph_validated += 1
-        else:
-            linear_validated += 1
-    validated = linear_validated + graph_validated
-    return KernelResult(
-        check_id="building_plans_boundary_sweep",
-        inspected=validated,
-        output=(
-            f"building plans boundary sweep passed: {validated} building "
-            f"plan(s) validated (Brick owner_axis + plan_ref + non-empty steps + "
-            f"declared-plan validation + per-step rows; {linear_validated} linear, "
-            f"{graph_validated} graph via declared graph projection; {pyyaml_recovered} "
-            f"PyYAML-recovered from subset-parse failure); {skipped} stepless / "
-            f"non-Building-plan fixture(s) skipped."
-        ),
-    )
 
 
 def _agent_instruction_packet_probe(repo: Path) -> Mapping[str, Any]:
