@@ -1,10 +1,21 @@
-# kernel_checks.py 분할 지도 초안 (0703 — kc-splitmap-0703a work4 산출 수확)
+# kernel_checks.py 분할 지도 — v2 검증 완료 (0703)
 
-Status: support evidence only. §4-1 Stage A 산출 — COO가 vessel에서 수확·커밋(레인 가독용).
-**미완: 잎 경계 스윕(leading-constant/trailing-function 갭 클래스)이 dashboard 잎 1개만 완료** —
-나머지 12개 잎 경계·클로저·pin 검증은 v2(fan 파티션 빌딩)가 수행한다. 검증 전 이 지도의
-라인 범위를 구현에 복사하지 마라(실행 시점 재유도 원칙, QA4 경고).
+Status: support evidence only. §4-1 Stage A 산출(kc-splitmap-0703a work4 수확) →
+**v2(kc-splitmap-v2-0703b, 13-way fan 파티션)가 전 잎 경계·클로저·pin 검증 완료** —
+17노드 전원 1라운드 완주, frontier=complete(COO forward, 0703 밤).
 
+**파티션 무결성 확정(QA 독립 AST 재계수 + COO 스팟체크 일치)**: 모듈 최상위 이름 208개 중
+204개가 정확히 1잎 배정, 이중배정 0, **고아 4개의 COO 처분**:
+- `captured_output`(:619)·`patched_argv`(:627)·`call_main`(:646-660) → **facade 잔류 명시**
+  (check_profile.py:129·:308이 직접 임포트·호출하는 러너 디스패치 유틸리티 3인방).
+- `_gemini_api_classify_error_kind`(:3420-3443) → **사어(전 저장소 참조 0)** — 슬라이스 진행
+  중 삭제 후보(삭제 커밋에서 --all green 확인).
+주의: `_without_report_grain_env`(:637)는 고아가 아니다 — reporter 잎의 비연속 블록 배정
+(사용처 :3865·:3916).
+
+슬라이스 실행 시 각 잎의 검증된 최종 범위는 v2 합성 노드(work-14)의
+verified_leaf_assignment_table_v2가 정본 — vessel:
+project/brick-protocol/buildings/kc-splitmap-v2-0703b/. 아래 초안 수치와 다르면 v2가 이긴다.
 {
  "D1_run_entrypoint_inventory": {
   "check_profile_import_surface": "support/checkers/check_profile.py:127-156 imports all current kernel_checks run_* names through support.checkers.lib.kernel_checks; existing extracted siblings are re-exported through this facade pattern.",
