@@ -185,46 +185,6 @@ def _validate_transition_concern_related_boundary_ref(ref: str) -> None:
         )
 
 
-def _proof_obligation_allows_brick_colon(
-    concern_ref: str, reason_refs: tuple[str, ...]
-) -> tuple[str, str] | None:
-    if not concern_ref.startswith("transition-concern:proof-obligation:"):
-        return None
-    proof_obligation_parts = concern_ref.split(":", 3)
-    if len(proof_obligation_parts) != 4:
-        return None
-    _, _, building_id, step_ref = proof_obligation_parts
-    expected_reason_ref = f"brick-comparison:{building_id}:{step_ref}"
-    if expected_reason_ref not in reason_refs:
-        return None
-    return building_id, step_ref
-
-
-def _normalize_transition_concern_related_boundary_refs(
-    concern_ref: str, reason_refs: tuple[str, ...], related_refs: tuple[str, ...]
-) -> tuple[str, ...]:
-    proof_obligation_parts = _proof_obligation_allows_brick_colon(
-        concern_ref, reason_refs
-    )
-    if proof_obligation_parts is None:
-        return related_refs
-    normalized: list[str] = []
-    for ref in related_refs:
-        if ref.startswith("brick:"):
-            ref = ref.removeprefix("brick:")
-            if not ref.startswith("brick-"):
-                ref = f"brick-{ref}"
-            if proof_obligation_parts is not None:
-                building_id, step_ref = proof_obligation_parts
-                if ref != f"brick-{step_ref}" and not ref.startswith(
-                    f"brick-{building_id}-"
-                ):
-                    normalized.append(f"brick:{ref.removeprefix('brick-')}")
-                    continue
-        normalized.append(ref)
-    return tuple(normalized)
-
-
 def validate_transition_concern_evidence(concern: "Mapping[str, Any]") -> dict:
     for key in concern:
         if not isinstance(key, str) or key not in TRANSITION_CONCERN_ALLOWED_KEYS:
@@ -246,10 +206,6 @@ def validate_transition_concern_evidence(concern: "Mapping[str, Any]") -> dict:
         "transition_concern_evidence.related_boundary_refs",
         concern.get("related_boundary_refs", ()),
     )
-    original_related_refs = related_refs
-    related_refs = _normalize_transition_concern_related_boundary_refs(
-        concern_ref, reason_refs, related_refs
-    )
     for ref in related_refs:
         _validate_transition_concern_related_boundary_ref(ref)
         if concern_kind in NON_REROUTE_CONCERN_KINDS and ref.startswith(
@@ -258,10 +214,7 @@ def validate_transition_concern_evidence(concern: "Mapping[str, Any]") -> dict:
             raise ValueError(
                 "transition_concern_evidence.verification_gap must not name a reroute-capable Brick boundary"
             )
-    checked = dict(concern)
-    if "related_boundary_refs" in concern or related_refs != original_related_refs:
-        checked["related_boundary_refs"] = list(related_refs)
-    return checked
+    return dict(concern)
 
 
 @dataclass(frozen=True)

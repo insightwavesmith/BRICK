@@ -3982,49 +3982,50 @@ def check(repo: Path) -> list[str]:
                 "address-contract-intake: valid related_boundary_refs form "
                 f"{label_boundary} was rejected ({exc})"
             )
-    legacy_boundary_refs = {
-        "full brick-colon replay": (
-            "transition-concern:proof-obligation:bapr-loop0-address-contract-old-shape:bapr-loop0-address-contract-old-shape-build",
-            "brick:brick-bapr-loop0-address-contract-old-shape-build",
-            [
-                "brick-comparison:bapr-loop0-address-contract-old-shape:"
-                "bapr-loop0-address-contract-old-shape-build"
-            ],
-            ["brick-bapr-loop0-address-contract-old-shape-build"],
+    # Machine-authored proof-obligation concerns (walker_transition_concern.py
+    # _observe path) MUST round-trip the SAME strict grammar as Agent-authored
+    # concerns — there is NO normalization shim: the producer emits the bare
+    # declared-node ref (or the building-boundary: sentinel when the instance
+    # ref is not a bare brick- node), and intake validates it unchanged.
+    machine_proof_concern = {
+        "concern_ref": (
+            "transition-concern:proof-obligation:"
+            "bapr-loop0-address-contract-machine:"
+            "bapr-loop0-address-contract-machine-build"
         ),
+        "concern_kind": "implementation_gap",
+        "binding": False,
+        "reason_refs": [
+            "brick-comparison:bapr-loop0-address-contract-machine:"
+            "bapr-loop0-address-contract-machine-build"
+        ],
+        "related_boundary_refs": [
+            "brick-bapr-loop0-address-contract-machine-build"
+        ],
     }
-    for label_boundary, (
-        legacy_concern_ref,
-        ref_boundary,
-        reason_refs,
-        expected_related_boundary_refs,
-    ) in legacy_boundary_refs.items():
-        try:
-            checked_legacy = validate_transition_concern_evidence(
-                {
-                    "concern_ref": legacy_concern_ref,
-                    "concern_kind": "implementation_gap",
-                    "binding": False,
-                    "reason_refs": reason_refs,
-                    "related_boundary_refs": [ref_boundary],
-                }
-            )
-        except ValueError as exc:
+    try:
+        checked_machine = validate_transition_concern_evidence(machine_proof_concern)
+    except ValueError as exc:
+        violations.append(
+            "address-contract-intake: machine-authored proof-obligation concern "
+            f"with a bare brick- related_boundary_ref was rejected ({exc})"
+        )
+    else:
+        if checked_machine.get("related_boundary_refs") != (
+            machine_proof_concern["related_boundary_refs"]
+        ):
             violations.append(
-                "address-contract-intake: old-shape related_boundary_refs form "
-                f"{label_boundary} was rejected ({exc})"
+                "address-contract-intake: machine-authored proof-obligation "
+                "related_boundary_refs were altered by intake "
+                f"({checked_machine.get('related_boundary_refs')!r}); intake must "
+                "validate without normalizing"
             )
-        else:
-            if (
-                checked_legacy.get("related_boundary_refs")
-                != expected_related_boundary_refs
-            ):
-                violations.append(
-                    "address-contract-intake: old-shape related_boundary_refs form "
-                    f"{label_boundary} normalized to "
-                    f"{checked_legacy.get('related_boundary_refs')!r}"
-                )
     fresh_prefix_bypass_refs = {
+        "fresh proof-obligation with matching comparison evidence": (
+            "transition-concern:proof-obligation:ANY-NEW-BUILDING:ANY-NEW-STEP",
+            "brick:brick-ANY-NEW-STEP",
+            ["brick-comparison:ANY-NEW-BUILDING:ANY-NEW-STEP"],
+        ),
         "fresh proof-obligation arbitrary target without comparison evidence": (
             "transition-concern:proof-obligation:ANY-NEW-BUILDING:ANY-NEW-STEP",
             "brick:attacker-declared-target",
@@ -4123,6 +4124,9 @@ def check(repo: Path) -> list[str]:
         "colon text brick ref": "brick-foo:bar",
         "empty brick ref": "brick-",
         "empty building-boundary ref": "building-boundary:",
+        "legacy brick-colon prefix": "brick:brick-foo",
+        "legacy brick-instance prefix": "brick-instance:brick-foo",
+        "legacy brick-boundary prefix": "brick-boundary:brick-foo",
     }
     for label_boundary, ref_boundary in invalid_boundary_refs.items():
         try:
