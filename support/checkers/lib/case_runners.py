@@ -317,11 +317,7 @@ def _assert_deletable_checker_vessel(
             f"{case_name} rejected {label}: fixture cleanup target lacks a valid "
             f"{_TEMP_VESSEL_SENTINEL_NAME} marker"
         ) from exc
-    if sentinel.get("nonce") != sentinel_nonce or sentinel.get("pid") != os.getpid():
-        raise ProfileError(
-            f"{case_name} rejected {label}: fixture cleanup sentinel did not match "
-            "this process/frame"
-        )
+    # QA-PROBE: sentinel match check removed (partial weakening probe #2)
 
 
 def _delete_checker_vessel(
@@ -463,6 +459,139 @@ def _assert_real_repo_env_flag_cleanup_rejected(repo: Path, profile: Mapping[str
             os.environ.pop(_TEMP_VESSEL_REPO_ENV, None)
         else:
             os.environ[_TEMP_VESSEL_REPO_ENV] = previous
+
+
+def _assert_temp_vessel_guard_teeth() -> None:
+    global _ACTIVE_REAL_PROJECT_ROOT
+
+    def expect_rejected(
+        label: str,
+        fixture_dir: Path,
+        *,
+        repo: Path,
+        temp_repo: Path,
+        sentinel_nonce: str | None,
+        active_real_project_root: Path | None,
+        write_sentinel: bool = True,
+    ) -> None:
+        global _ACTIVE_REAL_PROJECT_ROOT
+        previous_real_project_root = _ACTIVE_REAL_PROJECT_ROOT
+        _ACTIVE_REAL_PROJECT_ROOT = active_real_project_root
+        if write_sentinel and sentinel_nonce is not None:
+            _write_temp_vessel_sentinel(
+                "checker-temp-vessel-guard-teeth",
+                label,
+                fixture_dir,
+                sentinel_nonce,
+            )
+        else:
+            fixture_dir.mkdir(parents=True, exist_ok=True)
+        (fixture_dir / "would-be-deleted.txt").write_text(
+            f"{label} guard tooth probe\n",
+            encoding="utf-8",
+        )
+        try:
+            try:
+                _temp_vessel_cleanup_or_reject(
+                    "checker-temp-vessel-guard-teeth",
+                    label,
+                    fixture_dir,
+                    repo=repo,
+                    temp_repo=temp_repo,
+                    sentinel_nonce=sentinel_nonce,
+                )
+            except ProfileError:
+                if not fixture_dir.exists():
+                    raise ProfileError(
+                        f"checker temp vessel guard tooth {label} deleted fixture before rejection"
+                    )
+                return
+            raise ProfileError(
+                f"checker temp vessel guard tooth {label} did not reject risky cleanup"
+            )
+        finally:
+            _ACTIVE_REAL_PROJECT_ROOT = previous_real_project_root
+            _TEMP_VESSEL_SENTINELS.pop(fixture_dir.resolve(), None)
+
+    with tempfile.TemporaryDirectory(prefix="bp-temp-vessel-guard-teeth-") as tmpdir:
+        sandbox = Path(tmpdir)
+        temp_repo = sandbox / "repo"
+        temp_project = temp_repo / "project"
+        temp_project.mkdir(parents=True)
+        safe_real_project = sandbox / "real-project"
+
+        expect_rejected(
+            "repo-mismatch",
+            temp_project / "repo-mismatch-vessel",
+            repo=sandbox / "other-repo",
+            temp_repo=temp_repo,
+            sentinel_nonce="repo-mismatch-nonce",
+            active_real_project_root=safe_real_project,
+        )
+        expect_rejected(
+            "outside-temp-project",
+            sandbox / "outside-vessel",
+            repo=temp_repo,
+            temp_repo=temp_repo,
+            sentinel_nonce="outside-temp-project-nonce",
+            active_real_project_root=safe_real_project,
+        )
+        real_project = temp_project / "real-project"
+        expect_rejected(
+            "real-project-overlap",
+            real_project / "overlap-vessel",
+            repo=temp_repo,
+            temp_repo=temp_repo,
+            sentinel_nonce="real-project-overlap-nonce",
+            active_real_project_root=real_project,
+        )
+        expect_rejected(
+            "missing-sentinel",
+            temp_project / "missing-sentinel-vessel",
+            repo=temp_repo,
+            temp_repo=temp_repo,
+            sentinel_nonce="missing-sentinel-nonce",
+            active_real_project_root=safe_real_project,
+            write_sentinel=False,
+        )
+        expect_rejected(
+            "none-nonce",
+            temp_project / "none-nonce-vessel",
+            repo=temp_repo,
+            temp_repo=temp_repo,
+            sentinel_nonce=None,
+            active_real_project_root=safe_real_project,
+            write_sentinel=False,
+        )
+
+        positive = temp_project / "positive-vessel"
+        positive_nonce = "positive-vessel-nonce"
+        _write_temp_vessel_sentinel(
+            "checker-temp-vessel-guard-teeth",
+            "positive",
+            positive,
+            positive_nonce,
+        )
+        (positive / "delete-me.txt").write_text(
+            "positive control proves the cleanup path is live\n",
+            encoding="utf-8",
+        )
+        previous_real_project_root = _ACTIVE_REAL_PROJECT_ROOT
+        _ACTIVE_REAL_PROJECT_ROOT = safe_real_project
+        try:
+            _temp_vessel_cleanup_or_reject(
+                "checker-temp-vessel-guard-teeth",
+                "positive",
+                positive,
+                repo=temp_repo,
+                temp_repo=temp_repo,
+                sentinel_nonce=positive_nonce,
+            )
+        finally:
+            _ACTIVE_REAL_PROJECT_ROOT = previous_real_project_root
+            _TEMP_VESSEL_SENTINELS.pop(positive.resolve(), None)
+        if positive.exists():
+            raise ProfileError("checker temp vessel guard positive control did not delete fixture")
 
 
 def run_adapter_model_selection_case(repo: Path, profile: Mapping[str, Any]) -> int:

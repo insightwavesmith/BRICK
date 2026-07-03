@@ -85,6 +85,7 @@ from support.checkers.lib.rule_runners import (
 )
 from support.checkers.lib.case_runners import (
     assert_checker_vessel_patch_closure,
+    _assert_temp_vessel_guard_teeth,
     run_adapter_capability_rehome_case,
     run_casting_node_carry,
     run_hook_registry_axis_case,
@@ -1090,6 +1091,7 @@ def assert_registry_closure(repo: Path) -> None:
     synthetic["path_absent"] = ["<self-test-rule-key-closure-no-such-path>"]
     validate_profile(synthetic, Path("<self-test-rule-key-closure>"))
     assert_checker_vessel_patch_closure()
+    _assert_temp_vessel_guard_teeth()
 
     profile_files = sorted((repo / PROFILE_DIR).glob("*.yaml"))
     if not profile_files:
