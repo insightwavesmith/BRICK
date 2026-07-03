@@ -227,6 +227,16 @@ modules:
     decomposition_target: ""
     pinned_by: provider_registry_ladder profile (fixture-only providers.yaml ladder regression probes; never reads live ~/.brick/providers.yaml)
 
+  - module: support/checkers/check_interactive_provider_intake.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: interactive_provider_intake profile (fixture-only prompt injection and temp providers.yaml model pin; never reads live stdin or ~/.brick/providers.yaml)
+
   - module: support/checkers/check_sink_registry.py
     layer: checkers
     role: checker

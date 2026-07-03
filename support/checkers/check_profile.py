@@ -526,6 +526,10 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "provider_registry_ladder",
         "support.checkers.check_provider_registry_ladder",
     ),
+    "interactive_provider_intake": _repo_main(
+        "interactive_provider_intake",
+        "support.checkers.check_interactive_provider_intake",
+    ),
     "sink_registry": _repo_main(
         "sink_registry",
         "support.checkers.check_sink_registry",
