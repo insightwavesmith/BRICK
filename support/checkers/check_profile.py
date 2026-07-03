@@ -84,6 +84,7 @@ from support.checkers.lib.rule_runners import (
     validate_route_policy_boundary,
 )
 from support.checkers.lib.case_runners import (
+    assert_checker_vessel_patch_closure,
     run_adapter_capability_rehome_case,
     run_casting_node_carry,
     run_hook_registry_axis_case,
@@ -1077,10 +1078,18 @@ def assert_registry_closure(repo: Path) -> None:
     missing_top_level = sorted(set(RULE_RUNNERS) - TOP_LEVEL_KEYS)
     if missing_top_level:
         raise ProfileError(f"self-test failed: RULE_RUNNERS key(s) missing from TOP_LEVEL_KEYS: {missing_top_level}")
-    synthetic = {"schema": PROFILE_SCHEMA, "profile_id": "self-test-rule-key-closure"}
+    synthetic = {
+        "schema": PROFILE_SCHEMA,
+        "profile_id": "self-test-rule-key-closure",
+        "description": "self-test profile proving RULE_RUNNERS keys remain admitted profile teeth",
+        "proof_limits": ["checker profile self-test support evidence only"],
+        "not_proven": ["runtime behavior of every admitted rule runner"],
+    }
     for key in RULE_RUNNERS:
         synthetic[key] = []
+    synthetic["path_absent"] = ["<self-test-rule-key-closure-no-such-path>"]
     validate_profile(synthetic, Path("<self-test-rule-key-closure>"))
+    assert_checker_vessel_patch_closure()
 
     profile_files = sorted((repo / PROFILE_DIR).glob("*.yaml"))
     if not profile_files:
@@ -1116,9 +1125,24 @@ def validate_profile(profile: Mapping[str, Any], path: Path) -> None:
     if profile.get("schema") != PROFILE_SCHEMA:
         raise ProfileError(f"{path}: schema must be {PROFILE_SCHEMA!r}")
     require_string(profile.get("profile_id"), f"{path}: profile_id")
+    description = require_string(profile.get("description"), f"{path}: description")
+    if not description.strip():
+        raise ProfileError(f"{path}: description must be a non-empty string")
+    proof_limits = require_string_list(profile.get("proof_limits"), f"{path}: proof_limits")
+    if not proof_limits:
+        raise ProfileError(f"{path}: proof_limits must be a non-empty list of strings")
+    not_proven = require_string_list(profile.get("not_proven"), f"{path}: not_proven")
+    if not not_proven:
+        raise ProfileError(f"{path}: not_proven must be a non-empty list of strings")
     for check_id in require_string_list(profile.get("kernel_checks", []), f"{path}: kernel_checks"):
         if check_id not in KERNEL_CHECK_IDS:
             raise ProfileError(f"{path}: unknown kernel check id: {check_id}")
+    has_active_tooth = bool(profile.get("kernel_checks")) or any(profile.get(key) for key in RULE_KEYS)
+    if not has_active_tooth:
+        raise ProfileError(
+            f"{path}: profile must declare at least one active inspection item "
+            "(kernel_checks or a non-empty rule list)"
+        )
     for key in RULE_KEYS:
         if key in profile and not isinstance(profile[key], list):
             raise ProfileError(f"{path}: {key} must be a list")
@@ -1317,6 +1341,20 @@ def run_self_test() -> None:
             print("self-test passed: arbitrary checker file path rejected")
         else:
             raise ProfileError("self-test failed: arbitrary checker file path was accepted")
+        toothless_profile = {
+            "schema": PROFILE_SCHEMA,
+            "profile_id": "self-test-toothless-profile",
+            "description": "negative probe for profile guard",
+            "kernel_checks": [],
+            "proof_limits": ["checker profile negative probe support evidence only"],
+            "not_proven": ["runtime behavior"],
+        }
+        try:
+            validate_profile(toothless_profile, Path("<self-test-toothless-profile>"))
+        except ProfileError:
+            print("self-test passed: toothless profile rejected")
+        else:
+            raise ProfileError("self-test failed: toothless profile was accepted")
         # Permanent negative probes: duplicate same-path/same-key blocks must be
         # a HARD parse error, never a silent drop (false-green vector: a whole
         # text_contains enforcement block could vanish without a RED).

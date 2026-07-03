@@ -18,8 +18,10 @@ import importlib
 import io
 import json
 import os
+import shutil
 import sys
 import tempfile
+import uuid
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -133,6 +135,334 @@ from support.checkers.lib.casting_node_carry_check import (
     _casting_node_carry_base_graph_plan,
     run_casting_node_carry,
 )
+
+_TEMP_VESSEL_REPO_ENV = "BRICK_CHECKER_TEMP_VESSEL_REPO"
+_TEMP_VESSEL_SENTINEL_NAME = ".checker-vessel-sentinel.json"
+_TEMP_VESSEL_SENTINELS: dict[Path, str] = {}
+_ACTIVE_REAL_PROJECT_ROOT: Path | None = None
+_PATCHED_TEMP_REPO_ROOT_MODULE_ATTRS = (
+    ("brick_protocol.support.recording.capture", "REPO_ROOT"),
+    ("brick_protocol.support.recording.capture", "_REPO_ROOT"),
+    ("brick_protocol.support.recording.capture", "_CAPTURE_REPO_ROOT"),
+    ("support.recording.capture", "REPO_ROOT"),
+    ("support.recording.capture", "_REPO_ROOT"),
+    ("support.recording.capture", "_CAPTURE_REPO_ROOT"),
+    ("brick_protocol.support.operator.building_operation_common", "REPO_ROOT"),
+    ("brick_protocol.support.operator.building_operation_common", "_REPO_ROOT"),
+    ("brick_protocol.support.operator.building_operation_common", "_CAPTURE_REPO_ROOT"),
+    ("support.operator.building_operation_common", "REPO_ROOT"),
+    ("support.operator.building_operation_common", "_REPO_ROOT"),
+    ("support.operator.building_operation_common", "_CAPTURE_REPO_ROOT"),
+    ("brick_protocol.support.operator.composition_intent", "REPO_ROOT"),
+    ("brick_protocol.support.operator.composition_intent", "_REPO_ROOT"),
+    ("brick_protocol.support.operator.composition_intent", "_CAPTURE_REPO_ROOT"),
+    ("support.operator.composition_intent", "REPO_ROOT"),
+    ("support.operator.composition_intent", "_REPO_ROOT"),
+    ("support.operator.composition_intent", "_CAPTURE_REPO_ROOT"),
+    ("brick_protocol.support.operator.ledger_projection", "REPO_ROOT"),
+    ("brick_protocol.support.operator.ledger_projection", "_REPO_ROOT"),
+    ("brick_protocol.support.operator.ledger_projection", "_CAPTURE_REPO_ROOT"),
+    ("support.operator.ledger_projection", "REPO_ROOT"),
+    ("support.operator.ledger_projection", "_REPO_ROOT"),
+    ("support.operator.ledger_projection", "_CAPTURE_REPO_ROOT"),
+    ("brick_protocol.support.operator.progress_projection", "REPO_ROOT"),
+    ("brick_protocol.support.operator.progress_projection", "_REPO_ROOT"),
+    ("brick_protocol.support.operator.progress_projection", "_CAPTURE_REPO_ROOT"),
+    ("support.operator.progress_projection", "REPO_ROOT"),
+    ("support.operator.progress_projection", "_REPO_ROOT"),
+    ("support.operator.progress_projection", "_CAPTURE_REPO_ROOT"),
+)
+
+
+def assert_checker_vessel_patch_closure() -> None:
+    actual = {
+        (module_name, attr)
+        for module_name in (
+            "brick_protocol.support.recording.capture",
+            "support.recording.capture",
+            "brick_protocol.support.operator.building_operation_common",
+            "support.operator.building_operation_common",
+            "brick_protocol.support.operator.composition_intent",
+            "support.operator.composition_intent",
+            "brick_protocol.support.operator.ledger_projection",
+            "support.operator.ledger_projection",
+            "brick_protocol.support.operator.progress_projection",
+            "support.operator.progress_projection",
+        )
+        for attr in ("REPO_ROOT", "_REPO_ROOT", "_CAPTURE_REPO_ROOT")
+    }
+    declared = set(_PATCHED_TEMP_REPO_ROOT_MODULE_ATTRS)
+    if actual != declared:
+        raise ProfileError(
+            "self-test failed: checker temp vessel patched root closure drifted: "
+            f"missing={sorted(actual - declared)!r} extra={sorted(declared - actual)!r}"
+        )
+
+
+def _copy_checker_temp_repo_resources(source_repo: Path, temp_repo: Path) -> None:
+    """Copy intake fixture inputs without copying live project evidence."""
+    temp_repo.mkdir(parents=True, exist_ok=True)
+    ignore = shutil.ignore_patterns("__pycache__", ".pytest_cache", ".mypy_cache", "node_modules")
+    for dirname in ("agent", "brick", "link", "support"):
+        source = source_repo / dirname
+        if source.exists():
+            shutil.copytree(source, temp_repo / dirname, ignore=ignore)
+    for filename in ("BRICK-CONSTITUTION.md", "pyproject.toml", "uv.lock"):
+        source = source_repo / filename
+        if source.is_file():
+            shutil.copy2(source, temp_repo / filename)
+
+
+@contextlib.contextmanager
+def _patched_temp_repo_roots(temp_repo: Path, restore_repo: Path) -> Any:
+    # Ensure helpers that bind repo roots at import time see the real checkout
+    # before project-ref vessel cases temporarily patch path seams.
+    for module_name in (
+        "brick_protocol.support.operator.composition_compose",
+        "support.operator.composition_compose",
+        "brick_protocol.support.operator.reporter",
+        "support.operator.reporter",
+        "brick_protocol.support.operator.report_sinks",
+        "support.operator.report_sinks",
+    ):
+        try:
+            importlib.import_module(module_name)
+        except ImportError:
+            continue
+    patched: list[tuple[Any, str, Any]] = []
+    for module_name, attr in _PATCHED_TEMP_REPO_ROOT_MODULE_ATTRS:
+        try:
+            module = importlib.import_module(module_name)
+        except ImportError:
+            continue
+        if hasattr(module, attr):
+            patched.append((module, attr, getattr(module, attr)))
+            setattr(module, attr, temp_repo)
+    try:
+        yield
+    finally:
+        for module, attr, value in reversed(patched):
+            setattr(module, attr, value)
+        for module_name, module in list(sys.modules.items()):
+            if not (
+                module_name.startswith("brick_protocol.support.")
+                or module_name.startswith("support.")
+            ):
+                continue
+            for _declared_module, attr in _PATCHED_TEMP_REPO_ROOT_MODULE_ATTRS:
+                if hasattr(module, attr) and getattr(module, attr) == temp_repo:
+                    setattr(module, attr, restore_repo)
+
+
+def _write_temp_vessel_sentinel(case_name: str, label: str, vessel_dir: Path, nonce: str) -> None:
+    vessel_dir.mkdir(parents=True, exist_ok=True)
+    (vessel_dir / _TEMP_VESSEL_SENTINEL_NAME).write_text(
+        json.dumps(
+            {
+                "case_name": case_name,
+                "label": label,
+                "nonce": nonce,
+                "pid": os.getpid(),
+            },
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+    _TEMP_VESSEL_SENTINELS[vessel_dir.resolve()] = nonce
+
+
+def _assert_deletable_checker_vessel(
+    repo: Path,
+    fixture_dir: Path,
+    *,
+    temp_repo: Path,
+    sentinel_nonce: str,
+    case_name: str,
+    label: str,
+) -> None:
+    try:
+        resolved_repo = repo.resolve(strict=True)
+        resolved_temp_repo = temp_repo.resolve(strict=True)
+        resolved_fixture = fixture_dir.resolve(strict=True)
+    except OSError as exc:
+        raise ProfileError(
+            f"{case_name} rejected {label}: fixture cleanup target cannot be resolved: {fixture_dir}"
+        ) from exc
+    real_project_root = (
+        _ACTIVE_REAL_PROJECT_ROOT.resolve()
+        if _ACTIVE_REAL_PROJECT_ROOT is not None
+        else resolved_repo / "project"
+    )
+    temp_project_root = resolved_temp_repo / "project"
+    if resolved_repo != resolved_temp_repo:
+        raise ProfileError(
+            f"{case_name} rejected {label}: cleanup repo {resolved_repo} is not the "
+            f"declared temp repo {resolved_temp_repo}"
+        )
+    if resolved_fixture == temp_project_root or not resolved_fixture.is_relative_to(temp_project_root):
+        raise ProfileError(
+            f"{case_name} rejected {label}: cleanup target {resolved_fixture} is not a "
+            f"strict descendant of temp project root {temp_project_root}"
+        )
+    if resolved_fixture.is_relative_to(real_project_root) or real_project_root.is_relative_to(resolved_fixture):
+        raise ProfileError(
+            f"{case_name} rejected {label}: cleanup target {resolved_fixture} overlaps "
+            f"real repo project tree {real_project_root}"
+        )
+    sentinel_path = resolved_fixture / _TEMP_VESSEL_SENTINEL_NAME
+    try:
+        sentinel = json.loads(sentinel_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ProfileError(
+            f"{case_name} rejected {label}: fixture cleanup target lacks a valid "
+            f"{_TEMP_VESSEL_SENTINEL_NAME} marker"
+        ) from exc
+    if sentinel.get("nonce") != sentinel_nonce or sentinel.get("pid") != os.getpid():
+        raise ProfileError(
+            f"{case_name} rejected {label}: fixture cleanup sentinel did not match "
+            "this process/frame"
+        )
+
+
+def _delete_checker_vessel(
+    repo: Path,
+    fixture_dir: Path,
+    *,
+    temp_repo: Path,
+    sentinel_nonce: str,
+    case_name: str,
+    label: str,
+) -> None:
+    if not fixture_dir.exists():
+        return
+    _assert_deletable_checker_vessel(
+        repo,
+        fixture_dir,
+        temp_repo=temp_repo,
+        sentinel_nonce=sentinel_nonce,
+        case_name=case_name,
+        label=label,
+    )
+    shutil.rmtree(fixture_dir)
+    _TEMP_VESSEL_SENTINELS.pop(fixture_dir.resolve(), None)
+
+
+def _temp_vessel_cleanup_or_reject(
+    case_name: str,
+    label: str,
+    fixture_dir: Path,
+    *,
+    repo: Path,
+    temp_repo: Path,
+    sentinel_nonce: str | None,
+) -> None:
+    if not fixture_dir.exists():
+        return
+    if sentinel_nonce is None:
+        try:
+            sentinel_nonce = _TEMP_VESSEL_SENTINELS.get(fixture_dir.resolve(strict=True))
+        except OSError:
+            sentinel_nonce = None
+    if sentinel_nonce is not None:
+        _delete_checker_vessel(
+            repo,
+            fixture_dir,
+            temp_repo=temp_repo,
+            sentinel_nonce=sentinel_nonce,
+            case_name=case_name,
+            label=label,
+        )
+        return
+    raise ProfileError(
+        f"{case_name} rejected {label}: fixture path {fixture_dir} already exists -- "
+        "refusing to reuse or remove a possibly-real vessel; pick an unused fixture vessel_id"
+    )
+
+
+def _with_temp_vessel_repo(
+    repo: Path,
+    profile: Mapping[str, Any],
+    case_runner: Callable[[Path, Mapping[str, Any], Path], int],
+    stale_paths: Callable[[Path, Mapping[str, Any]], Sequence[Path]],
+    prefix: str,
+) -> int:
+    with tempfile.TemporaryDirectory(prefix=prefix) as tmpdir:
+        temp_repo = Path(tmpdir) / "repo"
+        _copy_checker_temp_repo_resources(repo, temp_repo)
+        previous = os.environ.get(_TEMP_VESSEL_REPO_ENV)
+        global _ACTIVE_REAL_PROJECT_ROOT
+        previous_real_project_root = _ACTIVE_REAL_PROJECT_ROOT
+        _ACTIVE_REAL_PROJECT_ROOT = (repo / "project").resolve()
+        os.environ[_TEMP_VESSEL_REPO_ENV] = "1"
+        try:
+            with _patched_temp_repo_roots(temp_repo, repo):
+                first_count = case_runner(temp_repo, profile, temp_repo)
+                for stale_path in stale_paths(temp_repo, profile):
+                    nonce = uuid.uuid4().hex
+                    _write_temp_vessel_sentinel(
+                        "checker-temp-vessel-reentrancy-probe",
+                        stale_path.name,
+                        stale_path,
+                        nonce,
+                    )
+                    (stale_path / "stale-fixture-residue.txt").write_text(
+                        "stale temp fixture residue for re-entrancy probe\n",
+                        encoding="utf-8",
+                    )
+                second_count = case_runner(temp_repo, profile, temp_repo)
+        finally:
+            if previous is None:
+                os.environ.pop(_TEMP_VESSEL_REPO_ENV, None)
+            else:
+                os.environ[_TEMP_VESSEL_REPO_ENV] = previous
+            _ACTIVE_REAL_PROJECT_ROOT = previous_real_project_root
+        return first_count + second_count
+
+
+def _assert_real_repo_env_flag_cleanup_rejected(repo: Path, profile: Mapping[str, Any]) -> None:
+    items = rule_items(profile, "intake_project_vessel_case")
+    if not items:
+        return
+    mapping = require_mapping(items[0], "intake_project_vessel_case item")
+    label = require_string(mapping.get("label"), "intake_project_vessel_case.label")
+    vessel_id = require_string(mapping.get("vessel_id"), f"{label}: vessel_id")
+    previous = os.environ.get(_TEMP_VESSEL_REPO_ENV)
+    os.environ[_TEMP_VESSEL_REPO_ENV] = "1"
+    try:
+        with tempfile.TemporaryDirectory(prefix="bp-real-repo-vessel-delete-negative-") as tmpdir:
+            probe_repo = Path(tmpdir) / "repo"
+            target = probe_repo / "project" / vessel_id
+            _write_temp_vessel_sentinel(
+                "intake_project_vessel_case-negative-probe",
+                label,
+                target,
+                "real-repo-negative-probe",
+            )
+            try:
+                _temp_vessel_cleanup_or_reject(
+                    "intake_project_vessel_case",
+                    label,
+                    target,
+                    repo=probe_repo,
+                    temp_repo=Path(tmpdir) / "other-temp-repo",
+                    sentinel_nonce="real-repo-negative-probe",
+                )
+            except ProfileError:
+                if not target.exists():
+                    raise ProfileError(
+                        "intake_project_vessel_case negative probe deleted a repo "
+                        "project path before raising"
+                    )
+                return
+            raise ProfileError(
+                "intake_project_vessel_case negative probe did not reject env-flagged "
+                "repo project cleanup"
+            )
+    finally:
+        if previous is None:
+            os.environ.pop(_TEMP_VESSEL_REPO_ENV, None)
+        else:
+            os.environ[_TEMP_VESSEL_REPO_ENV] = previous
 
 
 def run_adapter_model_selection_case(repo: Path, profile: Mapping[str, Any]) -> int:
@@ -1839,7 +2169,20 @@ def run_building_intake_seam_case(repo: Path, profile: Mapping[str, Any]) -> int
     return count
 
 
-def run_intake_project_vessel_case(repo: Path, profile: Mapping[str, Any]) -> int:
+def _intake_project_vessel_stale_paths(repo: Path, profile: Mapping[str, Any]) -> Sequence[Path]:
+    paths: list[Path] = []
+    for item in rule_items(profile, "intake_project_vessel_case"):
+        mapping = require_mapping(item, "intake_project_vessel_case item")
+        vessel_id = require_string(mapping.get("vessel_id"), "intake_project_vessel_case.vessel_id")
+        paths.append(repo / "project" / vessel_id)
+    return paths
+
+
+def run_intake_project_vessel_case(
+    repo: Path,
+    profile: Mapping[str, Any],
+    temp_repo: Path | None = None,
+) -> int:
     """PROJECT-0 S3-C: intake <-> project vessel connection, executed four ways.
 
     One item drives the REAL ``run_building_intake`` over adapter:local against
@@ -1872,7 +2215,28 @@ def run_intake_project_vessel_case(repo: Path, profile: Mapping[str, Any]) -> in
     items = rule_items(profile, "intake_project_vessel_case")
     if not items:
         return 0
-    import shutil
+    if temp_repo is None:
+        _assert_real_repo_env_flag_cleanup_rejected(repo, profile)
+        for item in items:
+            mapping = require_mapping(item, "intake_project_vessel_case item")
+            label = require_string(mapping.get("label"), "intake_project_vessel_case.label")
+            vessel_id = require_string(mapping.get("vessel_id"), f"{label}: vessel_id")
+            for fixture_id in (vessel_id, f"{vessel_id}-charterless", f"{vessel_id}-absent"):
+                _temp_vessel_cleanup_or_reject(
+                    "intake_project_vessel_case",
+                    label,
+                    repo / "project" / fixture_id,
+                    repo=repo,
+                    temp_repo=repo,
+                    sentinel_nonce=None,
+                )
+        return _with_temp_vessel_repo(
+            repo,
+            profile,
+            run_intake_project_vessel_case,
+            _intake_project_vessel_stale_paths,
+            "bp-intake-project-vessel-repo-",
+        )
 
     from brick_protocol.support.connection.agent_adapter import LocalCliCompleted
     from support.operator.building_operation import observe_building_frontier
@@ -1934,12 +2298,14 @@ def run_intake_project_vessel_case(repo: Path, profile: Mapping[str, Any]) -> in
         absent_id = f"{vessel_id}-absent"
         absent_dir = repo / "project" / absent_id
         for fixture_dir in (vessel_dir, charterless_dir, absent_dir):
-            if fixture_dir.exists():
-                raise ProfileError(
-                    f"intake_project_vessel_case rejected {label}: fixture path "
-                    f"{fixture_dir} already exists — refusing to reuse or remove a "
-                    "possibly-real vessel; pick an unused fixture vessel_id"
-                )
+            _temp_vessel_cleanup_or_reject(
+                "intake_project_vessel_case",
+                label,
+                fixture_dir,
+                repo=repo,
+                temp_repo=temp_repo,
+                sentinel_nonce=None,
+            )
 
         building_id = f"{_case_slug(label)}-vessel-building"
         intent: dict[str, Any] = {
@@ -1982,6 +2348,12 @@ def run_intake_project_vessel_case(repo: Path, profile: Mapping[str, Any]) -> in
                 out_of_scope="any real work; this vessel never outlives the checker case",
                 managers=["checker-fixture-human"],
                 declared_by="coo:intake-project-vessel-case",
+            )
+            _write_temp_vessel_sentinel(
+                "intake_project_vessel_case",
+                label,
+                vessel_dir,
+                uuid.uuid4().hex,
             )
             with _fixture_gemini_api_key():
                 result = run_building_intake(
@@ -2137,6 +2509,12 @@ def run_intake_project_vessel_case(repo: Path, profile: Mapping[str, Any]) -> in
 
             # Leg 3 — hand-made charterless dir rejects with the S1 loader's voice.
             charterless_dir.mkdir(parents=True)
+            _write_temp_vessel_sentinel(
+                "intake_project_vessel_case",
+                label,
+                charterless_dir,
+                uuid.uuid4().hex,
+            )
             charterless_intent = dict(intent)
             charterless_intent["building_id"] = f"{building_id}-charterless"
             charterless_intent["plan_ref"] = f"building-plan:{building_id}-charterless"
@@ -2160,14 +2538,33 @@ def run_intake_project_vessel_case(repo: Path, profile: Mapping[str, Any]) -> in
                     f"intake_project_vessel_case rejected {label}: a hand-made "
                     "charterless vessel was NOT rejected at intake"
                 )
-            if any(charterless_dir.rglob("*")):
+            charterless_residue = [
+                path
+                for path in charterless_dir.rglob("*")
+                if path.name != _TEMP_VESSEL_SENTINEL_NAME
+            ]
+            if charterless_residue:
                 raise ProfileError(
                     f"intake_project_vessel_case rejected {label}: the charterless "
                     "reject still wrote into the hand-made vessel dir"
                 )
         finally:
-            shutil.rmtree(vessel_dir, ignore_errors=True)
-            shutil.rmtree(charterless_dir, ignore_errors=True)
+            _temp_vessel_cleanup_or_reject(
+                "intake_project_vessel_case",
+                label,
+                vessel_dir,
+                repo=repo,
+                temp_repo=temp_repo,
+                sentinel_nonce=None,
+            )
+            _temp_vessel_cleanup_or_reject(
+                "intake_project_vessel_case",
+                label,
+                charterless_dir,
+                repo=repo,
+                temp_repo=temp_repo,
+                sentinel_nonce=None,
+            )
         count += 1
     return count
 
@@ -7764,7 +8161,22 @@ def _assert_live_inbox_fixture_count_guard_red(label: str, before: int) -> None:
     )
 
 
-def run_intake_evidence_projection_case(repo: Path, profile: Mapping[str, Any]) -> int:
+def _intake_evidence_projection_stale_paths(repo: Path, profile: Mapping[str, Any]) -> Sequence[Path]:
+    paths: list[Path] = []
+    for item in rule_items(profile, "intake_evidence_projection_case"):
+        mapping = require_mapping(item, "intake_evidence_projection_case item")
+        vessel_id = require_string(
+            mapping.get("vessel_id"), "intake_evidence_projection_case.vessel_id"
+        )
+        paths.append(repo / "project" / vessel_id)
+    return paths
+
+
+def run_intake_evidence_projection_case(
+    repo: Path,
+    profile: Mapping[str, Any],
+    temp_repo: Path | None = None,
+) -> int:
     """CLEAN-YARD v3: generate a vessel + intake building, assert all read-side shapes.
 
     One item drives, at check time:
@@ -7789,7 +8201,26 @@ def run_intake_evidence_projection_case(repo: Path, profile: Mapping[str, Any]) 
     items = rule_items(profile, "intake_evidence_projection_case")
     if not items:
         return 0
-    import shutil
+    if temp_repo is None:
+        for item in items:
+            mapping = require_mapping(item, "intake_evidence_projection_case item")
+            label = require_string(mapping.get("label"), "intake_evidence_projection_case.label")
+            vessel_id = require_string(mapping.get("vessel_id"), f"{label}: vessel_id")
+            _temp_vessel_cleanup_or_reject(
+                "intake_evidence_projection_case",
+                label,
+                repo / "project" / vessel_id,
+                repo=repo,
+                temp_repo=repo,
+                sentinel_nonce=None,
+            )
+        return _with_temp_vessel_repo(
+            repo,
+            profile,
+            run_intake_evidence_projection_case,
+            _intake_evidence_projection_stale_paths,
+            "bp-intake-evidence-projection-repo-",
+        )
 
     from brick_protocol.support.connection.agent_adapter import LocalCliCompleted
     from support.operator.building_operation import observe_building_frontier
@@ -7814,12 +8245,14 @@ def run_intake_evidence_projection_case(repo: Path, profile: Mapping[str, Any]) 
             f"{label}: expected_preset_expansion",
         )
         vessel_dir = repo / "project" / vessel_id
-        if vessel_dir.exists():
-            raise ProfileError(
-                f"intake_evidence_projection_case rejected {label}: fixture path "
-                f"{vessel_dir} already exists -- refusing to reuse or remove a "
-                "possibly-real vessel; pick an unused fixture vessel_id"
-            )
+        _temp_vessel_cleanup_or_reject(
+            "intake_evidence_projection_case",
+            label,
+            vessel_dir,
+            repo=repo,
+            temp_repo=temp_repo,
+            sentinel_nonce=None,
+        )
         project_ref = f"project:{vessel_id}"
         building_id = f"{_case_slug(label)}-building"
         task_statement = (
@@ -7841,6 +8274,12 @@ def run_intake_evidence_projection_case(repo: Path, profile: Mapping[str, Any]) 
                 out_of_scope="any real work; this vessel never outlives the checker case",
                 managers=["checker-fixture-human"],
                 declared_by="coo:intake-evidence-projection-case",
+            )
+            _write_temp_vessel_sentinel(
+                "intake_evidence_projection_case",
+                label,
+                vessel_dir,
+                uuid.uuid4().hex,
             )
 
             # (2) PROGRESS over the EMPTY vessel: the 0-building render is a
@@ -8022,7 +8461,14 @@ def run_intake_evidence_projection_case(repo: Path, profile: Mapping[str, Any]) 
                 )
         finally:
             live_inbox_count_after = _live_inbox_fixture_packet_count(repo)
-            shutil.rmtree(vessel_dir, ignore_errors=True)
+            _temp_vessel_cleanup_or_reject(
+                "intake_evidence_projection_case",
+                label,
+                vessel_dir,
+                repo=repo,
+                temp_repo=temp_repo,
+                sentinel_nonce=None,
+            )
             _assert_live_inbox_fixture_count_unchanged(
                 label, live_inbox_count_before, live_inbox_count_after
             )
