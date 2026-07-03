@@ -3221,6 +3221,16 @@ def run_approve_entry(
             }
         )
         return result
+    re_instruction_text = str(re_instruction or "").strip()
+    if action_text == "reroute" and not re_instruction_text:
+        result.update(
+            {
+                "error_kind": "missing_re_instruction",
+                "error_message": "human/COO reroute action requires re_instruction.",
+                "message_ko": "사람/COO reroute에는 재시도 지시문 re_instruction이 필요해요.",
+            }
+        )
+        return result
     parsed_budget: int | None = None
     if budget_increment is not None:
         if action_text != "raise":
@@ -3427,7 +3437,6 @@ def run_approve_entry(
     # (walker_kernel.py / adapter_grant_policy.py). It rides the SAME author gate
     # validated above (coo:/human:) -- NO new authority surface. Free text;
     # present-only injection: absent => target runs its original work unchanged.
-    re_instruction_text = str(re_instruction or "").strip()
     if re_instruction_text:
         row["transition_lifecycle_re_instruction"] = re_instruction_text
     try:
@@ -3457,8 +3466,12 @@ def run_approve_entry(
             and str(frontier_after.get("frontier_kind") or "") == "complete"
         ):
             from brick_protocol.support.operator.driver import (  # noqa: PLC0415
+                _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_REASON,
+                _WRITE_SCOPE_FORBIDDEN_DIFF_PRESENT_REASON,
                 _fake_landing_forward_disposition_recorded,
                 _record_fake_landing_hold_for_plan,
+                _record_write_scope_forbidden_diff_hold_for_plan,
+                _write_need_complete_with_forbidden_diff_for_plan,
                 _write_need_complete_without_scoped_diff_for_plan,
             )
 
@@ -3475,10 +3488,26 @@ def run_approve_entry(
             plan_copy = json.loads(plan_rows_copy)
             if not isinstance(plan_copy, Mapping):
                 raise ValueError("plan_snapshot.plan_rows_copy must decode to a mapping")
-            if _write_need_complete_without_scoped_diff_for_plan(
+            if _write_need_complete_with_forbidden_diff_for_plan(
                 Path(adapter_cwd),
                 plan_copy,
-            ) and not _fake_landing_forward_disposition_recorded(building_root, plan_copy):
+            ) and not _fake_landing_forward_disposition_recorded(
+                building_root,
+                plan_copy,
+                reason=_WRITE_SCOPE_FORBIDDEN_DIFF_PRESENT_REASON,
+            ):
+                _record_write_scope_forbidden_diff_hold_for_plan(building_root, plan_copy)
+                frontier_after = dict(
+                    observe_building_frontier(building_root, repo_root=repo)
+                )
+            elif _write_need_complete_without_scoped_diff_for_plan(
+                Path(adapter_cwd),
+                plan_copy,
+            ) and not _fake_landing_forward_disposition_recorded(
+                building_root,
+                plan_copy,
+                reason=_FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_REASON,
+            ):
                 _record_fake_landing_hold_for_plan(building_root, plan_copy)
                 frontier_after = dict(
                     observe_building_frontier(building_root, repo_root=repo)

@@ -104,6 +104,7 @@ _CUSTOMER_GRAPH_TEMPLATE_AUTHORITY_FIELDS = frozenset(
 )
 _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_FRONTIER = "human_review_waiting"
 _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_REASON = "fake_landing_write_scope_diff_absent"
+_WRITE_SCOPE_FORBIDDEN_DIFF_PRESENT_REASON = "write_scope_forbidden_diff_present"
 _PRODUCT_WRITE_CAPABILITY_CLASSES = frozenset(("source_write", "artifact_write"))
 _PROBE_WRITE_CAPABILITY_CLASSES = frozenset(("probe_write", "verification_write", "read"))
 
@@ -846,6 +847,27 @@ def _run_in_worktree_sandbox(
             if (
                 reason.startswith("worktree-create-failed:")
                 and frontier_kind == "complete"
+                and _write_need_complete_with_forbidden_diff(
+                    sandbox_cwd,
+                    intake.plan_path,
+                )
+            ):
+                _record_write_scope_forbidden_diff_hold(
+                    intake.run_result.lifecycle_write.root,
+                    intake.plan_path,
+                )
+                frontier = observe_building_frontier(
+                    intake.run_result.lifecycle_write.root,
+                    repo_root=repo,
+                )
+                frontier_kind = _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_FRONTIER
+                frontier_reason = str(
+                    frontier.get("frontier_reason")
+                    or _WRITE_SCOPE_FORBIDDEN_DIFF_PRESENT_REASON
+                )
+            elif (
+                reason.startswith("worktree-create-failed:")
+                and frontier_kind == "complete"
                 and _write_need_complete_without_scoped_diff(
                     sandbox_cwd,
                     intake.plan_path,
@@ -920,7 +942,24 @@ def _run_in_worktree_sandbox(
         )
         frontier_kind = str(frontier.get("frontier_kind") or "")
         frontier_reason = str(frontier.get("frontier_reason") or "")
-        if frontier_kind == "complete" and _write_need_complete_without_scoped_diff(
+        if frontier_kind == "complete" and _write_need_complete_with_forbidden_diff(
+            sandbox.path,
+            intake_result.plan_path,
+        ):
+            _record_write_scope_forbidden_diff_hold(
+                intake_result.run_result.lifecycle_write.root,
+                intake_result.plan_path,
+            )
+            frontier = observe_building_frontier(
+                intake_result.run_result.lifecycle_write.root,
+                repo_root=sandbox.path,
+            )
+            frontier_kind = _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_FRONTIER
+            frontier_reason = str(
+                frontier.get("frontier_reason")
+                or _WRITE_SCOPE_FORBIDDEN_DIFF_PRESENT_REASON
+            )
+        elif frontier_kind == "complete" and _write_need_complete_without_scoped_diff(
             sandbox.path,
             intake_result.plan_path,
         ):
@@ -1015,6 +1054,38 @@ def _write_need_complete_without_scoped_diff_for_plan(
     )
 
 
+def _write_need_complete_with_forbidden_diff(
+    sandbox_path: Path,
+    plan_path: Path,
+) -> bool:
+    """Observe a completed write-needed plan copy with a forbidden diff path."""
+
+    try:
+        payload = _load_declared_plan_mapping(plan_path)
+    except (OSError, TypeError, ValueError, json.JSONDecodeError):
+        return False
+    return _write_need_complete_with_forbidden_diff_for_plan(sandbox_path, payload)
+
+
+def _write_need_complete_with_forbidden_diff_for_plan(
+    sandbox_path: Path,
+    plan: Mapping[str, Any],
+) -> bool:
+    """Observe a product-write plan whose sandbox diff touches forbidden_paths."""
+
+    scopes = _write_need_scopes_from_plan(plan)
+    if not scopes:
+        return False
+    changed_paths = _sandbox_changed_paths(sandbox_path)
+    if not changed_paths:
+        return False
+    return any(
+        _path_forbidden_by_write_scope(path, scope)
+        for path in changed_paths
+        for scope in scopes
+    )
+
+
 def _write_need_scopes_from_plan_path(plan_path: Path) -> tuple[Mapping[str, Any], ...]:
     try:
         payload = _load_declared_plan_mapping(plan_path)
@@ -1048,11 +1119,27 @@ def _capability_class_is_product_write(capability_class: str) -> bool:
 def _record_fake_landing_hold(evidence_root: Path, plan_path: Path) -> None:
     """Persist the fake-landing HOLD so frontier re-observation matches return."""
 
+    _record_write_scope_hold(
+        evidence_root,
+        plan_path,
+        _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_REASON,
+    )
+
+
+def _record_write_scope_forbidden_diff_hold(evidence_root: Path, plan_path: Path) -> None:
+    """Persist a forbidden-diff HOLD so frontier re-observation matches return."""
+
+    _record_write_scope_hold(evidence_root, plan_path, _WRITE_SCOPE_FORBIDDEN_DIFF_PRESENT_REASON)
+
+
+def _record_write_scope_hold(evidence_root: Path, plan_path: Path, reason: str) -> None:
+    """Persist a write-scope HOLD reason using the shared driver hold mechanics."""
+
     try:
         payload = _load_declared_plan_mapping(plan_path)
     except (OSError, TypeError, ValueError, json.JSONDecodeError):
         payload = {}
-    _record_fake_landing_hold_for_plan(evidence_root, payload)
+    _record_write_scope_hold_for_plan(evidence_root, payload, reason=reason)
 
 
 def _record_fake_landing_hold_for_plan(
@@ -1061,6 +1148,34 @@ def _record_fake_landing_hold_for_plan(
 ) -> None:
     """Persist the fake-landing HOLD for an already-loaded plan copy."""
 
+    _record_write_scope_hold_for_plan(
+        evidence_root,
+        plan,
+        reason=_FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_REASON,
+    )
+
+
+def _record_write_scope_forbidden_diff_hold_for_plan(
+    evidence_root: Path,
+    plan: Mapping[str, Any],
+) -> None:
+    """Persist the forbidden-diff HOLD for an already-loaded plan copy."""
+
+    _record_write_scope_hold_for_plan(
+        evidence_root,
+        plan,
+        reason=_WRITE_SCOPE_FORBIDDEN_DIFF_PRESENT_REASON,
+    )
+
+
+def _record_write_scope_hold_for_plan(
+    evidence_root: Path,
+    plan: Mapping[str, Any],
+    *,
+    reason: str,
+) -> None:
+    """Persist a write-scope HOLD for an already-loaded plan copy."""
+
     building_id = evidence_root.name
     link_path = evidence_root / "raw" / "link.jsonl"
     raw_ref = _next_driver_link_raw_ref(link_path)
@@ -1068,6 +1183,7 @@ def _record_fake_landing_hold_for_plan(
         evidence_root,
         plan,
         adoption_sequence_number=_next_driver_link_index(link_path),
+        reason=reason,
     )
     source_step_ref = str(hold_record.get("source_step_ref") or "").strip()
     source_brick_ref = str(hold_record.get("source_brick_ref") or "").strip()
@@ -1097,8 +1213,8 @@ def _record_fake_landing_hold_for_plan(
             "transition_record_created": True,
             "transition_author_ref": "support:operator-driver",
             "movement_source": (
-                "support recorded fake-landing hold after complete frontier "
-                "without scoped product diff"
+                "support recorded write-scope hold after complete frontier "
+                f"with reason {reason}"
             ),
         },
         building_id=building_id,
@@ -1115,6 +1231,7 @@ def _fake_landing_hold_record_for_plan(
     plan: Mapping[str, Any],
     *,
     adoption_sequence_number: int | None = None,
+    reason: str = _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_REASON,
 ) -> Mapping[str, Any]:
     """Build the fake-landing hold identity shared by writer and reader."""
 
@@ -1123,14 +1240,14 @@ def _fake_landing_hold_record_for_plan(
     if adoption_sequence_number is None:
         adoption_sequence_number = _next_driver_link_index(evidence_root / "raw" / "link.jsonl")
     return build_hold_record(
-        reroute_ref=f"reroute-hold:{building_id}:fake-landing-write-scope-diff-absent",
+        reroute_ref=f"reroute-hold:{building_id}:{reason.replace('_', '-')}",
         adoption_sequence_number=adoption_sequence_number,
         cascade_depth=0,
         parent_reroute_ref="",
         source_step_ref=source["step_ref"],
         source_brick_ref=source["brick_instance_ref"],
         source_transition_concern_ref=(
-            f"observation:{_FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_REASON}:{building_id}"
+            f"observation:{reason}:{building_id}"
         ),
         transition_concern_binding=False,
         immediate_target_ref=source["brick_instance_ref"],
@@ -1140,7 +1257,7 @@ def _fake_landing_hold_record_for_plan(
         node_budget=0,
         budget_exhausted=False,
         disposition_required=True,
-        hold_reason=_FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_REASON,
+        hold_reason=reason,
         required_disposition_owner="caller-or-coo",
         transition_lifecycle_state="paused",
         proof_limits=list(PROOF_LIMITS),
@@ -1151,6 +1268,8 @@ def _fake_landing_hold_record_for_plan(
 def _fake_landing_forward_disposition_recorded(
     evidence_root: Path,
     plan: Mapping[str, Any],
+    *,
+    reason: str = _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_REASON,
 ) -> bool:
     """Observe whether the fake-landing hold already has a same-hold forward row."""
 
@@ -1158,7 +1277,7 @@ def _fake_landing_forward_disposition_recorded(
         _read_disposition_row,
     )
 
-    hold_record = _fake_landing_hold_record_for_plan(evidence_root, plan)
+    hold_record = _fake_landing_hold_record_for_plan(evidence_root, plan, reason=reason)
     try:
         disposition = _read_disposition_row(evidence_root, hold_record)
     except ValueError:
@@ -1334,7 +1453,8 @@ def _path_allowed_by_write_scope(path: str, write_scope: Mapping[str, Any]) -> b
     raw_forbidden = write_scope.get("forbidden_paths", ())
     forbidden_items = (
         raw_forbidden
-        if isinstance(raw_forbidden, Sequence) and not isinstance(raw_forbidden, (str, bytes, bytearray))
+        if isinstance(raw_forbidden, Sequence)
+        and not isinstance(raw_forbidden, (str, bytes, bytearray))
         else ()
     )
     forbidden = tuple(
@@ -1356,6 +1476,24 @@ def _path_allowed_by_write_scope(path: str, write_scope: Mapping[str, Any]) -> b
         if str(item).strip()
     )
     return any(_write_path_covered_by(clean_path, pattern) for pattern in allowed)
+
+
+def _path_forbidden_by_write_scope(path: str, write_scope: Mapping[str, Any]) -> bool:
+    clean_path = str(path).strip().replace("\\", "/")
+    if not clean_path:
+        return False
+    raw_forbidden = write_scope.get("forbidden_paths", ())
+    forbidden_items = (
+        raw_forbidden
+        if isinstance(raw_forbidden, Sequence) and not isinstance(raw_forbidden, (str, bytes, bytearray))
+        else ()
+    )
+    forbidden = tuple(
+        str(item).strip()
+        for item in forbidden_items
+        if str(item).strip()
+    )
+    return any(_write_path_covered_by(clean_path, pattern) for pattern in forbidden)
 
 
 def run_declared_portfolio(

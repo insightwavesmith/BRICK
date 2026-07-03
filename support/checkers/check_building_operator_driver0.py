@@ -381,6 +381,7 @@ def _w1_completing_codex_runner(
     write: bool,
     delete_engine_marker: bool = False,
     write_rel: str = _W1_WRITE_REL,
+    extra_write_rels: Sequence[str] = (),
 ):
     """A deterministic stand-in for codex. Optionally writes the in-scope file
     into the dispatch cwd, then returns a completing AgentFact JSON."""
@@ -393,9 +394,10 @@ def _w1_completing_codex_runner(
         if "--version" in call:
             return LocalCliCompleted(call, 0, "codex test-version", "")
         if write:
-            target = Path(cwd) / write_rel
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text("fixed by the W1 FIRE runner\n", encoding="utf-8")
+            for rel in (write_rel, *extra_write_rels):
+                target = Path(cwd) / rel
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text("fixed by the W1 FIRE runner\n", encoding="utf-8")
         if delete_engine_marker:
             try:
                 (Path(cwd) / ".brick-engine-worktree").unlink()
@@ -792,6 +794,19 @@ def _resume_isolation_disposition_fire(
     if missing_author.get("error_kind") != "missing_disposition_author":
         violations.append("resume-disposition-RED: missing author did not fail closed")
 
+    missing_re_instruction = run_approve_entry(
+        "p2-missing-re-instruction",
+        action="reroute",
+        author_ref="human:smith",
+        reroute_target_ref="brick:p2-reroute-target",
+        repo_root=repo,
+    )
+    summary["resume_missing_re_instruction_error"] = missing_re_instruction.get("error_kind")
+    if missing_re_instruction.get("error_kind") != "missing_re_instruction":
+        violations.append(
+            "resume-disposition-RED: human reroute without re_instruction did not fail closed"
+        )
+
     held_frontier = {
         "frontier_kind": "link_paused",
         "latest_transition_lifecycle": {
@@ -817,14 +832,30 @@ def _resume_isolation_disposition_fire(
                 adapter_cwd=repo,
                 repo_root=repo,
             )
+            reroute_with_instruction = run_approve_entry(
+                root,
+                action="reroute",
+                author_ref="human:smith",
+                reroute_target_ref="brick:p2-reroute-target",
+                re_instruction="Retry against the explicit reroute target.",
+                repo_root=repo,
+            )
     finally:
         onboard_module.observe_building_frontier = original_observe
     summary["resume_missing_adapter_cwd_error"] = missing_cwd.get("error_kind")
     summary["resume_live_adapter_cwd_error"] = live_cwd.get("error_kind")
+    summary["resume_reroute_with_instruction_error"] = reroute_with_instruction.get(
+        "error_kind"
+    )
     if missing_cwd.get("error_kind") != "resume_requires_isolated_adapter_cwd":
         violations.append("resume-isolation-RED: missing adapter_cwd was not refused")
     if live_cwd.get("error_kind") != "adapter_cwd_refused_live_repo":
         violations.append("resume-isolation-RED: live repo adapter_cwd was not refused")
+    if reroute_with_instruction.get("error_kind") != "resume_requires_isolated_adapter_cwd":
+        violations.append(
+            "resume-disposition: reroute with re_instruction did not pass to later "
+            f"resume preflight ({reroute_with_instruction.get('error_kind')!r})"
+        )
 
     direct_error = _unsafe_resume_adapter_cwd(repo, repo_root=repo)
     summary["resume_direct_live_adapter_cwd_refused"] = (
@@ -1483,6 +1514,8 @@ def _w1_worktree_sandbox_fire(
     summary: dict[str, Any],
 ) -> None:
     from brick_protocol.support.operator.driver import (
+        _WRITE_SCOPE_FORBIDDEN_DIFF_PRESENT_REASON,
+        _write_need_complete_with_forbidden_diff,
         _write_need_complete_without_scoped_diff,
         run_building_intake,
         run_customer_building_in_sandbox,
@@ -1659,6 +1692,20 @@ def _w1_worktree_sandbox_fire(
         summary["w1_probe_write_fake_landing_gate_fired"] = probe_write_gate_fired
         if probe_write_gate_fired:
             violations.append("w1-probe-write: probe-write plan triggered the fake-landing gate")
+
+        mixed_probe = Path(cust_raw) / "customer-mixed-probe"
+        mixed_probe.mkdir(parents=True, exist_ok=True)
+        _seed_customer_repo(repo, mixed_probe)
+        (mixed_probe / _W1_WRITE_REL).parent.mkdir(parents=True, exist_ok=True)
+        (mixed_probe / _W1_WRITE_REL).write_text("allowed fixture bytes\n", encoding="utf-8")
+        (mixed_probe / "AGENTS.md").write_text("forbidden fixture bytes\n", encoding="utf-8")
+        mixed_forbidden_gate_fired = _write_need_complete_with_forbidden_diff(
+            mixed_probe,
+            probe_write_plan,
+        )
+        summary["w1_probe_write_forbidden_gate_fired"] = mixed_forbidden_gate_fired
+        if mixed_forbidden_gate_fired:
+            violations.append("w1-probe-write: probe-write plan triggered the forbidden-diff gate")
 
         # D1 fake-landing gate: a write-needed Building that reports a complete
         # frontier without any scoped sandbox diff is held on the existing human
@@ -1849,6 +1896,47 @@ def _w1_worktree_sandbox_fire(
                     f"{outside_rel!r}: {fake_wip_files!r}"
                 )
 
+        fake_mixed = Path(cust_raw) / "customer-fake-mixed"
+        fake_mixed.mkdir(parents=True, exist_ok=True)
+        _seed_customer_repo(repo, fake_mixed)
+        fake_mixed_result = run_customer_building_in_sandbox(
+            _w1_intent("w1-fake-mixed-write-0"),
+            customer_repo_root=fake_mixed,
+            output_root=evidence_root / "fake-mixed",
+            overwrite_existing=True,
+            command_runner=_w1_completing_codex_runner(
+                write=True,
+                extra_write_rels=("AGENTS.md",),
+            ),
+            adapter_timeout_seconds=30,
+        )
+        fake_mixed_link_records = _jsonl_records(
+            Path(fake_mixed_result.evidence_root) / "raw" / "link.jsonl"
+        )
+        fake_mixed_hold_rows = [
+            record
+            for record in fake_mixed_link_records
+            if record.get("hold_reason") == _WRITE_SCOPE_FORBIDDEN_DIFF_PRESENT_REASON
+        ]
+        summary["w1_fake_mixed_frontier"] = fake_mixed_result.frontier_kind
+        summary["w1_fake_mixed_reason"] = fake_mixed_result.frontier_reason
+        summary["w1_fake_mixed_commit"] = fake_mixed_result.commit_sha
+        summary["w1_fake_mixed_hold_row_count"] = len(fake_mixed_hold_rows)
+        if fake_mixed_result.frontier_kind != "human_review_waiting":
+            violations.append(
+                "w1-fake-mixed: allowed+forbidden diff did not hold "
+                f"(frontier={fake_mixed_result.frontier_kind!r})"
+            )
+        if fake_mixed_result.frontier_reason != _WRITE_SCOPE_FORBIDDEN_DIFF_PRESENT_REASON:
+            violations.append(
+                "w1-fake-mixed: hold did not surface forbidden-diff reason "
+                f"(reason={fake_mixed_result.frontier_reason!r})"
+            )
+        if fake_mixed_result.commit_sha:
+            violations.append("w1-fake-mixed: forbidden mixed diff produced a completion commit")
+        if not fake_mixed_hold_rows:
+            violations.append("w1-fake-mixed: forbidden-diff hold row was not persisted")
+
         fake_outside_link_path = Path(fake_outside_result.evidence_root) / "raw" / "link.jsonl"
         fake_outside_link_records = _jsonl_records(fake_outside_link_path)
         fake_outside_original_link_records = [dict(record) for record in fake_outside_link_records]
@@ -1993,6 +2081,7 @@ def _w1_worktree_sandbox_fire(
                 fake_undispositioned_result.evidence_root,
                 action="reroute",
                 reroute_target_ref="brick:w1-explicit-reroute-target",
+                re_instruction="Retry the held W1 fixture against the explicit target.",
                 author_ref="coo:d2-checker",
                 adapter_cwd=Path(reroute_raw),
                 adapter_timeout_seconds=30,
