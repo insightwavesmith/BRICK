@@ -40,6 +40,7 @@ annotations`` keeps them strings).
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import re
@@ -52,6 +53,8 @@ from typing import Any, TYPE_CHECKING
 
 from .adapter_constants import (
     ADAPTER_CLAUDE_LOCAL,
+    ADAPTER_CODEX_FUGU_LOCAL,
+    ADAPTER_CODEX_LOCAL,
     ADAPTER_GEMINI_LOCAL,
 )
 from .adapter_gemini_http import _gemini_api_key_env_present
@@ -154,6 +157,8 @@ _CODEX_CREDENTIAL_FILE_NAMES: tuple[str, ...] = ("auth.json", ".env")
 # user's own config can set BRICK_BUILD_ISOLATION=0. Default/unset/any-other-value
 # keeps isolation ON (fail-safe toward the clean room).
 _BUILD_ISOLATION_ENV = "BRICK_BUILD_ISOLATION"
+_CODEX_CONTINUITY_HOME_ROOT_NAME = "brick-protocol-codex-homes"
+_CLAUDE_CONTINUITY_SESSION_IDS: dict[str, str] = {}
 
 
 def _build_isolation_enabled() -> bool:
@@ -283,6 +288,99 @@ def _codex_isolated_run_env(codex_home: Path, repo_root: Path) -> dict[str, str]
     _copy_codex_credentials_into_home(codex_config_dir)
     _carry_auth_env(env, _CODEX_AUTH_CARRY_ENV_KEYS)
     return env
+
+
+def _safe_runtime_slug(value: str) -> str:
+    slug = re.sub(r"[^A-Za-z0-9_.-]+", "-", value.strip())
+    slug = slug.strip(".-")
+    return slug[:96] or "unnamed"
+
+
+def _codex_continuity_home_for_scope(adapter_ref: str, scope: str) -> Path:
+    root = Path(tempfile.gettempdir()) / _CODEX_CONTINUITY_HOME_ROOT_NAME
+    return root / _safe_runtime_slug(f"{adapter_ref}-{scope}")
+
+
+def _codex_continuity_scope_for_request(request: AgentAdapterRequest) -> str:
+    return request.session_scope_ref or request.building_session_ref or request.building_id
+
+
+def _codex_continuity_home_for_request(request: AgentAdapterRequest) -> Path:
+    """Building-scoped Codex HOME for same-Building attempt continuity."""
+
+    return _codex_continuity_home_for_scope(
+        request.adapter_ref,
+        _codex_continuity_scope_for_request(request),
+    )
+
+
+def _cleanup_codex_continuity_home_for_request(request: AgentAdapterRequest) -> bool:
+    """Remove the adapter-owned building-scoped Codex continuity home if present."""
+
+    home = _codex_continuity_home_for_request(request)
+    if not home.exists():
+        return False
+    shutil.rmtree(home)
+    return True
+
+
+def _cleanup_codex_continuity_homes_for_request_scope(
+    request: AgentAdapterRequest,
+) -> Mapping[str, Any]:
+    """Remove Codex continuity homes for this Building scope, regardless of closer adapter."""
+
+    scope = _codex_continuity_scope_for_request(request)
+    removed_refs: list[str] = []
+    for adapter_ref in (ADAPTER_CODEX_LOCAL, ADAPTER_CODEX_FUGU_LOCAL):
+        home = _codex_continuity_home_for_scope(adapter_ref, scope)
+        if not home.exists():
+            continue
+        shutil.rmtree(home)
+        removed_refs.append(adapter_ref)
+    return {
+        "codex_continuity_home_cleanup_scope": _safe_runtime_slug(scope),
+        "codex_continuity_home_cleanup_removed_count": len(removed_refs),
+        "codex_continuity_home_cleanup_removed_adapter_refs": removed_refs,
+    }
+
+
+def _codex_session_state_exists(codex_home: Path) -> bool:
+    """Best-effort observation that a building-scoped Codex home has sessions."""
+
+    codex_dir = codex_home / ".codex"
+    for rel in (Path("sessions"), Path("conversation_history.jsonl")):
+        candidate = codex_dir / rel
+        if candidate.is_file():
+            return True
+        if candidate.is_dir():
+            try:
+                if any(path.is_file() for path in candidate.rglob("*")):
+                    return True
+            except OSError:
+                return False
+    return False
+
+
+def _claude_continuity_key_for_request(request: AgentAdapterRequest) -> str:
+    """Provider-neutral same-Building key for transient Claude resume state."""
+
+    scope = request.session_scope_ref or request.building_session_ref or request.building_id
+    return f"{request.adapter_ref}:{scope}"
+
+
+def _claude_session_id_from_stdout(stdout: str) -> str:
+    """Extract Claude's raw session id for transient resume argv use only."""
+
+    if not stdout.strip():
+        return ""
+    try:
+        payload = json.loads(stdout)
+    except json.JSONDecodeError:
+        return ""
+    if not isinstance(payload, Mapping):
+        return ""
+    value = payload.get("session_id")
+    return value.strip() if isinstance(value, str) else ""
 
 
 def _copy_codex_credentials_into_home(codex_config_dir: Path) -> None:
@@ -445,6 +543,8 @@ def _invoke_local_cli_adapter(
     tuple[str, ...],
     Mapping[str, Any] | None,
     tuple[str, ...],
+    Mapping[str, Any],
+    str,
 ]:
     from .agent_adapter import _local_cli_spec, _merge_texts, probe_local_cli_adapter
 
@@ -533,6 +633,7 @@ def _invoke_local_cli_adapter(
         _merge_texts(not_proven, request.not_proven),
         completed.adapter_usage,
         tuple(observed_non_granted_gemini_tools),
+        completed.adapter_raw_observations,
         output_text,
     )
 
@@ -576,20 +677,43 @@ def _invoke_local_cli(
         # the real auth.json + .env are COPIED into the temp room by the env builder.
         # When isolation is opted out (BRICK_BUILD_ISOLATION=0) run_env stays None
         # (byte-identical inherited-env behavior) and the flags are omitted.
-        with tempfile.TemporaryDirectory(prefix="bp-codex-home-") as codex_home_dir, \
-                tempfile.NamedTemporaryFile(prefix="bp-codex-cli-", suffix=".txt") as output_file:
-            run_env = _codex_isolated_run_env(Path(codex_home_dir), repo_root)
-            args_list = [
-                executable_path,
-                "exec",
-                "--skip-git-repo-check",
-                "--cd",
-                str(cwd),
-                "--sandbox",
-                sandbox,
-                "-c",
-                'approval_policy="never"',
-            ]
+        codex_continue = request.session_continuity_mode == "continue_if_available"
+        codex_home_context = (
+            contextlib.nullcontext(str(_codex_continuity_home_for_request(request)))
+            if codex_continue
+            else tempfile.TemporaryDirectory(prefix="bp-codex-home-")
+        )
+        with codex_home_context as codex_home_dir, tempfile.NamedTemporaryFile(
+            prefix="bp-codex-cli-", suffix=".txt"
+        ) as output_file:
+            codex_home = Path(codex_home_dir)
+            resume_available = codex_continue and _codex_session_state_exists(codex_home)
+            run_env = _codex_isolated_run_env(codex_home, repo_root)
+
+            def _fresh_exec_args() -> list[str]:
+                return [
+                    executable_path,
+                    "exec",
+                    "--skip-git-repo-check",
+                    "--cd",
+                    str(cwd),
+                    "--sandbox",
+                    sandbox,
+                    "-c",
+                    'approval_policy="never"',
+                ]
+
+            args_list = (
+                [
+                    executable_path,
+                    "exec",
+                    "resume",
+                    "--last",
+                    "--skip-git-repo-check",
+                ]
+                if resume_available
+                else _fresh_exec_args()
+            )
             # ISOLATION lever #2 + MCP wire: ignore the user's ~/.codex config and
             # attach the brick-protocol MCP server via -c overrides (the same
             # registration shape connect.py renders). Restore ONLY the user's custom
@@ -637,16 +761,14 @@ def _invoke_local_cli(
             # evidence ledger and never reads codex's session, so nothing is
             # lost. Opt out (rare, e.g. inspecting codex sessions) with
             # BRICK_CODEX_EPHEMERAL=0.
-            if os.environ.get("BRICK_CODEX_EPHEMERAL") != "0":
+            if (
+                request.session_continuity_mode != "continue_if_available"
+                and os.environ.get("BRICK_CODEX_EPHEMERAL") != "0"
+            ):
                 args_list.append("--ephemeral")
             # PRIORITY SERVICE TIER by DEFAULT (0703): BRICK's --ignore-user-config
             # above means a codex dispatch never inherits the operator's own
-            # ~/.codex/config.toml service_tier setting -- live-verified (RUST_LOG=
-            # debug SessionConfiguredEvent) that an unset dial sends service_tier:
-            # None, i.e. standard/auto processing, never the faster "priority"
-            # tier codex's model catalog offers (1.5x speed, increased usage --
-            # Smith 0703: token budget is not a constraint, so default this ON).
-            # Opt out (e.g. to observe standard-tier behavior) with
+            # ~/.codex/config.toml service_tier setting. Opt out with
             # BRICK_CODEX_SERVICE_TIER=0.
             if os.environ.get("BRICK_CODEX_SERVICE_TIER") != "0":
                 args_list.extend(("-c", 'service_tier="priority"'))
@@ -678,6 +800,37 @@ def _invoke_local_cli(
                     plain_args, cwd, timeout_seconds, command_runner, env=run_env
                 )
                 json_active = False
+            fallback_to_fresh = resume_available and completed.return_code != 0
+            fallback_original_return_code = completed.return_code if fallback_to_fresh else None
+            fallback_original_stderr = (
+                _safe_excerpt(completed.stderr, limit=200) if fallback_to_fresh else ""
+            )
+            if fallback_to_fresh:
+                output_file.seek(0)
+                output_file.truncate(0)
+                fresh_args_list = _fresh_exec_args()
+                if run_env is not None:
+                    fresh_args_list.append("--ignore-user-config")
+                    fresh_args_list.extend(_codex_mcp_config_cli_args(repo_root))
+                    fresh_args_list.extend(_codex_user_provider_config_cli_args())
+                if os.environ.get("BRICK_CODEX_HOOK_TRUST_BYPASS") == "1":
+                    fresh_args_list.append("--dangerously-bypass-hook-trust")
+                for _override_flag, _override_value in spec.extra_config_overrides:
+                    fresh_args_list.extend((_override_flag, _override_value))
+                fresh_args_list.extend(_casting_cli_args(request, spec))
+                if os.environ.get("BRICK_CODEX_SERVICE_TIER") != "0":
+                    fresh_args_list.extend(("-c", 'service_tier="priority"'))
+                json_args = tuple((*fresh_args_list, "--json", *tail_args))
+                completed = _run_or_delegate(
+                    json_args, cwd, timeout_seconds, command_runner, env=run_env
+                )
+                json_active = True
+                if _codex_json_unsupported(completed):
+                    plain_args = tuple((*fresh_args_list, *tail_args))
+                    completed = _run_or_delegate(
+                        plain_args, cwd, timeout_seconds, command_runner, env=run_env
+                    )
+                    json_active = False
             # SUPPORT meter input (Brick-axis fact, no verdict): the LAST
             # turn.completed.usage from the JSONL stdout. None when --json is
             # unavailable (older codex) or no turn.completed/usage is present.
@@ -707,10 +860,28 @@ def _invoke_local_cli(
                 stdout=text_stdout,
                 stderr=completed.stderr,
                 adapter_usage=adapter_usage,
+                adapter_raw_observations={
+                    "codex_continuity_mode": request.session_continuity_mode,
+                    "codex_continuity_home": str(codex_home),
+                    "codex_resume_last_requested": resume_available,
+                    "codex_session_state_observed_before_dispatch": resume_available,
+                    "codex_resume_fallback_to_fresh": fallback_to_fresh,
+                    "codex_resume_fallback_original_return_code": fallback_original_return_code,
+                    "codex_resume_fallback_original_stderr_excerpt": fallback_original_stderr,
+                }
+                if codex_continue
+                else {},
             )
     if spec.invocation_args_kind == "claude-plan-json":
         knobs = _claude_cli_invocation(request)
         repo_root = _repo_root_for_request(spec)
+        claude_continue = request.session_continuity_mode == "continue_if_available"
+        claude_continuity_key = _claude_continuity_key_for_request(request)
+        claude_resume_id = (
+            _CLAUDE_CONTINUITY_SESSION_IDS.get(claude_continuity_key, "")
+            if claude_continue
+            else ""
+        )
         # ISOLATION (Smith 0624): the claude dispatch keeps the REAL HOME (claude auths
         # via the macOS keychain, pinned to the real HOME -- a temp HOME breaks auth)
         # and isolates the personal stuff with FLAGS:
@@ -757,11 +928,51 @@ def _invoke_local_cli(
         # casting model dial's cli_emit; the spawn path loops CASTING_FIELDS.
         # Byte-identical to the deleted inline ``("--model", model_arg)`` literal.
         args_list.extend(_casting_cli_args(request, spec))
+        if claude_resume_id:
+            args_list.extend(["--resume", claude_resume_id])
         if request.session_continuity_mode == "none":
             args_list.append("--no-session-persistence")
         args_list.append(prompt)
         args = tuple(args_list)
-        return _run_or_delegate(args, cwd, timeout_seconds, command_runner, env=run_env)
+        completed = _run_or_delegate(args, cwd, timeout_seconds, command_runner, env=run_env)
+        fallback_to_fresh = bool(claude_resume_id) and completed.return_code != 0
+        fallback_original_return_code = completed.return_code if fallback_to_fresh else None
+        fallback_original_stderr = (
+            _safe_excerpt(completed.stderr, limit=200) if fallback_to_fresh else ""
+        )
+        if fallback_to_fresh:
+            fresh_args = tuple(arg for arg in args if arg not in ("--resume", claude_resume_id))
+            completed = _run_or_delegate(
+                fresh_args,
+                cwd,
+                timeout_seconds,
+                command_runner,
+                env=run_env,
+            )
+        observed_claude_session_id = _claude_session_id_from_stdout(completed.stdout)
+        if claude_continue and observed_claude_session_id:
+            _CLAUDE_CONTINUITY_SESSION_IDS[claude_continuity_key] = observed_claude_session_id
+        raw_observations = dict(_claude_session_observations(completed.stdout))
+        if claude_continue:
+            raw_observations.update(
+                {
+                    "claude_continuity_mode": request.session_continuity_mode,
+                    "claude_resume_requested": bool(claude_resume_id),
+                    "claude_resume_id_observed_before_dispatch": bool(claude_resume_id),
+                    "claude_resume_fallback_to_fresh": fallback_to_fresh,
+                    "claude_resume_fallback_original_return_code": fallback_original_return_code,
+                    "claude_resume_fallback_original_stderr_excerpt": fallback_original_stderr,
+                    "claude_session_id_observed_after_dispatch": bool(observed_claude_session_id),
+                }
+            )
+        return LocalCliCompleted(
+            args=completed.args,
+            return_code=completed.return_code,
+            stdout=completed.stdout,
+            stderr=completed.stderr,
+            adapter_usage=completed.adapter_usage,
+            adapter_raw_observations=raw_observations,
+        )
     if spec.invocation_args_kind == "gemini-p-json-flash":
         with tempfile.TemporaryDirectory(prefix="bp-gemini-cli-") as tmpdir:
             temp_root = Path(tmpdir)
@@ -1078,6 +1289,21 @@ def _extract_output_text(
                     return value, ()
         return completed.stdout, ()
     return completed.stdout or completed.stderr, ()
+
+
+def _claude_session_observations(stdout: str) -> Mapping[str, Any]:
+    """Observe Claude session-id presence without carrying the raw id."""
+
+    if not stdout.strip():
+        return {}
+    try:
+        payload = json.loads(stdout)
+    except json.JSONDecodeError:
+        return {}
+    if not isinstance(payload, Mapping):
+        return {}
+    value = payload.get("session_id")
+    return {"claude_session_id_present": bool(isinstance(value, str) and value.strip())}
 
 
 def _extract_gemini_response(
