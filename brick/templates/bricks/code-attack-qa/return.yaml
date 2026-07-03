@@ -21,6 +21,13 @@ required_return_shape:
 # above. (remaining_delta is NOT a declared return field for this kind, so it is
 # NOT forwarded -- closure recomputes delta from these QA findings.)
 # downstream = closure.
+# transition_concern_evidence.reason_refs address rule: only the current
+# Building work/step-outputs document path form may contain a slash. Such refs
+# must be existing step-output documents under this Building's work/step-outputs/
+# subtree, with no #fragment; step-output fragments, bare file:line citations,
+# non-step-output slash paths, any other slash-containing document paths, and
+# descriptive refs belong under observed_evidence / evidence_used /
+# checked_sources, or as slashless opaque tokens such as observation:<id>.
 carries_forward_fields:
   - attacked_work
   - failing_or_missing_probes

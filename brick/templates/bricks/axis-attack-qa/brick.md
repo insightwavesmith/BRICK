@@ -71,7 +71,12 @@ upstream WORK node responsible (plain declared node id, `brick:<declared-node>`,
 `building-boundary:` sentinel. The engine silently walks-on a self-ref or sentinel, so no reroute
 ever fires. If closure may adopt the concern, keep `reason_refs` current-ledger-local and resolvable
 from this Building's recorded rows; cite external files, prior Building evidence paths, URLs, or
-packet labels under `observed_evidence` / `evidence_used`, not `reason_refs`. Environment, runtime,
+packet labels under `observed_evidence` / `evidence_used`, not `reason_refs`. A slash-containing
+`reason_refs` address must name an existing step-output document under this Building's
+`work/step-outputs/` subtree, with no `#fragment`; put step-output fragments, bare `file:line`
+citations, non-step-output slash paths, document paths, and descriptive refs under
+`observed_evidence` / `evidence_used`, or use a slashless opaque token such as `observation:<id>`.
+Environment, runtime,
 provider, read-only, no-temp-dir, missing-probe, or "live not run" constraints are NOT upstream
 boundary defects — record them in `not_proven`, or as non-reroute `verification_gap` evidence with
 empty `related_boundary_refs` or a `building-boundary:` sentinel. Never attach a Brick-node reroute

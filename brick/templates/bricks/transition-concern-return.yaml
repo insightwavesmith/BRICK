@@ -12,8 +12,16 @@ returned_shape:
       - observation:<id>
     # For concerns that may be adopted for reroute/replay, reason_refs must be
     # current Building ledger addresses resolvable from this run's recorded rows.
-    # Put external files, prior Building evidence paths, URLs, or packet labels
-    # under observed_evidence / evidence_used / checked_sources instead.
+    # Only the current Building work/step-outputs document path form may contain
+    # a slash.
+    # A slash-containing reason_refs address must name an existing step-output
+    # document under this Building's work/step-outputs/ subtree, with no
+    # #fragment. Put step-output refs with fragments, bare file:line citations,
+    # non-step-output slash paths, any other slash-containing document paths,
+    # descriptive refs, external files, prior Building evidence paths, URLs, or
+    # packet labels under
+    # observed_evidence / evidence_used / checked_sources instead, or use a
+    # slashless opaque token such as observation:<id>.
     # Reroute-eligible defect kinds (implementation_gap, design_gap, upstream_gap,
     # boundary_mismatch, insufficient_input, replay_needed, unknown) may name the
     # upstream WORK node responsible for the defect. Admitted forms are the plain
