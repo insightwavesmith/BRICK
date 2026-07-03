@@ -630,6 +630,7 @@ MINIMAL_BUILDING_LIFECYCLE_RECORDS = {
     # below is a different file. Both are admitted so the documented
     # first-day intake flow never turns this gate RED.
     ("declared-building-plan.json",),
+    ("proposed-building-graph.json",),
     ("work", "building-work.json"),
     ("work", "building-map.json"),
     ("work", "task.md"),
@@ -637,6 +638,7 @@ MINIMAL_BUILDING_LIFECYCLE_RECORDS = {
     ("work", "preset-expansion.json"),
     ("work", "declared-building-plan.json"),
     ("work", "link-launch-policy.json"),
+    ("work", "proposed-building-graph.json"),
     ("capture", "events.jsonl"),
     ("raw", "raw-manifest.json"),
     ("evidence", "evidence-manifest.json"),
@@ -802,6 +804,15 @@ ALLOWED_DIRS = {
 
 def slug_part(value: str) -> bool:
     return bool(value) and value.replace("-", "").replace("_", "").isalnum()
+
+
+def task_statement_node_part(value: str) -> bool:
+    prefix = "task-statement-"
+    suffix = "-node"
+    if not value.startswith(prefix) or not value.endswith(suffix):
+        return False
+    stem = value[len(prefix) : -len(suffix)]
+    return slug_part(stem)
 
 
 # PROJECT-0 S5-FIX: project VESSEL ids are stricter than generic slug parts —
@@ -1113,6 +1124,15 @@ def package_path_admission_self_probe_violations() -> list[str]:
         "project/brick-protocol/status/kernel/GOAL/.hidden.json": False,
         "project/brick-protocol/status/kernel/arbitrary.json": False,
         "project/brick-protocol/status/arbitrary.json": False,
+        "project/brick-protocol/buildings/agents-md-align-0702a/task-statement-30d7bc45e2bc-node/": True,
+        "project/brick-protocol/buildings/agents-md-align-0702a/task-statement-30d7bc45e2bc-node/capture/": True,
+        "project/brick-protocol/buildings/agents-md-align-0702a/task-statement-30d7bc45e2bc-node/capture/events.jsonl": True,
+        "project/brick-protocol/buildings/agents-md-align-0702a/task-statement-30d7bc45e2bc-node/evidence/claim_trace/agent/returned_claims.json": True,
+        "project/brick-protocol/buildings/agents-md-align-0702a/task-statement-30d7bc45e2bc-node/proposed-building-graph.json": True,
+        "project/brick-protocol/buildings/agents-md-align-0702a/task-statement-30d7bc45e2bc-node/work/proposed-building-graph.json": True,
+        "project/brick-protocol/buildings/agents-md-align-0702a/not-a-vessel-node/capture/events.jsonl": False,
+        "project/brick-protocol/buildings/agents-md-align-0702a/task-statement--node/capture/events.jsonl": False,
+        "project/brick-protocol/buildings/agents-md-align-0702a/task-statement-30d7bc45e2bc-node/stray.txt": False,
     }
     violations: list[str] = []
     for path, expected in cases.items():
@@ -1397,7 +1417,20 @@ def is_project_building_lifecycle_path(path: str, *, is_dir: bool) -> bool:
     if len(parts) == 4:
         return is_dir
 
-    tail = tuple(parts[4:])
+    # Declared Building vessel layout:
+    # project/<project>/buildings/<slug>/task-statement-*-node/<lifecycle...>.
+    # The outer slug is only a grouping container; lifecycle admission remains
+    # the same closed record/dir set under the task-statement node.
+    if len(parts) >= 5 and task_statement_node_part(parts[4]):
+        if not slug_part(building_id):
+            return False
+        building_id = parts[4]
+        if len(parts) == 5:
+            return is_dir
+        tail = tuple(parts[5:])
+    else:
+        tail = tuple(parts[4:])
+
     if building_id in COMPACT_HISTORICAL_CAP_BOOT_BUILDINGS:
         allowed_dirs = HISTORICAL_BUILDING_LIFECYCLE_DIRS
         allowed_records = HISTORICAL_BUILDING_LIFECYCLE_RECORDS
