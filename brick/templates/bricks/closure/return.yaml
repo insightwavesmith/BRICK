@@ -15,6 +15,13 @@ required_return_shape:
 # FILTERS to these. Common envelope (observed_evidence, not_proven,
 # transition_concern_evidence) and the record-only deferred_smith_review_queue
 # stay LOCAL. Every field is a member of required_return_shape above.
+# transition_concern_evidence.reason_refs address rule: only the current
+# Building work/step-outputs document path form may contain a slash. Such refs
+# must be existing step-output documents under this Building's work/step-outputs/
+# subtree, with no #fragment; step-output fragments, bare file:line citations,
+# non-step-output slash paths, any other slash-containing document paths, and
+# descriptive refs belong under observed_evidence / evidence_used /
+# checked_sources, or as slashless opaque tokens such as observation:<id>.
 carries_forward_fields:
   - narrowly_proven
   - remaining_delta

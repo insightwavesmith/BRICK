@@ -7134,6 +7134,50 @@ def check(repo: Path) -> list[str]:
         finally:
             ledger_symlink_m5g.unlink(missing_ok=True)
 
+    # mail-8 (0703 reason_refs address contract): slash-containing runtime
+    # handoff refs are ledger document addresses, not citations. The live
+    # resolver must HOLD (non-empty unresolved address) for fragment-bearing
+    # step-output refs, bare file:line citations, and non-step-output slash
+    # paths; standard step-output document paths, step-output manifest refs,
+    # and slashless opaque observation tokens still resolve.
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-8-") as tmp:
+        building_m8 = Path(tmp) / "building"
+        step_dir_m8 = building_m8 / "work" / "step-outputs" / "doc-attempt-1"
+        step_dir_m8.mkdir(parents=True)
+        (step_dir_m8 / "step-output.json").write_text("{}", encoding="utf-8")
+        (building_m8 / "brick").mkdir()
+        (building_m8 / "brick" / "work.py").write_text("# citation\n", encoding="utf-8")
+        illegal_refs_m8 = {
+            "fragment-bearing step-output ref": "work/step-outputs/doc-attempt-1/step-output.json#observed",
+            "bare file:line citation": "brick/work.py:1",
+            "non-step-output slash path": "raw/link.jsonl",
+        }
+        for label_m8, ref_m8 in illegal_refs_m8.items():
+            unresolved_m8 = _mail_live_resolver(building_m8, [ref_m8])
+            if unresolved_m8 == "":
+                violations.append(
+                    f"mail-8: {label_m8} was DELIVERED as a runtime handoff "
+                    "reason_ref; slash-containing refs must be existing "
+                    "work/step-outputs documents with no #fragment"
+                )
+            elif unresolved_m8 != ref_m8:
+                violations.append(
+                    f"mail-8: {label_m8} held the wrong unresolved address; "
+                    f"got {unresolved_m8!r}, wanted {ref_m8!r}"
+                )
+        legal_refs_m8 = {
+            "step-output document path": "work/step-outputs/doc-attempt-1/step-output.json",
+            "step-output manifest ref": "step-output:doc:attempt-1",
+            "slashless opaque observation token": "observation:mail-8-runtime-marker",
+        }
+        for label_m8, ref_m8 in legal_refs_m8.items():
+            unresolved_m8 = _mail_live_resolver(building_m8, [ref_m8])
+            if unresolved_m8 != "":
+                violations.append(
+                    f"mail-8: {label_m8} no longer resolves; got unresolved "
+                    f"address {unresolved_m8!r}"
+                )
+
     # mail-6 (FIX 2 eligibility creep + FIX 3 replay provenance, 0611): ONLY a
     # disposition row addressed to THE CURRENT hold is THIS resume's row. After
     # a first raise-resume of the same target, the ledger carries same-target

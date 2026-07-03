@@ -46,7 +46,11 @@ Packet-only labels are not enough for this grounding requirement.
 silently walks-on a self-ref or sentinel, so no reroute ever fires. If the concern may be adopted,
 keep `reason_refs` current-ledger-local and resolvable from this Building's recorded rows; cite
 external files, prior Building evidence paths, URLs, or packet labels under `observed_evidence` /
-`evidence_used`, not `reason_refs`. Environment or runtime constraints (no temp dir, write-scope
+`evidence_used`, not `reason_refs`. A slash-containing `reason_refs` address must name an existing
+step-output document under this Building's `work/step-outputs/` subtree, with no `#fragment`; put
+step-output fragments, bare `file:line` citations, non-step-output slash paths, document paths, and
+descriptive refs under `observed_evidence` / `evidence_used`, or use a slashless opaque token such as
+`observation:<id>`. Environment or runtime constraints (no temp dir, write-scope
 limits, provider limits, read-only status, "live not run") are NOT defects — record them in
 `not_proven`, never as a `transition_concern`.
 
