@@ -178,8 +178,13 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
 - **§4-7 부정 pin 랜딩** `47d412eb`: 가드 통째 무력화→self-test rc=1(COO 직접 변이) — v2의
   unpinned-safety 갭 봉합. 4라운드 same-family 루프는 COO stop-and-gate로 종결(repo-identity
   서브케이스 개별 격리는 종료선 밖 nit로 기록·수용).
-- 걷는 중: **온보딩 Phase 2-3**(대화형 등록/모델선택 + MCP opt-in·스킬 정본 판단 2건 —
-  종료선 계약 첫 적용). 다음 순번: P7 → **P8(Smith 게이트, 자동 진입 금지)**.
+- **온보딩 Phase 2-3 랜딩** `22a9080e`: 대화형 provider/모델 수집(TTY 게이트 호출부 소유,
+  prompt_func 주입식) + llm= 별칭 단일출처 정합 + pin 5종. **종료선 계약 첫 적용 — 2라운드
+  자가 완주(frontier=complete, 개입 0)**: 계약에 명시적 DONE-라인을 넣자 루프가 스스로 닫혔다.
+  D3(MCP 기본값)은 반증 분기로 착지: 영구 등록의 실소비자는 고객 자신의 대화형 CLI 세션
+  (조사 실측이 안 다룬 제3 소비자, idempotent+불훼손+--skip-plugin) — COO 초기 opt-in 기판정
+  철회. **제품 기본값 논점은 Smith P8 전후 확인 항목으로 기록.** 별칭-폴백 분기 미pin은 nit.
+- **GP2 크리티컬 패스 잔여 = P7 프레시머신 → P8(Smith 게이트, 자동 진입 금지).**
 
 ## 현재 위치 (0702 심야)
 
