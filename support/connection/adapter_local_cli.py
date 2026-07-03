@@ -639,6 +639,17 @@ def _invoke_local_cli(
             # BRICK_CODEX_EPHEMERAL=0.
             if os.environ.get("BRICK_CODEX_EPHEMERAL") != "0":
                 args_list.append("--ephemeral")
+            # PRIORITY SERVICE TIER by DEFAULT (0703): BRICK's --ignore-user-config
+            # above means a codex dispatch never inherits the operator's own
+            # ~/.codex/config.toml service_tier setting -- live-verified (RUST_LOG=
+            # debug SessionConfiguredEvent) that an unset dial sends service_tier:
+            # None, i.e. standard/auto processing, never the faster "priority"
+            # tier codex's model catalog offers (1.5x speed, increased usage --
+            # Smith 0703: token budget is not a constraint, so default this ON).
+            # Opt out (e.g. to observe standard-tier behavior) with
+            # BRICK_CODEX_SERVICE_TIER=0.
+            if os.environ.get("BRICK_CODEX_SERVICE_TIER") != "0":
+                args_list.extend(("-c", 'service_tier="priority"'))
             # TrackA-A1 METER: `--json` turns codex's stdout into per-event JSONL so
             # we can read the turn.completed token usage. It does NOT change where
             # the TEXT response lives: codex still writes the last assistant message
