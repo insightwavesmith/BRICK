@@ -207,6 +207,16 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
 - **P7 PASS(0703 14:13)** — 프레시 clone(3f45fd35) 전 사이클: 설치→대화형 온보딩→공식 발주→
   걸음 완주→게이트 HOLD(설계 발화)→사람 forward→**frontier=complete**. 정본: p7-fresh-proof-0703.md
   (캐비앗: codex 자격 복사·gh auth transcript 미증명·레인 샌드박스 네트워크 차단 실측).
+- **audit-0703 4페이즈 실행(Smith 승인, 0703 오후)** — 문제정의 정본: status/kernel/audit-0703/.
+  Phase 0 ✅(가이드 정본화 9c5930b6 + FixB 스킬 교정 b81e5265 — COO 직접).
+  **Phase 1 ✅ 랜딩** `06468178`(link-delivery-0703a, 다이어트 그래프 2라운드 자가완주):
+  접수 문법(불량3형 즉시 반려)+보장주소(concern_doc_ref)+깨진 인용 검역(undelivered_citation_refs)
+  +종이2 동봉(라우팅은 종이1만, 엔진 무선별, 스키마 무변경). 세션이어짐 선결 조사도 COO 프로브로
+  완결(session-continuity-mechanism-0703.md — 직접 기전은 락이 아니라 디스패치-스코프 임시 홈 수명).
+  걷는 중 3트랙: Phase 2(Brick A/C — FixB 제외) ∥ Phase 3(증명 파이프라인 — design 유지,
+  재진입 프로브 선결) ∥ Phase 4(세션 배선 — connection 전용). 상호 불가침 파일 명시.
+- **codex 우선처리 티어 기본화** `0efd9e7f`: 형제 세션 저작·라이브 실측(service_tier
+  None→priority), COO가 diff 정독+컴파일 후 커밋. opt-out=BRICK_CODEX_SERVICE_TIER=0.
 - **GP2 잔여 = P8 도그푸드 프로브 하나 — Smith 진입 결정 대기(자동 진입 금지).**
   0703 오후 정리 시점: 걷는 빌딩 0, 미머지 반려 앵커 2(464105cf 관측측/참고용, r6 잔재),
   프로브 잔해 /tmp/brick-p7-coo-proof-*(v2 vessel은 랜딩 증거 인용처 — 보존).
