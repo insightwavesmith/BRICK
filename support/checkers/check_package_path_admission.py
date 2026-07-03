@@ -325,6 +325,7 @@ BAR_V2_OPERATOR_TARGETS = {
     "support/operator/plan_graph.py",
     "support/operator/plan_validation.py",
     "support/operator/primitives.py",
+    "support/operator/proof_observation.py",
     "support/operator/route_materialization.py",
     "support/operator/write_observation.py",
     # BUILDING-OPERATOR-DRIVER-0 admits the bounded declared portfolio driver.

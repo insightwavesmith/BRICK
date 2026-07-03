@@ -117,6 +117,9 @@ BRICK_ROW_ALLOWED_KEYS: frozenset[str] = frozenset(
         "source_facts",
         "raw_refs",
         "write_scope",
+        # Declarable proof commands support may observe after an Agent return.
+        # Brick owns the declared obligation shape; support records only facts.
+        "proof_obligations",
         # Non-authoritative capability taxonomy label. This is Brick-owned
         # declaration/support data for the work need (read / probe_write /
         # source_write / artifact_write). It must not choose Movement, target,
@@ -567,6 +570,7 @@ class BrickSpec:
     casting: Mapping[str, str] = ()  # type: ignore[assignment]
     source_facts: tuple[str, ...] = ()
     node_write_scope: Mapping[str, Any] | None = None
+    proof_obligations: tuple[Mapping[str, Any], ...] = ()
 
 
 def brick(
@@ -581,6 +585,7 @@ def brick(
     gates: Sequence[Any] = (),
     source_facts: Sequence[str] | None = None,
     node_write_scope: Mapping[str, Any] | None = None,
+    proof_obligations: Sequence[Mapping[str, Any]] | None = None,
     **kwargs: Any,
 ) -> BrickSpec:
     # Partition trailing kwargs into casting dials (adapter/model/effort/... ,
@@ -615,7 +620,35 @@ def brick(
         casting=_build_casting_bag("brick()", casting_kwargs),
         source_facts=tuple(str(item).strip() for item in (source_facts or ()) if str(item).strip()),
         node_write_scope=node_write_scope,
+        proof_obligations=_proof_obligations_tuple(proof_obligations),
     )
+
+
+def _proof_obligations_tuple(
+    value: Sequence[Mapping[str, Any]] | None,
+) -> tuple[Mapping[str, Any], ...]:
+    if value is None:
+        return ()
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        raise TypeError("brick() proof_obligations must be a sequence")
+    obligations: list[Mapping[str, Any]] = []
+    for index, item in enumerate(value):
+        if not isinstance(item, Mapping):
+            raise TypeError(f"proof_obligations[{index}] must be a mapping")
+        kind = _optional_text(item.get("kind")) or "command"
+        command = _non_empty_text(f"proof_obligations[{index}].command", item.get("command"))
+        if kind == "mutation_red":
+            obligations.append({"kind": kind, "command": command})
+            continue
+        if kind != "command":
+            raise ValueError(
+                f"proof_obligations[{index}].kind must be command or mutation_red"
+            )
+        expect_rc = item.get("expect_rc", 0)
+        if isinstance(expect_rc, bool) or not isinstance(expect_rc, int):
+            raise TypeError(f"proof_obligations[{index}].expect_rc must be an integer")
+        obligations.append({"command": command, "expect_rc": expect_rc})
+    return tuple(obligations)
 
 
 # ---------------------------------------------------------------------------

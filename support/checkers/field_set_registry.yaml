@@ -400,6 +400,7 @@ field_sets:
       - source_facts
       - raw_refs
       - write_scope
+      - proof_obligations
       - capability_class
       - requires_brick_write_scope
 

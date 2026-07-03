@@ -247,6 +247,14 @@ def _runtime_concern_handoff_from_ledger(
     )
     body = _step_output_body_from_file(building_root, concern_doc_ref)
     if body is None:
+        if _is_machine_authored_proof_concern(adopted_concern):
+            return _machine_authored_proof_concern_mail(
+                building_root=building_root,
+                source_step_ref=source_step_ref,
+                source_brick_ref=source_brick_ref,
+                source_attempt_index=source_attempt_index,
+                adopted_concern=adopted_concern,
+            )
         return None, f"runtime_handoff_concern_row_unrecorded_in_ledger:{concern_doc_ref}"
     try:
         document = json.loads(body)
@@ -309,5 +317,51 @@ def _runtime_concern_handoff_from_ledger(
         entry["recorded_summary_fields"] = summary_fields
     return (
         entry,
+        "",
+    )
+
+
+def _is_machine_authored_proof_concern(concern: Mapping[str, Any]) -> bool:
+    concern_ref = _optional_text_value(concern.get("concern_ref")) or ""
+    return concern_ref.startswith("transition-concern:proof-obligation:")
+
+
+def _machine_authored_proof_concern_mail(
+    *,
+    building_root: Path,
+    source_step_ref: str,
+    source_brick_ref: str,
+    source_attempt_index: int,
+    adopted_concern: Mapping[str, Any],
+) -> tuple[dict[str, Any] | None, str]:
+    reason_refs = [
+        text
+        for text in (
+            _optional_text_value(ref)
+            for ref in adopted_concern.get("reason_refs", [])
+        )
+        if text
+    ]
+    if not reason_refs:
+        return None, "runtime_handoff_machine_proof_concern_missing_reason_refs"
+    unresolved = _runtime_handoff_unresolved_address(building_root, reason_refs)
+    if unresolved:
+        return None, f"runtime_handoff_address_unresolved_in_ledger:{unresolved}"
+    concern_ref = _optional_text_value(adopted_concern.get("concern_ref")) or ""
+    return (
+        {
+            "from_step_ref": source_step_ref,
+            "from_brick_instance_ref": source_brick_ref,
+            "row_kind": "machine_transition_concern",
+            "row_ref": concern_ref,
+            "concern_doc_ref": reason_refs[0],
+            "reason_refs": reason_refs,
+            "provenance": {
+                "runtime_row_ref": concern_ref,
+                "row_kind": "machine_transition_concern",
+                "recorded_in": reason_refs[0],
+                "source_attempt_index": source_attempt_index,
+            },
+        },
         "",
     )

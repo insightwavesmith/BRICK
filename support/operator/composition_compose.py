@@ -48,6 +48,14 @@ from brick_protocol.support.operator.composition_common import (
     _composition_optional_text,
     _composition_slug,
 )
+
+
+def _sequence_value(label: str, value: Any) -> Sequence[Any]:
+    if not isinstance(value, Sequence) or isinstance(value, (str, bytes)):
+        raise TypeError(f"{label} must be a sequence")
+    return value
+
+
 from brick_protocol.support.operator.composition_kinds import _unknown_kind_hint
 from brick_protocol.support.operator.composition_route_policy import (
     _composition_direct_caller_provenance,
@@ -983,6 +991,15 @@ def _composition_brick_row(
     source_facts = brick.get("source_facts")
     if source_facts is not None:
         row["source_facts"] = list(_text_sequence(f"nodes[{index}].source_facts", source_facts))
+    proof_obligations = brick.get("proof_obligations")
+    if proof_obligations is not None:
+        row["proof_obligations"] = [
+            dict(_mapping_value(f"nodes[{index}].proof_obligations[]", item))
+            for item in _sequence_value(
+                f"nodes[{index}].proof_obligations",
+                proof_obligations,
+            )
+        ]
     raw_write_scope = brick.get("write_scope")
     template_write_need = bool(
         step_template.get("write_need")

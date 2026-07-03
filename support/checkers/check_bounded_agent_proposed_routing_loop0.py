@@ -6288,6 +6288,83 @@ def check(repo: Path) -> list[str]:
                     f"fc-gap6: replayed step {key6} got a FRESH recorded_at ({n6}) instead of "
                     f"preserving the original ({o6})")
 
+    # PROOF-F4 (0703): a declared proof rc mismatch must create a formal
+    # implementation_gap transition concern, the walker must adopt it through the
+    # normal reroute path, and the same declared Brick must be redispatched. The
+    # second attempt flips the observed proof command green so this fixture covers
+    # mismatch -> concern -> adoption -> redispatch without exhausting budget.
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-proof-f4-") as tmp:
+        pfx = "bapr-loop0-proof-f4"
+        plan_pf4, build_pf4 = _checker_plan(pfx, budget=1)
+        marker_pf4 = Path(tmp) / "proof-state.txt"
+        proof_cmd_pf4 = (
+            "python3 -c \"from pathlib import Path; import sys; "
+            f"sys.exit(0 if Path({str(marker_pf4)!r}).read_text(encoding='utf-8') == 'green' else 1)\""
+        )
+        plan_pf4 = copy.deepcopy(plan_pf4)
+        for step_pf4 in plan_pf4["brick_steps"]:
+            if step_pf4.get("step_ref") != f"{pfx}-build":
+                continue
+            for row_pf4 in step_pf4.get("rows", []):
+                if isinstance(row_pf4, dict) and row_pf4.get("axis") == "Brick":
+                    row_pf4["proof_obligations"] = [
+                        {"command": proof_cmd_pf4, "expect_rc": 0}
+                    ]
+        calls_pf4: dict[str, int] = {}
+
+        def _proof_f4_callable(request: Any) -> Mapping[str, Any]:
+            calls_pf4[request.brick_instance_ref] = (
+                calls_pf4.get(request.brick_instance_ref, 0) + 1
+            )
+            if request.brick_instance_ref == build_pf4:
+                state_pf4 = "green" if calls_pf4[request.brick_instance_ref] >= 2 else "red"
+                marker_pf4.write_text(state_pf4, encoding="utf-8")
+            return {
+                "observed_evidence": [f"proof-f4 obs {request.brick_instance_ref}"],
+                "not_proven": ["semantic correctness"],
+            }
+
+        res_pf4 = run_building_plan(
+            plan_pf4,
+            output_root=Path(tmp),
+            overwrite_existing=True,
+            local_callables={"callable:local:agent-invoke0-smoke": _proof_f4_callable},
+            adapter_cwd=repo,
+            adapter_timeout_seconds=30,
+        )
+        adopted_pf4 = _adopted_records(
+            list(getattr(res_pf4, "_dynamic_walker_reroute_records", ()))
+        )
+        if calls_pf4.get(build_pf4) != 2:
+            violations.append(
+                "proof-f4: proof mismatch did not redispatch the same declared Brick "
+                f"(build call count {calls_pf4.get(build_pf4)!r})"
+            )
+        if len(adopted_pf4) != 1:
+            violations.append(
+                f"proof-f4: expected one adopted proof reroute, got {len(adopted_pf4)}"
+            )
+        elif (
+            adopted_pf4[0].get("source_brick_ref") != build_pf4
+            or adopted_pf4[0].get("target_brick") != build_pf4
+            or adopted_pf4[0].get("source_transition_concern_ref", "").startswith(
+                "transition-concern:proof-obligation:"
+            )
+            is not True
+        ):
+            violations.append(
+                "proof-f4: adopted reroute did not preserve the machine-authored "
+                f"proof concern source/target ({adopted_pf4[0]!r})"
+            )
+        frontier_pf4 = observe_building_frontier(
+            res_pf4.lifecycle_write.root,
+            repo_root=repo,
+        )
+        if frontier_pf4.get("frontier_kind") != "complete":
+            violations.append(
+                f"proof-f4: rerouted proof fixture did not complete ({frontier_pf4!r})"
+            )
+
     # ------------------------------------------------------------------
     # MAIL-REPAIR (Smith rulings 0611, B1/B2/B3): runtime rows ride the mail.
     # Ported b5b probe (measured RED 0611: in a gate-adopted dynamic reroute,
