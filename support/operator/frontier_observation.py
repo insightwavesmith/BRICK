@@ -124,10 +124,14 @@ def observe_building_frontier(
     frontier_reason = verdict.frontier_reason
     if (
         frontier_kind == _FRONTIER_LINK_PAUSED
-        and _latest_hold_reason(link_records) == "fake_landing_write_scope_diff_absent"
+        and _latest_hold_reason(link_records)
+        in {
+            "fake_landing_write_scope_diff_absent",
+            "write_scope_forbidden_diff_present",
+        }
     ):
         frontier_kind = _FRONTIER_HUMAN_REVIEW_WAITING
-        frontier_reason = "fake_landing_write_scope_diff_absent"
+        frontier_reason = _latest_hold_reason(link_records)
 
     return {
         "kind": "building_frontier_observation",
