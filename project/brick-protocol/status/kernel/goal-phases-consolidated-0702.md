@@ -271,6 +271,18 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
   프로브 스크립트를 선언하면 의미론 집행 가능(엔진 수정 불요)** — §4-1 분해 계약에 이
   패턴 채택. 다음: 전제2 case_runners vs C1 비교 1레인 → §4-1 분해. 후속 후보 5건 등재
   (문서 참조).
+- **전제2 case_runners vs C1 공유기계 비교 ✅(0703 밤, caserunners-c1-0703a)** — 결론:
+  **공유기계 O, 단 사본이 아니라 역할-수준 변형** — exact copy는 proof_limits 1개뿐,
+  함수명 재사용 0. 그러나 graph row/link builder·plan fixture builder·run_building_plan
+  래퍼 패밀리가 양쪽에 역할 동형으로 존재 → **공유 픽스처-그래프 헬퍼 모듈을 1회
+  선추출하면 §4-1·§4-2 분해가 같은 추출을 두 번 하지 않는다**(후보 패밀리:
+  graph_brick_step/brick_row/agent_row·graph_link_edge·proof_limits·plan builders·
+  run_building_plan wrapper). 실측 정정: 클러스터맵의 C1 'def 52개'는 실제 54개
+  (work·QA·COO 3중 독립 AST 재계수 일치; case_runners 최상위 def 108개). 게이트:
+  읽기 전용이라 diff 없음이 정상 — #17이 G-1 클래스(read-only 주문)로 홀드,
+  COO 실질 검토(3개 핵심 주장 직접 재계수 일치) 후 forward 처분 → complete.
+  처분 절차 실측 2건: 주소는 절대경로 필요(goal-runs 오해석), resume은 격리
+  adapter_cwd 요구(라이브 보호 fail-closed — 임시 워크트리로 해소).
 
 ## 현재 위치 (0702 심야)
 
