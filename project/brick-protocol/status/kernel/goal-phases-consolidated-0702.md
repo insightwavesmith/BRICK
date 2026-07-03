@@ -224,6 +224,15 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
   기계-저작 반려는 형식 보장으로 우회.
 - **codex 우선처리 티어 기본화** `0efd9e7f`: 형제 세션 저작·라이브 실측(service_tier
   None→priority), COO가 diff 정독+컴파일 후 커밋. opt-out=BRICK_CODEX_SERVICE_TIER=0.
+- **audit-0703 4페이즈 전부 랜딩(0703 저녁)** — 조합 통합 스윕 35/35:
+  Phase 1 `06468178`(Link 배달: 접수문법·보장주소·검역·종이2) / Phase 2 `add2873b`(위반방향
+  게이트+사람-reroute re_instruction) / Phase 3 `f8aa7451`(증명 파이프라인: 선언→support 실측
+  →비교→기계-저작 정식 반려→재파견 — F4 사이클 pin이 재파견 실물까지 검증) / Phase 4
+  `94676e44`(세션이어짐: building-스코프 codex 홈+resume --last, claude --resume, 폴백·정리 —
+  COO 라이브 프로브로 기억 이어받기 실증. 마감 1줄은 Smith 지시로 COO 직접).
+  진행 방식 확립: v1 골격→렌즈 적발→stop-and-gate→정밀 vN, 소량 잔여는 COO 직접 마감(Smith
+  선례). 후속 후보 등재: Link Part4(related_boundary_refs 접수 문법) · claude 세션 잔존 정리
+  (#23 계열) · gemini 세션(미조사).
 - **GP2 잔여 = P8 도그푸드 프로브 하나 — Smith 진입 결정 대기(자동 진입 금지).**
   0703 오후 정리 시점: 걷는 빌딩 0, 미머지 반려 앵커 2(464105cf 관측측/참고용, r6 잔재),
   프로브 잔해 /tmp/brick-p7-coo-proof-*(v2 vessel은 랜딩 증거 인용처 — 보존).
