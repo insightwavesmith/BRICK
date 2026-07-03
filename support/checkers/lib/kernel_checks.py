@@ -5004,6 +5004,10 @@ def run_building_result_summary(repo: Path) -> KernelResult:
                 "building_result_summary dispatch timing must sum only "
                 "adapter-dispatch-timing rows"
             )
+        if summary.get("wip_anchor_present") is not True:
+            raise ProfileError(
+                "building_result_summary direct WIP anchor ref lookup did not return True"
+            )
         if anchored_summary.get("wip_anchor_present") is not True:
             raise ProfileError("building_result_summary WIP anchor ref lookup did not return True")
         if missing_anchor_summary.get("wip_anchor_present") is not False:
@@ -5025,15 +5029,43 @@ def run_building_result_summary(repo: Path) -> KernelResult:
             raise ProfileError("building_result_summary absent adapter errors must be None")
         if absent_summary.get("dispatch_timing_ms_total") is not None:
             raise ProfileError("building_result_summary absent timing must be None")
+        if absent_summary.get("wip_anchor_present") is not False:
+            raise ProfileError(
+                "building_result_summary direct absent WIP anchor must be False"
+            )
         _assert_no_forbidden_summary_key(
             absent_summary,
             forbidden_keys,
             path="absent_result_summary",
         )
+        strip_probe_carried_crosscheck = [
+            {"label": "strip-exempt-pin", "success": "preserved", "nested": {"ok": True}}
+        ]
+        strip_probe = {
+            "non_exempt": {
+                "items": [
+                    {
+                        "ok": True,
+                        "nested": {"success": "must be stripped", "kept": "observed"},
+                    }
+                ]
+            },
+            "deliverable_crosscheck": strip_probe_carried_crosscheck,
+        }
+        stripped_probe = onboard._strip_result_summary_forbidden_keys(strip_probe)
+        _assert_no_forbidden_summary_key(
+            stripped_probe.get("non_exempt"),
+            forbidden_keys,
+            path="strip_probe.non_exempt",
+        )
+        if stripped_probe.get("deliverable_crosscheck") != strip_probe_carried_crosscheck:
+            raise ProfileError(
+                "building_result_summary carried closure strip exemption drifted"
+            )
 
     return KernelResult(
         check_id="building_result_summary",
-        inspected=22,
+        inspected=25,
         output=(
             "building_result_summary passed: synthetic vessel fields, absence-None "
             "handling, observer mutation-RED, adapter error message projection, "

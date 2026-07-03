@@ -2102,11 +2102,10 @@ def summarize_building_result(
             "adapter_error_rows": _summary_adapter_error_rows(root),
             "dispatch_timing_ms_total": _summary_dispatch_timing_ms_total(root),
             "commit_sha_present": None,
-            "wip_anchor_present": None,
+            "wip_anchor_present": _result_summary_wip_anchor_present(repo, root.name),
             "proof_limits": list(_RESULT_SUMMARY_PROOF_LIMITS),
             "not_proven": [
                 "commit SHA presence from evidence_root alone",
-                "WIP anchor presence from evidence_root alone",
                 "semantic correctness of recorded Agent returns",
                 "whether caller/COO should resume, reroute, or close",
             ],
