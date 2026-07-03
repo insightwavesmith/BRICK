@@ -36,6 +36,7 @@ from brick_protocol.support.operator.composition_intent import (
 )
 from brick_protocol.support.operator.contracts import BuildingPlanSupportResult
 from brick_protocol.support.operator.plan_rendering import _load_shape_registry
+from brick_protocol.support.operator.plan_validation import _transition_lifecycle_evidence_fields
 from brick_protocol.support.operator.run import (
     ChatSessionParkFrontierEvidenceWritten,
     run_building_plan,
@@ -53,7 +54,13 @@ from brick_protocol.support.operator.worktree_sandbox import (
     temp_dir_fallback,
 )
 from brick_protocol.support.operator.assembly import _write_path_covered_by
-from brick_protocol.support.recording.capture import DEFAULT_BUILDINGS_ROOT, buildings_root_for
+from brick_protocol.support.recording.capture import (
+    DEFAULT_BUILDINGS_ROOT,
+    buildings_root_for,
+    graph_ready_json_object,
+    graph_ready_timestamp,
+)
+from brick_protocol.support.recording.walker_evidence import build_hold_record
 
 
 PROOF_LIMITS: tuple[str, ...] = (
@@ -96,6 +103,8 @@ _CUSTOMER_GRAPH_TEMPLATE_AUTHORITY_FIELDS = frozenset(
 )
 _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_FRONTIER = "human_review_waiting"
 _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_REASON = "fake_landing_write_scope_diff_absent"
+_PRODUCT_WRITE_CAPABILITY_CLASSES = frozenset(("source_write", "artifact_write"))
+_PROBE_WRITE_CAPABILITY_CLASSES = frozenset(("probe_write", "verification_write", "read"))
 
 
 @dataclass(frozen=True)
@@ -841,8 +850,19 @@ def _run_in_worktree_sandbox(
                     intake.plan_path,
                 )
             ):
+                _record_fake_landing_hold(
+                    intake.run_result.lifecycle_write.root,
+                    intake.plan_path,
+                )
+                frontier = observe_building_frontier(
+                    intake.run_result.lifecycle_write.root,
+                    repo_root=repo,
+                )
                 frontier_kind = _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_FRONTIER
-                frontier_reason = _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_REASON
+                frontier_reason = str(
+                    frontier.get("frontier_reason")
+                    or _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_REASON
+                )
             return CustomerSandboxRunResult(
                 building_id=intake.building_id,
                 isolation_mode="temp_dir",
@@ -903,8 +923,19 @@ def _run_in_worktree_sandbox(
             sandbox.path,
             intake_result.plan_path,
         ):
+            _record_fake_landing_hold(
+                intake_result.run_result.lifecycle_write.root,
+                intake_result.plan_path,
+            )
+            frontier = observe_building_frontier(
+                intake_result.run_result.lifecycle_write.root,
+                repo_root=sandbox.path,
+            )
             frontier_kind = _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_FRONTIER
-            frontier_reason = _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_REASON
+            frontier_reason = str(
+                frontier.get("frontier_reason")
+                or _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_REASON
+            )
         if frontier_kind == "complete":
             commit_sha = commit_sandbox_output(
                 sandbox,
@@ -979,10 +1010,156 @@ def _write_need_scopes_from_plan_path(plan_path: Path) -> tuple[Mapping[str, Any
     for row in _walk_mappings(payload):
         if row.get("requires_brick_write_scope") is not True:
             continue
+        capability_class = str(row.get("capability_class") or "").strip()
+        if not _capability_class_is_product_write(capability_class):
+            continue
         scope = row.get("write_scope")
         if isinstance(scope, Mapping):
             scopes.append(scope)
     return tuple(scopes)
+
+
+def _capability_class_is_product_write(capability_class: str) -> bool:
+    if capability_class in _PRODUCT_WRITE_CAPABILITY_CLASSES:
+        return True
+    if capability_class in _PROBE_WRITE_CAPABILITY_CLASSES:
+        return False
+    return True
+
+
+def _record_fake_landing_hold(evidence_root: Path, plan_path: Path) -> None:
+    """Persist the fake-landing HOLD so frontier re-observation matches return."""
+
+    building_id = evidence_root.name
+    source = _fake_landing_hold_source(plan_path, building_id=building_id)
+    link_path = evidence_root / "raw" / "link.jsonl"
+    raw_ref = _next_driver_link_raw_ref(link_path)
+    hold_record = build_hold_record(
+        reroute_ref=f"reroute-hold:{building_id}:fake-landing-write-scope-diff-absent",
+        adoption_sequence_number=_next_driver_link_index(link_path),
+        cascade_depth=0,
+        parent_reroute_ref="",
+        source_step_ref=source["step_ref"],
+        source_brick_ref=source["brick_instance_ref"],
+        source_transition_concern_ref=(
+            f"observation:{_FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_REASON}:{building_id}"
+        ),
+        transition_concern_binding=False,
+        immediate_target_ref=source["brick_instance_ref"],
+        target_brick=source["brick_instance_ref"],
+        pending_target_ref=source["brick_instance_ref"],
+        attempt_number=1,
+        node_budget=0,
+        budget_exhausted=False,
+        disposition_required=True,
+        hold_reason=_FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_REASON,
+        required_disposition_owner="caller-or-coo",
+        transition_lifecycle_state="paused",
+        proof_limits=list(PROOF_LIMITS),
+        not_proven=list(NOT_PROVEN),
+    )
+    lifecycle_fields = _transition_lifecycle_evidence_fields(
+        {
+            "transition_lifecycle": {
+                "state": "paused",
+                "progress_state": "in_progress",
+                "required_disposition_owner": "caller-or-coo",
+                "pending_target_ref": source["brick_instance_ref"],
+            }
+        }
+    )
+    link_record = graph_ready_json_object(
+        {
+            **hold_record,
+            **lifecycle_fields,
+            "raw_ref": raw_ref,
+            "raw_refs": [raw_ref],
+            "building_id": building_id,
+            "step_ref": source["step_ref"],
+            "source_brick_instance_ref": source["brick_instance_ref"],
+            "target_brick_instance_ref": source["brick_instance_ref"],
+            "target": source["brick_instance_ref"],
+            "transition_record_created": True,
+            "transition_author_ref": "support:operator-driver",
+            "movement_source": (
+                "support recorded fake-landing hold after complete frontier "
+                "without scoped product diff"
+            ),
+        },
+        building_id=building_id,
+        local_id=f"raw/link.jsonl#{raw_ref.rsplit(':', maxsplit=1)[-1]}",
+        recorded_at=graph_ready_timestamp(),
+        event_type="bp.raw.link",
+        subject=source["brick_instance_ref"],
+    )
+    _append_driver_jsonl_record(link_path, link_record)
+
+
+def _fake_landing_hold_source(plan_path: Path, *, building_id: str) -> dict[str, str]:
+    try:
+        payload = _load_declared_plan_mapping(plan_path)
+    except (OSError, TypeError, ValueError, json.JSONDecodeError):
+        payload = {}
+    for row in _walk_mappings(payload):
+        if row.get("requires_brick_write_scope") is not True:
+            continue
+        capability_class = str(row.get("capability_class") or "").strip()
+        if not _capability_class_is_product_write(capability_class):
+            continue
+        step_ref = str(row.get("step_ref") or "").strip()
+        brick_ref = str(
+            row.get("brick_instance_ref")
+            or row.get("target_brick")
+            or row.get("brick_ref")
+            or ""
+        ).strip()
+        return {
+            "step_ref": step_ref or f"step:{building_id}:fake-landing",
+            "brick_instance_ref": brick_ref or f"brick:{building_id}:fake-landing",
+        }
+    return {
+        "step_ref": f"step:{building_id}:fake-landing",
+        "brick_instance_ref": f"brick:{building_id}:fake-landing",
+    }
+
+
+def _next_driver_link_index(link_path: Path) -> int:
+    max_index = 0
+    for record in _driver_jsonl_records(link_path):
+        raw_ref = str(record.get("raw_ref") or "")
+        if not raw_ref.startswith("raw:link:"):
+            continue
+        suffix = raw_ref.rsplit(":", maxsplit=1)[-1]
+        if suffix.isdigit():
+            max_index = max(max_index, int(suffix))
+    return max_index + 1
+
+
+def _next_driver_link_raw_ref(link_path: Path) -> str:
+    return f"raw:link:{_next_driver_link_index(link_path):02d}"
+
+
+def _driver_jsonl_records(path: Path) -> tuple[Mapping[str, Any], ...]:
+    if not path.is_file():
+        return ()
+    records: list[Mapping[str, Any]] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            value = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(value, Mapping):
+            records.append(value)
+    return tuple(records)
+
+
+def _append_driver_jsonl_record(path: Path, record: Mapping[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(record, ensure_ascii=False, separators=(",", ":"), sort_keys=True))
+        handle.write("\n")
 
 
 def _walk_mappings(value: Any) -> Iterable[Mapping[str, Any]]:
