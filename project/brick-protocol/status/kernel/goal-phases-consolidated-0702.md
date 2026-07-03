@@ -150,6 +150,24 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
 - **주시 패턴**: claude 레인 SIGTERM(143) 2연속(d2 v2 code-qa, #17 v2 axis-qa — 둘 다 fan
   안 claude-local 렌즈, 3600s 타임아웃 추정). 3회째면 원인파악 빌딩 발주.
 
+## 0703 오전 갱신 (COO 실측 — 골 루프 계속)
+
+- **reroute 채택 홀드 기전 규명**(reroute-adoption-invest-0703a, 읽기 전용 조사):
+  runtime mail은 reason_refs의 슬래시 포함 주소를 빌딩 work/step-outputs 밑 실존 파일로
+  요구(fail-closed, 의도) — 오늘 홀드 전부가 레인의 불량 주소 3형(#fragment/bare file:line/
+  문서경로) 때문. 판정: 엔진 결함 아님, 레인 산출 습관+COO 발주 문구가 원인. 처방 빌딩
+  (reason-refs-address-shape-0703a) 진행 중. 사례 정본: reroute-adoption-hold-cases-0703.md.
+- **#17 게이트 오발 수리 랜딩** `0882ca7b`: capability class 도입 — probe_write(QA 변이
+  프로브)/read는 write-need에서 제외, product-write만 무diff 게이트 대상. 게이트 홀드가
+  원장에 실기록돼 재관측과 일치. 오발은 랜딩 2시간 만에 도그푸드(읽기 전용 조사 빌딩)가 검출.
+- **결과 요약 패킷 완결** `6afb1c0d`+`516204ed`(v2+v3): `summarize_building_result()` —
+  COO 손 판독의 자동화. **발사 인체공학 3종 전부 완결.**
+- **§4-6 이빨 가드 + §4-7 픽스처 재진입 격리 랜딩** `ed0e9139`(v2): 4중 구조적 삭제 증명
+  (temp repo 동일성/temp 하위/실 project 무겹침/sentinel nonce+PID). v1의 env-flag 신뢰
+  위험은 QA가 실삭제 재현으로 반려. 선언 갭: 가드 무력화 부정 pin(v3 진행 중).
+- **crosscheck 오보고 3건 실측**(llm QA rc=1 주장 / 요약패킷 FIX2 / 체커인프라 FIX2 pin) —
+  COO 5게이트가 전부 적발. "빌딩 자기보고 불신 — 게이트는 내 손으로" 원칙의 실증 축적.
+
 ## 현재 위치 (0702 심야)
 
 GP0 ✅(admission-gate + 중첩 레이아웃 잔여만) · **GP1 ✅ 종료** · **GP2 인체공학
