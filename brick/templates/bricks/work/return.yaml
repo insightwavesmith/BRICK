@@ -30,6 +30,7 @@ next_link_input_sections:
   - handoff refs
   - not_proven
 rules:
+  - declared proof_obligations are machine-executed after return; run each declared command yourself before returning. If an obligation contradicts the work statement (it names files or commands the Deliverables never mention), do not grind against it — raise an insufficient_input concern in round one citing the contradiction (0704 measured; a contaminated order ground 6 rounds that one concern would have ended).
   - made_changes reports the factual write outcome; support overwrites changed_files from the measured diff (write observation), so the two must not contradict.
   - made_changes true with empty changed_files is a contradiction, not a completion; declare no_changes_reason (the made_changes waiver) or report the gap under blocked_or_missing_evidence.
   - never imply implementation completion in prose when changed_files carries no real diff artifact; the gap belongs under blocked_or_missing_evidence / not_proven (0702 fake-landing).
