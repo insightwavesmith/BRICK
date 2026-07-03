@@ -198,7 +198,15 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
   concern 문서를 이미 읽고도(walker_runtime_mail.py:190) 주소만 부친다("ADDRESSES ONLY" :180)
   — QA 기 저작 요약을 기록-원장-파생+safe_source_fact_body 플로어+참고용 표기 3조건으로
   인라인(정본은 주소 유지). Smith 정책 대기: reroute 처분 re_instruction 필수화(FixC).
-- **GP2 크리티컬 패스 잔여 = P7 재프로브 → P8(Smith 게이트, 자동 진입 금지).**
+- **게이트 홀드 처분 사슬 완성(0703 오후)** — P7이 캔 갭의 수리 3부작 종결:
+  v1 `09fa10c4`(홀드에 처분 정체 탑재) → v2(관측측 접근 — COO 라이브 프로브 실패로 미머지 반려,
+  앵커 464105cf. 기전: forward→재걸음→무diff 그대로→게이트 재발화 무한) → **v3 `ca3b34c0`
+  (설계 교정: 게이트 자신이 처분을 소비 — 재발화 억제)**. COO 라이브 프로브: P7 vessel이
+  기존 처분 소비로 complete 판정+재관측 안정. 변이 rc=1 pin(w1-fake-no-diff-forward)·스윕 34/34.
+  고객 사이클(무diff 완공→HOLD→사람 도장→완주)이 통째로 성립.
+- **GP2 잔여 = P7 최종 재프로브(신규 vessel 전 사이클 1회, 프로브만) → P8(Smith 게이트).**
+  0703 오후 정리 시점: 걷는 빌딩 0, 미머지 반려 앵커 2(464105cf 관측측/참고용, r6 잔재),
+  프로브 잔해 /tmp/brick-p7-coo-proof-*(v2 vessel은 랜딩 증거 인용처 — 보존).
 
 ## 현재 위치 (0702 심야)
 
