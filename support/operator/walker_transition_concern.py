@@ -37,12 +37,15 @@ class _TransitionConcernObservation:
     raw_concern: Mapping[str, Any] | None = None
 
 
-# The admitted non-brick-node prefix for related_boundary_refs (agent/return_fact
-# validate_transition_concern_evidence admits brick:/brick-/brick-boundary:/
-# brick-instance: for Brick NODES, plus building-boundary: for the BUILDING
-# boundary). A building-boundary: ref names NO Brick node; it is the explicit
-# "no reroute intended" sentinel an Agent uses to RAISE a non-binding concern
-# WITHOUT proposing a reroute address.
+# The admitted non-brick-node prefix for related_boundary_refs. NEW authoring
+# (Agent-returned AND machine-authored) is validated by agent/return_fact
+# validate_transition_concern_evidence, which admits ONLY bare brick- node
+# refs plus building-boundary: for the BUILDING boundary. The brick:/
+# brick-instance:/brick-boundary: prefixes below survive ONLY here, as
+# CLASSIFIER tolerance for OLD recorded ledger rows (replay must not HOLD on
+# shapes that were legal when recorded). A building-boundary: ref names NO
+# Brick node; it is the explicit "no reroute intended" sentinel an Agent uses
+# to RAISE a non-binding concern WITHOUT proposing a reroute address.
 _NON_REROUTE_BOUNDARY_PREFIX = "building-boundary:"
 _BRICK_NODE_REF_PREFIXES = (
     "brick:",
@@ -296,12 +299,24 @@ def _proof_obligation_transition_concern_observation(
     step_ref = step_result.preparation.step_rows.step_ref
     building_id = step_result.building_id
     source_brick_ref = step_result.preparation.brick_instance_ref
+    # The intake grammar (agent/return_fact._validate_transition_concern_
+    # related_boundary_ref) admits ONLY bare brick- node refs and the
+    # building-boundary: sentinel — machine authoring gets NO shim, so emit
+    # the declared-node ref as-is; an instance ref that is not a bare brick-
+    # node (e.g. native-dispatch's colon-bearing form) falls back to the
+    # explicit no-reroute sentinel instead of an unresolvable address.
+    if source_brick_ref.startswith("brick-") and not any(
+        ch in source_brick_ref for ch in (":", "/", "\\", "#", " ", "\t", "\n")
+    ):
+        related_boundary_ref = source_brick_ref
+    else:
+        related_boundary_ref = f"building-boundary:{building_id}"
     concern = {
         "concern_ref": f"transition-concern:proof-obligation:{building_id}:{step_ref}",
         "concern_kind": "implementation_gap",
         "binding": False,
         "reason_refs": [f"brick-comparison:{building_id}:{step_ref}"],
-        "related_boundary_refs": [f"brick:{source_brick_ref}"],
+        "related_boundary_refs": [related_boundary_ref],
     }
     try:
         checked = validate_transition_concern_evidence(concern)
