@@ -1,0 +1,56 @@
+schema: checker-profile/v1
+profile_id: interactive-provider-intake
+description: Fixture-only interactive provider/model intake guard.
+kernel_checks:
+  - interactive_provider_intake
+path_exists:
+  - support/operator/onboard.py
+  - support/operator/cli.py
+  - support/operator/provider_registry.py
+  - support/checkers/check_interactive_provider_intake.py
+  - support/checkers/profiles/interactive_provider_intake.yaml
+text_contains:
+  - path: support/operator/onboard.py
+    texts:
+      - "def run_interactive_provider_intake("
+      - "prompt_func"
+      - "INTERACTIVE_PROVIDER_ALIASES"
+      - "model_ref_fell_back_to_default"
+      - "register_ready_provider(adapter_ref, preflight, model_ref=selected_model_ref)"
+      - "Customer deploy canonical is SKILLS_PLACE"
+  - path: support/operator/cli.py
+    texts:
+      - "sys.stdin.isatty()"
+      - 'not bool(getattr(args, "non_interactive", False))'
+      - "provider_model_ref=selected_model_ref"
+      - "Onboarding host (codex/claude/gemini/fugu/local)."
+      - "Default stays on because MCP"
+  - path: support/checkers/check_interactive_provider_intake.py
+    texts:
+      - 'tempfile.TemporaryDirectory(prefix="bp-interactive-provider-intake-")'
+      - 'os.environ["BRICK_HOME"] = tmp'
+      - "_scripted_prompt"
+      - "_ready_command_runner"
+      - "non-interactive init called prompt collector"
+      - "model:codex:gpt-5"
+text_absent:
+  - path: support/checkers/check_interactive_provider_intake.py
+    texts:
+      - 'Path.home() / ".brick"'
+      - "input("
+proof_limits:
+  - support evidence only
+  - fixture-only interactive provider intake checker
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - real TTY behavior outside the injected prompt fixture
+  - real provider preflight execution or model availability outside the fixture command runner
+  - live user ~/.brick persistence behavior
+  - provider credential validity, provider session state, or adapter runtime quality
+  - source truth
+  - success judgment
+  - quality judgment
+  - Movement authority

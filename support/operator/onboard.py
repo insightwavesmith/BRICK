@@ -47,9 +47,13 @@ from typing import Any
 from brick_protocol.support.connection import connect
 from brick_protocol.support.connection.adapter_constants import (
     ADAPTER_CLAUDE_LOCAL,
+    ADAPTER_CODEX_FUGU_LOCAL,
     ADAPTER_CODEX_LOCAL,
     ADAPTER_GEMINI_LOCAL,
     ADAPTER_LOCAL,
+)
+from brick_protocol.support.connection.adapter_model_casting import (
+    _validate_model_ref_for_adapter,
 )
 from brick_protocol.support.connection.adapter_subprocess import (
     preflight_provider,
@@ -68,6 +72,9 @@ from brick_protocol.support.operator.building_operation_common import (
     _repo_path,
 )
 from brick_protocol.support.operator.provider_registry import (
+    DEFAULT_MODEL_REF_BY_ADAPTER,
+    LLM_ALIAS_DECLARATIONS,
+    llm_alias_declaration,
     register_ready_provider,
 )
 from brick_protocol.support.operator.sink_registry import (
@@ -151,12 +158,14 @@ _HOST_ADAPTER_REF = {
     "codex": ADAPTER_CODEX_LOCAL,
     "claude": ADAPTER_CLAUDE_LOCAL,
     "gemini": ADAPTER_GEMINI_LOCAL,
+    "fugu": ADAPTER_CODEX_FUGU_LOCAL,
     "local": ADAPTER_LOCAL,
 }
 # ``connect`` only renders codex/claude config; other hosts get a friendly note.
 _CONNECT_TARGETS = {"codex", "claude"}
 
 SUPPORTED_HOSTS = tuple(_HOST_ADAPTER_REF)
+INTERACTIVE_PROVIDER_ALIASES = tuple(LLM_ALIAS_DECLARATIONS)
 
 
 def _safe_repo_root(repo_root: Path | str | None) -> Path:
@@ -265,6 +274,85 @@ def _preflight_readiness(preflight: dict[str, Any]) -> str:
     return "unknown"
 
 
+def _model_ref_for_alias(alias: str) -> str:
+    declaration = llm_alias_declaration(alias)
+    adapter_ref = str(declaration["adapter_ref"])
+    return str(
+        declaration.get("model_ref")
+        or DEFAULT_MODEL_REF_BY_ADAPTER.get(adapter_ref, "model:default")
+    )
+
+
+def _validated_model_ref_for_alias(alias: str, raw_model_ref: str) -> str:
+    declaration = llm_alias_declaration(alias)
+    adapter_ref = str(declaration["adapter_ref"])
+    default_ref = _model_ref_for_alias(alias)
+    requested = str(raw_model_ref or "").strip() or default_ref
+    try:
+        _validate_model_ref_for_adapter(adapter_ref, requested)
+    except ValueError:
+        return default_ref
+    return requested
+
+
+def run_interactive_provider_intake(
+    *,
+    prompt_func: Any,
+    host_default: str = "codex",
+    providers: Sequence[str] = INTERACTIVE_PROVIDER_ALIASES,
+) -> dict[str, Any]:
+    """Collect provider/model choices for an already-confirmed interactive TTY.
+
+    This front-end collector does not preflight or persist. The caller owns the
+    TTY gate and injects ``prompt_func`` so fixtures never read real stdin.
+    """
+
+    if not callable(prompt_func):
+        raise TypeError("prompt_func must be callable")
+    allowed = tuple(provider for provider in providers if provider in LLM_ALIAS_DECLARATIONS)
+    if not allowed:
+        raise ValueError("providers must include at least one admitted llm alias")
+    default_alias = str(host_default or "codex").strip().lower()
+    if default_alias not in allowed:
+        default_alias = "codex" if "codex" in allowed else allowed[0]
+    raw_alias = str(
+        prompt_func(
+            "Provider to register "
+            f"({'/'.join(allowed)}/skip) [{default_alias}]: "
+        )
+        or ""
+    ).strip().lower()
+    if raw_alias == "skip":
+        return {
+            "kind": "interactive-provider-intake",
+            "skipped": True,
+            "host": "",
+            "model_ref": "",
+            "available_provider_aliases": list(allowed),
+        }
+    alias = raw_alias or default_alias
+    try:
+        declaration = llm_alias_declaration(alias)
+    except ValueError:
+        alias = default_alias
+        declaration = llm_alias_declaration(alias)
+    default_model_ref = _model_ref_for_alias(alias)
+    raw_model_ref = str(
+        prompt_func(f"Model ref for {alias} [{default_model_ref}]: ") or ""
+    ).strip()
+    model_ref = _validated_model_ref_for_alias(alias, raw_model_ref)
+    return {
+        "kind": "interactive-provider-intake",
+        "skipped": False,
+        "host": alias,
+        "adapter_ref": str(declaration["adapter_ref"]),
+        "model_ref": model_ref,
+        "default_model_ref": default_model_ref,
+        "model_ref_fell_back_to_default": bool(raw_model_ref and raw_model_ref != model_ref),
+        "available_provider_aliases": list(allowed),
+    }
+
+
 def _connect_step(host: str, repo_root: Path) -> dict[str, Any]:
     """Step 2: render the connect config text. Never raises. No auto-edit."""
 
@@ -305,6 +393,7 @@ def _connect_step(host: str, repo_root: Path) -> dict[str, Any]:
 def run_provider_register_step(
     host: str,
     *,
+    model_ref: str | None = None,
     command_runner: Any | None = None,
 ) -> dict[str, Any]:
     """Register the requested LLM provider only after ready preflight evidence."""
@@ -332,7 +421,13 @@ def run_provider_register_step(
                 "`brick init --host <host>`를 다시 실행하세요."
             ),
         }
-    result = register_ready_provider(adapter_ref, preflight)
+    selected_model_ref = model_ref
+    if selected_model_ref:
+        try:
+            _validate_model_ref_for_adapter(adapter_ref, selected_model_ref)
+        except ValueError:
+            selected_model_ref = DEFAULT_MODEL_REF_BY_ADAPTER.get(adapter_ref, "model:default")
+    result = register_ready_provider(adapter_ref, preflight, model_ref=selected_model_ref)
     result["preflight_readiness"] = readiness
     result["message_ko"] = "준비된 provider를 ~/.brick/providers.yaml에 등록했어요."
     return result
@@ -1012,6 +1107,11 @@ def _codex_mcp_config_merge(repo: Path) -> dict[str, Any]:
 def run_skills_place_step(repo_root: Path | str | None = None) -> dict[str, Any]:
     """B2b: PROJECT the Agent-axis skills into the user's ~/.claude/skills/ index.
 
+    Customer deploy canonical is SKILLS_PLACE: render Agent Object skill
+    resources into provider-native ``~/.claude/skills`` files. Any direct
+    agent/skills -> live copy path is repo-internal development support, not the
+    onboarding deploy path.
+
     Renders each admitted Agent Object's skills (via the read-only
     ``render_skill_md`` projection) into ``~/.claude/skills/<name>/SKILL.md`` so
     claude can NATIVELY trigger them on description (couples with the A2 manifest:
@@ -1556,6 +1656,7 @@ def run_install_wizard(
     slack_bot_token: str | None = None,
     slack_channel_id: str | None = None,
     command_runner: Any | None = None,
+    provider_model_ref: str | None = None,
 ) -> dict[str, Any]:
     """The ONE ordered, idempotent, friendly-fallback install flow (`brick init`).
 
@@ -1583,6 +1684,7 @@ def run_install_wizard(
     # 2 REGISTER: LLM provider registration, if the requested host is ready.
     steps["provider_register"] = run_provider_register_step(
         host,
+        model_ref=provider_model_ref,
         command_runner=command_runner,
     )
 

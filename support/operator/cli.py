@@ -663,9 +663,22 @@ def _cmd_init(args: argparse.Namespace) -> int:
     """
 
     repo = _repo_from_args(args)
+    interactive_provider_intake = None
+    selected_host = getattr(args, "host", "codex") or "codex"
+    selected_model_ref = None
+    if sys.stdin.isatty() and not bool(getattr(args, "non_interactive", False)):
+        interactive_provider_intake = onboard.run_interactive_provider_intake(
+            prompt_func=input,
+            host_default=selected_host,
+        )
+        if interactive_provider_intake.get("skipped"):
+            selected_host = "local"
+        else:
+            selected_host = str(interactive_provider_intake.get("host") or selected_host)
+            selected_model_ref = str(interactive_provider_intake.get("model_ref") or "") or None
     wizard = onboard.run_install_wizard(
         repo_root=repo,
-        host=getattr(args, "host", "codex") or "codex",
+        host=selected_host,
         output_root=args.output_root,
         allow_real_provider=True,
         run_example=not args.skip_build,
@@ -674,6 +687,7 @@ def _cmd_init(args: argparse.Namespace) -> int:
         place_skills=not getattr(args, "skip_plugin", False),
         slack_bot_token=getattr(args, "slack_bot_token", None),
         slack_channel_id=getattr(args, "slack_channel_id", None),
+        provider_model_ref=selected_model_ref,
     )
 
     doctor_packet = wizard["steps"].get("present")
@@ -746,6 +760,8 @@ def _cmd_init(args: argparse.Namespace) -> int:
         "proof_limits": list(PROOF_LIMITS),
         "not_proven": list(NOT_PROVEN),
     }
+    if interactive_provider_intake is not None:
+        packet["interactive_provider_intake"] = interactive_provider_intake
     if first_use_packet is not None:
         packet["first_use"] = first_use_packet
     if args.json:
@@ -953,10 +969,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _add_common(init_parser)
     init_parser.add_argument("--skip-build", action="store_true", help="Skip the local example build.")
-    init_parser.add_argument("--skip-plugin", action="store_true", help="Skip MCP register + skills placement.")
+    init_parser.add_argument(
+        "--skip-plugin",
+        action="store_true",
+        help=(
+            "Skip MCP register + skills placement. Default stays on because MCP "
+            "serves the user's own interactive CLI sessions."
+        ),
+    )
     init_parser.add_argument("--skip-recording", action="store_true", help="Skip the auto-recording hook wiring.")
     init_parser.add_argument("--skip-verify", action="store_true", help="Skip the final check_profile --all verify.")
-    init_parser.add_argument("--host", default="codex", help="Onboarding host (codex/claude/gemini/local).")
+    init_parser.add_argument("--host", default="codex", help="Onboarding host (codex/claude/gemini/fugu/local).")
     init_parser.add_argument(
         "--slack-bot-token",
         dest="slack_bot_token",
