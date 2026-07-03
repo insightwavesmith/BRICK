@@ -175,8 +175,11 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
   소음) ②QA의 메타-검증 요구 상승. 교훈: **계약에 명시적 종료선 + 렌즈별 환경-가능 증명 분담.**
 - **세션ID 각인 사고 1건**(COO 문서 커밋 99dfaa64): 스코어보드 경로에 세션 UUID를 박아
   redaction 체커에 적발 — glob으로 교정(219bc7c3). 문서-only 커밋도 스윕 대상에 포함.
-- 걷는 중: §4-7 부정 pin(checker-infra-smalls-0703c). 다음 순번: 온보딩 Phase 2-3 → P7 →
-  **P8(Smith 게이트, 자동 진입 금지)**.
+- **§4-7 부정 pin 랜딩** `47d412eb`: 가드 통째 무력화→self-test rc=1(COO 직접 변이) — v2의
+  unpinned-safety 갭 봉합. 4라운드 same-family 루프는 COO stop-and-gate로 종결(repo-identity
+  서브케이스 개별 격리는 종료선 밖 nit로 기록·수용).
+- 걷는 중: **온보딩 Phase 2-3**(대화형 등록/모델선택 + MCP opt-in·스킬 정본 판단 2건 —
+  종료선 계약 첫 적용). 다음 순번: P7 → **P8(Smith 게이트, 자동 진입 금지)**.
 
 ## 현재 위치 (0702 심야)
 
