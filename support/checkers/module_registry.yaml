@@ -764,6 +764,16 @@ modules:
     decomposition_target: ""
     pinned_by: pure-relocation sibling of kernel_checks (agent_session_id_redaction kernel check; homes no crossing mechanics, imports no axis at module level)
 
+  - module: support/checkers/lib/dashboard_productization_projection_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of kernel_checks (dashboard_productization_projection kernel check; homes no crossing mechanics, imports no axis at module level)
+
   - module: support/checkers/lib/no_smith_residue_check.py
     layer: checkers/lib
     role: checker-lib
