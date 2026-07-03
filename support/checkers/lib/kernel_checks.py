@@ -248,31 +248,6 @@ def call_main(check_id: str, module_name: str, argv: list[str] | None) -> Kernel
 
 
 
-def _gemini_api_classify_error_kind(exc: Exception) -> str:
-    """Read-only mirror of run.py._adapter_error_kind (we cannot edit run.py).
-
-    The B2-hardened hold path classifies adapter exceptions by type/message. We
-    replicate the mapping here ONLY to assert (in-process) that a gemini-api
-    no-key error flows the SAME clean typed adapter-error path, never a crash.
-
-    INTENTIONAL DIVERGENCE from run.py._adapter_error_kind (codex-review F4): the
-    TimeoutExpired branch here maps to plain 'local_cli_timeout' and is NOT given
-    the connect-stall split. Gemini is an HTTP API adapter with no codex
-    dead-connection watchdog, so a stall-tagged TimeoutExpired can never reach it
-    and 'local_cli_connect_stall' is correctly absent. Every OTHER branch mirrors
-    run.py._adapter_error_kind.
-    """
-    message = str(exc).lower()
-    if isinstance(exc, FileNotFoundError):
-        return "local_cli_missing"
-    if isinstance(exc, subprocess.TimeoutExpired):
-        return "local_cli_timeout"
-    if "non-zero" in message or "returned non-zero" in message:
-        return "local_cli_nonzero"
-    if "returned payload" in message or "forbidden returned" in message:
-        return "adapter_return_shape_rejected"
-    return "adapter_exception"
-
 
 from support.checkers.lib.design_ai_text_seams_check import run_design_ai_text_seams
 from support.checkers.lib.codex_connect_stall_classification_check import (
