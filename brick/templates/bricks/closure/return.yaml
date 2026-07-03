@@ -22,6 +22,11 @@ required_return_shape:
 # non-step-output slash paths, any other slash-containing document paths, and
 # descriptive refs belong under observed_evidence / evidence_used /
 # checked_sources, or as slashless opaque tokens such as observation:<id>.
+# transition_concern_evidence.related_boundary_refs address rule: only reroute
+# target Brick refs in bare brick-... form, or building-boundary: sentinel refs,
+# are admitted. File paths and prose citations are not admitted.
+# New authored returns must not use brick:, brick-instance:, or brick-boundary:;
+# any old-shape replay tolerance is support compatibility evidence only.
 carries_forward_fields:
   - narrowly_proven
   - remaining_delta

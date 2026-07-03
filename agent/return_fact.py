@@ -24,10 +24,7 @@ REROUTE_ELIGIBLE_CONCERN_KINDS: frozenset[str] = (
     TRANSITION_CONCERN_KINDS - NON_REROUTE_CONCERN_KINDS
 )
 TRANSITION_CONCERN_REROUTE_REF_PREFIXES: tuple[str, ...] = (
-    "brick:",
     "brick-",
-    "brick-boundary:",
-    "brick-instance:",
 )
 TRANSITION_CONCERN_ALLOWED_KEYS: frozenset[str] = frozenset(
     {
@@ -43,6 +40,11 @@ TRANSITION_CONCERN_ALLOWED_KEYS: frozenset[str] = frozenset(
 TRANSITION_CONCERN_REASON_REF_ADDRESS_RULE = (
     "transition_concern_evidence.reason_refs with '/' must be work/step-outputs/... "
     "ledger addresses with no #fragment; bare file:line citations are not admitted"
+)
+TRANSITION_CONCERN_RELATED_BOUNDARY_REF_RULE = (
+    "transition_concern_evidence.related_boundary_refs must be bare brick-... refs "
+    "or building-boundary: refs only; file paths, #fragments, bare file:line citations, "
+    "whitespace prose, brick:, brick-instance:, and brick-boundary: refs are not admitted"
 )
 TOP_LEVEL_VERDICT_KEYS: frozenset[str] = frozenset(
     {
@@ -154,6 +156,75 @@ def _validate_transition_concern_reason_ref(ref: str) -> None:
         )
 
 
+def _validate_transition_concern_related_boundary_ref(ref: str) -> None:
+    if ref.startswith(("brick:", "brick-instance:", "brick-boundary:")):
+        raise ValueError(
+            f"{TRANSITION_CONCERN_RELATED_BOUNDARY_REF_RULE}; invalid ref {ref!r}"
+        )
+    if ref.startswith("brick-"):
+        if ref == "brick-" or ":" in ref:
+            raise ValueError(
+                f"{TRANSITION_CONCERN_RELATED_BOUNDARY_REF_RULE}; invalid ref {ref!r}"
+            )
+    elif ref.startswith("building-boundary:"):
+        if ref == "building-boundary:":
+            raise ValueError(
+                f"{TRANSITION_CONCERN_RELATED_BOUNDARY_REF_RULE}; invalid ref {ref!r}"
+            )
+    else:
+        raise ValueError(
+            f"{TRANSITION_CONCERN_RELATED_BOUNDARY_REF_RULE}; invalid ref {ref!r}"
+        )
+    if "#" in ref or re.search(r"(?:/|\\|^[^:]+\.[A-Za-z0-9]+):[0-9]+$", ref):
+        raise ValueError(
+            f"{TRANSITION_CONCERN_RELATED_BOUNDARY_REF_RULE}; invalid ref {ref!r}"
+        )
+    if "/" in ref.replace("\\", "/") or re.search(r"\s", ref):
+        raise ValueError(
+            f"{TRANSITION_CONCERN_RELATED_BOUNDARY_REF_RULE}; invalid ref {ref!r}"
+        )
+
+
+def _proof_obligation_allows_brick_colon(
+    concern_ref: str, reason_refs: tuple[str, ...]
+) -> tuple[str, str] | None:
+    if not concern_ref.startswith("transition-concern:proof-obligation:"):
+        return None
+    proof_obligation_parts = concern_ref.split(":", 3)
+    if len(proof_obligation_parts) != 4:
+        return None
+    _, _, building_id, step_ref = proof_obligation_parts
+    expected_reason_ref = f"brick-comparison:{building_id}:{step_ref}"
+    if expected_reason_ref not in reason_refs:
+        return None
+    return building_id, step_ref
+
+
+def _normalize_transition_concern_related_boundary_refs(
+    concern_ref: str, reason_refs: tuple[str, ...], related_refs: tuple[str, ...]
+) -> tuple[str, ...]:
+    proof_obligation_parts = _proof_obligation_allows_brick_colon(
+        concern_ref, reason_refs
+    )
+    if proof_obligation_parts is None:
+        return related_refs
+    normalized: list[str] = []
+    for ref in related_refs:
+        if ref.startswith("brick:"):
+            ref = ref.removeprefix("brick:")
+            if not ref.startswith("brick-"):
+                ref = f"brick-{ref}"
+            if proof_obligation_parts is not None:
+                building_id, step_ref = proof_obligation_parts
+                if ref != f"brick-{step_ref}" and not ref.startswith(
+                    f"brick-{building_id}-"
+                ):
+                    normalized.append(f"brick:{ref.removeprefix('brick-')}")
+                    continue
+        normalized.append(ref)
+    return tuple(normalized)
+
+
 def validate_transition_concern_evidence(concern: "Mapping[str, Any]") -> dict:
     for key in concern:
         if not isinstance(key, str) or key not in TRANSITION_CONCERN_ALLOWED_KEYS:
@@ -175,16 +246,22 @@ def validate_transition_concern_evidence(concern: "Mapping[str, Any]") -> dict:
         "transition_concern_evidence.related_boundary_refs",
         concern.get("related_boundary_refs", ()),
     )
+    original_related_refs = related_refs
+    related_refs = _normalize_transition_concern_related_boundary_refs(
+        concern_ref, reason_refs, related_refs
+    )
     for ref in related_refs:
-        if not ref.startswith((*TRANSITION_CONCERN_REROUTE_REF_PREFIXES, "building-boundary:")):
-            raise ValueError("transition_concern_evidence.related_boundary_refs must name Brick boundaries")
+        _validate_transition_concern_related_boundary_ref(ref)
         if concern_kind in NON_REROUTE_CONCERN_KINDS and ref.startswith(
             TRANSITION_CONCERN_REROUTE_REF_PREFIXES
         ):
             raise ValueError(
                 "transition_concern_evidence.verification_gap must not name a reroute-capable Brick boundary"
             )
-    return dict(concern)
+    checked = dict(concern)
+    if "related_boundary_refs" in concern or related_refs != original_related_refs:
+        checked["related_boundary_refs"] = list(related_refs)
+    return checked
 
 
 @dataclass(frozen=True)

@@ -22,17 +22,22 @@ returned_shape:
     # packet labels under
     # observed_evidence / evidence_used / checked_sources instead, or use a
     # slashless opaque token such as observation:<id>.
+    # related_boundary_refs address rule: only reroute target Brick refs in
+    # bare brick-... form, or building-boundary: sentinel refs, are admitted.
+    # File paths and prose citations are not admitted.
+    # New authored returns must not use brick:, brick-instance:, or
+    # brick-boundary:; any old-shape replay tolerance is support compatibility
+    # evidence only.
     # Reroute-eligible defect kinds (implementation_gap, design_gap, upstream_gap,
     # boundary_mismatch, insufficient_input, replay_needed, unknown) may name the
-    # upstream WORK node responsible for the defect. Admitted forms are the plain
-    # declared node id or brick:<declared-node>, brick-instance:<declared-node>,
-    # and brick-boundary:<declared-node> — NOT the reporting node itself, NOT a
-    # building-boundary: sentinel.
+    # upstream WORK node responsible for the defect. The admitted reroute target
+    # form is the bare declared brick-... node id -- NOT brick:, brick-instance:,
+    # brick-boundary:, the reporting node itself, or a building-boundary: sentinel.
     # verification_gap is non-reroute evidence: record it with empty refs or a
     # building-boundary: sentinel, never with a Brick-node reroute address.
     # The engine silently walks-on a self-ref or sentinel, so no reroute fires.
     related_boundary_refs:
-      - brick:<upstream-work-node-id>
+      - brick-<upstream-work-node-id>
     binding: false
     proof_limits:
       - Agent concern only

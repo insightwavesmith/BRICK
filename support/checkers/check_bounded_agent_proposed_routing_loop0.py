@@ -3655,6 +3655,8 @@ def check(repo: Path) -> list[str]:
                 f"({kind_classification})"
             )
 
+    from brick_protocol.agent.return_fact import validate_transition_concern_evidence
+
     prefix_target = "brick-bapr-loop0-knot4-prefixed-target-build"
     prefix_source = "brick-bapr-loop0-knot4-prefixed-target-review"
     prefixed_ref_cases = {
@@ -3677,6 +3679,28 @@ def check(repo: Path) -> list[str]:
                 "knot4-prefixed-target: admitted Brick-node prefix "
                 f"{case_label} did not resolve to the declared node "
                 f"({prefix_classification})"
+            )
+        try:
+            validate_transition_concern_evidence(
+                {
+                    "concern_ref": f"transition-concern:{prefix_source}-{case_label}",
+                    "concern_kind": "implementation_gap",
+                    "binding": False,
+                    "reason_refs": [f"brick-comparison:{prefix_source}"],
+                    "related_boundary_refs": [prefixed_ref],
+                }
+            )
+        except ValueError as exc:
+            message = str(exc)
+            if prefixed_ref not in message or "related_boundary_refs" not in message:
+                violations.append(
+                    "knot4-prefixed-target: new-authoring rejection message for "
+                    f"{case_label} omitted the bad ref or rule ({exc})"
+                )
+        else:
+            violations.append(
+                "knot4-prefixed-target: new Agent-return intake accepted old "
+                f"prefixed related_boundary_refs form {prefixed_ref!r}"
             )
     prefixed_self_classification = _classify_reroute_target(
         {"related_boundary_refs": [f"brick:{prefix_source}"]},
@@ -3720,30 +3744,30 @@ def check(repo: Path) -> list[str]:
     )
     adopted_prefixed = _adopted_records(rec_prefixed)
     held_prefixed = _held_records(rec_prefixed)
-    if len(adopted_prefixed) != 1:
+    if adopted_prefixed:
         violations.append(
-            "knot4-prefixed-target: brick:<declared-node> did not adopt exactly "
-            f"one reroute in the live walker ({rec_prefixed})"
+            "knot4-prefixed-target: newly authored brick:<declared-node> was "
+            f"adopted instead of rejected at intake ({adopted_prefixed})"
         )
-    elif adopted_prefixed[0].get("target_brick") != b2_prefixed:
+    if len(held_prefixed) != 1:
         violations.append(
-            "knot4-prefixed-target: live walker adopted the wrong target "
-            f"({adopted_prefixed[0].get('target_brick')})"
+            "knot4-prefixed-target: expected one invalid-concern HOLD for newly "
+            f"authored brick:<declared-node>, got {len(held_prefixed)} ({rec_prefixed})"
         )
-    if held_prefixed:
+    elif held_prefixed[0].get("hold_reason") != "invalid_transition_concern_evidence":
         violations.append(
-            "knot4-prefixed-target: brick:<declared-node> paused instead of "
-            f"rerouting ({held_prefixed})"
+            "knot4-prefixed-target: newly authored brick:<declared-node> held "
+            f"with wrong reason {held_prefixed[0].get('hold_reason')}"
         )
-    if fr_prefixed["frontier_kind"] not in {"complete", "closure_pending"}:
+    if fr_prefixed["frontier_kind"] != "link_paused":
         violations.append(
-            "knot4-prefixed-target: prefixed reroute did not proceed "
+            "knot4-prefixed-target: invalid newly authored prefixed reroute did not pause "
             f"(frontier={fr_prefixed['frontier_kind']})"
         )
     prefixed_bricks = _step_bricks(res_prefixed)
-    if prefixed_bricks.count(b2_prefixed) < 2:
+    if prefixed_bricks.count(b2_prefixed) != 1:
         violations.append(
-            "knot4-prefixed-target: prefixed target was not re-executed "
+            "knot4-prefixed-target: target Brick was re-executed after invalid prefixed reroute "
             f"(count={prefixed_bricks.count(b2_prefixed)})"
         )
 
@@ -3935,25 +3959,130 @@ def check(repo: Path) -> list[str]:
     # before the route classifier can adopt the otherwise-resolving target. The
     # companion sentinel case proves verification_gap still has a non-reroute
     # evidence channel and the policy is not a blanket concern ban.
-    from brick_protocol.agent.return_fact import validate_transition_concern_evidence
-
     address_rule_phrase = "work/step-outputs"
+    boundary_rule_phrase = "related_boundary_refs"
     valid_address_ref = "work/step-outputs/concern-attempt-1/step-output.json"
-    try:
-        validate_transition_concern_evidence(
-            {
-                "concern_ref": "transition-concern:bapr-loop0-address-contract-ok",
-                "concern_kind": "implementation_gap",
-                "binding": False,
-                "reason_refs": [valid_address_ref, "observation:address-contract-ok"],
-                "related_boundary_refs": ["brick-bapr-loop0-address-contract-ok-build"],
-            }
-        )
-    except ValueError as exc:
-        violations.append(
-            "address-contract-intake: standard work/step-outputs reason_ref was "
-            f"rejected ({exc})"
-        )
+    valid_boundary_refs = {
+        "bare brick target": "brick-bapr-loop0-address-contract-ok-build",
+        "building-boundary sentinel": "building-boundary:bapr-loop0-address-contract-ok",
+    }
+    for label_boundary, ref_boundary in valid_boundary_refs.items():
+        try:
+            validate_transition_concern_evidence(
+                {
+                    "concern_ref": f"transition-concern:bapr-loop0-address-contract-ok-{label_boundary.replace(' ', '-')}",
+                    "concern_kind": "implementation_gap",
+                    "binding": False,
+                    "reason_refs": [valid_address_ref, "observation:address-contract-ok"],
+                    "related_boundary_refs": [ref_boundary],
+                }
+            )
+        except ValueError as exc:
+            violations.append(
+                "address-contract-intake: valid related_boundary_refs form "
+                f"{label_boundary} was rejected ({exc})"
+            )
+    legacy_boundary_refs = {
+        "full brick-colon replay": (
+            "transition-concern:proof-obligation:bapr-loop0-address-contract-old-shape:bapr-loop0-address-contract-old-shape-build",
+            "brick:brick-bapr-loop0-address-contract-old-shape-build",
+            [
+                "brick-comparison:bapr-loop0-address-contract-old-shape:"
+                "bapr-loop0-address-contract-old-shape-build"
+            ],
+            ["brick-bapr-loop0-address-contract-old-shape-build"],
+        ),
+    }
+    for label_boundary, (
+        legacy_concern_ref,
+        ref_boundary,
+        reason_refs,
+        expected_related_boundary_refs,
+    ) in legacy_boundary_refs.items():
+        try:
+            checked_legacy = validate_transition_concern_evidence(
+                {
+                    "concern_ref": legacy_concern_ref,
+                    "concern_kind": "implementation_gap",
+                    "binding": False,
+                    "reason_refs": reason_refs,
+                    "related_boundary_refs": [ref_boundary],
+                }
+            )
+        except ValueError as exc:
+            violations.append(
+                "address-contract-intake: old-shape related_boundary_refs form "
+                f"{label_boundary} was rejected ({exc})"
+            )
+        else:
+            if (
+                checked_legacy.get("related_boundary_refs")
+                != expected_related_boundary_refs
+            ):
+                violations.append(
+                    "address-contract-intake: old-shape related_boundary_refs form "
+                    f"{label_boundary} normalized to "
+                    f"{checked_legacy.get('related_boundary_refs')!r}"
+                )
+    fresh_prefix_bypass_refs = {
+        "fresh proof-obligation arbitrary target without comparison evidence": (
+            "transition-concern:proof-obligation:ANY-NEW-BUILDING:ANY-NEW-STEP",
+            "brick:attacker-declared-target",
+            ["observation:fresh-prefix-boundary-contract"],
+        ),
+        "fresh proof-obligation matching step without comparison evidence": (
+            "transition-concern:proof-obligation:ANY-NEW-BUILDING:ANY-NEW-STEP",
+            "brick:ANY-NEW-STEP",
+            ["observation:fresh-prefix-boundary-contract"],
+        ),
+        "fresh proof-obligation matching building without comparison evidence": (
+            "transition-concern:proof-obligation:ANY-NEW-BUILDING:ANY-NEW-STEP",
+            "brick:ANY-NEW-BUILDING-some-target",
+            ["observation:fresh-prefix-boundary-contract"],
+        ),
+        "fresh mail-old-shape arbitrary target": (
+            "transition-concern:mail-old-shape:any-new-label",
+            "brick:attacker-declared-target",
+            ["observation:fresh-prefix-boundary-contract"],
+        ),
+        "fresh exact short mail-old-shape arbitrary target": (
+            "transition-concern:mail-old-shape:short",
+            "brick:attacker-declared-target",
+            ["observation:fresh-prefix-boundary-contract"],
+        ),
+        "fresh exact attempt mail-old-shape arbitrary target": (
+            "transition-concern:mail-old-shape:attempt-1",
+            "brick:attacker-declared-target",
+            ["observation:fresh-prefix-boundary-contract"],
+        ),
+    }
+    for label_boundary, (
+        concern_ref,
+        ref_boundary,
+        reason_refs,
+    ) in fresh_prefix_bypass_refs.items():
+        try:
+            validate_transition_concern_evidence(
+                {
+                    "concern_ref": concern_ref,
+                    "concern_kind": "implementation_gap",
+                    "binding": False,
+                    "reason_refs": reason_refs,
+                    "related_boundary_refs": [ref_boundary],
+                }
+            )
+        except ValueError as exc:
+            message = str(exc)
+            if ref_boundary not in message or boundary_rule_phrase not in message:
+                violations.append(
+                    f"address-contract-intake: {label_boundary} rejected with an "
+                    f"unhelpful message ({exc})"
+                )
+        else:
+            violations.append(
+                f"address-contract-intake: {label_boundary} accepted old-shape "
+                "related_boundary_refs without replay/machine-authored context"
+            )
     invalid_address_refs = {
         "fragment-bearing step-output ref": (
             "work/step-outputs/concern-attempt-1/step-output.json#observed"
@@ -3985,6 +4114,38 @@ def check(repo: Path) -> list[str]:
             violations.append(
                 f"address-contract-intake: {label_addr} was accepted; malformed "
                 "reason_refs must fail at new Agent-return intake"
+            )
+    invalid_boundary_refs = {
+        "descriptive prose": "work node that made the bug",
+        "bare file:line citation": "agent/return_fact.py:128",
+        "slash path": "brick/templates/bricks/work/return.yaml",
+        "colon numeric brick ref": "brick-foo:128",
+        "colon text brick ref": "brick-foo:bar",
+        "empty brick ref": "brick-",
+        "empty building-boundary ref": "building-boundary:",
+    }
+    for label_boundary, ref_boundary in invalid_boundary_refs.items():
+        try:
+            validate_transition_concern_evidence(
+                {
+                    "concern_ref": f"transition-concern:bapr-loop0-boundary-contract-{label_boundary.replace(' ', '-')}",
+                    "concern_kind": "implementation_gap",
+                    "binding": False,
+                    "reason_refs": ["observation:boundary-contract"],
+                    "related_boundary_refs": [ref_boundary],
+                }
+            )
+        except ValueError as exc:
+            message = str(exc)
+            if ref_boundary not in message or boundary_rule_phrase not in message:
+                violations.append(
+                    f"address-contract-intake: {label_boundary} related_boundary_ref "
+                    f"rejected with an unhelpful message ({exc})"
+                )
+        else:
+            violations.append(
+                f"address-contract-intake: {label_boundary} was accepted; malformed "
+                "related_boundary_refs must fail at new Agent-return intake"
             )
 
     plan_vg_target, b2_vg_target = _checker_plan(
@@ -7362,7 +7523,7 @@ def check(repo: Path) -> list[str]:
                 "concern_kind": "implementation_gap",
                 "binding": False,
                 "reason_refs": [supporting_ref_m8b, broken_citation_m8b],
-                "related_boundary_refs": ["brick-mail-old-shape-target"],
+                "related_boundary_refs": ["brick:mail-old-shape-target"],
             },
             "not_proven": ["semantic correctness"],
         }
