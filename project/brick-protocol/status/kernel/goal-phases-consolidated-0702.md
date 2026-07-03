@@ -204,7 +204,10 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
   (설계 교정: 게이트 자신이 처분을 소비 — 재발화 억제)**. COO 라이브 프로브: P7 vessel이
   기존 처분 소비로 complete 판정+재관측 안정. 변이 rc=1 pin(w1-fake-no-diff-forward)·스윕 34/34.
   고객 사이클(무diff 완공→HOLD→사람 도장→완주)이 통째로 성립.
-- **GP2 잔여 = P7 최종 재프로브(신규 vessel 전 사이클 1회, 프로브만) → P8(Smith 게이트).**
+- **P7 PASS(0703 14:13)** — 프레시 clone(3f45fd35) 전 사이클: 설치→대화형 온보딩→공식 발주→
+  걸음 완주→게이트 HOLD(설계 발화)→사람 forward→**frontier=complete**. 정본: p7-fresh-proof-0703.md
+  (캐비앗: codex 자격 복사·gh auth transcript 미증명·레인 샌드박스 네트워크 차단 실측).
+- **GP2 잔여 = P8 도그푸드 프로브 하나 — Smith 진입 결정 대기(자동 진입 금지).**
   0703 오후 정리 시점: 걷는 빌딩 0, 미머지 반려 앵커 2(464105cf 관측측/참고용, r6 잔재),
   프로브 잔해 /tmp/brick-p7-coo-proof-*(v2 vessel은 랜딩 증거 인용처 — 보존).
 
