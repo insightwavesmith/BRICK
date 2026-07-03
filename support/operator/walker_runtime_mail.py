@@ -3,13 +3,20 @@
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from brick_protocol.agent.return_fact import ALWAYS_SECRET_KEYS, TOP_LEVEL_VERDICT_KEYS
+from brick_protocol.support.connection.adapter_validation import safe_source_fact_body
 from brick_protocol.support.operator.primitives import _optional_text_value
 from brick_protocol.support.operator.walker_carry import _step_output_body_from_file
 from brick_protocol.support.recording.step_outputs import _step_output_manifest_ref
+
+_RUNTIME_CONCERN_PAPER1_FIELD_NAMES: frozenset[str] = frozenset(
+    {"transition_concern_evidence"}
+)
 
 def _runtime_handoff_unresolved_address(
     building_root: Path,
@@ -94,6 +101,57 @@ def _runtime_handoff_unresolved_address(
     return ""
 
 
+def _runtime_handoff_undelivered_citation_ref(ref: str) -> bool:
+    """True for old citation-shaped refs that must be recorded but not delivered.
+
+    Security-address failures still fail closed through
+    ``_runtime_handoff_unresolved_address``. This exception only covers recorded
+    old evidence that used citation syntax where runtime mail now expects
+    deliverable ``work/step-outputs/...`` addresses.
+    """
+
+    text = ref.replace("\\", "/")
+    if "#" in text:
+        return True
+    if re.search(r"(?:/|^[^:]+\.[A-Za-z0-9]+):[0-9]+$", text):
+        return True
+    if "/" in text and not text.startswith("/") and ".." not in text.split("/"):
+        return not text.startswith("work/step-outputs/")
+    return False
+
+
+def _runtime_concern_summary_fields_from_step_output(
+    building_root: Path,
+    step_output_ref: str,
+) -> dict[str, str]:
+    body = _step_output_body_from_file(building_root, step_output_ref)
+    if body is None:
+        return {}
+    try:
+        document = json.loads(body)
+    except ValueError:
+        return {}
+    if not isinstance(document, Mapping):
+        return {}
+    returned = document.get("returned")
+    if not isinstance(returned, Mapping):
+        return {}
+    result: dict[str, str] = {}
+    for raw_key in sorted(returned, key=str):
+        key = str(raw_key)
+        normalized_key = key.strip().lower().replace("-", "_").replace(" ", "_")
+        if (
+            normalized_key in _RUNTIME_CONCERN_PAPER1_FIELD_NAMES
+            or normalized_key in ALWAYS_SECRET_KEYS
+            or normalized_key in TOP_LEVEL_VERDICT_KEYS
+        ):
+            continue
+        result[key] = safe_source_fact_body(
+            json.dumps(returned[raw_key], ensure_ascii=False, sort_keys=True)
+        )
+    return result
+
+
 def _step_output_address_escapes_ledger(
     building_root: Path,
     relative: str,
@@ -171,12 +229,14 @@ def _runtime_concern_handoff_from_ledger(
     row's formal residence in the ledger; written by record_step_output BEFORE
     adoption) and delivers the RECORDED reason_refs -- never the in-memory
     values -- with provenance (row ref + kind + recorded residence) so replay
-    reads the recorded fact. Returns ``(entry, "")`` on success, or
+    reads the recorded fact. The concern document's own recorded address always
+    rides as ``concern_doc_ref`` once the row is verified. Old citation-shaped
+    refs are quarantined under ``undelivered_citation_refs`` rather than
+    delivered. Returns ``(entry, "")`` on success, or
     ``(None, hold_reason)`` fail-closed (B1) when the recorded residence is
     missing/unreadable, the recorded row is not the adopted row, the mandatory
-    recorded reason_refs are empty, or a recorded address does not resolve in
-    the ledger. ADDRESSES ONLY: the entry carries refs and provenance data, no
-    bodies and no free-text fields.
+    recorded reason_refs are empty, or a security-shaped recorded address does
+    not resolve in the ledger.
     """
 
     manifest_ref = _step_output_manifest_ref(source_step_ref, source_attempt_index)
@@ -212,26 +272,42 @@ def _runtime_concern_handoff_from_ledger(
     ]
     if not reason_refs:
         return None, f"runtime_handoff_concern_row_unrecorded_in_ledger:{concern_doc_ref}"
-    unresolved = _runtime_handoff_unresolved_address(building_root, reason_refs)
-    if unresolved:
+    deliverable_reason_refs: list[str] = []
+    undelivered_citation_refs: list[str] = []
+    for ref in reason_refs:
+        unresolved = _runtime_handoff_unresolved_address(building_root, [ref])
+        if not unresolved:
+            deliverable_reason_refs.append(ref)
+            continue
+        if _runtime_handoff_undelivered_citation_ref(ref):
+            undelivered_citation_refs.append(ref)
+            continue
         return None, f"runtime_handoff_address_unresolved_in_ledger:{unresolved}"
-    return (
-        {
-            "from_step_ref": source_step_ref,
-            "from_brick_instance_ref": source_brick_ref,
+    summary_fields = _runtime_concern_summary_fields_from_step_output(
+        building_root,
+        _optional_text_value(document.get("step_output_ref")) or "",
+    )
+    entry: dict[str, Any] = {
+        "from_step_ref": source_step_ref,
+        "from_brick_instance_ref": source_brick_ref,
+        "row_kind": "transition_concern",
+        "row_ref": recorded_row_ref,
+        "concern_doc_ref": concern_doc_ref,
+        "reason_refs": list(deliverable_reason_refs),
+        "provenance": {
+            "runtime_row_ref": _optional_text_value(
+                document.get("transition_concern_ref")
+            )
+            or recorded_row_ref,
             "row_kind": "transition_concern",
-            "row_ref": recorded_row_ref,
-            "reason_refs": list(reason_refs),
-            "provenance": {
-                "runtime_row_ref": _optional_text_value(
-                    document.get("transition_concern_ref")
-                )
-                or recorded_row_ref,
-                "row_kind": "transition_concern",
-                "recorded_in": concern_doc_ref,
-            },
+            "recorded_in": concern_doc_ref,
         },
+    }
+    if undelivered_citation_refs:
+        entry["undelivered_citation_refs"] = undelivered_citation_refs
+    if summary_fields:
+        entry["recorded_summary_fields"] = summary_fields
+    return (
+        entry,
         "",
     )
-
-

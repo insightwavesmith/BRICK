@@ -3937,6 +3937,56 @@ def check(repo: Path) -> list[str]:
     # evidence channel and the policy is not a blanket concern ban.
     from brick_protocol.agent.return_fact import validate_transition_concern_evidence
 
+    address_rule_phrase = "work/step-outputs"
+    valid_address_ref = "work/step-outputs/concern-attempt-1/step-output.json"
+    try:
+        validate_transition_concern_evidence(
+            {
+                "concern_ref": "transition-concern:bapr-loop0-address-contract-ok",
+                "concern_kind": "implementation_gap",
+                "binding": False,
+                "reason_refs": [valid_address_ref, "observation:address-contract-ok"],
+                "related_boundary_refs": ["brick-bapr-loop0-address-contract-ok-build"],
+            }
+        )
+    except ValueError as exc:
+        violations.append(
+            "address-contract-intake: standard work/step-outputs reason_ref was "
+            f"rejected ({exc})"
+        )
+    invalid_address_refs = {
+        "fragment-bearing step-output ref": (
+            "work/step-outputs/concern-attempt-1/step-output.json#observed"
+        ),
+        "bare file:line citation": "agent/return_fact.py:128",
+        "non-step-output slash path": "raw/link.jsonl",
+    }
+    for label_addr, ref_addr in invalid_address_refs.items():
+        try:
+            validate_transition_concern_evidence(
+                {
+                    "concern_ref": f"transition-concern:bapr-loop0-address-contract-{label_addr.replace(' ', '-')}",
+                    "concern_kind": "implementation_gap",
+                    "binding": False,
+                    "reason_refs": [ref_addr],
+                    "related_boundary_refs": [
+                        f"brick-bapr-loop0-address-contract-{label_addr.replace(' ', '-')}-build"
+                    ],
+                }
+            )
+        except ValueError as exc:
+            message = str(exc)
+            if ref_addr not in message or address_rule_phrase not in message:
+                violations.append(
+                    f"address-contract-intake: {label_addr} rejected with an "
+                    f"unhelpful message ({exc})"
+                )
+        else:
+            violations.append(
+                f"address-contract-intake: {label_addr} was accepted; malformed "
+                "reason_refs must fail at new Agent-return intake"
+            )
+
     plan_vg_target, b2_vg_target = _checker_plan(
         "bapr-loop0-qa-verification-gap-brick-target",
         budget=1,
@@ -6244,8 +6294,9 @@ def check(repo: Path) -> list[str]:
     # runtime concern.reason_refs markers arrived in 0/10 redo-worker inputs
     # while declared refs arrived in all) as an EXECUTED case family:
     #   mail-1  runtime marker ARRIVES in every redo input (and ONLY there),
-    #           provenance recorded as data, packet carries ADDRESSES ONLY,
-    #           receipt (B2) records the delivered addresses as fact.
+    #           provenance recorded as data, packet carries recorded refs and
+    #           compact summary fields only, receipt (B2) records the delivered
+    #           addresses as fact.
     #   mail-2  broken ledger address (B1) -> HOLD loudly, nothing adopted.
     #   mail-3  declared-only plan: declared routing mailbox body remains
     #           byte-identical after normalizing support-only step-output handoff
@@ -6306,7 +6357,10 @@ def check(repo: Path) -> list[str]:
         "from_brick_instance_ref",
         "row_kind",
         "row_ref",
+        "concern_doc_ref",
         "reason_refs",
+        "undelivered_citation_refs",
+        "recorded_summary_fields",
         "provenance",
         "reroute_ref",
     }
@@ -6323,7 +6377,11 @@ def check(repo: Path) -> list[str]:
                     ]
         return plan, refs
 
-    def _mail_capture_callable(source_brick: str, extra_reason_refs: list[str]):
+    def _mail_capture_callable(
+        source_brick: str,
+        extra_reason_refs: list[str],
+        extra_returned: Mapping[str, Any] | None = None,
+    ):
         captures: list[dict[str, Any]] = []
 
         def _callable(request: Any) -> Mapping[str, Any]:
@@ -6339,6 +6397,8 @@ def check(repo: Path) -> list[str]:
                 "observed_evidence": [f"mail obs {request.brick_instance_ref}"],
                 "not_proven": ["semantic correctness"],
             }
+            if extra_returned:
+                returned.update(dict(extra_returned))
             if request.brick_instance_ref == source_brick:
                 returned["transition_concern_evidence"] = {
                     "concern_ref": f"transition-concern:{request.brick_instance_ref}",
@@ -6412,10 +6472,19 @@ def check(repo: Path) -> list[str]:
                     violations.append(
                         f"mail-1: declared route_replay marker REGRESSED out of redo input [{i}]"
                     )
-                if set(entry) != _mail_entry_allowed_keys:
+                if not set(entry).issubset(_mail_entry_allowed_keys):
                     violations.append(
                         f"mail-1: runtime handoff entry keys drifted in [{i}]: {sorted(entry)} "
-                        "(ADDRESSES ONLY: refs + provenance, no body/free-text fields)"
+                        "(expected recorded refs, quarantined citation refs, summary fields, and provenance only)"
+                    )
+                if "concern_doc_ref" not in entry:
+                    violations.append(
+                        f"mail-1: redo input [{i}] does not carry the guaranteed concern_doc_ref"
+                    )
+                summary_fields = entry.get("recorded_summary_fields")
+                if not isinstance(summary_fields, Mapping) or "observed_evidence" not in summary_fields:
+                    violations.append(
+                        f"mail-1: redo input [{i}] does not carry recorded observed_evidence summary"
                     )
                 provenance = entry.get("provenance")
                 if not isinstance(provenance, Mapping):
@@ -7178,6 +7247,124 @@ def check(repo: Path) -> list[str]:
                     f"address {unresolved_m8!r}"
                 )
 
+    # mail-8b / mail-9 (0703 D2+D3): newly authored malformed reason_refs are
+    # rejected at Agent-return intake, but old recorded rows may already carry
+    # citation-shaped refs. Runtime mail must not reverse-resolve or deliver
+    # those citations, and must not HOLD the whole reroute when the concern row
+    # itself is known. It delivers the guaranteed concern_doc_ref plus any
+    # resolvable address refs, records broken citations separately, and carries
+    # the already-recorded compact summary fields from the paired step-output.
+    from brick_protocol.support.operator.walker_runtime_mail import (
+        _runtime_concern_handoff_from_ledger as _live_concern_mail_from_ledger,
+    )
+
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-8b-") as tmp:
+        building_m8b = Path(tmp) / "building"
+        source_step_m8b = "mail-old-shape"
+        source_brick_m8b = "brick-mail-old-shape-source"
+        source_dir_m8b = (
+            building_m8b / "work" / "step-outputs" / f"{source_step_m8b}-attempt-1"
+        )
+        source_dir_m8b.mkdir(parents=True)
+        supporting_ref_m8b = "work/step-outputs/supporting-attempt-1/step-output.json"
+        supporting_file_m8b = building_m8b / supporting_ref_m8b
+        supporting_file_m8b.parent.mkdir(parents=True)
+        supporting_file_m8b.write_text("{}", encoding="utf-8")
+        broken_citation_m8b = "raw/link.jsonl"
+        concern_ref_m8b = "transition-concern:mail-old-shape-source"
+        source_step_ref_m8b = (
+            f"work/step-outputs/{source_step_m8b}-attempt-1/step-output.json"
+        )
+        returned_m8b = {
+            "observed_evidence": ["old recorded observation"],
+            "negative_probe_observations": ["old recorded negative probe"],
+            "failing_or_missing_probes": ["old recorded missing probe"],
+            "custom_compact_summary": {"note": "unlisted summary field still rides"},
+            "transition_concern_evidence": {
+                "concern_ref": concern_ref_m8b,
+                "concern_kind": "implementation_gap",
+                "binding": False,
+                "reason_refs": [supporting_ref_m8b, broken_citation_m8b],
+                "related_boundary_refs": ["brick-mail-old-shape-target"],
+            },
+            "not_proven": ["semantic correctness"],
+        }
+        (source_dir_m8b / "step-output.json").write_text(
+            json.dumps({"returned": returned_m8b}, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        (source_dir_m8b / "transition-concern.json").write_text(
+            json.dumps(
+                {
+                    "transition_concern_ref": "transition-concern:mail-old-shape:attempt-1",
+                    "step_output_ref": source_step_ref_m8b,
+                    "transition_concern_returned": returned_m8b[
+                        "transition_concern_evidence"
+                    ],
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+        entry_m8b, hold_m8b = _live_concern_mail_from_ledger(
+            building_root=building_m8b,
+            source_step_ref=source_step_m8b,
+            source_brick_ref=source_brick_m8b,
+            source_attempt_index=1,
+            adopted_concern=returned_m8b["transition_concern_evidence"],
+        )
+        if hold_m8b or not isinstance(entry_m8b, Mapping):
+            violations.append(
+                "mail-8b: old-shape citation row caused a whole-reroute HOLD "
+                f"instead of quarantining the citation ({hold_m8b})"
+            )
+        else:
+            expected_concern_doc_m8b = (
+                f"work/step-outputs/{source_step_m8b}-attempt-1/transition-concern.json"
+            )
+            if entry_m8b.get("concern_doc_ref") != expected_concern_doc_m8b:
+                violations.append(
+                    "mail-8b: concern_doc_ref was not guaranteed in runtime mail "
+                    f"({entry_m8b.get('concern_doc_ref')!r})"
+                )
+            if entry_m8b.get("reason_refs") != [supporting_ref_m8b]:
+                violations.append(
+                    "mail-8b: runtime mail did not keep only resolvable reason_refs "
+                    f"({entry_m8b.get('reason_refs')!r})"
+                )
+            if entry_m8b.get("undelivered_citation_refs") != [broken_citation_m8b]:
+                violations.append(
+                    "mail-8b: broken citation was not recorded separately "
+                    f"({entry_m8b.get('undelivered_citation_refs')!r})"
+                )
+            if broken_citation_m8b in json.dumps(
+                entry_m8b.get("reason_refs", []), ensure_ascii=False
+            ):
+                violations.append("mail-8b: broken citation was still delivered")
+            summaries_m8b = entry_m8b.get("recorded_summary_fields")
+            if not isinstance(summaries_m8b, Mapping):
+                violations.append("mail-9: recorded summary fields did not ride")
+            else:
+                for key_m8b in (
+                    "observed_evidence",
+                    "negative_probe_observations",
+                    "failing_or_missing_probes",
+                    "not_proven",
+                ):
+                    if key_m8b not in summaries_m8b:
+                        violations.append(
+                            f"mail-9: recorded summary field {key_m8b!r} did not ride"
+                        )
+                if "custom_compact_summary" not in summaries_m8b:
+                    violations.append(
+                        "mail-9: unlisted recorded compact summary field did not ride"
+                    )
+                if "transition_concern_evidence" in summaries_m8b:
+                    violations.append(
+                        "mail-9: paper1 transition_concern_evidence schema was merged "
+                        "into paper2 summary fields"
+                    )
+
     # mail-6 (FIX 2 eligibility creep + FIX 3 replay provenance, 0611): ONLY a
     # disposition row addressed to THE CURRENT hold is THIS resume's row. After
     # a first raise-resume of the same target, the ledger carries same-target
@@ -7648,7 +7835,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         "node_reroute_budgets and route_replay_plan.max_attempts as Link Carry "
         "budget evidence, delivered the MAIL-REPAIR (0611) runtime mail (mail-1 "
         "gate-adopted concern reason_refs arrive in every redo input with recorded "
-        "provenance + AgentReceipt received_handoff_refs; mail-2 broken ledger "
+        "provenance, guaranteed concern_doc_ref, compact recorded summaries, and "
+        "AgentReceipt received_handoff_refs; mail-2 broken ledger "
         "address HOLDs loudly; mail-3 declared-only mailbox keeps the declared "
         "routing body byte-identical after normalizing support-only step-output metadata; mail-4 raise-resume disposition reason_refs ride to "
         "the re-adopted landing with row-specific replay provenance PERSISTED "
@@ -7663,6 +7851,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         "ledger subtree; mail-5g in-building detour: an in-root resolution "
         "OUTSIDE work/step-outputs stays unresolved) forms HOLD while a "
         "weird-but-contained spelling still rides; "
+        "mail-8 rejects malformed new reason_ref address syntax while mail-8b/mail-9 "
+        "quarantine old recorded citation refs without delivering them and carry "
+        "recorded paper2 summary fields beside paper1; "
         "mail-6 only the CURRENT hold's disposition row boards, stale "
         "previous-resume rows incl. an explicit stale attempt-N row are "
         "skipped fail-closed and the hold identity embeds the accumulating "

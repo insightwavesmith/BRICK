@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 from dataclasses import MISSING, dataclass, fields
 from typing import Any
@@ -38,6 +39,10 @@ TRANSITION_CONCERN_ALLOWED_KEYS: frozenset[str] = frozenset(
         "proof_limits",
         "not_proven",
     }
+)
+TRANSITION_CONCERN_REASON_REF_ADDRESS_RULE = (
+    "transition_concern_evidence.reason_refs with '/' must be work/step-outputs/... "
+    "ledger addresses with no #fragment; bare file:line citations are not admitted"
 )
 TOP_LEVEL_VERDICT_KEYS: frozenset[str] = frozenset(
     {
@@ -125,6 +130,30 @@ def _validate_returned_top_level_keys(returned: Any) -> None:
             raise ValueError(f"AgentFact returned contains forbidden key {raw_key!r}")
 
 
+def _is_step_outputs_address_form(ref: str) -> bool:
+    parts = [
+        part.casefold()
+        for part in ref.replace("\\", "/").split("/")
+        if part and part != "."
+    ]
+    return len(parts) >= 3 and parts[:2] == ["work", "step-outputs"]
+
+
+def _validate_transition_concern_reason_ref(ref: str) -> None:
+    if "#" in ref:
+        raise ValueError(
+            f"{TRANSITION_CONCERN_REASON_REF_ADDRESS_RULE}; invalid ref {ref!r}"
+        )
+    if re.search(r"(?:/|\\|^[^:]+\.[A-Za-z0-9]+):[0-9]+$", ref):
+        raise ValueError(
+            f"{TRANSITION_CONCERN_REASON_REF_ADDRESS_RULE}; invalid ref {ref!r}"
+        )
+    if "/" in ref.replace("\\", "/") and not _is_step_outputs_address_form(ref):
+        raise ValueError(
+            f"{TRANSITION_CONCERN_REASON_REF_ADDRESS_RULE}; invalid ref {ref!r}"
+        )
+
+
 def validate_transition_concern_evidence(concern: "Mapping[str, Any]") -> dict:
     for key in concern:
         if not isinstance(key, str) or key not in TRANSITION_CONCERN_ALLOWED_KEYS:
@@ -140,6 +169,8 @@ def validate_transition_concern_evidence(concern: "Mapping[str, Any]") -> dict:
     reason_refs = _text_tuple("transition_concern_evidence.reason_refs", concern.get("reason_refs"))
     if not reason_refs:
         raise ValueError("transition_concern_evidence.reason_refs must be non-empty")
+    for ref in reason_refs:
+        _validate_transition_concern_reason_ref(ref)
     related_refs = _text_tuple(
         "transition_concern_evidence.related_boundary_refs",
         concern.get("related_boundary_refs", ()),
