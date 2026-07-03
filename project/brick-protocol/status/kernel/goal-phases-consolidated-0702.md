@@ -76,7 +76,8 @@ reroute 기록자 / 슬랙 벨+fan 렌더링 / reaper liveness+WIP 앵커 / one-
 | 라이브 --all vs 걷는 빌딩 보고패킷 경합(rc=1이면 착지 직후 확인 후 재실행) | 운영 규칙 등재 |
 | llm= D5/D6(동시사용 거부) / effort 기록 / #18 부검 프리셋 / #20 write_scope 캐스케이드 | 소형 대기 |
 | claude 레인 SIGTERM(143) 2건 — 3회째면 원인파악 빌딩 | 주시 |
-| **Smith 게이트**: coo·dev 오브젝트 처분(이월) / **onboard.py 미커밋 diff 135줄(gemini 키 접수, 형제 세션 추정 — COO 무접촉) 처분** | Smith 대기 |
+| **Smith 게이트**: coo·dev 오브젝트 처분(이월) | Smith 대기 |
+| ~~onboard.py/cli.py 미커밋 diff~~ → ✅ 랜딩 f7b11848 (Smith 다른 창의 Claude 저작 — gemini 키 대화형 접수+gh doctor행 제거. COO가 diff 정독·컴파일·4케이스 격리 재실행 후 커밋, service_tier 선례) | 종결 |
 
 ## 순서 원칙 (충돌 시 이 순서)
 
