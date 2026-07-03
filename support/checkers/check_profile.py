@@ -652,6 +652,10 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "adapter_usage_meter",
         "support.checkers.check_adapter_usage_meter",
     ),
+    "session_continuity_adapter": _repo_main(
+        "session_continuity_adapter",
+        "support.checkers.check_session_continuity_adapter",
+    ),
     # Executes the declaration-integrity checker IN-PROCESS: runs the three
     # anti-tautological negative probes (composition-mode, chain artifacts,
     # provenance<->returned acceptance) AND inspects every persisted building

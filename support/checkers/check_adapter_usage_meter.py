@@ -398,6 +398,7 @@ def test_behavioral_probe_usage_only_stdout() -> str:
         _not_proven,
         adapter_usage,
         _observed_non_granted_gemini_tools,
+        _adapter_raw_observations,
         _adapter_output_text,
     ) = adapter_local_cli._invoke_local_cli_adapter(
         request,

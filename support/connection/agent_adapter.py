@@ -197,6 +197,7 @@ from .adapter_model_casting import (
 # local-callable + local-cli adapter entry points; the rest of the cluster is
 # reached by callers importing adapter_local_cli directly.
 from .adapter_local_cli import (
+    _cleanup_codex_continuity_homes_for_request_scope,
     _invoke_local_callable,
     _invoke_local_cli_adapter,
 )
@@ -592,6 +593,10 @@ class LocalCliCompleted:
     # field NEVER flows into AgentFact.returned or any Link field; it is a Brick-
     # axis meter input carrying NO quality/fault label.
     adapter_usage: Mapping[str, Any] | None = None
+    # Provider/runtime side-channel observations. These ride alongside the
+    # returned Agent payload and must never carry credential bodies or raw
+    # provider session ids.
+    adapter_raw_observations: Mapping[str, Any] = field(default_factory=dict)
 
 
 
@@ -718,6 +723,7 @@ def connect_agent_brain(
     # local-callable path carries no per-turn usage, so it stays None.
     adapter_usage: Mapping[str, Any] | None = None
     observed_non_granted_gemini_tools: tuple[str, ...] = ()
+    adapter_cli_raw_observations: Mapping[str, Any] = {}
     adapter_output_text = ""
     if request.adapter_ref == ADAPTER_LOCAL:
         returned_value = _invoke_local_callable(request, local_callables)
@@ -735,6 +741,7 @@ def connect_agent_brain(
             not_proven,
             adapter_usage,
             observed_non_granted_gemini_tools,
+            adapter_cli_raw_observations,
             adapter_output_text,
         ) = _invoke_local_cli_adapter(
             request,
@@ -760,6 +767,9 @@ def connect_agent_brain(
         raw_observations["non_granted_gemini_tool_names"] = list(
             observed_non_granted_gemini_tools
         )
+    raw_observations.update(adapter_cli_raw_observations)
+    cleanup_observations = _cleanup_adapter_continuity_state_if_terminal(request)
+    raw_observations.update(cleanup_observations)
     if ignored_keys:
         raw_observations["ignored_forbidden_return_key_names"] = [
             str(raw_key) for raw_key in ignored_keys
@@ -1133,6 +1143,32 @@ def _consume_effective_write_observation_path(
     if observed_cwd != cwd.resolve().as_posix():
         raise ValueError("effective write observation cwd must match adapter execution cwd")
     object.__setattr__(request, _EFFECTIVE_WRITE_OBSERVATION_MARKER_ATTR, "")
+
+
+def _cleanup_adapter_continuity_state_if_terminal(request: AgentAdapterRequest) -> Mapping[str, Any]:
+    """Best-effort adapter-owned continuity cleanup when the declared next boundary closes."""
+
+    if not _declared_next_ref_is_closed(request.next_brick_instance_ref):
+        return {}
+    observations: dict[str, Any] = {
+        "codex_continuity_home_cleanup_requested": True,
+    }
+    try:
+        observations.update(
+            _cleanup_codex_continuity_homes_for_request_scope(request)
+        )
+    except OSError as exc:
+        observations["codex_continuity_home_cleanup_error_type"] = type(exc).__name__
+    return observations
+
+
+def _declared_next_ref_is_closed(next_ref: str) -> bool:
+    text = next_ref.strip()
+    return (
+        text == "closed"
+        or text == "building-boundary:closed"
+        or (text.startswith("building-boundary:") and text.endswith("-closed"))
+    )
 
 
 # Brick WriteScope value-object discipline (E2/S9): the SHAPE + path-safety rules

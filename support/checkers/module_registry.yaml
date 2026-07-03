@@ -449,6 +449,16 @@ modules:
     decomposition_target: ""
     pinned_by: adapter_usage_meter kernel check (the per-step adapter token-usage meter in support/recording/adapter_usage_meter.py records the codex turn.completed counters as a support fact with allowlisted keys + absent=null and never leaks usage into AgentFact.returned or any Link field; TrackA-A1 INSTRUMENT FIRST, measurement only, no cap)
 
+  - module: support/checkers/check_session_continuity_adapter.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: session_continuity_adapter profile (fixture-only same-Building adapter continuity argv/env/fallback/cleanup pin; no live provider call and no raw provider session id storage)
+
   - module: support/checkers/check_bounded_agent_proposed_routing_loop0.py
     layer: checkers
     role: checker

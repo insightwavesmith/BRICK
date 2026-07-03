@@ -1,0 +1,52 @@
+schema: checker-profile/v1
+profile_id: session-continuity-adapter
+description: Fixture-only pin for same-Building adapter session continuity wiring. Pins codex none byte behavior including default service_tier priority, codex continue building-scoped home plus exec resume --last, failed resume fallback to one fresh exec, cross-adapter terminal connect_agent_brain cleanup behavior, and claude continue resume-by-id argv/fallback without storing raw provider session ids in observations.
+kernel_checks:
+  - session_continuity_adapter
+path_exists:
+  - support/connection/adapter_local_cli.py
+  - support/connection/agent_adapter.py
+  - support/checkers/check_session_continuity_adapter.py
+  - support/checkers/profiles/session_continuity_adapter.yaml
+text_contains:
+  - path: support/connection/adapter_local_cli.py
+    texts:
+      - _codex_continuity_home_for_request
+      - _cleanup_codex_continuity_home_for_request
+      - _codex_session_state_exists
+      - '"resume"'
+      - '"--last"'
+      - '"--skip-git-repo-check"'
+      - codex_resume_fallback_to_fresh
+      - 'service_tier="priority"'
+      - BRICK_CODEX_SERVICE_TIER
+      - 'request.session_continuity_mode == "none"'
+      - _claude_session_observations
+      - claude_resume_fallback_to_fresh
+      - claude_resume_fallback_original_return_code
+  - path: support/checkers/check_session_continuity_adapter.py
+    texts:
+      - codex none mode retained non-resume ephemeral exec argv with service_tier priority
+      - codex continue mode reused building-scoped home and issued exec resume --last
+      - codex failed resume fell back to fresh exec once
+      - claude failed resume fell back to fresh once
+      - resume_rc=
+      - declared closed boundary only
+      - codex start_or_continue/fork_from_available remain unwired ephemeral modes
+      - claude start_or_continue/fork_from_available remain unwired modes
+      - claude continue mode recorded id presence, then issued --resume without observation leak
+      - _invoke_local_cli_adapter return annotation pins seven returned elements
+      - raw session id leaked
+proof_limits:
+  - support evidence only
+  - fixture-only adapter command runner checker
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+  - not live provider proof
+not_proven:
+  - live Codex session save/resume behavior
+  - live Claude resume-by-id behavior
+  - provider credential validity
+  - semantic correctness of returned provider work
