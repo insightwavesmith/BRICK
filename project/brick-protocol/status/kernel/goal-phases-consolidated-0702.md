@@ -132,9 +132,13 @@ chat_session이 지연 임포트(행동 동일, 순환 차단 — AST 비동일 
 kernel_checks 6,167→**4,626**(시작 대비 -6,753·59%, 잎 11/13). 1라운드 완주·AST 동일
 20/20·공유 그래프플랜 임포트 확인.
 
+**슬라이스 9 ✅ 랜딩(0704 03:4x)** — reporter_notification_projection_check.py(1,890L,
+비연속 3블록 출신). kernel_checks 4,626→**2,884**(시작 대비 -8,495·75%, 잎 12/13). 2라운드
+완주·AST 동일 18/18(_without_report_grain_env 포함)·closure의 verification_gap(언트래킹
+기우 — 기지 클래스, 커밋 실물이 반증).
+
 다음 순서:
-1. **슬라이스 9(reporter — 비연속 3블록, _without_report_grain_env 포함) 걷는 중** — 이후
-   10 agent_adapter(최대 잎, 단독)로 §4-1 완주
+1. **슬라이스 10(agent_adapter — 최대 잎, §4-1 마지막) 걷는 중** — 착지 시 §4-1 완주 판정
 2. 후속 조사(소형): 렌즈 구형 주소 저작 시 반려-재시도 루프 미발화(link_paused로 정지)의
    기전 — Part4 D1의 접수 지점이 렌즈 반환 경로를 덮는지
 3. 틈새: P8 신뢰성 반복 프로브(분해 창 종료 후) / #23 레거시 정리(903MB worktrees·3주치
