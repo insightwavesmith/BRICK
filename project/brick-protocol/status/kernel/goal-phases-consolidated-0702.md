@@ -215,6 +215,13 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
   완결(session-continuity-mechanism-0703.md — 직접 기전은 락이 아니라 디스패치-스코프 임시 홈 수명).
   걷는 중 3트랙: Phase 2(Brick A/C — FixB 제외) ∥ Phase 3(증명 파이프라인 — design 유지,
   재진입 프로브 선결) ∥ Phase 4(세션 배선 — connection 전용). 상호 불가침 파일 명시.
+- **Phase 2 랜딩** `add2873b`(위반방향 게이트+사람-reroute re_instruction 필수). Phase 3·4는
+  각 v1이 골격을 세우고 렌즈가 핵심 이탈을 적발 → stop-and-gate → 정밀 vN 재발주 반복 중.
+- **신규 규명(0703 오후) — Link Part4 후보 등재**: `no_resolving_reroute_address` 홀드 2회
+  재발(Phase3 v1·v2)의 기전 = concern의 **related_boundary_refs(재파견 대상 주소)**가 선언
+  브릭으로 해석 불가한 저작 형식(walker_kernel.py:1945-1961 분류기). Phase 1이 고친
+  reason_refs의 쌍둥이 갭 — 레인 저작 일반엔 접수 문법 미러(Part4)가 필요. Phase 3 v3의
+  기계-저작 반려는 형식 보장으로 우회.
 - **codex 우선처리 티어 기본화** `0efd9e7f`: 형제 세션 저작·라이브 실측(service_tier
   None→priority), COO가 diff 정독+컴파일 후 커밋. opt-out=BRICK_CODEX_SERVICE_TIER=0.
 - **GP2 잔여 = P8 도그푸드 프로브 하나 — Smith 진입 결정 대기(자동 진입 금지).**
