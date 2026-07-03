@@ -85,13 +85,23 @@ kernel_checks 10,861→10,734. **전 노드 1라운드 자가 완주·concern 0*
 주소규칙 인라인의 효과 실증(슬라이스 1의 정지 클래스 재발 없음). 게이트: 순수-이동 AST
 동일 2/2·프로브 기계 5·변이-RED rc=0·격리+라이브 --all 35/35. 머지 후 push.
 
+**슬라이스 3 ✅ 랜딩(0704 자정)** — raw_evidence_stream_scrub_check.py(237L) +
+agent_output_text_preservation_check.py(304L). kernel_checks 10,734→10,456. 2연속 전 노드
+1라운드 자가 완주·concern 0. 프로파일 yaml 무수정(diff 0줄 — v2 pin 경고 준수), 잎별
+변이-RED 2종 rc=0, 격리+라이브 --all 35/35.
+
+**병행 트랙 가동(0704 자정)**: §4-2 선행 공유 헬퍼 통합 스펙 조사(sharedhelper-spec-0703a)
+— 읽기 전용·파일 충돌 0이라 §4-1 직렬과 병행. fan(case_runners 측/loop0 측 파티션)→합성→
+렌즈. 착지 시 §4-1 종료 즉시 §4-2 구현 발주 가능(설계 대기 0).
+
 다음 순서:
-1. **슬라이스 3(raw_evidence_stream_scrub + agent_output_text_preservation — 무클로저 2본
-   한 빌딩, 지도 순서 3) 발주**, 이후 4~11 직렬
+1. **슬라이스 4(building_result_summary_check.py — 소형 로컬 클로저) 발주**, 이후 5~9 직렬
+   (brick_cli+mcp 묶음 → chat_session+redaction → dashboard → adapter_error → agent_adapter)
 2. 후속 조사(소형): 렌즈 구형 주소 저작 시 반려-재시도 루프 미발화(link_paused로 정지)의
    기전 — Part4 D1의 접수 지점이 렌즈 반환 경로를 덮는지
-2. 틈새: P8 신뢰성 반복 프로브 / #23 레거시 정리(903MB worktrees·3주치 vessels·inbox —
-   **WIP 앵커 구제 선행**: 미머지 앵커 464105cf(관측측 v2, 참고용)·link-part4-r6(머지됨, 정리 가능))
+3. 틈새: P8 신뢰성 반복 프로브(분해 창 종료 후) / #23 레거시 정리(903MB worktrees·3주치
+   vessels·inbox — **WIP 앵커 구제 선행**: 미머지 앵커 464105cf(관측측 v2, 참고용)·
+   link-part4-r6(머지됨, 정리 가능))
 
 ## 백로그 통합 (소형·주시·대기)
 
