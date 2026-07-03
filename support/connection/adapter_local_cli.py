@@ -710,6 +710,12 @@ def _invoke_local_cli(
                     "resume",
                     "--last",
                     "--skip-git-repo-check",
+                    # PARITY with _fresh_exec_args: a resumed `codex exec` also cannot
+                    # show approval prompts -- pin the policy or an approval need hangs
+                    # the dispatch (resume accepts -c; COO live probe 0703: resume with
+                    # this flag rc=0 and memory carried).
+                    "-c",
+                    'approval_policy="never"',
                 ]
                 if resume_available
                 else _fresh_exec_args()
