@@ -60,7 +60,7 @@ Return: fill the `required_return_shape` from the return_template
 `boundary_violations`, `evidence_used`, `transition_concern_evidence`, `narrowly_proven`,
 `not_proven`.
 
-Do NOT return `success` / `failure` / `approved` / `quality` / `movement_choice` / `route_target` —
+Do NOT return `success` / `failure` / `approved` / `quality` / `good_enough` / `movement_choice` / `route_target` —
 sufficiency + movement are the Link gate's; quality/success/approval are the human's. Report only
 observed FACTS, observations, and `not_proven`; `transition_concern_evidence` stays non-binding.
 

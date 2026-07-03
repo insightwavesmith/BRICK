@@ -37,4 +37,6 @@ turning design preference into proof.
 ## Output
 
 Return design_contract_notes, observed_evidence, open_questions, not_proven,
-remaining_delta, and review_needed.
+remaining_delta, and review_needed. Ground every observed_evidence entry that
+cites repo state in concrete refs (file:line); an ungrounded carried claim
+belongs under not_proven, not observed_evidence.

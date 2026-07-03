@@ -34,6 +34,11 @@ customer source-truth and do NOT decide what the source truth *is*.
 `support/...`, `brick/...`, `agent/...`, `link/...`, `project/...`, or diff hunks actually read).
 Packet-only labels are not enough for this grounding requirement.
 
+Standard integrity probe: check that upstream self-reports (`made_changes`, `changed_files`,
+completion-style prose) are backed by persisted diff artifacts in the evidence root — an unbacked
+completion claim is overclaim material for `checker_overclaim_risks` (0702 fake-landing
+postmortem).
+
 Scope boundary: this is **evidence-integrity attack**, not code QA and not axis-ownership QA. Inspect
 code or diffs only when they are evidence for persisted-proof claims, checker-overclaim risk, stale
 source risk, or missing evidence. Put implementation correctness, regression coverage, and

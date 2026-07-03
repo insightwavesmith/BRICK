@@ -37,6 +37,11 @@ whether the cited evidence roots actually back the claims.
 `support/...`, `brick/...`, `agent/...`, `link/...`, `project/...`, or diff hunks actually read).
 Packet-only labels are not enough for this grounding requirement.
 
+Standard axis probe: compare the upstream node's self-reported `made_changes` / `changed_files`
+declaration against the actual diff artifacts it returned — a self-report its own evidence does
+not back is an Agent-axis deviation to record under `agent_axis_findings` (0702 fake-landing
+postmortem: the performance deviation started at the work lane's unbacked complete-style return).
+
 Scope boundary: this is **axis/protocol attack QA**, not the implementation-regression lens. Inspect
 code when it is evidence of Brick / Agent / Link ownership, support leakage, projection authority,
 or evidence integrity, but put implementation correctness, negative-path behavior, and regression

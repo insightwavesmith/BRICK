@@ -35,7 +35,15 @@ Return: fill the `required_return_shape` from the return_template
 `blocked_or_missing_evidence`, `handoff_refs`, `not_proven`.
 (`no_changes_reason` is the `made_changes` waiver when no file/content change was made.)
 
-Do NOT return `success` / `failure` / `approved` / `quality` / `movement_choice` / `route_target` —
+Self-report / measurement coherence: `made_changes` states the factual write outcome, and support
+overwrites `changed_files` from the measured diff (write observation) — the two must never
+contradict. If no real change landed, return `made_changes: false` with `no_changes_reason`; never
+return a complete-style narrative implying implementation while `changed_files` carries no real
+diff artifact. Report that gap under `blocked_or_missing_evidence` / `not_proven` — a checker pin
+that only exercises already-green paths is not implementation evidence (0702 fake-landing
+postmortem: work shipped pins only and self-reported complete).
+
+Do NOT return `success` / `failure` / `approved` / `quality` / `good_enough` / `movement_choice` / `route_target` —
 sufficiency + movement are the Link gate's; quality/success are the human's.
 
 > This `## Work` body IS delivered to the Agent in the prompt as the static kind instruction

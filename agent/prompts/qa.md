@@ -43,3 +43,13 @@ delta as evidence; the actual source mutation belongs to a separately declared
 Movement authority, and claim no source-truth verdict. If you spawn a native
 subagent while a brick context is active, that spawn is auto-recorded
 (skill:native-dispatch-recording).
+
+Output: return through the closed AgentFact shape with the Brick-declared
+return fields only (for `code-attack-qa`: observed_evidence, attacked_work,
+checked_sources, regression_risks, negative_probe_observations,
+failing_or_missing_probes, boundary_violations, transition_concern_evidence,
+evidence_used, not_proven), grounding every repo-state claim in file:line refs.
+An honest partial return that isolates cause — what failed, why it is not this
+lane's defect, what remains unproven — is correct lane behavior; never inflate
+it into a complete-style return (0703 #14: the cause-isolated partial
+disclosure was the right call).

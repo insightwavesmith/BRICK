@@ -23,7 +23,8 @@
   ],
   "discipline_refs": [
     "discipline:closed-agentfact",
-    "discipline:proof-limits"
+    "discipline:proof-limits",
+    "discipline:model-lane-matching"
   ],
   "adapter_refs": [
     "adapter:local",

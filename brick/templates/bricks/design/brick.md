@@ -38,7 +38,7 @@ Return: fill the `required_return_shape` from the return_template
 Keep everything as observed facts, options, and gaps — record what is *not yet proven*
 (implementation readiness, semantic fitness of the proposed design) rather than asserting it works.
 
-Do NOT return `success` / `failure` / `approved` / `quality` / `movement_choice` / `route_target` —
+Do NOT return `success` / `failure` / `approved` / `quality` / `good_enough` / `movement_choice` / `route_target` —
 sufficiency + movement are the Link gate's; quality/success are the human's. This Brick designs and
 observes; it does not implement, judge, or route.
 

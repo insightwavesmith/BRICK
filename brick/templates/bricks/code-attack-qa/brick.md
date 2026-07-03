@@ -40,6 +40,13 @@ against the declared contract; capture the exact evidence (commands, outputs, re
 `support/...`, `brick/...`, `agent/...`, `link/...`, `project/...`, or diff hunks actually read).
 Packet-only labels are not enough for this grounding requirement.
 
+Standard attack item: cross-check the upstream work node's self-reported `made_changes` /
+`changed_files` against the actual diff artifacts inside the declared write_scope (file:line).
+A `made_changes: true` claim with no real diff, or a checker pin that only exercises already-green
+paths, is a finding supporting `implementation_gap` — never let a complete-style upstream return
+pass unchallenged (0702 fake-landing postmortem: work shipped pins only and QA never compared the
+claim to the diff).
+
 Outer-lens duty: independently reproduce the reported symptom from this node's task source or
 incoming Link handoff, not from the upstream builder's fixtures or happy-path probes. Build your
 own QA probes for that reproduction; builder fixtures may be inspected as evidence, but they MUST

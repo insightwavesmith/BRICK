@@ -33,7 +33,15 @@ is a declared requirement for that Brick, not permission to write now. Report
 `blocked_or_missing_evidence` and `not_proven` honestly — an unknown or unverifiable area is
 a fact to surface, not a gap to fill by guessing.
 
-Do NOT return `success` / `failure` / `approved` / `quality` / `movement_choice` / `route_target` —
+`required_verification` must declare, per worker assignment, the concrete verification the later
+lanes are expected to run (commands, probes, checker profiles) AND the assignment's completion
+line — the observable evidence that ends the assignment. Assign each proof to a lane environment
+that can actually execute it (a read-only review lens cannot re-run live mutation proofs): a proof
+demand no downstream lane can execute becomes permanent `not_proven` noise, and a missing
+completion line invites unbounded meta-verification (0703 measured). Downstream QA lanes and
+closure consume this declaration when they cross-check the implementation.
+
+Do NOT return `success` / `failure` / `approved` / `quality` / `good_enough` / `movement_choice` / `route_target` —
 sufficiency + movement are the Link gate's; quality/success are the human's.
 `worker_brick_boundaries` and `write_scope_requirements` are proposed boundaries only, never
 a Movement decision and never a write performed here.

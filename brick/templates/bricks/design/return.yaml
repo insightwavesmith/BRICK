@@ -41,6 +41,7 @@ forbidden_return_keys:
   - failure
   - approved
   - quality
+  - good_enough
   - movement_choice
   - route_target
 proof_limits:

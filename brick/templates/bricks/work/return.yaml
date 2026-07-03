@@ -29,11 +29,16 @@ next_link_input_sections:
   - missing facts for Link Gate
   - handoff refs
   - not_proven
+rules:
+  - made_changes reports the factual write outcome; support overwrites changed_files from the measured diff (write observation), so the two must not contradict.
+  - made_changes true with empty changed_files is a contradiction, not a completion; declare no_changes_reason (the made_changes waiver) or report the gap under blocked_or_missing_evidence.
+  - never imply implementation completion in prose when changed_files carries no real diff artifact; the gap belongs under blocked_or_missing_evidence / not_proven (0702 fake-landing).
 forbidden_return_keys:
   - success
   - failure
   - approved
   - quality
+  - good_enough
   - movement_choice
   - route_target
 proof_limits:

@@ -38,4 +38,6 @@ declared Brick write_scope.
 
 Return worker_assignments, required_outputs, integration_risks,
 observed_evidence, not_proven, remaining_delta, and review_needed. If no code
-was changed by this Agent, say so.
+was changed by this Agent, say so. Ground every observed_evidence entry that
+cites repo state in concrete refs (file:line); an ungrounded carried claim
+belongs under not_proven, not observed_evidence.

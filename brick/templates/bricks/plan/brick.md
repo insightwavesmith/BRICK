@@ -46,7 +46,7 @@ slashless opaque token such as `observation:<id>`. Environment or runtime constr
 temp dir, write-scope limits, provider limits, read-only status, "live not run") are NOT defects —
 record them in `not_proven`, never as a `transition_concern`.
 
-Do NOT return `success` / `failure` / `approved` / `quality` / `movement_choice` / `route_target` —
+Do NOT return `success` / `failure` / `approved` / `quality` / `good_enough` / `movement_choice` / `route_target` —
 sufficiency + movement are the Link gate's; quality/success are the human's.
 `proposed_next_work_boundaries` is a proposed boundary only, never a Movement decision.
 

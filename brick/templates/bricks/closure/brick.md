@@ -70,7 +70,7 @@ record them in `not_proven`, never as a `transition_concern`.
 If `concern_kind` is `verification_gap`, it is non-reroute evidence: leave
 `related_boundary_refs` empty or use a `building-boundary:` sentinel, never an upstream Brick node.
 
-Do NOT return `success` / `failure` / `approved` / `good_enough` / `movement_choice` / `route_target` —
+Do NOT return `success` / `failure` / `approved` / `quality` / `good_enough` / `movement_choice` / `route_target` —
 sufficiency + movement are the Link gate's; quality/success are the human's. This Brick writes no
 files and declares no source truth — it returns closure synthesis (observed facts + remaining delta)
 only.

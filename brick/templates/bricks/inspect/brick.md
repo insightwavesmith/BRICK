@@ -37,7 +37,7 @@ Record `matched_facts` / `missing_facts` / `mismatched_facts` as observed checks
 declared contract, `boundary_findings` as observed axis/structure/policy drift, and
 `observed_evidence` as the evidence refs you actually inspected. State limits as `not_proven`.
 
-Do NOT return `success` / `failure` / `approved` / `quality` / `movement_choice` / `route_target` —
+Do NOT return `success` / `failure` / `approved` / `quality` / `good_enough` / `movement_choice` / `route_target` —
 inspection findings are evidence only; sufficiency + movement are the Link gate's, and
 quality/success are the human's. A missing or mismatched fact is reported as an observed
 fact, never as a failure judgment or a route choice.

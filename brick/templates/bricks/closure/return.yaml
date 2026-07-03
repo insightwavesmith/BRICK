@@ -66,6 +66,7 @@ forbidden_return_keys:
   - success
   - failure
   - approved
+  - quality
   - good_enough
   - movement_choice
   - route_target

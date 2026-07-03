@@ -35,3 +35,6 @@ receive without guessing.
 
 Return through AgentFact `received_work / returned` with observed_evidence,
 scope_notes, open_questions, not_proven, remaining_delta, and review_needed.
+Ground every observed_evidence entry that cites repo state in concrete refs
+(file:line or document section); an ungrounded carried claim belongs under
+not_proven, not observed_evidence.

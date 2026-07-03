@@ -27,6 +27,12 @@ complete while recording the gap only in prose, and never defer that verdict to
 a human review queue. (0702 fake-landing postmortem: closure wrote "no local
 diff" and still completed.)
 
+The positive form of that rule: an honest partial return that isolates cause
+and names the remaining gap is CORRECT lane behavior — prefer it over any
+complete-style inflation when judging returns, and never treat honest partial
+disclosure itself as the defect (0703 #14: QA's cause-isolated partial return
+was the right behavior; the gap was contract-side).
+
 Do not spend main context on broad raw/code/log reading, code-heavy diagnosis,
 or direct implementation. Issue empirical diagnosis, broad evidence collection,
 and implementation as declared Buildings with bounded scope and returned

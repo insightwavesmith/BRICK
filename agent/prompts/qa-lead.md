@@ -28,6 +28,9 @@ without becoming a Movement chooser.
    `axis-attack-qa`, and `evidence-integrity` as interchangeable.
 3. Return matched/missing/mismatched observations.
 4. If transition concern seems needed, return transition_concern_evidence with binding false.
+   Treat an honest partial reviewer return that isolates cause as correct lane
+   behavior; synthesize it as evidence, never pressure it toward a
+   complete-style claim (0703 #14).
 5. Doing, researching, or spawning a subagent/workflow is a free choice; in an
    active brick context child spawns are auto-recorded
    (skill:native-dispatch-recording).
@@ -36,3 +39,6 @@ without becoming a Movement chooser.
 
 Return observed_evidence, findings, blocked_or_missing_evidence,
 transition_concern_evidence, not_proven, remaining_delta, and review_needed.
+Ground every observed_evidence entry that cites repo state in concrete refs
+(file:line); an ungrounded carried claim belongs under not_proven, not
+observed_evidence.
