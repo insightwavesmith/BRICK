@@ -353,6 +353,64 @@ def run_interactive_provider_intake(
     }
 
 
+def run_interactive_gemini_key_intake(
+    *,
+    prompt_func: Any,
+    host: str,
+    env: Mapping[str, str] | None = None,
+) -> dict[str, Any]:
+    """B4 (0703): if gemini was chosen and no key is in the environment, collect
+    and persist one on the spot instead of only pointing at an env var to set
+    by hand. Mirrors the existing Slack bot-token provisioning shape
+    (``_append_report_env_values`` -> ``~/.brick/report.env``, 0600) rather
+    than inventing a new persistence path. No-op (never prompts) for any
+    other host, or when a key is already present. Never raises.
+    """
+
+    import os  # noqa: PLC0415
+
+    from brick_protocol.support.connection.adapter_gemini_http import (  # noqa: PLC0415
+        _gemini_api_key_env_present,
+    )
+
+    if not callable(prompt_func):
+        raise TypeError("prompt_func must be callable")
+    if str(host or "").strip().lower() != "gemini":
+        return {"kind": "interactive-gemini-key-intake", "applicable": False, "provisioned": False}
+    if _gemini_api_key_env_present(env if env is not None else os.environ):
+        return {
+            "kind": "interactive-gemini-key-intake",
+            "applicable": True,
+            "provisioned": False,
+            "message_ko": "GEMINI_API_KEY(또는 GOOGLE_API_KEY)가 이미 있어요, 그대로 써요 ✅",
+        }
+    raw_key = str(
+        prompt_func(
+            "Gemini API key (GEMINI_API_KEY, 비워두면 나중에 직접 설정): "
+        )
+        or ""
+    ).strip()
+    if not raw_key:
+        return {
+            "kind": "interactive-gemini-key-intake",
+            "applicable": True,
+            "provisioned": False,
+            "message_ko": (
+                "그냥 넘어갔어요. 나중에 GEMINI_API_KEY 또는 GOOGLE_API_KEY 를 "
+                "직접 설정하면 돼요."
+            ),
+        }
+    target = _report_env_path()
+    _append_report_env_values(target, {"GEMINI_API_KEY": raw_key})
+    return {
+        "kind": "interactive-gemini-key-intake",
+        "applicable": True,
+        "provisioned": True,
+        "report_env_path": str(target),
+        "message_ko": f"Gemini API 키를 {target}(0600)에 저장했어요 ✅",
+    }
+
+
 def _connect_step(host: str, repo_root: Path) -> dict[str, Any]:
     """Step 2: render the connect config text. Never raises. No auto-edit."""
 
@@ -1790,46 +1848,7 @@ DOCTOR_SYMPTOM_PRESCRIPTIONS_KO: tuple[tuple[str, str], ...] = (
         "local_cli_missing (gemini CLI/API key가 없음)",
         "gemini CLI 설치 후 GEMINI_API_KEY 또는 GOOGLE_API_KEY 를 설정하세요",
     ),
-    (
-        "gh 인증 에러 (clone/pull 실패)",
-        "gh auth login (gh가 없으면 https://cli.github.com 에서 설치)",
-    ),
 )
-
-
-def _doctor_gh_row() -> dict[str, Any]:
-    """gh login probe for the clone/pull path. Read-only, never raises."""
-
-    import shutil  # noqa: PLC0415
-    import subprocess  # noqa: PLC0415
-
-    target = "gh (저장소 받기/갱신)"
-    if shutil.which("gh") is None:
-        return {
-            "target": target,
-            "ok": False,
-            "message_ko": (
-                "gh CLI가 없어요 → https://cli.github.com 에서 설치한 뒤 "
-                "gh auth login"
-            ),
-        }
-    try:
-        completed = subprocess.run(  # noqa: S603 -- fixed argv, read-only probe
-            ("gh", "auth", "status"),
-            capture_output=True,
-            timeout=10,
-            check=False,
-        )
-        authed = completed.returncode == 0
-    except Exception:  # noqa: BLE001 -- doctor never raises
-        authed = False
-    if authed:
-        return {"target": target, "ok": True, "message_ko": "GitHub 로그인 확인 ✅"}
-    return {
-        "target": target,
-        "ok": False,
-        "message_ko": "GitHub 로그인이 안 돼 있어요 → gh auth login",
-    }
 
 
 def _doctor_python_row() -> dict[str, Any]:
@@ -1927,7 +1946,7 @@ def _doctor_github_network_row() -> dict[str, Any]:
 
 
 def run_doctor(*, command_runner: Any | None = None) -> dict[str, Any]:
-    """Run environment checks, provider preflights, and the gh probe. NEVER raises.
+    """Run environment checks and provider preflights. NEVER raises.
 
     Returns {rows, symptom_table, all_ok}. ``all_ok`` summarizes the rows, but
     the CLI entry ALWAYS exits 0: doctor is a diagnosis record, not a gate. It
@@ -1943,7 +1962,6 @@ def run_doctor(*, command_runner: Any | None = None) -> dict[str, Any]:
         rows.append(_doctor_command_row("uv"))
         rows.append(_doctor_disk_row())
         rows.append(_doctor_github_network_row())
-        rows.append(_doctor_gh_row())
         for host in SUPPORTED_HOSTS:
             status = _preflight_step(host, command_runner=command_runner)
             row = {

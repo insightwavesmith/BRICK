@@ -676,6 +676,10 @@ def _cmd_init(args: argparse.Namespace) -> int:
         else:
             selected_host = str(interactive_provider_intake.get("host") or selected_host)
             selected_model_ref = str(interactive_provider_intake.get("model_ref") or "") or None
+            onboard.run_interactive_gemini_key_intake(
+                prompt_func=input,
+                host=selected_host,
+            )
     wizard = onboard.run_install_wizard(
         repo_root=repo,
         host=selected_host,
