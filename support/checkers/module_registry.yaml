@@ -724,6 +724,26 @@ modules:
     decomposition_target: ""
     pinned_by: pure-relocation sibling of kernel_checks (agent_output_text_preservation kernel check; homes no crossing mechanics, imports no axis at module level)
 
+  - module: support/checkers/lib/brick_cli_entrypoint_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of kernel_checks (brick_cli_entrypoint_smoke kernel check; homes no crossing mechanics, imports no axis at module level)
+
+  - module: support/checkers/lib/mcp_connect_projection_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of kernel_checks (mcp_stdio_smoke + connect_config_launch + codex_projection_native + claude_projection_native kernel checks; homes no crossing mechanics, imports no axis at module level)
+
   - module: support/checkers/lib/no_smith_residue_check.py
     layer: checkers/lib
     role: checker-lib
