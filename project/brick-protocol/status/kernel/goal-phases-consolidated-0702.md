@@ -109,9 +109,17 @@ assert 의무(치환 조립 금지). **부수 엔진 갭 발견: 증명-예산 H
 (렌즈-정지 경로는 보존 — 백로그 등재). v1 vessel은 기록용 잔류(link_paused). 하네싱 세션
 커밋 87ae5df0(brick 계약+agent 레인 표면)이 v1 발사 직전 착지 — v2부터 그 표면으로 걸음.
 
+**슬라이스 5 v2 ✅ 랜딩(0704 01:4x)** — brick_cli_entrypoint_check.py(807L)+
+mcp_connect_projection_check.py(854L). kernel_checks 10,133→**8,762**(시작 대비 -2,617,
+잎 6/13). 1라운드 자가 완주·concern 0·순수-이동 AST 동일 5/5+8/8·pin 10문자열 동반 이동.
+**COO 표면 추가 2건(bbfdc492, Smith 지시 재검토)**: ①closed-agentfact discipline(전 8오브젝트
+바인딩)에 concern 주소 형식 절 — 렌즈 위반(0703 실측)의 2차 앵커 ②work/return.yaml에
+증명-모순 처리 규칙(모순 발주는 1라운드 insufficient_input — 0704 v1 6라운드 실측 기반).
+.gitignore 시크릿 가드도 검증 후 커밋(61818474, Smith 지시).
+
 다음 순서:
-1. **슬라이스 5 v2(brick_cli + mcp_connect) 걷는 중** — 이후 6~9 직렬(chat_session+redaction
-   → dashboard → adapter_error → agent_adapter)
+1. **슬라이스 6(chat_session_park + session_id_redaction, 공유 프로브 상수 소유권 동봉) 걷는 중**
+   — 이후 7~9 직렬(dashboard → adapter_error → agent_adapter)
 2. 후속 조사(소형): 렌즈 구형 주소 저작 시 반려-재시도 루프 미발화(link_paused로 정지)의
    기전 — Part4 D1의 접수 지점이 렌즈 반환 경로를 덮는지
 3. 틈새: P8 신뢰성 반복 프로브(분해 창 종료 후) / #23 레거시 정리(903MB worktrees·3주치
