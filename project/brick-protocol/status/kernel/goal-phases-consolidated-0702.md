@@ -56,9 +56,21 @@ reroute 기록자 / 슬랙 벨+fan 렌더링 / reaper liveness+WIP 앵커 / one-
 설계가 다음 발주.** Smith 비준 큐(0703 저녁: Part4→#14→GP3 문턱) 전량 완료 + 전제2까지
 착지. 걷는 빌딩 0.
 
+**§4-1 Stage A 경과(0703 심야)**: 1차(kc-splitmap-0703a, 단일 레인 직렬 정독)는 4라운드
+공전 후 link_paused — 산출은 실질적(run_* **18개** 전수(정본의 16은 구버전)·잎 13개·슬라이스
+순서 1~11·pin 이동 목록·facade 유지 결정), 미완은 잎 경계 스윕 1/13. COO가 지도를
+kc-splitmap-draft-0703.md로 수확·커밋하고 forward 종결(잔여 frontier agent_incomplete —
+v2 대체). **여기서 Smith의 본질 지적**: "왜 워크플로처럼 사고하지 못했나" — 원인은 독트린
+배치 차이(워크플로 독트린은 호출부 상주, 브릭 폭 독트린은 스킬에 잠듦 + 흉터의 과잉일반화
+"그래프를 줄여라"≠"직렬 판단 노드를 빼라" + fan의 렌즈 고착). 교정 각인 3곳: 운영 메모리
+그래프-폭 원칙 / building-sizing-method 과소-폭 금지 규칙(c4970513) / 골 루프 프롬프트
+발주 전 폭 질문(b4c856a2). **v2(kc-splitmap-v2-0703b)를 fan 파티션으로 재발사** — 잎
+검증자 13 병렬 → 합성 수렴 → 렌즈 fan → closure. 폭 원칙 첫 실전. DSL 실측 1건: fan 뒤엔
+수렴 노드 필수(fan→fan 직결 불가, assembly.py:603).
+
 다음 순서:
-1. **§4-1 kernel_checks 분해 발주 설계** — 공유 헬퍼 선추출 1레인 → 도메인 분해 (command-kind
-   변이 프로브 계약, 파일 비충돌 시 병행)
+1. **v2 착지 → 검증된 배정표 확정 → 슬라이스 1(axis_vocab_drift_check.py, ~560L) 발주**
+   (command-kind 변이 프로브 계약, 이후 직렬 슬라이스 2~11)
 2. 틈새: P8 신뢰성 반복 프로브 / #23 레거시 정리(903MB worktrees·3주치 vessels·inbox —
    **WIP 앵커 구제 선행**: 미머지 앵커 464105cf(관측측 v2, 참고용)·link-part4-r6(머지됨, 정리 가능))
 
