@@ -185,6 +185,19 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
   (조사 실측이 안 다룬 제3 소비자, idempotent+불훼손+--skip-plugin) — COO 초기 opt-in 기판정
   철회. **제품 기본값 논점은 Smith P8 전후 확인 항목으로 기록.** 별칭-폴백 분기 미pin은 nit.
 - **P7 프레시머신 재증명 진행(0703 오전)**: ①빌딩 경유 1차 — 레인 샌드박스 외부 네트워크 차단 실측(DNS 불가 — fresh-clone 증명은 레인으로 구조적 불가, 0630 선례처럼 운영자 프로브가 정답) ②COO 운영자 프로브 2차 — clone(진짜 origin/main 0fc74a02)·uv sync·대화형 수집기+등록 전부 green, init은 정직 doctor 진단(gh auth 캐비앗), 공식 build 걸음 완주(work+closure). **실갭 1건 적중**: #17 게이트 홀드가 원장 기록까진 되는데 공식 처분 경로가 홀드 정체 미기록으로 fail-closed(onboard.py:3366) — 사람이 처분할 수단이 없어 고객이 갇힌다(P8 차단급). 수리 빌딩(gate-hold-disposal-fix-0703a) 걷는 중. P7 PASS 판정은 수리 후 재프로브에서.
+- **밤샘 감사(39빌딩 3축 117콜, 별도 세션) 처방 채택안(0703 오후, Smith 검토 반영)**:
+  공통 병 = "필드·배선은 있는데 어기면 실패하는 강제(bite)가 없다". 채택 순서 —
+  P8 전: ①Link Part1(reason_refs 주소 문법을 접수 시점 검사 — agent/return_fact.py 순수함수.
+  옛 원장 replay carve-out 결정 명시) ②Brick FixA/B(forbidden_paths 위반방향 게이트 +
+  스킬 교정: 산문 불가침은 forbidden_paths 미러 의무화). P8 후: ③Link Part2(우편 보장주소
+  concern_doc_ref — 보안표면, 공격리뷰 동반) ④Agent 증명 파이프라인(proof_obligations
+  선언→support 실측→비교→게이트 — WRITE 파이프라인 복제).
+  **Smith 확정 세부 2건**: (a) 증명 게이트는 별도 부착식이 아니라 기본 걸음의 선언-조건부
+  (#17 모양 — 선언 없으면 무반응) (b) rc=1은 사람 HOLD가 아니라 예산 내 자동 재시공 우선,
+  HOLD는 예산 소진 후. **(c) Link Part1.5 추가(Smith 지적, 코드 실측 확인)**: 재시공 우편이
+  concern 문서를 이미 읽고도(walker_runtime_mail.py:190) 주소만 부친다("ADDRESSES ONLY" :180)
+  — QA 기 저작 요약을 기록-원장-파생+safe_source_fact_body 플로어+참고용 표기 3조건으로
+  인라인(정본은 주소 유지). Smith 정책 대기: reroute 처분 re_instruction 필수화(FixC).
 - **GP2 크리티컬 패스 잔여 = P7 재프로브 → P8(Smith 게이트, 자동 진입 금지).**
 
 ## 현재 위치 (0702 심야)
