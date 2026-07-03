@@ -68,9 +68,24 @@ v2 대체). **여기서 Smith의 본질 지적**: "왜 워크플로처럼 사고
 검증자 13 병렬 → 합성 수렴 → 렌즈 fan → closure. 폭 원칙 첫 실전. DSL 실측 1건: fan 뒤엔
 수렴 노드 필수(fan→fan 직결 불가, assembly.py:603).
 
+**슬라이스 1 ✅ 랜딩(0703 심야, stop-and-gate)** — axis_vocab_drift_check.py 잎 추출(686L,
+kernel_checks 11,379→10,861). 게이트: 순수-이동 AST 대조(동일 35/스왑 3=정본 명시
+self-allowlist 경로 이동/신규 5=D4 프로브 기계) · 금지 4종+사어 무접촉 · --probe-mutation-red
+rc=0(독 주입→core 비영→복원 green 내장) · registry 행 동형 · 격리+라이브 --all 35/35.
+경과에서 결함/규칙 4건 적출: ①review 렌즈가 구형 brick: 주소 저작 → Part4 접수가 옳게
+채택 차단, 단 기대(접수 반려→렌즈 재시도)가 아니라 link_paused 정지 — 후속 조사 후보
+②정지 후 resume 체인: 원 워크트리 처분됨 상태에서 fresh 트리로 closure가 걸려 헛짚음
+(기존 규칙 "worktree gone→직접 마감" 재확인) + 그 사고가 closure step-output 1 vs
+raw-return 0 자기잠금을 남겨 #21 정합성 검사가 옳게 재개 거부 ③처분용 adapter_cwd에
+세션ID 포함 scratchpad 경로를 쓰면 vessel이 redaction 위반자가 됨(중립 경로 규칙 각인)
+④렌즈 concern의 실질(신규 파일 언트래킹)은 기우 — WIP 앵커 패키징이 언트래킹 포함 실증.
+
 다음 순서:
-1. **v2 착지 → 검증된 배정표 확정 → 슬라이스 1(axis_vocab_drift_check.py, ~560L) 발주**
-   (command-kind 변이 프로브 계약, 이후 직렬 슬라이스 2~11)
+1. **슬라이스 2(building_plan_graph_check.py, 663-816, 헬퍼 무클로저 — 가장 얕음) 발주**,
+   이후 직렬 슬라이스 3~11 (raw_scrub·output_text→result_summary→cli→mcp→redaction→
+   chat_session→dashboard→adapter_error→agent_adapter 順)
+2. 후속 조사(소형): 렌즈 구형 주소 저작 시 반려-재시도 루프 미발화(link_paused로 정지)의
+   기전 — Part4 D1의 접수 지점이 렌즈 반환 경로를 덮는지
 2. 틈새: P8 신뢰성 반복 프로브 / #23 레거시 정리(903MB worktrees·3주치 vessels·inbox —
    **WIP 앵커 구제 선행**: 미머지 앵커 464105cf(관측측 v2, 참고용)·link-part4-r6(머지됨, 정리 가능))
 
