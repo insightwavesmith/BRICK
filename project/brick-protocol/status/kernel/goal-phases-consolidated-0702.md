@@ -233,7 +233,12 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
   진행 방식 확립: v1 골격→렌즈 적발→stop-and-gate→정밀 vN, 소량 잔여는 COO 직접 마감(Smith
   선례). 후속 후보 등재: Link Part4(related_boundary_refs 접수 문법) · claude 세션 잔존 정리
   (#23 계열) · gemini 세션(미조사).
-- **GP2 잔여 = P8 도그푸드 프로브 하나 — Smith 진입 결정 대기(자동 진입 금지).**
+- **P8 프로브 1회 완료(0703 저녁, Smith 진입 승인)** — 현행 공식 DSL 경로의 첫 P8 증거.
+  정본: p8-dogfood-probe-0703.md. 주문 3건: 필수형상(HOLD→고객 forward→complete) /
+  write 실무(complete+아티팩트 커밋) / 증명 사이클(기계 반려→재파견×5→예산 HOLD — 오늘
+  랜딩분 라이브 완전 검증). **엔진 결함 0, UX 갭 2**(G-1 읽기 전용 주문 kind 안내,
+  G-2 예산 HOLD 처분 안내 — 둘 다 문서/표면, 엔진 수정 불요). 신뢰성 반복은 후속.
+- **GP2 잔여 = P8 신뢰성 반복 샘플(후속) — GP3 창이 열림.**
   0703 오후 정리 시점: 걷는 빌딩 0, 미머지 반려 앵커 2(464105cf 관측측/참고용, r6 잔재),
   프로브 잔해 /tmp/brick-p7-coo-proof-*(v2 vessel은 랜딩 증거 인용처 — 보존).
 
