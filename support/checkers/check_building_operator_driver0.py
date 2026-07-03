@@ -1487,6 +1487,7 @@ def _w1_worktree_sandbox_fire(
         run_building_intake,
         run_customer_building_in_sandbox,
     )
+    from brick_protocol.support.operator import driver as driver_module
     from brick_protocol.support.operator import run as run_module
     from brick_protocol.support.operator.building_operation import observe_building_frontier
     from brick_protocol.support.operator.onboard import run_approve_entry
@@ -1848,31 +1849,9 @@ def _w1_worktree_sandbox_fire(
                     f"{outside_rel!r}: {fake_wip_files!r}"
                 )
 
-        with tempfile.TemporaryDirectory(prefix="bp-w1-no-diff-forward-") as no_diff_raw:
-            no_diff_forward = run_approve_entry(
-                fake_outside_result.evidence_root,
-                action="forward",
-                author_ref="coo:d2-checker",
-                adapter_cwd=Path(no_diff_raw),
-                adapter_timeout_seconds=30,
-                repo_root=fake_outside,
-            )
-        summary["w1_fake_no_diff_forward_frontier"] = no_diff_forward.get("frontier_kind")
-        summary["w1_fake_no_diff_forward_reason"] = no_diff_forward.get("frontier_reason")
-        if no_diff_forward.get("frontier_kind") != "human_review_waiting":
-            violations.append(
-                "w1-fake-no-diff-forward-RED: forward disposition without scoped diff "
-                f"did not re-hold (frontier={no_diff_forward.get('frontier_kind')!r}, "
-                f"error={no_diff_forward.get('error_kind')!r})"
-            )
-        if no_diff_forward.get("frontier_reason") != "fake_landing_write_scope_diff_absent":
-            violations.append(
-                "w1-fake-no-diff-forward-RED: re-hold did not preserve fake-landing reason "
-                f"(reason={no_diff_forward.get('frontier_reason')!r})"
-            )
-
         fake_outside_link_path = Path(fake_outside_result.evidence_root) / "raw" / "link.jsonl"
         fake_outside_link_records = _jsonl_records(fake_outside_link_path)
+        fake_outside_original_link_records = [dict(record) for record in fake_outside_link_records]
         for record in reversed(fake_outside_link_records):
             if record.get("hold_reason") == "fake_landing_write_scope_diff_absent":
                 record.pop("transition_lifecycle_paused_at_ref", None)
@@ -1894,11 +1873,185 @@ def _w1_worktree_sandbox_fire(
                 adapter_timeout_seconds=30,
                 repo_root=fake_outside,
             )
+        fake_outside_link_path.write_text(
+            "\n".join(
+                json.dumps(record, separators=(",", ":"), ensure_ascii=False)
+                for record in fake_outside_original_link_records
+            )
+            + "\n",
+            encoding="utf-8",
+        )
         summary["w1_fake_missing_paused_at_error"] = missing_identity.get("error_kind")
         if missing_identity.get("error_kind") != "missing_paused_at_ref":
             violations.append(
                 "w1-fake-missing-paused-at-RED: missing fake-landing paused_at_ref "
                 f"was not refused (error={missing_identity.get('error_kind')!r})"
+            )
+
+        with tempfile.TemporaryDirectory(prefix="bp-w1-no-diff-forward-") as no_diff_raw:
+            no_diff_forward = run_approve_entry(
+                fake_outside_result.evidence_root,
+                action="forward",
+                author_ref="coo:d2-checker",
+                adapter_cwd=Path(no_diff_raw),
+                adapter_timeout_seconds=30,
+                repo_root=fake_outside,
+            )
+        no_diff_reobserved = observe_building_frontier(
+            fake_outside_result.evidence_root,
+            repo_root=fake_outside,
+        )
+        summary["w1_fake_no_diff_forward_frontier"] = no_diff_forward.get("frontier_kind")
+        summary["w1_fake_no_diff_forward_reason"] = no_diff_forward.get("frontier_reason")
+        summary["w1_fake_no_diff_forward_reobserved_frontier"] = no_diff_reobserved.get(
+            "frontier_kind"
+        )
+        if no_diff_forward.get("frontier_kind") != "complete":
+            violations.append(
+                "w1-fake-no-diff-forward: recorded forward disposition did not suppress "
+                f"fake-landing re-hold (frontier={no_diff_forward.get('frontier_kind')!r}, "
+                f"error={no_diff_forward.get('error_kind')!r})"
+            )
+        if no_diff_reobserved.get("frontier_kind") != "complete":
+            violations.append(
+                "w1-fake-no-diff-forward: durable frontier re-observation did not stay "
+                f"complete (frontier={no_diff_reobserved.get('frontier_kind')!r})"
+            )
+
+        fake_variant = Path(cust_raw) / "customer-fake-variant"
+        fake_variant.mkdir(parents=True, exist_ok=True)
+        _seed_customer_repo(repo, fake_variant)
+        fake_variant_result = run_customer_building_in_sandbox(
+            _w1_intent("w1-fake-variant-write-0"),
+            customer_repo_root=fake_variant,
+            output_root=evidence_root / "fake-variant",
+            overwrite_existing=True,
+            command_runner=_w1_completing_codex_runner(write=False),
+            adapter_timeout_seconds=30,
+        )
+        original_fake_landing_reader = driver_module._fake_landing_forward_disposition_recorded
+        driver_module._fake_landing_forward_disposition_recorded = lambda *_args, **_kwargs: False
+        try:
+            with tempfile.TemporaryDirectory(prefix="bp-w1-no-diff-forward-red-") as red_raw:
+                no_diff_red = run_approve_entry(
+                    fake_variant_result.evidence_root,
+                    action="forward",
+                    author_ref="coo:d2-checker",
+                    adapter_cwd=Path(red_raw),
+                    adapter_timeout_seconds=30,
+                    repo_root=fake_variant,
+                )
+        finally:
+            driver_module._fake_landing_forward_disposition_recorded = original_fake_landing_reader
+        summary["w1_fake_no_diff_forward_red_frontier"] = no_diff_red.get("frontier_kind")
+        summary["w1_fake_no_diff_forward_red_reason"] = no_diff_red.get("frontier_reason")
+        if no_diff_red.get("frontier_kind") != "human_review_waiting":
+            violations.append(
+                "w1-fake-no-diff-forward-variant-RED: disabling suppression did not "
+                f"re-hold (frontier={no_diff_red.get('frontier_kind')!r}, "
+                f"error={no_diff_red.get('error_kind')!r})"
+            )
+        if no_diff_red.get("frontier_reason") != "fake_landing_write_scope_diff_absent":
+            violations.append(
+                "w1-fake-no-diff-forward-variant-RED: re-hold did not preserve "
+                f"fake-landing reason (reason={no_diff_red.get('frontier_reason')!r})"
+            )
+
+        fake_undispositioned = Path(cust_raw) / "customer-fake-undispositioned"
+        fake_undispositioned.mkdir(parents=True, exist_ok=True)
+        _seed_customer_repo(repo, fake_undispositioned)
+        fake_undispositioned_result = run_customer_building_in_sandbox(
+            _w1_intent("w1-fake-undispositioned-write-0"),
+            customer_repo_root=fake_undispositioned,
+            output_root=evidence_root / "fake-undispositioned",
+            overwrite_existing=True,
+            command_runner=_w1_completing_codex_runner(write=False),
+            adapter_timeout_seconds=30,
+        )
+        summary["w1_fake_undispositioned_frontier"] = (
+            fake_undispositioned_result.frontier_kind
+        )
+        summary["w1_fake_undispositioned_reason"] = (
+            fake_undispositioned_result.frontier_reason
+        )
+        if fake_undispositioned_result.frontier_kind != "human_review_waiting":
+            violations.append(
+                "w1-fake-undispositioned: no-diff write-needed completion without "
+                f"disposition did not hold (frontier={fake_undispositioned_result.frontier_kind!r})"
+            )
+        if (
+            fake_undispositioned_result.frontier_reason
+            != "fake_landing_write_scope_diff_absent"
+        ):
+            violations.append(
+                "w1-fake-undispositioned: hold did not preserve fake-landing reason "
+                f"(reason={fake_undispositioned_result.frontier_reason!r})"
+            )
+
+        with tempfile.TemporaryDirectory(prefix="bp-w1-no-diff-reroute-") as reroute_raw:
+            no_diff_reroute = run_approve_entry(
+                fake_undispositioned_result.evidence_root,
+                action="reroute",
+                reroute_target_ref="brick:w1-explicit-reroute-target",
+                author_ref="coo:d2-checker",
+                adapter_cwd=Path(reroute_raw),
+                adapter_timeout_seconds=30,
+                repo_root=fake_undispositioned,
+            )
+        summary["w1_fake_no_diff_reroute_frontier"] = no_diff_reroute.get("frontier_kind")
+        if no_diff_reroute.get("frontier_kind") != "human_review_waiting":
+            violations.append(
+                "w1-fake-no-diff-reroute: non-forward disposition was consumed as "
+                f"suppression (frontier={no_diff_reroute.get('frontier_kind')!r}, "
+                f"error={no_diff_reroute.get('error_kind')!r})"
+            )
+
+        fake_other_hold = Path(cust_raw) / "customer-fake-other-hold"
+        fake_other_hold.mkdir(parents=True, exist_ok=True)
+        _seed_customer_repo(repo, fake_other_hold)
+        fake_other_hold_result = run_customer_building_in_sandbox(
+            _w1_intent("w1-fake-other-hold-write-0"),
+            customer_repo_root=fake_other_hold,
+            output_root=evidence_root / "fake-other-hold",
+            overwrite_existing=True,
+            command_runner=_w1_completing_codex_runner(write=False),
+            adapter_timeout_seconds=30,
+        )
+        other_link_path = Path(fake_other_hold_result.evidence_root) / "raw" / "link.jsonl"
+        other_link_records = _jsonl_records(other_link_path)
+        for record in reversed(other_link_records):
+            if record.get("hold_reason") == "fake_landing_write_scope_diff_absent":
+                wrong_ref = str(record.get("transition_lifecycle_paused_at_ref") or "")
+                record["transition_lifecycle_paused_at_ref"] = wrong_ref + "-other"
+                break
+        other_link_path.write_text(
+            "\n".join(
+                json.dumps(record, separators=(",", ":"), ensure_ascii=False)
+                for record in other_link_records
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        with tempfile.TemporaryDirectory(prefix="bp-w1-other-hold-forward-") as other_raw:
+            other_hold_forward = run_approve_entry(
+                fake_other_hold_result.evidence_root,
+                action="forward",
+                author_ref="coo:d2-checker",
+                adapter_cwd=Path(other_raw),
+                adapter_timeout_seconds=30,
+                repo_root=fake_other_hold,
+            )
+        summary["w1_fake_other_hold_forward_error"] = other_hold_forward.get("error_kind")
+        summary["w1_fake_other_hold_forward_frontier"] = other_hold_forward.get(
+            "frontier_kind"
+        )
+        if (
+            other_hold_forward.get("error_kind") is None
+            and other_hold_forward.get("frontier_kind") == "complete"
+        ):
+            violations.append(
+                "w1-fake-other-hold: mismatched hold identity was consumed as a "
+                "clean complete forward"
             )
 
         # CASE 1b (stale liveness gate): stale reap touches only parseable

@@ -1062,12 +1062,69 @@ def _record_fake_landing_hold_for_plan(
     """Persist the fake-landing HOLD for an already-loaded plan copy."""
 
     building_id = evidence_root.name
-    source = _fake_landing_hold_source(plan, building_id=building_id)
     link_path = evidence_root / "raw" / "link.jsonl"
     raw_ref = _next_driver_link_raw_ref(link_path)
-    hold_record = build_hold_record(
-        reroute_ref=f"reroute-hold:{building_id}:fake-landing-write-scope-diff-absent",
+    hold_record = _fake_landing_hold_record_for_plan(
+        evidence_root,
+        plan,
         adoption_sequence_number=_next_driver_link_index(link_path),
+    )
+    source_step_ref = str(hold_record.get("source_step_ref") or "").strip()
+    source_brick_ref = str(hold_record.get("source_brick_ref") or "").strip()
+    lifecycle_fields = _transition_lifecycle_evidence_fields(
+        {
+            "transition_lifecycle": {
+                "state": "paused",
+                "progress_state": "in_progress",
+                "paused_at_ref": _hold_paused_at_ref(hold_record),
+                "required_disposition_owner": "caller-or-coo",
+                "pending_target_ref": source_brick_ref,
+            }
+        }
+    )
+    _stamp_fake_landing_dynamic_hold(evidence_root, hold_record)
+    link_record = graph_ready_json_object(
+        {
+            **hold_record,
+            **lifecycle_fields,
+            "raw_ref": raw_ref,
+            "raw_refs": [raw_ref],
+            "building_id": building_id,
+            "step_ref": source_step_ref,
+            "source_brick_instance_ref": source_brick_ref,
+            "target_brick_instance_ref": source_brick_ref,
+            "target": source_brick_ref,
+            "transition_record_created": True,
+            "transition_author_ref": "support:operator-driver",
+            "movement_source": (
+                "support recorded fake-landing hold after complete frontier "
+                "without scoped product diff"
+            ),
+        },
+        building_id=building_id,
+        local_id=f"raw/link.jsonl#{raw_ref.rsplit(':', maxsplit=1)[-1]}",
+        recorded_at=graph_ready_timestamp(),
+        event_type="bp.raw.link",
+        subject=source_brick_ref,
+    )
+    _append_driver_jsonl_record(link_path, link_record)
+
+
+def _fake_landing_hold_record_for_plan(
+    evidence_root: Path,
+    plan: Mapping[str, Any],
+    *,
+    adoption_sequence_number: int | None = None,
+) -> Mapping[str, Any]:
+    """Build the fake-landing hold identity shared by writer and reader."""
+
+    building_id = evidence_root.name
+    source = _fake_landing_hold_source(plan, building_id=building_id)
+    if adoption_sequence_number is None:
+        adoption_sequence_number = _next_driver_link_index(evidence_root / "raw" / "link.jsonl")
+    return build_hold_record(
+        reroute_ref=f"reroute-hold:{building_id}:fake-landing-write-scope-diff-absent",
+        adoption_sequence_number=adoption_sequence_number,
         cascade_depth=0,
         parent_reroute_ref="",
         source_step_ref=source["step_ref"],
@@ -1089,43 +1146,26 @@ def _record_fake_landing_hold_for_plan(
         proof_limits=list(PROOF_LIMITS),
         not_proven=list(NOT_PROVEN),
     )
-    lifecycle_fields = _transition_lifecycle_evidence_fields(
-        {
-            "transition_lifecycle": {
-                "state": "paused",
-                "progress_state": "in_progress",
-                "paused_at_ref": _hold_paused_at_ref(hold_record),
-                "required_disposition_owner": "caller-or-coo",
-                "pending_target_ref": source["brick_instance_ref"],
-            }
-        }
+
+
+def _fake_landing_forward_disposition_recorded(
+    evidence_root: Path,
+    plan: Mapping[str, Any],
+) -> bool:
+    """Observe whether the fake-landing hold already has a same-hold forward row."""
+
+    from brick_protocol.support.operator.walker_resume import (  # noqa: PLC0415
+        _read_disposition_row,
     )
-    _stamp_fake_landing_dynamic_hold(evidence_root, hold_record)
-    link_record = graph_ready_json_object(
-        {
-            **hold_record,
-            **lifecycle_fields,
-            "raw_ref": raw_ref,
-            "raw_refs": [raw_ref],
-            "building_id": building_id,
-            "step_ref": source["step_ref"],
-            "source_brick_instance_ref": source["brick_instance_ref"],
-            "target_brick_instance_ref": source["brick_instance_ref"],
-            "target": source["brick_instance_ref"],
-            "transition_record_created": True,
-            "transition_author_ref": "support:operator-driver",
-            "movement_source": (
-                "support recorded fake-landing hold after complete frontier "
-                "without scoped product diff"
-            ),
-        },
-        building_id=building_id,
-        local_id=f"raw/link.jsonl#{raw_ref.rsplit(':', maxsplit=1)[-1]}",
-        recorded_at=graph_ready_timestamp(),
-        event_type="bp.raw.link",
-        subject=source["brick_instance_ref"],
-    )
-    _append_driver_jsonl_record(link_path, link_record)
+
+    hold_record = _fake_landing_hold_record_for_plan(evidence_root, plan)
+    try:
+        disposition = _read_disposition_row(evidence_root, hold_record)
+    except ValueError:
+        return False
+    if disposition is None:
+        return False
+    return str(disposition.get("disposition_action") or "").strip() == "forward"
 
 
 def _stamp_fake_landing_dynamic_hold(

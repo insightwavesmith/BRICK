@@ -3457,6 +3457,7 @@ def run_approve_entry(
             and str(frontier_after.get("frontier_kind") or "") == "complete"
         ):
             from brick_protocol.support.operator.driver import (  # noqa: PLC0415
+                _fake_landing_forward_disposition_recorded,
                 _record_fake_landing_hold_for_plan,
                 _write_need_complete_without_scoped_diff_for_plan,
             )
@@ -3477,7 +3478,7 @@ def run_approve_entry(
             if _write_need_complete_without_scoped_diff_for_plan(
                 Path(adapter_cwd),
                 plan_copy,
-            ):
+            ) and not _fake_landing_forward_disposition_recorded(building_root, plan_copy):
                 _record_fake_landing_hold_for_plan(building_root, plan_copy)
                 frontier_after = dict(
                     observe_building_frontier(building_root, repo_root=repo)
