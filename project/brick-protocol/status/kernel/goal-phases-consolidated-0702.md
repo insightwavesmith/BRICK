@@ -255,7 +255,22 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
   발견: QA 산문의 픽스처 세션ID 리터럴('sess-…')이 잔해 vessel을 redaction 위반자로 만듦 —
   실누출 아님, 언트래킹 잔해 4파일 5라인 COO 직접 마스킹(레인은 언트래킹 불가시라 빌딩 수리
   불가 구조). 후속 후보: 레인 계약 지침에 '세션ID형 리터럴 인용 금지' 추가 검토(재발 시 승격).
-- **현행: 큐 ① Link Part4 걷는 중** — 착지 시 5게이트 후 큐 ③ GP3 문턱 조사로.
+- **큐 ① Link Part4 ✅ 랜딩(0703 밤, stop-and-gate)** — related_boundary_refs 엄격 접수
+  문법(bare brick-·building-boundary:만, 콜론접미/구접두/산문/경로 거부) + **진짜 생산자
+  수리**(walker_transition_concern.py:304 — 기계 proof-obligation concern이 brick:꼴을
+  방출하던 것을 준수형으로; 분류기 무수정=replay 관용 유지). 경과: QA 5라운드 전부
+  implementation_gap 동일 계열 — 원인은 계약이 operator/**를 불가침으로 묶은 채 생산자
+  결함을 레인에 맡긴 것(레인은 접수에 정규화 심을 팠고 QA가 심의 우회 구멍을 라운드마다
+  적발 — 옳은 QA). COO stop-and-gate: 심 제거+생산자 수리+반-심 pin. 게이트: 포커스 pin
+  rc=0(거부 10형+정상 2형+기계왕복+반-심+우회 6형) · 변이-RED 양방향(접수 무력화 rc=1,
+  생산자 역행 rc=1 — 생산자 행동 pin 실증) · 분류기/mail diff 0줄 · 격리+라이브 --all
+  35/35. 머지 e74b53e1, 앵커 refs/brick/wip/link-part4-0703a-r6 보존. **레인-불가능 D-항목
+  분리 원칙이 스킬에 각인됨(26cab276)** — 이 사건이 그 원칙의 2번째 실증.
+- **큐 ③ GP3 문턱 조사 ✅(0703 밤)** — 정본 gp3-threshold-0703.md: kind=mutation_red는
+  형-검사만(집행 아님, red_rc=0도 통과)이라 그대로는 대체 불가 / **command-kind로 변이
+  프로브 스크립트를 선언하면 의미론 집행 가능(엔진 수정 불요)** — §4-1 분해 계약에 이
+  패턴 채택. 다음: 전제2 case_runners vs C1 비교 1레인 → §4-1 분해. 후속 후보 5건 등재
+  (문서 참조).
 
 ## 현재 위치 (0702 심야)
 
