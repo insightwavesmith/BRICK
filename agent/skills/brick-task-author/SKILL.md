@@ -334,8 +334,15 @@ node_write_scope는 assemble()/build() 호출 시점에 COO가 고정하고, des
 | `brick kind ... repeats; declare alias=` | 같은 kind를 직접 brick()으로 반복 선언 시 alias= 부여 (build() sugar는 자동 mint) |
 | `declared_by must be bare text ... colon is not admitted` | declared_by는 `coo-smith` 꼴(콜론 금지) — 콜론 ref는 author_ref에 |
 
-## 발사 직전 체크리스트 (5행 — 본문에 흩어진 함정을 한 화면으로)
+## 발사 직전 체크리스트 (본문에 흩어진 함정을 한 화면으로)
 
+0. **그래프-폭 질문(그래프를 그리기 전에)**: 이 일은 분할 가능한가 + 파티션이 파일-비충돌
+   인가(읽기 전용/write_scope 분리)? 둘 다 예 → `fan(작업 파티션×N) → 수렴 노드 →
+   fan(렌즈) → closure`가 기본형. **fan은 범용 병렬 스테이지다 — 렌즈 전용이 아니다.**
+   단일 레인 직렬 정독은 분할 불가능한 일의 특수형(0703 실측: 11k줄 조사 단일 레인
+   4라운드 공전 vs 13-way fan 파티션 17노드 전원 1라운드 완주). ★fan 뒤엔 수렴 노드
+   필수 — fan→fan 직결은 DSL이 거부(assembly.py "a fan() block needs a following
+   convergence node"). 정본: building-sizing-method 결정표.
 1. `cd <활성 체크아웃>` 절대경로 명시 — 셸 cwd 리셋 트랩. 발사 명령 앞에 항상.
 2. `set -a; source ~/.brick/report.env; set +a` — 벨+대시보드. resume 전에도 동일.
 3. `output_root` — one-call `build()`는 `~/.brick/goal-runs/`에 하드코딩한다(0702 실측, `_build_output_root`) = 슬랙 벨 끊김. 벨이 필요하면 `run_goal_approve_entry(output_root=REPO/project/brick-protocol/buildings/...)`로 발사하거나 goal-runs 산출을 발사자가 직접 회수.
