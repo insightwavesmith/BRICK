@@ -694,6 +694,16 @@ modules:
     decomposition_target: ""
     pinned_by: pure-relocation sibling of kernel_checks (building_map_graph + building_plans_boundary_sweep kernel checks; homes no crossing mechanics, imports no axis at module level)
 
+  - module: support/checkers/lib/building_result_summary_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of kernel_checks (building_result_summary kernel check; homes no crossing mechanics, imports no axis at module level)
+
   - module: support/checkers/lib/raw_evidence_stream_scrub_check.py
     layer: checkers/lib
     role: checker-lib
