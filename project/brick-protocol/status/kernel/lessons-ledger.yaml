@@ -1,0 +1,23 @@
+# Lessons ledger v1.
+# Three-ledger distinction:
+# - T3 enforcement-ledger: forbidden-vocabulary parity ledger.
+# - This file: prescription lineage ledger, one prescription per row.
+# - ledger_projection.py: orchestration state read-side view.
+# This file is status evidence only, not source truth, success judgment,
+# quality judgment, or Movement authority.
+schema_version: lessons-ledger/v1
+proof_limits:
+  - prescription lineage evidence only
+  - one prescription per row; multi-axis prescriptions may reuse the same id
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+lessons:
+  - id: lesson-0704-coo-surface-additions
+    date: "2026-07-04"
+    axis: cross
+    prescription: "COO-surfaced measured incidents must land as lane-readable contract or discipline text with checker evidence, so later orders do not hand-translate the same lesson and drop the gap."
+    landing_commit: bbfdc4922783e4f9ae450712c0b826ed59197536
+    pin_location: "agent/disciplines/closed-agentfact.md; brick/templates/bricks/work/return.yaml"
+    unresolved: "Backfill of older postmortem prescriptions is intentionally out of scope for this row."
