@@ -1,6 +1,6 @@
 schema: checker-profile/v1
 profile_id: building-skill-preset-builder-composition
-description: Staging copy slice for BUILDING-SKILL-PRESET-AGENT-TOOL-HARDENING-0 builder composition and preset materialization assertions.
+description: Builder composition and preset materialization assertions from BUILDING-SKILL-PRESET-AGENT-TOOL-HARDENING-0.
 kernel_checks:
   - package_path_admission
   - axis_contract_projection
@@ -177,6 +177,750 @@ materialize_building_intent_case:
         - ""
         - ""
       task_source_hash_present: true
+  - label: materialize-building-intent:builder-default-building-id
+    document:
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:fast-fix
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+          - .claude/**
+      not_proven:
+        - checker fixture task source only
+    expected:
+      building_id: source-template-fast-fix
+      chain_preset_ref: building-chain-preset:fast-fix
+      selected_adapter_ref: adapter:codex-local
+      task_source_ref: brick/templates/tasks/source-template.md
+      plan_shape: graph
+      step_refs:
+        - source-template-fast-fix-work
+        - source-template-fast-fix-code-attack-qa
+        - source-template-fast-fix-closure
+      target_refs:
+        - brick-source-template-fast-fix-code-attack-qa
+        - brick-source-template-fast-fix-closure
+        - building-boundary:source-template-fast-fix-closed
+      node_reroute_budgets:
+        brick-source-template-fast-fix-work: 5
+      assert_route_policy_provenance: true
+      route_policy_provenance:
+        source-template-fast-fix-work:
+          node_reroute_budget: preset-default
+      task_source_hash_present: true
+      declaration_evidence:
+        work_files:
+          - work/task.md
+          - work/building-intake.json
+          - work/preset-expansion.json
+          - work/declared-building-plan.json
+          - work/link-launch-policy.json
+        task_source_hash_present: true
+        task_source_hash_state: matched
+  - label: materialize-building-intent:portfolio-sequence-graph
+    document:
+      plan_ref: building-plan:materialize-portfolio-sequence-graph
+      building_id: materialize-portfolio-sequence-graph
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:portfolio-sequence
+      selected_adapter_ref: adapter:local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+      not_proven:
+        - checker fixture task source only
+    expected:
+      plan_shape: graph
+      building_id: materialize-portfolio-sequence-graph
+      chain_preset_ref: building-chain-preset:portfolio-sequence
+      selected_adapter_ref: adapter:local
+      task_source_ref: brick/templates/tasks/source-template.md
+      step_refs:
+        - materialize-portfolio-sequence-graph-plan
+        - materialize-portfolio-sequence-graph-closure
+      target_refs:
+        - brick-materialize-portfolio-sequence-graph-closure
+        - building-boundary:materialize-portfolio-sequence-graph-closed
+  # GATE-WIRING FIRE (a) (0610): governed-change-review declares
+  # gate_concept_profile [strict-evidence, coo-review, human-review]. The
+  # materializer must TRANSLATE the declared label into REAL wired gates with
+  # exact placement: strict on the QA-row transitions, coo + human on the FINAL
+  # transition row only (target = closure boundary), the canonical human hold
+  # policy on that same row only, and NOTHING extra anywhere else ADDED BY THIS
+  # TRANSLATION (scope, codex review 0610: "nothing extra" covers what the
+  # token translation stamps; a pre-existing AUTHOR-declared gate_sequence_policy
+  # in a preset, e.g. brick-protocol-engine-feature-hard's design->work coo
+  # HOLD, is untouched and still holds on its own row). The per-row
+  # assertions pin both presence and absence, so this REDs if the label goes
+  # decorative again OR if support starts stamping gates on undeclared rows.
+  - label: materialize-building-intent:governed-change-review-gate-wiring
+    # C4 (0615): governed-change-review's QA bricks declare a write NEED, so the
+    # materialized intent carries a broad work-area write_scope and an
+    # observed-write adapter (adapter:codex-local). adapter:local (read-only
+    # in-process stub) may not materialize a write-needing QA plan.
+    document:
+      plan_ref: building-plan:materialize-governed-gate-wiring
+      building_id: materialize-governed-gate-wiring
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:governed-change-review
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - "**"
+        forbidden_paths:
+          - ".git/**"
+      not_proven:
+        - checker fixture task source only
+    expected:
+      building_id: materialize-governed-gate-wiring
+      chain_preset_ref: building-chain-preset:governed-change-review
+      selected_adapter_ref: adapter:codex-local
+      task_source_ref: brick/templates/tasks/source-template.md
+      plan_shape: graph
+      step_refs:
+        - materialize-governed-gate-wiring-design
+        - materialize-governed-gate-wiring-axis-attack-qa
+        - materialize-governed-gate-wiring-code-attack-qa
+        - materialize-governed-gate-wiring-closure
+      target_refs:
+        - brick-materialize-governed-gate-wiring-axis-attack-qa
+        - brick-materialize-governed-gate-wiring-code-attack-qa
+        - brick-materialize-governed-gate-wiring-closure
+        - building-boundary:materialize-governed-gate-wiring-closed
+      node_reroute_budgets:
+        brick-materialize-governed-gate-wiring-design: 5
+      assert_route_policy_provenance: true
+      route_policy_provenance:
+        materialize-governed-gate-wiring-design:
+          node_reroute_budget: preset-default
+      declared_gate_refs_by_row:
+        - link-gate:default-transition
+        - "link-gate:default-transition, link-gate:strict"
+        - "link-gate:default-transition, link-gate:strict"
+        - "link-gate:default-transition, link-gate:coo, link-gate:human"
+      gate_sequence_policy_gate_refs_by_row:
+        - ""
+        - ""
+        - ""
+        - link-gate:human
+      # GATE-WIRING FIRE A1/A4 (0610): every TRANSLATED row records
+      # machine-readable provenance (which declared tokens landed there + which
+      # preset declared them); the un-translated design row records NONE.
+      gate_concept_provenance_by_row:
+        - ""
+        - strict-evidence
+        - strict-evidence
+        - "coo-review, human-review"
+      gate_concept_provenance_declared_by: building-chain-preset:governed-change-review
+      task_source_hash_present: true
+  - label: materialize-building-intent:design-build-parallel-graph
+    document:
+      plan_ref: building-plan:materialize-design-build-parallel-graph
+      building_id: materialize-design-build-parallel-graph
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:design-build-parallel
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+          - .claude/**
+      not_proven:
+        - checker fixture task source only
+    expected:
+      building_id: materialize-design-build-parallel-graph
+      chain_preset_ref: building-chain-preset:design-build-parallel
+      selected_adapter_ref: adapter:codex-local
+      task_source_ref: brick/templates/tasks/source-template.md
+      plan_shape: graph
+      step_refs:
+        - materialize-design-build-parallel-graph-design
+        - materialize-design-build-parallel-graph-work
+        - materialize-design-build-parallel-graph-code-attack-qa
+        - materialize-design-build-parallel-graph-axis-attack-qa
+        - materialize-design-build-parallel-graph-closure
+      target_refs:
+        - brick-materialize-design-build-parallel-graph-work
+        - brick-materialize-design-build-parallel-graph-code-attack-qa
+        - brick-materialize-design-build-parallel-graph-axis-attack-qa
+        - brick-materialize-design-build-parallel-graph-closure
+        - brick-materialize-design-build-parallel-graph-closure
+        - building-boundary:materialize-design-build-parallel-graph-closed
+      movements:
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+      group_roles:
+        - fan_out
+        - fan_in
+      task_source_hash_present: true
+      # Phase 2.5 false-green guard: assert the materialized node return shapes
+      # themselves (not just step/target/movement refs). Verifies (1) no node
+      # carries the support-invented concern_observations, (2) each fan-in SOURCE
+      # shape == its full brick return.yaml shape
+      # (brick-derived, not hardcoded or support-shrunk), (3) Link carry is
+      # filtered by carries_forward_fields, and (4) the fan-in TARGET closure
+      # shape contains transition_concern_evidence. Expectation is read from
+      # the LIVE brick return.yaml so it tracks the source of truth.
+      assert_materialized_return_shapes: true
+      # Mechanism-vs-policy provenance guard (Smith-ruled): the reroute BUDGET and
+      # closure routing POLICY are HUMAN Movement decisions; support records but
+      # NEVER synthesizes them. This case uses NO per-Building override, so every
+      # carried value's provenance MUST be preset-default (the reusable HUMAN-
+      # authored preset default), and NONE may be support-synthesized/absent. The
+      # exact per-node map below is asserted (case c: preset default).
+      assert_route_policy_provenance: true
+      route_policy_provenance:
+        materialize-design-build-parallel-graph-design:
+          node_reroute_budget: preset-default
+        materialize-design-build-parallel-graph-work:
+          node_reroute_budget: preset-default
+        materialize-design-build-parallel-graph-closure:
+          closure_transition_target_policy: preset-default
+      declaration_evidence:
+        work_files:
+          - work/task.md
+          - work/building-intake.json
+          - work/preset-expansion.json
+          - work/declared-building-plan.json
+          - work/link-launch-policy.json
+        task_source_hash_present: true
+        task_source_hash_state: matched
+  - label: materialize-building-intent:design-build-parallel-graph-per-building-override
+    document:
+      plan_ref: building-plan:materialize-design-build-parallel-graph-override
+      building_id: materialize-design-build-parallel-graph-override
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:design-build-parallel
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+          - .claude/**
+      # Per-Building OVERRIDE (config cascade): a HUMAN replaces the closure routing
+      # policy for THIS Building only (whole-policy replacement; the policy is one
+      # mapping on the closure node). The override beats the preset default and is
+      # stamped provenance per-building; the untouched per-node reroute budgets stay
+      # preset-default. Support synthesizes neither.
+      #
+      # (The reroute-budget per-Building override path is keyed by step_template_ref,
+      # whose colon the checker's YAML-subset parser cannot represent as a mapping
+      # key; that path is proven by the IMPLEMENTATION's own execution. This checker
+      # case drives the per-building provenance through the colon-free closure-policy
+      # override, which the subset parser represents faithfully.)
+      closure_transition_target_policy:
+        implementation_gap:
+          action: target
+          target_step_template_ref: building-step-template:design
+        verification_gap:
+          action: hold
+      not_proven:
+        - checker fixture task source only
+    expected:
+      building_id: materialize-design-build-parallel-graph-override
+      chain_preset_ref: building-chain-preset:design-build-parallel
+      plan_shape: graph
+      task_source_hash_present: true
+      # The untouched per-node budgets stay preset-default; the OVERRIDDEN closure
+      # policy is stamped per-building. node_reroute_budgets is keyed by
+      # brick_instance_ref.
+      node_reroute_budgets:
+        brick-materialize-design-build-parallel-graph-override-design: 1
+        brick-materialize-design-build-parallel-graph-override-work: 1
+      assert_route_policy_provenance: true
+      route_policy_provenance:
+        materialize-design-build-parallel-graph-override-design:
+          node_reroute_budget: preset-default
+        materialize-design-build-parallel-graph-override-work:
+          node_reroute_budget: preset-default
+        materialize-design-build-parallel-graph-override-closure:
+          closure_transition_target_policy: per-building
+  - label: materialize-building-intent:design-build-parallel-graph-constitutional-default
+    strip_preset_ref: building-chain-preset:design-build-parallel
+    strip_preset_keys:
+      - node_reroute_budgets
+    document:
+      plan_ref: building-plan:materialize-design-build-parallel-graph-constitutional-default
+      building_id: materialize-design-build-parallel-graph-constitutional-default
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:design-build-parallel
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+          - .claude/**
+      not_proven:
+        - checker fixture task source only
+    expected:
+      building_id: materialize-design-build-parallel-graph-constitutional-default
+      chain_preset_ref: building-chain-preset:design-build-parallel
+      plan_shape: graph
+      node_reroute_budgets:
+        brick-materialize-design-build-parallel-graph-constitutional-default-design: 5
+        brick-materialize-design-build-parallel-graph-constitutional-default-work: 5
+        brick-materialize-design-build-parallel-graph-constitutional-default-code-attack-qa: 5
+        brick-materialize-design-build-parallel-graph-constitutional-default-axis-attack-qa: 5
+        brick-materialize-design-build-parallel-graph-constitutional-default-closure: 5
+      assert_route_policy_provenance: true
+      route_policy_provenance:
+        materialize-design-build-parallel-graph-constitutional-default-design:
+          node_reroute_budget: constitutional-default
+        materialize-design-build-parallel-graph-constitutional-default-work:
+          node_reroute_budget: constitutional-default
+        materialize-design-build-parallel-graph-constitutional-default-code-attack-qa:
+          node_reroute_budget: constitutional-default
+        materialize-design-build-parallel-graph-constitutional-default-axis-attack-qa:
+          node_reroute_budget: constitutional-default
+        materialize-design-build-parallel-graph-constitutional-default-closure:
+          node_reroute_budget: constitutional-default
+          closure_transition_target_policy: preset-default
+  - label: materialize-building-intent:engine-feature-hard-graph
+    document:
+      plan_ref: building-plan:materialize-engine-feature-hard-graph
+      building_id: materialize-engine-feature-hard-graph
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:brick-protocol-engine-feature-hard
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+          - .claude/**
+      not_proven:
+        - checker fixture task source only
+    expected:
+      building_id: materialize-engine-feature-hard-graph
+      chain_preset_ref: building-chain-preset:brick-protocol-engine-feature-hard
+      selected_adapter_ref: adapter:codex-local
+      task_source_ref: brick/templates/tasks/source-template.md
+      plan_shape: graph
+      step_refs:
+        - materialize-engine-feature-hard-graph-design
+        - materialize-engine-feature-hard-graph-work
+        - materialize-engine-feature-hard-graph-code-attack-qa
+        - materialize-engine-feature-hard-graph-axis-attack-qa
+        - materialize-engine-feature-hard-graph-evidence-integrity
+        - materialize-engine-feature-hard-graph-closure
+      target_refs:
+        - brick-materialize-engine-feature-hard-graph-work
+        - brick-materialize-engine-feature-hard-graph-code-attack-qa
+        - brick-materialize-engine-feature-hard-graph-axis-attack-qa
+        - brick-materialize-engine-feature-hard-graph-evidence-integrity
+        - brick-materialize-engine-feature-hard-graph-closure
+        - brick-materialize-engine-feature-hard-graph-closure
+        - brick-materialize-engine-feature-hard-graph-closure
+        - building-boundary:materialize-engine-feature-hard-graph-closed
+      movements:
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+      declared_gate_refs:
+        - link-gate:default-transition
+        - link-gate:coo
+      gate_sequence_policy_gate_refs:
+        - link-gate:default-transition
+        - link-gate:coo
+      brick_capability_classes:
+        - read
+        - source_write
+        - probe_write
+        - probe_write
+        - probe_write
+        - read
+      group_roles:
+        - fan_out
+        - fan_in
+      task_source_hash_present: true
+      declaration_evidence:
+        work_files:
+          - work/task.md
+          - work/building-intake.json
+          - work/preset-expansion.json
+          - work/declared-building-plan.json
+          - work/link-launch-policy.json
+        task_source_hash_present: true
+        task_source_hash_state: matched
+  - label: materialize-building-intent:high-risk-change-inspected-graph
+    document:
+      plan_ref: building-plan:materialize-high-risk-change-inspected-graph
+      building_id: materialize-high-risk-change-inspected-graph
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:high-risk-change-inspected
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+          - .claude/**
+      not_proven:
+        - checker fixture task source only
+    expected:
+      building_id: materialize-high-risk-change-inspected-graph
+      chain_preset_ref: building-chain-preset:high-risk-change-inspected
+      selected_adapter_ref: adapter:codex-local
+      task_source_ref: brick/templates/tasks/source-template.md
+      plan_shape: graph
+      step_refs:
+        - materialize-high-risk-change-inspected-graph-design
+        - materialize-high-risk-change-inspected-graph-work
+        - materialize-high-risk-change-inspected-graph-code-attack-qa
+        - materialize-high-risk-change-inspected-graph-axis-attack-qa
+        - materialize-high-risk-change-inspected-graph-evidence-integrity
+        - materialize-high-risk-change-inspected-graph-closure
+      target_refs:
+        - brick-materialize-high-risk-change-inspected-graph-work
+        - brick-materialize-high-risk-change-inspected-graph-code-attack-qa
+        - brick-materialize-high-risk-change-inspected-graph-axis-attack-qa
+        - brick-materialize-high-risk-change-inspected-graph-evidence-integrity
+        - brick-materialize-high-risk-change-inspected-graph-closure
+        - brick-materialize-high-risk-change-inspected-graph-closure
+        - brick-materialize-high-risk-change-inspected-graph-closure
+        - building-boundary:materialize-high-risk-change-inspected-graph-closed
+      movements:
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+      group_roles:
+        - fan_out
+        - fan_in
+      # GATE-WIRING FIRE (a, graph) (0610): high-risk-change-inspected declares
+      # [strict-evidence, fan-in-wait-all, coo-review, human-review]. Placement:
+      # strict on every fan-in QA edge (reviewer-lane source), coo + human +
+      # the canonical human hold policy on the TERMINAL boundary edge only;
+      # fan-in-wait-all stays a MODE word (no gate ref). Edge order: design->work,
+      # work->3 QA branches, 3 QA->closure fan-in edges, closure->boundary.
+      declared_gate_refs_by_row:
+        - link-gate:default-transition
+        - link-gate:default-transition
+        - link-gate:default-transition
+        - link-gate:default-transition
+        - "link-gate:default-transition, link-gate:strict"
+        - "link-gate:default-transition, link-gate:strict"
+        - "link-gate:default-transition, link-gate:strict"
+        - "link-gate:default-transition, link-gate:coo, link-gate:human"
+      gate_sequence_policy_gate_refs_by_row:
+        - ""
+        - ""
+        - ""
+        - ""
+        - ""
+        - ""
+        - ""
+        - link-gate:human
+      # GATE-WIRING FIRE A1/A4 (graph) (0610): the 3 strict QA fan-in edges and
+      # the terminal boundary edge each record provenance for exactly the
+      # tokens that landed there; un-translated edges record NONE.
+      gate_concept_provenance_by_row:
+        - ""
+        - ""
+        - ""
+        - ""
+        - strict-evidence
+        - strict-evidence
+        - strict-evidence
+        - "coo-review, human-review"
+      gate_concept_provenance_declared_by: building-chain-preset:high-risk-change-inspected
+      task_source_hash_present: true
+      declaration_evidence:
+        work_files:
+          - work/task.md
+          - work/building-intake.json
+          - work/preset-expansion.json
+          - work/declared-building-plan.json
+          - work/link-launch-policy.json
+        task_source_hash_present: true
+        task_source_hash_state: matched
+  - label: materialize-building-intent:review-fleet-per-step-provider-ladder
+    # C4 (0615): review-fleet's QA bricks (code-attack-qa, axis-attack-qa,
+    # evidence-integrity) now declare requires_brick_write_scope yes, so the
+    # materialized intent MUST carry a broad work-area write_scope (the
+    # materializer flows it onto the write-needed nodes, un-stamped past the
+    # read-only design/closure steps). The building default adapter is
+    # adapter:codex-local (an observed-write adapter); the preset's per-step
+    # provider-ladder overrides still resolve each QA step to codex/gemini-local
+    # exactly as before -- adapter:local NEVER drives a write-needed step.
+    document:
+      plan_ref: building-plan:materialize-review-fleet-provider-ladder
+      building_id: materialize-review-fleet-provider-ladder
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:review-fleet
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - "**"
+        forbidden_paths:
+          - ".git/**"
+      not_proven:
+        - checker fixture task source only
+    expected:
+      building_id: materialize-review-fleet-provider-ladder
+      chain_preset_ref: building-chain-preset:review-fleet
+      selected_adapter_ref: adapter:codex-local
+      task_source_ref: brick/templates/tasks/source-template.md
+      plan_shape: graph
+      step_refs:
+        - materialize-review-fleet-provider-ladder-design
+        - materialize-review-fleet-provider-ladder-code-attack-qa
+        - materialize-review-fleet-provider-ladder-axis-attack-qa
+        - materialize-review-fleet-provider-ladder-evidence-integrity
+        - materialize-review-fleet-provider-ladder-closure
+      selected_adapter_refs_by_step:
+        - adapter:codex-local
+        - adapter:codex-local
+        - adapter:gemini-local
+        - adapter:gemini-local
+        - adapter:codex-local
+      selected_model_refs_by_step:
+        - model:default
+        - model:codex:default
+        - model:gemini:default
+        - model:gemini:default
+        - model:default
+      target_refs:
+        - brick-materialize-review-fleet-provider-ladder-code-attack-qa
+        - brick-materialize-review-fleet-provider-ladder-axis-attack-qa
+        - brick-materialize-review-fleet-provider-ladder-evidence-integrity
+        - brick-materialize-review-fleet-provider-ladder-closure
+        - brick-materialize-review-fleet-provider-ladder-closure
+        - brick-materialize-review-fleet-provider-ladder-closure
+        - building-boundary:materialize-review-fleet-provider-ladder-closed
+      declared_gate_refs_by_row:
+        - link-gate:default-transition
+        - link-gate:default-transition
+        - link-gate:default-transition
+        - "link-gate:default-transition, link-gate:strict"
+        - "link-gate:default-transition, link-gate:strict"
+        - "link-gate:default-transition, link-gate:strict"
+        - link-gate:default-transition
+      gate_sequence_policy_gate_refs_by_row:
+        - ""
+        - ""
+        - ""
+        - ""
+        - ""
+        - ""
+        - ""
+      gate_concept_provenance_by_row:
+        - ""
+        - ""
+        - ""
+        - strict-evidence
+        - strict-evidence
+        - strict-evidence
+        - ""
+      gate_concept_provenance_declared_by: building-chain-preset:review-fleet
+      group_roles:
+        - fan_out
+        - fan_in
+      task_source_hash_present: true
+      assert_materialized_return_shapes: true
+      assert_route_policy_provenance: true
+      route_policy_provenance:
+        materialize-review-fleet-provider-ladder-design:
+          node_reroute_budget: preset-default
+        materialize-review-fleet-provider-ladder-closure:
+          closure_transition_target_policy: preset-default
+  - label: materialize-building-intent:postmortem-fleet-alias-smoke
+    # C4 (0615): postmortem-fleet's QA bricks declare a write NEED, so the intent
+    # carries a broad work-area write_scope (flowed onto the write-needed lens
+    # nodes, un-stamped past the read-only inspect/closure steps). P2c (0628):
+    # Codex owns code-attack QA; Gemini owns axis/evidence attack lenses. This
+    # case pins the recast so a Gemini code-attack lens cannot drift back in.
+    # Building default adapter -> adapter:codex-local; adapter:local NEVER drives
+    # a write-needed step.
+    document:
+      plan_ref: building-plan:materialize-postmortem-fleet-alias-smoke
+      building_id: materialize-postmortem-fleet-alias-smoke
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:postmortem-fleet
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - "**"
+        forbidden_paths:
+          - ".git/**"
+      not_proven:
+        - checker fixture task source only
+    expected:
+      building_id: materialize-postmortem-fleet-alias-smoke
+      chain_preset_ref: building-chain-preset:postmortem-fleet
+      selected_adapter_ref: adapter:codex-local
+      task_source_ref: brick/templates/tasks/source-template.md
+      plan_shape: graph
+      step_refs:
+        - materialize-postmortem-fleet-alias-smoke-inspect
+        - materialize-postmortem-fleet-alias-smoke-code-lens-codex
+        - materialize-postmortem-fleet-alias-smoke-axis-lens-gemini
+        - materialize-postmortem-fleet-alias-smoke-evidence-lens-gemini
+        - materialize-postmortem-fleet-alias-smoke-closure
+      selected_adapter_refs_by_step:
+        - adapter:codex-local
+        - adapter:codex-local
+        - adapter:gemini-local
+        - adapter:gemini-local
+        - adapter:codex-local
+      selected_model_refs_by_step:
+        - model:default
+        - model:default
+        - model:gemini:default
+        - model:gemini:default
+        - model:default
+      target_refs:
+        - brick-materialize-postmortem-fleet-alias-smoke-code-lens-codex
+        - brick-materialize-postmortem-fleet-alias-smoke-axis-lens-gemini
+        - brick-materialize-postmortem-fleet-alias-smoke-evidence-lens-gemini
+        - brick-materialize-postmortem-fleet-alias-smoke-closure
+        - brick-materialize-postmortem-fleet-alias-smoke-closure
+        - brick-materialize-postmortem-fleet-alias-smoke-closure
+        - building-boundary:materialize-postmortem-fleet-alias-smoke-closed
+      group_roles:
+        - fan_out
+        - fan_in
+      task_source_hash_present: true
+      assert_materialized_return_shapes: true
+      assert_route_policy_provenance: true
+      route_policy_provenance:
+        materialize-postmortem-fleet-alias-smoke-inspect:
+          node_reroute_budget: preset-default
+        materialize-postmortem-fleet-alias-smoke-closure:
+          closure_transition_target_policy: preset-default
+  # E1 FULL-LEGO multi-fan-in FIRE: the two-fan-in-graph preset DECLARES an
+  # explicit graph_topology with TWO distinct fan_in_groups (two convergence
+  # points: code lenses -> mid-closure, axis lenses -> final-closure) + an
+  # explicit terminal (final-closure). The materializer must emit EXACTLY those
+  # groups+edges -- the Y-shape positional inference cannot express. This case
+  # pins the MULTI-TARGET shape:
+  #   * group_roles == [fan_out, fan_in, fan_in] (TWO fan_in groups, not one),
+  #   * target_refs trace the Y: 4 fan-out, 2 into mid-closure, the plain
+  #     mid-closure -> final-closure edge, 2 axis into final-closure, then the
+  #     closing boundary edge on the DECLARED terminal,
+  #   * route_policy_provenance carries a closure policy on BOTH fan-in targets
+  #     (mid-closure AND final-closure) -- every fan-in TARGET carries its own
+  #     HUMAN-declared closure_transition_target_policy (preset-default),
+  #   * assert_materialized_return_shapes pins each fan-in SOURCE shape ==
+  #     full brick shape, with Link carry filtered by carries_forward_fields,
+  #     and each fan-in TARGET closure shape carries transition_concern_evidence
+  #     (the same compose_building validators).
+  # MUTATION-RED anchor: removing the declared terminal, or breaking a declared
+  # fan_in group edge, drops a fan_in group / collapses to one target and this
+  # case REDs.
+  - label: materialize-building-intent:two-fan-in-graph-multi-target
+    # C4 (0615): the two-fan-in-graph preset's lens bricks (code/axis lenses are
+    # the flipped QA bricks) now declare a write NEED, so the intent carries a
+    # broad work-area write_scope (flowed onto the write-needed lens nodes,
+    # un-stamped past the read-only inspect/closure steps). Building default
+    # adapter -> adapter:codex-local; the preset already pins adapter:codex-local
+    # on every step, so adapter:local NEVER drives a write-needed step.
+    document:
+      plan_ref: building-plan:materialize-two-fan-in-graph
+      building_id: materialize-two-fan-in-graph
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:two-fan-in-graph
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - "**"
+        forbidden_paths:
+          - ".git/**"
+      not_proven:
+        - checker fixture task source only
+    expected:
+      building_id: materialize-two-fan-in-graph
+      chain_preset_ref: building-chain-preset:two-fan-in-graph
+      selected_adapter_ref: adapter:codex-local
+      task_source_ref: brick/templates/tasks/source-template.md
+      plan_shape: graph
+      step_refs:
+        - materialize-two-fan-in-graph-inspect
+        - materialize-two-fan-in-graph-code-lens-a
+        - materialize-two-fan-in-graph-code-lens-b
+        - materialize-two-fan-in-graph-axis-lens-a
+        - materialize-two-fan-in-graph-axis-lens-b
+        - materialize-two-fan-in-graph-mid-closure
+        - materialize-two-fan-in-graph-final-closure
+      target_refs:
+        - brick-materialize-two-fan-in-graph-code-lens-a
+        - brick-materialize-two-fan-in-graph-code-lens-b
+        - brick-materialize-two-fan-in-graph-axis-lens-a
+        - brick-materialize-two-fan-in-graph-axis-lens-b
+        - brick-materialize-two-fan-in-graph-mid-closure
+        - brick-materialize-two-fan-in-graph-mid-closure
+        - brick-materialize-two-fan-in-graph-final-closure
+        - brick-materialize-two-fan-in-graph-final-closure
+        - brick-materialize-two-fan-in-graph-final-closure
+        - building-boundary:materialize-two-fan-in-graph-closed
+      movements:
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+      group_roles:
+        - fan_out
+        - fan_in
+        - fan_in
+      task_source_hash_present: true
+      assert_materialized_return_shapes: true
+      assert_route_policy_provenance: true
+      route_policy_provenance:
+        materialize-two-fan-in-graph-inspect:
+          node_reroute_budget: preset-default
+        materialize-two-fan-in-graph-mid-closure:
+          closure_transition_target_policy: preset-default
+        materialize-two-fan-in-graph-final-closure:
+          closure_transition_target_policy: preset-default
 materialize_building_intent_rejects:
   - label: materialize-building-intent:missing-task-source-ref
     expected_message: task_source_ref must not be blank
@@ -212,6 +956,204 @@ materialize_building_intent_rejects:
       declared_by: coo
       task_source_ref: brick/templates/tasks/source-template.md
       chain_preset_ref: building-chain-preset:fast-fix
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+  - label: materialize-building-intent:write-scope-required
+    expected_message: write_scope is required
+    document:
+      plan_ref: building-plan:materialize-write-scope-required
+      building_id: materialize-write-scope-required
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:fast-fix
+      selected_adapter_ref: adapter:codex-local
+  # Same fail-close, BLANK (not omitted) adapter on a GRAPH preset (design-build-parallel)
+  # -> exercises the graph composition fallback site. The existing reject cases cover only
+  # adapter-declared linear/graph paths; this adds graph + blank coverage for the seam.
+  - label: materialize-building-intent:blank-adapter-fails-closed-graph
+    expected_message: selected_adapter_ref must be declared in the confirmed intent
+    document:
+      plan_ref: building-plan:materialize-blank-adapter-graph
+      building_id: materialize-blank-adapter-graph
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:design-build-parallel
+      selected_adapter_ref: ""
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+  - label: materialize-building-intent:repeated-template-missing-step-alias-fails-closed
+    expected_message: step_alias required for repeated step_template_ref
+    patch_chain_preset_ref: building-chain-preset:postmortem-fleet
+    patch_chain_preset_steps:
+      - step_template_ref: building-step-template:inspect
+        brick_spec_ref: brick/templates/bricks/inspect/brick.md
+        target_word: parallel_recon
+        selected_adapter_ref: adapter:codex-local
+        selected_model_ref: model:default
+      - step_template_ref: building-step-template:code-attack-qa
+        brick_spec_ref: brick/templates/bricks/code-attack-qa/brick.md
+        target_word: fan_in_final_gate
+        selected_adapter_ref: adapter:codex-local
+        selected_model_ref: model:default
+      - step_template_ref: building-step-template:code-attack-qa
+        brick_spec_ref: brick/templates/bricks/code-attack-qa/brick.md
+        target_word: fan_in_final_gate
+        selected_adapter_ref: adapter:gemini-local
+        selected_model_ref: model:gemini:default
+      - step_template_ref: building-step-template:closure
+        brick_spec_ref: brick/templates/bricks/closure/brick.md
+        target_word: closure
+        selected_adapter_ref: adapter:codex-local
+        selected_model_ref: model:default
+    document:
+      plan_ref: building-plan:materialize-repeated-template-missing-step-alias
+      building_id: materialize-repeated-template-missing-step-alias
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:postmortem-fleet
+      selected_adapter_ref: adapter:local
+      selected_model_ref: model:default
+      # C4 (0615): postmortem-fleet's code-attack-qa bricks declare a write NEED,
+      # so a work-area write_scope is required for the intent to materialize PAST
+      # the write-need check and REACH this case's intended step_alias rejection.
+      # (adapter:local stays the building default; it never DRIVES a step because
+      # this intent REJECTS at materialize, before any run.)
+      write_scope:
+        allowed_paths:
+          - "**"
+        forbidden_paths:
+          - ".git/**"
+  - label: materialize-building-intent:colliding-step-alias-fails-closed
+    expected_message: node_id collision
+    patch_chain_preset_ref: building-chain-preset:postmortem-fleet
+    patch_chain_preset_steps:
+      - step_template_ref: building-step-template:inspect
+        brick_spec_ref: brick/templates/bricks/inspect/brick.md
+        target_word: parallel_recon
+        selected_adapter_ref: adapter:codex-local
+        selected_model_ref: model:default
+      - step_template_ref: building-step-template:code-attack-qa
+        step_alias: code-lens
+        brick_spec_ref: brick/templates/bricks/code-attack-qa/brick.md
+        target_word: fan_in_final_gate
+        selected_adapter_ref: adapter:codex-local
+        selected_model_ref: model:default
+      - step_template_ref: building-step-template:code-attack-qa
+        step_alias: code-lens
+        brick_spec_ref: brick/templates/bricks/code-attack-qa/brick.md
+        target_word: fan_in_final_gate
+        selected_adapter_ref: adapter:gemini-local
+        selected_model_ref: model:gemini:default
+      - step_template_ref: building-step-template:closure
+        brick_spec_ref: brick/templates/bricks/closure/brick.md
+        target_word: closure
+        selected_adapter_ref: adapter:codex-local
+        selected_model_ref: model:default
+    document:
+      plan_ref: building-plan:materialize-colliding-step-alias
+      building_id: materialize-colliding-step-alias
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:postmortem-fleet
+      selected_adapter_ref: adapter:local
+      selected_model_ref: model:default
+      # C4 (0615): write-area write_scope lets the intent materialize PAST the
+      # write-need check (postmortem-fleet's code-attack-qa bricks need write) and
+      # REACH this case's intended node_id-collision rejection. adapter:local
+      # never DRIVES a step (this intent REJECTS at materialize, before any run).
+      write_scope:
+        allowed_paths:
+          - "**"
+        forbidden_paths:
+          - ".git/**"
+  - label: materialize-building-intent:per-step-adapter-not-in-agent-object
+    expected_message: must be referenced by Agent Object
+    document:
+      plan_ref: building-plan:materialize-per-step-adapter-not-in-agent-object
+      building_id: materialize-per-step-adapter-not-in-agent-object
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:review-fleet
+      selected_adapter_ref: adapter:local
+      selected_model_ref: model:default
+      # C4 (0615): work-area write_scope lets the intent materialize PAST the
+      # write-need check (review-fleet's code-attack-qa needs write) and REACH
+      # this case's intended per-step-adapter-not-in-agent-object rejection (the
+      # adapter:chat-session override below is not on the QA Agent Object).
+      # adapter:local never DRIVES a step (this intent REJECTS at materialize).
+      write_scope:
+        allowed_paths:
+          - "**"
+        forbidden_paths:
+          - ".git/**"
+      step_selection_overrides:
+        - step_template_ref: building-step-template:code-attack-qa
+          selected_adapter_ref: adapter:chat-session
+  - label: materialize-building-intent:unsafe-task-source-ref
+    expected_message: task_source_ref must be a safe repo-relative path
+    document:
+      plan_ref: building-plan:materialize-unsafe-task
+      building_id: materialize-unsafe-task
+      declared_by: coo
+      task_source_ref: ../outside.md
+      chain_preset_ref: building-chain-preset:fast-fix
+      selected_adapter_ref: adapter:codex-local
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+  - label: materialize-building-intent:hash-mismatch-at-declaration-write
+    expected_message: task_source_hash mismatch
+    mutate_materialized_task_source_hash: true
+    document:
+      plan_ref: building-plan:materialize-hash-mismatch
+      building_id: materialize-hash-mismatch
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:fast-fix
+      selected_adapter_ref: adapter:codex-local
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+  - label: materialize-building-intent:graph-preset-missing-closure-policy-fails-closed
+    expected_message: must declare closure_transition_target_policy for the fan-in closure node
+    strip_preset_ref: building-chain-preset:design-build-parallel
+    strip_preset_keys:
+      - closure_transition_target_policy
+    document:
+      plan_ref: building-plan:materialize-missing-closure-policy
+      building_id: materialize-missing-closure-policy
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:design-build-parallel
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+  - label: materialize-building-intent:hard-fan-in-top-level-advisory-fails-closed
+    expected_message: hard fan-in graphs must not use top-level transition_concern_adoption=advisory
+    document:
+      plan_ref: building-plan:materialize-hard-fan-in-top-level-advisory
+      building_id: materialize-hard-fan-in-top-level-advisory
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:design-build-parallel
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      transition_concern_adoption: advisory
       write_scope:
         allowed_paths:
           - support/operator/**
@@ -310,7 +1252,7 @@ compose_building_rejects:
           gate: robot
 proof_limits:
   - support evidence only
-  - staging copies only; original profile remains intact
+  - checker-profile relocation only
   - not source truth
   - not success judgment
   - not quality judgment
