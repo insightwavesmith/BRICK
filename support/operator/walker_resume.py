@@ -55,6 +55,7 @@ from brick_protocol.support.recording.capture import (
 )
 from brick_protocol.support.recording.declaration_packets import (
     _plan_snapshot,
+    _valid_revision_chain_packets,
     latest_valid_declared_plan,
 )
 from brick_protocol.support.recording.walker_evidence import build_resume_observation
@@ -183,6 +184,13 @@ def _resume_dynamic_graph_walker(
     )
     if budget_recovery.node_reroute_budgets is not None:
         recovered_budgets = dict(budget_recovery.node_reroute_budgets)
+        expansion_budgets = _expansion_node_budgets_from_revision_chain(
+            root,
+            declared_plan=declared_plan,
+            evidence_budgets=recovered_budgets,
+        )
+        if expansion_budgets:
+            recovered_budgets = {**expansion_budgets, **recovered_budgets}
         declared_plan["node_reroute_budgets"] = recovered_budgets
         if budget_recovery.bridge_evidence:
             bridged_evidence = {
@@ -946,6 +954,65 @@ def _declared_graph_plan_from_birth_certificate(root: Path) -> Mapping[str, Any]
     if _optional_text_from_mapping(declared_plan, "plan_shape") != "graph":
         return None
     return declared_plan
+
+
+def _brick_ref_by_step_ref_from_declared(declared_plan: Mapping[str, Any]) -> dict[str, str]:
+    linear_plan, _graph_context = _linear_plan_from_graph_plan(declared_plan)
+    refs: dict[str, str] = {}
+    for step in linear_plan.get("steps", []):
+        if not isinstance(step, Mapping):
+            continue
+        step_ref = _optional_text_value(step.get("step_ref"))
+        if step_ref:
+            refs[step_ref] = _brick_instance_ref_from_linear_step(step)
+    return refs
+
+
+def _expansion_node_budgets_from_revision_chain(
+    root: Path,
+    *,
+    declared_plan: Mapping[str, Any],
+    evidence_budgets: Mapping[str, int],
+) -> dict[str, int]:
+    """Read valid revision expansion budgets as new-node-only resume overlay.
+
+    Revision packets store ``expansion_node_budgets`` by the new ``step_ref`` they
+    admitted; the dynamic walker consumes reroute budgets by Brick instance ref.
+    Translate through the recovered latest plan and overlay only keys absent from
+    written dynamic-walker evidence, so pre-revision evidence remains authoritative.
+    """
+
+    step_to_brick = _brick_ref_by_step_ref_from_declared(declared_plan)
+    declared_bricks = set(step_to_brick.values())
+    evidence_keys = set(evidence_budgets)
+    expansion_budgets: dict[str, int] = {}
+    for packet in _valid_revision_chain_packets(root)[1:]:
+        raw = packet.get("expansion_node_budgets")
+        if raw is None:
+            continue
+        if not isinstance(raw, Mapping):
+            raise ValueError("declared plan revision expansion_node_budgets must be a mapping")
+        for key, value in raw.items():
+            budget_key = _optional_text_value(key)
+            if not budget_key:
+                raise ValueError("declared plan revision expansion_node_budgets keys must be non-empty strings")
+            brick_ref = step_to_brick.get(budget_key) or (
+                budget_key if budget_key in declared_bricks else ""
+            )
+            if not brick_ref:
+                raise ValueError(
+                    "declared plan revision expansion_node_budgets key does not resolve "
+                    "to a declared Brick node: " + budget_key
+                )
+            if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+                raise ValueError(
+                    "declared plan revision expansion_node_budgets has a malformed "
+                    f"budget for {budget_key!r} ({value!r}); a node budget must be "
+                    "a positive integer"
+                )
+            if brick_ref not in evidence_keys:
+                expansion_budgets[brick_ref] = value
+    return expansion_budgets
 
 
 def step_ref_by_brick_from_declared(declared_plan: Mapping[str, Any]) -> set[str]:

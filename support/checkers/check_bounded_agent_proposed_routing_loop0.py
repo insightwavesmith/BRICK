@@ -37,6 +37,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import hashlib
 import json
 import os
 import re
@@ -137,6 +138,47 @@ def _checker_plan(prefix: str, budget: int) -> tuple[Mapping[str, Any], str]:
         "node_reroute_budgets": {b2: budget},
     }
     return plan, b2
+
+
+def _expansion_resume_base_plan(prefix: str) -> tuple[dict[str, Any], str, str, str]:
+    plan, target = _checker_plan(prefix, budget=1)
+    changed = copy.deepcopy(plan)
+    changed["expansion_budget"] = 1
+    review_brick = f"brick-{prefix}-review"
+    new_step_ref = f"{prefix}-expansion"
+    new_brick_ref = f"brick-{new_step_ref}"
+    return changed, target, review_brick, new_brick_ref
+
+
+def _expanded_plan_with_resume_node(
+    plan: Mapping[str, Any],
+    *,
+    prefix: str,
+    new_step_ref: str,
+    new_brick_ref: str,
+) -> tuple[dict[str, Any], Mapping[str, Any], Mapping[str, Any]]:
+    changed = copy.deepcopy(plan)
+    close_step_ref = f"{prefix}-close"
+    close_brick_ref = f"brick-{close_step_ref}"
+    edge_ref = f"edge:{prefix}-expansion-to-close"
+    brick_step = _brick_step(
+        new_step_ref,
+        new_brick_ref,
+        "agent-object:dev",
+        edge_ref,
+    )
+    link_edge = _fwd_edge(edge_ref, new_step_ref, close_step_ref, close_brick_ref)
+    changed["brick_steps"].append(brick_step)
+    changed["link_edges"].append(link_edge)
+    changed["execution_order"].append(new_step_ref)
+    fragment = {
+        "brick_steps": [brick_step],
+        "link_edges": [link_edge],
+        "execution_order": [new_step_ref],
+        "groups": [],
+        "expansion_node_budgets": {new_step_ref: 1},
+    }
+    return changed, fragment, {"expansion_node_budgets": {new_step_ref: 1}}
 
 
 def _plan_with_build_source_fact(
@@ -1973,6 +2015,160 @@ def check(repo: Path) -> list[str]:
         pass
     else:
         violations.append("guard: non-positive per-node budget was not rejected")
+
+    # Invariant D expansion-resume probe: an approved revision carries
+    # expansion_node_budgets by new step_ref, while resume must reattach a
+    # Brick-ref keyed budget for the walker. This fixture reaches a budget HOLD,
+    # lands rev-1 with one new node, then resumes by rerouting to that new node.
+    from brick_protocol.support.recording.declaration_packets import (
+        _declared_plan_hash,
+        latest_valid_declared_plan,
+        write_declared_plan_revision,
+    )
+
+    prefix_exp = "bapr-loop0-expansion-resume"
+    plan_exp, old_target_exp, review_brick_exp, new_brick_exp = _expansion_resume_base_plan(prefix_exp)
+    new_step_exp = new_brick_exp.removeprefix("brick-")
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-expansion-resume-") as tmp:
+        callable_exp = _reroute_callable(
+            old_target_exp,
+            {f"brick-{prefix_exp}-design", review_brick_exp},
+        )
+        res_exp = run_building_plan(
+            plan_exp,
+            output_root=Path(tmp),
+            overwrite_existing=True,
+            local_callables={"callable:local:agent-invoke0-smoke": callable_exp},
+            adapter_cwd=repo,
+            adapter_timeout_seconds=30,
+        )
+        root_exp = res_exp.lifecycle_write.root
+        before_exp = observe_building_frontier(root_exp, repo_root=repo)
+        if before_exp["frontier_kind"] != "link_paused":
+            violations.append(
+                "expansion-resume: setup did not produce a budget HOLD before rev-1 "
+                f"(frontier={before_exp['frontier_kind']})"
+            )
+        hold_ref_exp = _current_hold_paused_at_ref(root_exp) or "hold:expansion-resume"
+        approval_ref_exp = "approval:bapr-loop0-expansion-resume"
+        approval_row_exp = {
+            "approval_evidence_ref": approval_ref_exp,
+            "gate_ref": "link-gate:expansion-approval",
+            "hold_class": "proposed_candidate_not_in_declared_set",
+            "hold_paused_at_ref": hold_ref_exp,
+        }
+        with (root_exp / "work" / "expansion-approvals.jsonl").open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(approval_row_exp, separators=(",", ":")) + "\n")
+        parent_plan_exp = latest_valid_declared_plan(root_exp)
+        expanded_plan_exp, fragment_exp, budget_meta_exp = _expanded_plan_with_resume_node(
+            parent_plan_exp,
+            prefix=prefix_exp,
+            new_step_ref=new_step_exp,
+            new_brick_ref=new_brick_exp,
+        )
+        metadata_exp = {
+            "extends_plan_hash": _declared_plan_hash(parent_plan_exp),
+            "extends_plan_hash_algorithm": "sha256",
+            "extends_plan_hash_basis": (
+                "canonical sorted-key JSON of the pure declared-building-plan copy "
+                "(runtime walker state excluded)"
+            ),
+            "expansion_fragment": fragment_exp,
+            "expansion_node_budgets": budget_meta_exp["expansion_node_budgets"],
+            "hold_paused_at_ref": hold_ref_exp,
+        }
+        birth_path_exp = root_exp / "work" / "declared-building-plan.json"
+        birth_hash_before_exp = hashlib.sha256(
+            birth_path_exp.read_bytes()
+        ).hexdigest()
+        try:
+            rev_path_exp = write_declared_plan_revision(
+                root_exp,
+                expanded_plan_exp,
+                metadata_exp,
+                approval_ref_exp,
+            )
+        except ValueError as exc:
+            violations.append(f"expansion-resume: rev-1 write rejected: {exc}")
+        else:
+            if rev_path_exp.name != "declared-building-plan.rev-1.json":
+                violations.append(
+                    "expansion-resume: revision writer did not create rev-1 "
+                    f"({rev_path_exp.name})"
+                )
+            birth_hash_after_exp = hashlib.sha256(
+                birth_path_exp.read_bytes()
+            ).hexdigest()
+            if birth_hash_after_exp != birth_hash_before_exp:
+                violations.append("expansion-resume: base birth-certificate hash changed")
+            _append_disposition_row(
+                root_exp,
+                building_id=res_exp.building_id,
+                pending_target_ref=new_brick_exp,
+                action="reroute",
+                author_ref="coo:checker",
+            )
+            try:
+                resumed_exp = resume_building_plan(
+                    root_exp,
+                    local_callables={
+                        "callable:local:agent-invoke0-smoke": _reroute_callable(
+                            old_target_exp,
+                            {f"brick-{prefix_exp}-design", review_brick_exp},
+                        )
+                    },
+                    adapter_cwd=repo,
+                    adapter_timeout_seconds=30,
+                )
+            except ValueError as exc:
+                violations.append(f"expansion-resume: resume onto rev-1 node crashed: {exc}")
+            else:
+                after_exp = observe_building_frontier(
+                    resumed_exp.lifecycle_write.root,
+                    repo_root=repo,
+                )
+                if after_exp["frontier_kind"] != "complete":
+                    violations.append(
+                        "expansion-resume: reroute onto revision node did not complete "
+                        f"(frontier={after_exp['frontier_kind']})"
+                    )
+                if not _step_output_path(
+                    resumed_exp.lifecycle_write.root,
+                    new_step_exp,
+                    1,
+                ).is_file():
+                    violations.append("expansion-resume: new revision node did not run live")
+                from brick_protocol.support.operator.walker_resume import (
+                    _read_written_dynamic_plan,
+                )
+
+                _plan_after_exp, evidence_after_exp = _read_written_dynamic_plan(
+                    resumed_exp.lifecycle_write.root
+                )
+                budgets_after_exp = evidence_after_exp.get("node_reroute_budgets")
+                landings_after_exp = evidence_after_exp.get("node_reroute_landings")
+                if not (
+                    isinstance(budgets_after_exp, Mapping)
+                    and budgets_after_exp.get(new_brick_exp) == 1
+                    and isinstance(landings_after_exp, Mapping)
+                    and landings_after_exp.get(new_brick_exp) == 1
+                ):
+                    violations.append(
+                        "expansion-resume: revision node reroute did not consume "
+                        "the expansion_node_budgets value"
+                    )
+                resumed_records_exp = list(
+                    getattr(resumed_exp, "_dynamic_walker_reroute_records", ())
+                )
+                if any(
+                    record.get("target_brick") == new_brick_exp
+                    and record.get("disposition_required")
+                    and record.get("hold_reason") == "target_node_has_no_link_assigned_budget"
+                    for record in resumed_records_exp
+                ):
+                    violations.append(
+                        "expansion-resume: revision node still held for missing Link budget"
+                    )
 
     # Compose-time route-policy field consumers: the checker exercises the REAL
     # support functions that read default budgets, closure target policy, and

@@ -20,9 +20,11 @@ The reroute budget belongs to the TARGET Brick node (Link-assigned, keyed by the
 target node ref) and is SHARED across all reroute-landings on that node -- outer
 and nested, at any depth. A nested reroute landing on a node draws that node's
 existing shared budget; it never receives a fresh budget. Budget is consumed per
-REROUTE-LANDING, not per forward-replay-execution. A Building has a finite set of
-Brick nodes and a reroute may only target an existing node, so total
-reroute-landings are bounded by the sum of per-node budgets => no infinite loop.
+REROUTE-LANDING, not per forward-replay-execution. A Building has a finite node
+set at each walk instant; approved plan revisions may append only a finite new
+node set, and each new node must carry a finite expansion budget before resume
+can reroute onto it. Total reroute-landings remain bounded by the sum of evidence
+budgets plus approved expansion budgets => no infinite loop.
 
 On budget exhaustion the next reroute landing is NOT adopted; the Building HOLDs
 (transition_lifecycle.state=paused, required_disposition_owner=caller-or-coo,
