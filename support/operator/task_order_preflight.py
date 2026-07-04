@@ -28,15 +28,55 @@ DELIVERABLE_ITEM_RE = re.compile(r"(?im)^\s*D\d+\s*[:.]")
 PATH_TOKEN_RE = re.compile(
     r"(?<![A-Za-z0-9_`./-])((?:brick|agent|link|support|project)/[-A-Za-z0-9_./*?{}\[\]]+)"
 )
+REF_COERCION_EN_VERBS = r"(?:return(?:ed)?|emit(?:ted)?|provide(?:d)?|put|write|written|include(?:d)?|use(?:d)?|cite(?:d)?)"
+REF_COERCION_KO_VERBS = r"(?:반환|넣|써라|쓰라|작성|기록|기재|인용)"
+REF_PROTECTIVE_EN_PATTERNS = (
+    re.compile(
+        rf"(?is)\b(?:do|does|did|must|should|shall|can|could|will|would)\s+not\b.{{0,60}}\b"
+        rf"{REF_COERCION_EN_VERBS}\b"
+    ),
+    re.compile(
+        rf"(?is)\b(?:don['’]?t|doesn['’]?t|didn['’]?t|can['’]?t|won['’]?t|shouldn['’]?t|"
+        rf"mustn['’]?t|cannot)\b.{{0,60}}\b{REF_COERCION_EN_VERBS}\b"
+    ),
+    re.compile(rf"(?is)\bnever\b.{{0,60}}\b{REF_COERCION_EN_VERBS}\b"),
+    re.compile(rf"(?is)\b(?:forbidden|prohibited)\s+to\b.{{0,60}}\b{REF_COERCION_EN_VERBS}\b"),
+    re.compile(
+        rf"(?is)\breason_refs\b.{{0,80}}\b(?:must|should|shall|can|could|will|would)?\s*"
+        rf"(?:not|never|cannot|can['’]?t|don['’]?t|won['’]?t|shouldn['’]?t|mustn['’]?t)\b.{{0,60}}\b"
+        rf"{REF_COERCION_EN_VERBS}\b"
+    ),
+)
+REF_PROTECTIVE_KO_PATTERNS = (
+    re.compile(r"(?is)(?:반환|넣|쓰|작성|기록|인용).{0,12}지\s*않"),
+    re.compile(r"(?is)(?:반환|넣|쓰|작성|기록|인용).{0,12}지\s*마"),
+    re.compile(r"(?is)(?:반환|넣|쓰|작성|기록|인용).{0,12}지\s*말"),
+    re.compile(r"(?is)(?:reason_refs|파일\s*:\s*줄|file:line).{0,40}(?:금지|아니)"),
+)
 REF_COERCION_PATTERNS = (
-    re.compile(r"(?is)\breason_refs\b.{0,120}\bfile:line\b"),
-    re.compile(r"(?is)\bfile:line\b.{0,120}\breason_refs\b"),
-    re.compile(r"(?is)\breason_refs\b.{0,120}파일\s*:\s*줄"),
+    re.compile(
+        rf"(?is)(?<![A-Za-z0-9_])reason_refs(?![A-Za-z0-9_])(?:(?!\b(?:never|not)\b).){{0,120}}\b(?:must\s+)?"
+        rf"{REF_COERCION_EN_VERBS}\b(?:(?!\b(?:never|not)\b).){{0,80}}\bfile:line\b"
+    ),
+    re.compile(
+        rf"(?is)(?<![A-Za-z0-9_])reason_refs(?![A-Za-z0-9_])(?:(?!\b(?:never|not)\b).){{0,120}}\bfile:line\b"
+        rf"(?:(?!\b(?:never|not)\b).){{0,80}}\b(?:must\s+)?{REF_COERCION_EN_VERBS}\b"
+    ),
+    re.compile(
+        rf"(?is)\bfile:line\b(?:(?!\b(?:never|not)\b).){{0,120}}\b(?:in|into|under)\s+"
+        rf"['\"`]*reason_refs\b"
+    ),
+    re.compile(
+        rf"(?is)(?<![A-Za-z0-9_])reason_refs(?![A-Za-z0-9_])(?:(?!않).){{0,120}}(?:파일\s*:\s*줄|file:line)"
+        rf"(?:(?!않).){{0,80}}{REF_COERCION_KO_VERBS}"
+    ),
+    re.compile(r"(?is)(?<![A-Za-z0-9_])reason_refs(?![A-Za-z0-9_])\s*(?:에|에는|엔)\s*(?:파일\s*:\s*줄|file:line)(?:을|를)?\s*넣"),
     re.compile(r"(?is)(?<![A-Za-z0-9_])file:line(?![A-Za-z0-9_])[^\n]{0,80}(?:만\s*반환|(?:return|emit|provide)\s+only|only\s+(?:return|emit|provide))"),
     re.compile(r"(?is)\brelated_boundary_refs\b.{0,160}\bbrick:(?!//)"),
     re.compile(r"(?is)\brelated_boundary_refs\b.{0,160}\bbrick-instance:"),
     re.compile(r"(?is)\brelated_boundary_refs\b.{0,160}\bbrick-boundary:"),
 )
+REF_COERCION_CLAUSE_RE = re.compile(r"[^.;\n]+")
 READ_FORBIDDEN_PROOF_PATTERNS = (
     re.compile(r"(?i)\bgit\s+commit\b"),
     re.compile(r"(?i)\bgit\s+push\b"),
@@ -44,6 +84,25 @@ READ_FORBIDDEN_PROOF_PATTERNS = (
     re.compile(r"(?i)(?:소스|파일|저장소).{0,20}(?:수정|삭제|생성|작성)"),
     re.compile(r"(?<!\S)--all(?!\S)"),
 )
+
+
+def _protected_ref_guidance(text: str) -> bool:
+    if not re.search(r"(?is)(?<![A-Za-z0-9_])reason_refs(?![A-Za-z0-9_])", text):
+        return False
+    if not re.search(r"(?is)(?:(?<![A-Za-z0-9_])file:line(?![A-Za-z0-9_])|파일\s*:\s*줄)", text):
+        return False
+    return any(pattern.search(text) for pattern in (*REF_PROTECTIVE_EN_PATTERNS, *REF_PROTECTIVE_KO_PATTERNS))
+
+
+def _coerces_closed_ref_fields(text: str) -> bool:
+    for clause_match in REF_COERCION_CLAUSE_RE.finditer(text):
+        clause = clause_match.group(0)
+        if _protected_ref_guidance(clause):
+            continue
+        for pattern in REF_COERCION_PATTERNS:
+            if pattern.search(clause):
+                return True
+    return False
 
 
 @dataclass(frozen=True)
@@ -277,10 +336,8 @@ def lint_nodes(nodes: Iterable[TaskNode]) -> tuple[list[str], list[str]]:
                 violations.append(f"{label}: L1 missing termination marker in {node.kind} work_statement")
             if not DELIVERABLES_HEADING_RE.search(work_statement) or not DELIVERABLE_ITEM_RE.search(work_statement):
                 violations.append(f"{label}: L4 missing numbered Deliverables block")
-            for pattern in REF_COERCION_PATTERNS:
-                if pattern.search(work_statement):
-                    violations.append(f"{label}: L3 work_statement coerces closed ref fields toward forbidden forms")
-                    break
+            if _coerces_closed_ref_fields(work_statement):
+                violations.append(f"{label}: L3 work_statement coerces closed ref fields toward forbidden forms")
             deliverables_text = _deliverables_section(work_statement)
             deliverable_paths = _literal_paths(deliverables_text)
             if deliverable_paths or node.write_scope:
@@ -353,6 +410,73 @@ def _self_test(repo: Path) -> tuple[int, tuple[str, ...]]:
                 "work_statement": (
                     "## Deliverables\nD1: edit support/operator/task_order_preflight.py\n"
                     "## Done Criteria\nobserved\nreason_refs must return file:line only"
+                ),
+            },
+        )
+        dirty_ref_put = _write_fixture(
+            root,
+            "ref-coercion-put.json",
+            {
+                **base,
+                "work_statement": (
+                    "## Deliverables\nD1: edit support/operator/task_order_preflight.py\n"
+                    "## Done Criteria\nobserved\nput file:line in reason_refs"
+                ),
+            },
+        )
+        dirty_ref_korean = _write_fixture(
+            root,
+            "ref-coercion-korean.json",
+            {
+                **base,
+                "work_statement": (
+                    "## Deliverables\nD1: edit support/operator/task_order_preflight.py\n"
+                    "## Done Criteria\nobserved\nreason_refs에 file:line을 넣어라"
+                ),
+            },
+        )
+        dirty_ref_korean_girok = _write_fixture(
+            root,
+            "ref-coercion-korean-girok.json",
+            {
+                **base,
+                "work_statement": (
+                    "## Deliverables\nD1: edit support/operator/task_order_preflight.py\n"
+                    "## Done Criteria\nobserved\nreason_refs에 file:line을 기록하라"
+                ),
+            },
+        )
+        dirty_ref_korean_gijae = _write_fixture(
+            root,
+            "ref-coercion-korean-gijae.json",
+            {
+                **base,
+                "work_statement": (
+                    "## Deliverables\nD1: edit support/operator/task_order_preflight.py\n"
+                    "## Done Criteria\nobserved\nreason_refs에 file:line을 반드시 기재하라"
+                ),
+            },
+        )
+        dirty_ref_korean_sseora = _write_fixture(
+            root,
+            "ref-coercion-korean-sseora.json",
+            {
+                **base,
+                "work_statement": (
+                    "## Deliverables\nD1: edit support/operator/task_order_preflight.py\n"
+                    "## Done Criteria\nobserved\nreason_refs엔 file:line을 써라"
+                ),
+            },
+        )
+        dirty_ref_not_masked = _write_fixture(
+            root,
+            "ref-coercion-not-masked.json",
+            {
+                **base,
+                "work_statement": (
+                    "## Deliverables\nD1: edit support/operator/task_order_preflight.py\n"
+                    "## Done Criteria\nobserved\n"
+                    "Do not alter unrelated fields. Put file:line in reason_refs."
                 ),
             },
         )
@@ -466,11 +590,137 @@ def _self_test(repo: Path) -> tuple[int, tuple[str, ...]]:
                 ),
             },
         )
+        clean_qa_guidance = _write_fixture(
+            root,
+            "clean-qa-guidance.json",
+            {
+                **base,
+                "work_statement": (
+                    "## Deliverables\nD1: edit support/operator/task_order_preflight.py\n"
+                    "## Done Criteria\nobserved\n"
+                    "Only cite file:line inside observed_evidence, never reason_refs."
+                ),
+            },
+        )
+        clean_addr_guidance = _write_fixture(
+            root,
+            "clean-addr-guidance.json",
+            {
+                **base,
+                "work_statement": (
+                    "## Deliverables\nD1: edit support/operator/task_order_preflight.py\n"
+                    "## Done Criteria\nobserved\n"
+                    "file:line belongs in observed_evidence; reason_refs uses step-output addresses only."
+                ),
+            },
+        )
+        clean_do_not_put_guidance = _write_fixture(
+            root,
+            "clean-do-not-put-guidance.json",
+            {
+                **base,
+                "work_statement": (
+                    "## Deliverables\nD1: edit support/operator/task_order_preflight.py\n"
+                    "## Done Criteria\nobserved\n"
+                    "Do not put file:line in reason_refs; keep it in observed_evidence."
+                ),
+            },
+        )
+        clean_cannot_guidance = _write_fixture(
+            root,
+            "clean-cannot-guidance.json",
+            {
+                **base,
+                "work_statement": (
+                    "## Deliverables\nD1: edit support/operator/task_order_preflight.py\n"
+                    "## Done Criteria\nobserved\n"
+                    "file:line cannot be returned in reason_refs; keep it in observed_evidence."
+                ),
+            },
+        )
+        clean_contraction_guidance = _write_fixture(
+            root,
+            "clean-contraction-guidance.json",
+            {
+                **base,
+                "work_statement": (
+                    "## Deliverables\nD1: edit support/operator/task_order_preflight.py\n"
+                    "## Done Criteria\nobserved\n"
+                    "Don't put file:line in reason_refs; keep it in observed_evidence."
+                ),
+            },
+        )
+        clean_must_not_interposed_guidance = _write_fixture(
+            root,
+            "clean-must-not-interposed-guidance.json",
+            {
+                **base,
+                "work_statement": (
+                    "## Deliverables\nD1: edit support/operator/task_order_preflight.py\n"
+                    "## Done Criteria\nobserved\n"
+                    "file:line must not be put in reason_refs; keep it in observed_evidence."
+                ),
+            },
+        )
+        clean_forbidden_write_guidance = _write_fixture(
+            root,
+            "clean-forbidden-write-guidance.json",
+            {
+                **base,
+                "work_statement": (
+                    "## Deliverables\nD1: edit support/operator/task_order_preflight.py\n"
+                    "## Done Criteria\nobserved\n"
+                    "It is forbidden to write file:line into reason_refs -- keep it in observed_evidence."
+                ),
+            },
+        )
+        clean_korean_no_put_guidance = _write_fixture(
+            root,
+            "clean-korean-no-put-guidance.json",
+            {
+                **base,
+                "work_statement": (
+                    "## Deliverables\nD1: edit support/operator/task_order_preflight.py\n"
+                    "## Done Criteria\nobserved\n"
+                    "reason_refs에는 file:line을 넣지 않는다; observed_evidence에 기록한다."
+                ),
+            },
+        )
+        clean_korean_mal_geot_guidance = _write_fixture(
+            root,
+            "clean-korean-mal-geot-guidance.json",
+            {
+                **base,
+                "work_statement": (
+                    "## Deliverables\nD1: edit support/operator/task_order_preflight.py\n"
+                    "## Done Criteria\nobserved\n"
+                    "reason_refs에는 file:line을 넣지 말 것; observed_evidence에 기록한다."
+                ),
+            },
+        )
+        clean_korean_mala_juseyo_guidance = _write_fixture(
+            root,
+            "clean-korean-mala-juseyo-guidance.json",
+            {
+                **base,
+                "work_statement": (
+                    "## Deliverables\nD1: edit support/operator/task_order_preflight.py\n"
+                    "## Done Criteria\nobserved\n"
+                    "reason_refs에는 file:line을 넣지 말아 주세요; observed_evidence에 기록한다."
+                ),
+            },
+        )
         results: list[str] = []
         for path in (
             dirty_missing_done,
             dirty_read_proof,
             dirty_ref,
+            dirty_ref_put,
+            dirty_ref_korean,
+            dirty_ref_korean_girok,
+            dirty_ref_korean_gijae,
+            dirty_ref_korean_sseora,
+            dirty_ref_not_masked,
             dirty_file_line_only,
             dirty_scope_mismatch,
             dirty_scope_prefix,
@@ -492,7 +742,47 @@ def _self_test(repo: Path) -> tuple[int, tuple[str, ...]]:
         if violations:
             raise ValueError(f"self-test clean observed-evidence guidance rejected: {violations}")
         results.append("clean-observed-evidence-guidance.json: passed")
-    return 11, tuple(results)
+        violations, _warnings, _count = lint_file(clean_qa_guidance, repo=repo)
+        if violations:
+            raise ValueError(f"self-test clean QA guidance rejected: {violations}")
+        results.append("clean-qa-guidance.json: passed")
+        violations, _warnings, _count = lint_file(clean_addr_guidance, repo=repo)
+        if violations:
+            raise ValueError(f"self-test clean ADDR guidance rejected: {violations}")
+        results.append("clean-addr-guidance.json: passed")
+        violations, _warnings, _count = lint_file(clean_do_not_put_guidance, repo=repo)
+        if violations:
+            raise ValueError(f"self-test clean do-not-put guidance rejected: {violations}")
+        results.append("clean-do-not-put-guidance.json: passed")
+        violations, _warnings, _count = lint_file(clean_cannot_guidance, repo=repo)
+        if violations:
+            raise ValueError(f"self-test clean cannot guidance rejected: {violations}")
+        results.append("clean-cannot-guidance.json: passed")
+        violations, _warnings, _count = lint_file(clean_contraction_guidance, repo=repo)
+        if violations:
+            raise ValueError(f"self-test clean contraction guidance rejected: {violations}")
+        results.append("clean-contraction-guidance.json: passed")
+        violations, _warnings, _count = lint_file(clean_must_not_interposed_guidance, repo=repo)
+        if violations:
+            raise ValueError(f"self-test clean must-not-interposed guidance rejected: {violations}")
+        results.append("clean-must-not-interposed-guidance.json: passed")
+        violations, _warnings, _count = lint_file(clean_forbidden_write_guidance, repo=repo)
+        if violations:
+            raise ValueError(f"self-test clean forbidden-write guidance rejected: {violations}")
+        results.append("clean-forbidden-write-guidance.json: passed")
+        violations, _warnings, _count = lint_file(clean_korean_no_put_guidance, repo=repo)
+        if violations:
+            raise ValueError(f"self-test clean Korean no-put guidance rejected: {violations}")
+        results.append("clean-korean-no-put-guidance.json: passed")
+        violations, _warnings, _count = lint_file(clean_korean_mal_geot_guidance, repo=repo)
+        if violations:
+            raise ValueError(f"self-test clean Korean mal-geot guidance rejected: {violations}")
+        results.append("clean-korean-mal-geot-guidance.json: passed")
+        violations, _warnings, _count = lint_file(clean_korean_mala_juseyo_guidance, repo=repo)
+        if violations:
+            raise ValueError(f"self-test clean Korean mala-juseyo guidance rejected: {violations}")
+        results.append("clean-korean-mala-juseyo-guidance.json: passed")
+    return 17, tuple(results)
 
 
 def main(argv: list[str] | None = None) -> int:
