@@ -25,9 +25,11 @@ T1~T6(harness-roadmap-orders-0704.md, 발주 품질·에이전트 검증 축)에
 랜딩 완료(웨이브 A): T9-Sa · T7-Sa(브리지 실증 — 결함① stale)·Sb(결함② stale 3중 확인)
   ·Sc·Sd(원칙 문서) · T11-Sa/Sb/Sc · T8-Sa(reporter 패킷 3필드+crosscheck)
 잔여 발주 가능(즉시): T8-Sb(reporter.py 앵커 +12줄 드리프트 재확인 후) · T6(홀드 자기서술)
-잔여 발주 가능(배선 확정 후): T10-S1/S3(비엔진 — fable5 비평 치명 5 배선 반영 중)
-Smith 게이트(후행): T10-S2/S4 · T7 잔여 엔진 수리 2건(temp_dir WIP 앵커 / 증명-예산 HOLD
-  앵커 — Smith 판단 대기, 실물 조사 진행 중)
+  · T10-S1/S3(배선 완비, 정책 전부 Smith 최종 확정)
+T10-S2/S4: Smith 게이트 → **사전 승인 전환(0704 밤 — §T10 사전 승인 절의 경계 3조건
+  안에서 개별 승인 없이 S1→S2→S3→S4 순차 자동 진행)**
+T7 잔여 2건 종결(0704 밤 Smith 확정, 발주 없음): temp_dir WIP 앵커 = 설계 예외 /
+  증명-예산 HOLD 앵커 = 수리 불요(기전: diff 없음 → 보존 대상 자체가 없음)
 구 의존 해소: "T10-S4는 T7-Sb 랜딩 후" 조건은 결함② stale 판정 종결로 해소(수리 랜딩이
   아니라 결함 부존재 확인) — S2의 저작 시점 선-검증 원칙(보강 3)은 자립 유효로 존치
 ```
@@ -211,9 +213,15 @@ Smith 3결정 확정(선언시점 결정권 설정 · Link 게이트 승인 · r
   cli.py:345, driver/run/native_dispatch/walker_carry, spine_projection) + 각 독자의
   revision 인지/원본 유지 판정표 — 특히 spine_projection은 선언 밖 step_ref를
   ORPHAN-SKIP(check_evidence_spine_projection.py:162-178)하므로 rev 미인지 시 신규 노드
-  증거가 투영에서 침묵 탈락(T8과 충돌). **파일 명명 확정**:
-  declared-building-plan.rev-N.json(N≥1, 원본 무접미 불변). rev 파일의 증거 체계
-  편입(_DECLARATION_EVIDENCE_REFS, declaration_packets.py:38-44) 여부 판정 포함.
+  증거가 투영에서 침묵 탈락(T8과 충돌). **판정 기본 규칙(레인 재량 적용, Smith 불요 —
+  0704 밤 사전 승인의 일부)**: 실행·재개 경로는 revision 인지 필수 / 관측·투영 독자는
+  S2의 단일 읽기 헬퍼("최신 유효 plan 반환")로 전환이 기본 — 전환이 그 모듈의 출력
+  계약을 바꾸는 경우에만 "원본 유지 + 후속 조각 이월" 표기 허용 / 단
+  **spine_projection의 ORPHAN-SKIP 해소는 이월 불가(1차 필수)** — 신규 노드 증거 침묵
+  탈락은 T8 충돌. **파일 명명 확정**: declared-building-plan.rev-N.json(N≥1, 원본 무접미
+  불변). **증거 체계 편입 확정(판정 종료)**: rev 파일을
+  _DECLARATION_EVIDENCE_REFS(declaration_packets.py:38-44)에 추가한다 — 개정 역사도 선언
+  증거다(Smith 결정 ③ 취지).
   **검증 시점**: 저작 시점 선-검증, resume 사후검증 금지(보강 3). **쓰기 내구성(보강 4
   → 4종)**: O_EXCL 배타 생성(동시 저작 N-선점 경쟁 차단 — rename 덮어쓰기 금지) /
   임시파일+rename 원자성 / 깨진 최신 rev는 내용 검증 후 직전 rev 후퇴+HOLD / "승인만
@@ -284,7 +292,16 @@ Smith 3결정 확정(선언시점 결정권 설정 · Link 게이트 승인 · r
   (support/checkers/check_bounded_agent_proposed_routing_loop0.py:1961-1975)에 확장
   시나리오 프로브 추가분 green.
 
-**Smith 게이트**: S2·S4(walker_resume/recording 표면 수정). S1·S3는 비엔진.
+**Smith 게이트 → 사전 승인 전환(0704 밤 Smith 지시 — 원문 취지: "S2·S4까지 내 결정이
+필요 없게 정리하라. 오늘 골로 자동진행한다. 개발 세션에 넘긴다")**: S2·S4는 Smith 개별
+승인 없이 발주 가능. 단 사전 승인의 경계 3조건 — 하나라도 걸리면 자동 진행 즉시 중단,
+Smith 복귀:
+① 이 문서의 착지·증명·종료선·제약 그대로일 때만 유효 — 계약 밖 표면이 필요해지면 중단
+  (엔진 불가침: walker_kernel 걷기 루프 :970 본문 · 정지 알고리즘 :2070 · 링크 처분 어휘
+  4종 · GATE_REGISTRY 단일소스 가드).
+② 게이트 통과 판정은 기계로 대체: 슬라이스별 증명 전부 RED/GREEN 쌍 green + 격리
+  워크트리 --all green + deliverable 번호별 커밋 diff 실물 대조(file:line).
+③ 같은 자리 3라운드+ 반복 홀드면 중단(얕은 패치 반복 금지 규율). S1·S3는 비엔진.
 
 **함정**:
 - **순서 제약 위반 금지**: revision 랜딩 전에 신규 노드를 처분 target으로 쓰는 계약을
