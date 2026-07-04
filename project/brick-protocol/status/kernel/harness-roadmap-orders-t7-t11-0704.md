@@ -21,11 +21,16 @@ T1~T6(harness-roadmap-orders-0704.md, 발주 품질·에이전트 검증 축)에
 ## 발주 순서 (정합 검사 산출)
 
 ```text
-1순위(즉시, 엔진 무수정): T10-Sa(근사형 프리셋) · T9-Sa(이식성 2분류 선언) · T7-Sa/Sb(복구 조사·순서교정)
-2순위: T11-Sa(교훈 원장 파일) · T8-Sa(투영 렌더러)
-3순위: T6(홀드 자기서술 — T7-Sb 재현 결과 흡수 후) · T8-Sb(투영 판정어 체커)
-Smith 게이트(후행): T10-Sb/Sc(K-of-N·런타임 팬) · T7 엔진 수리들 · T9-Sb/Sc(P8 이식성 프로브)
+1순위(즉시, 엔진 무수정): T9-Sa(체커-동반 원칙 선언) · T7-Sa/Sb(복구 조사·순서교정)
+2순위: T11-Sa(교훈 원장 파일) · T8-Sa(reporter 패킷에 결정필드 확장)
+3순위: T6(홀드 자기서술 — T7-Sb 재현 결과 흡수 후) · T8-Sb(패킷 과잉주장 체커)
+Smith 게이트(후행): T7 엔진 수리들
+논의 대기(발주 금지): T10 전체 — 워크플로 표현력 이식, 감사가능성 경계 미확정(Smith 논의)
 ```
+
+**0704 Smith 재정의 반영**: T8 = 신설 렌더러 ❌ → reporter 패킷 확장(출구는 기존 sink).
+T9 = 이식성 문제 ❌ → 체커-동반 개발 원칙(크게 축소, T11 흡수 가능). T10 = 발주 금지,
+워크플로 패리티 vs 감사가능성 경계 논의 필요.
 
 ---
 
@@ -57,39 +62,65 @@ Smith 게이트(후행): T10-Sb/Sc(K-of-N·런타임 팬) · T7 엔진 수리들
 
 **근본 원인**: 투영이 "위치"에서 멈추고 "내용"(3필드)으로 못 간다. closure step-output 특정 경로는 이미 있음 — onboard.py:2323-2329 `_summary_is_closure_packet`(`step_ref.endswith("-closure")`). (검증 정정: building_map.py에는 closure 특정 로직 0건, onboard.py에 있음.)
 
-**슬라이스**:
-- **S-a (렌더러)**: closure_review_projection.py 신설 — closure .returned를 읽어 "바뀐 것 / 증명·미증명 / 결정 필요(랭킹)" md 렌더. 특히 아직 아무도 안 읽는 narrowly_proven·remaining_delta·deferred_smith_review_queue 3필드가 핵심 대상(deliverable_crosscheck는 onboard.py가 이미 읽으니 그 선례 재사용). progress_projection.py의 "NO judgment vocabulary" 원칙 계승. 착지: support/operator/. 데이터 실존 → **엔진·스키마 무수정 확정**. 증명: 실제 building 1개에 렌더 → 기대 섹션 출력 리터럴. 종료선: 렌더 출력 + 판정어 0건.
-- **S-b (체커)**: 투영 과잉주장 방지 — mcp_projection.py:460-471 forbidden_authority 어휘 재사용. S-a 완료 후.
+**⚠️ Smith 재정의(0704) — 신설 렌더러가 아니라 reporter 패킷 확장**: "결과를 어디에 띄우냐(슬랙/대시보드/md)"는 이미 reporter가 푼 문제다. reporter.py는 sink 팬아웃 구조를 이미 가짐 — report_sinks.py의 ADMITTED_SINK_REFS = {local-inbox, operator-wake-local, slack, dashboard}(report_sinks.py:67-68), reporter.py가 sink_refs 정책으로 어느 출구로 보낼지 결정(:258-265). 즉 T8의 진짜 갭은 "새 투영 파일 신설"이 아니라 **reporter 패킷이 담는 게 위치(current_brick_ref/frontier)뿐이고 closure 결정 내용(3필드)을 안 담는 것**. 출구는 기존 sink가 정한다.
 
-**Smith 게이트**: 없음(전 슬라이스 비엔진).
+**슬라이스 (재설계)**:
+- **S-a (패킷 확장)**: reporter의 report packet 렌더(render_building_event_report_packet :375 / render_report_packet :630)에 closure 결정 필드를 추가 — narrowly_proven·remaining_delta·deferred_smith_review_queue(+deliverable_crosscheck 선례). onboard.py:2295-2320이 이미 deliverable_crosscheck를 읽는 그 경로를 reporter로 끌어와 재사용. 출구는 기존 sink_refs가 결정(신규 sink 불필요). progress_projection.py:12 "NO judgment vocabulary" 원칙 계승. 착지: support/operator/reporter.py(+report_sinks.py의 SINK_FORBIDDEN_PACKET_FIELDS 정합). 데이터 실존 → **엔진·스키마 무수정**. 증명: 실제 building 1개 패킷 렌더 → 3필드 포함 + dry-run sink 출력 리터럴. 종료선: 패킷에 결정필드 포함 + 판정어 0건 + 기존 sink 테스트 green.
+- **S-b (체커)**: 패킷 과잉주장 방지 — reporter의 기존 validate_report_packet(:778)·SINK_FORBIDDEN_PACKET_FIELDS(report_sinks.py:98) 어휘 재사용. S-a 완료 후.
 
-**함정**: T11(교훈 원장)과 저장구조 통합 유혹 — 데이터 소스가 다르다(T8=building 실시간, T11=사후 append). 통합하면 closure 스키마 변경 필요 → 원칙 위반. 파일 분리 유지, 스타일(progress_projection 선례)만 공유.
+**Smith 게이트**: 없음(전 슬라이스 비엔진, reporter는 read-side 투영 계층).
+
+**함정**: 신규 sink/신규 렌더러 파일 만들지 마라 — 출구는 이미 4개 있다(재제안 금지). T11(교훈 원장)과 저장구조 통합 유혹 — 데이터 소스가 다르다(T8=building 실시간 패킷, T11=사후 append). closure 스키마는 건드리지 않는다(읽기만).
 
 ---
 
-## T9. 이식성 — P8 도그푸드의 진짜 시험
+## T9. 체커-동반 개발 원칙 (구 "이식성" — Smith 0704 재정의)
 
-**실측/현재 기전 (조사가 급소 발견)**:
-- 체커는 물리적 repo-내장 — check_profile.py:46이 `_REPO_ROOT`를 자기 파일 위치에서 유도. 고객 repo에 clone하면 체커는 **브릭 자신만** 검사(5,543 타깃 전부 BRICK 소스).
-- 온보드 하드게이트와 verify는 **이미 분리**됨(onboard.py는 check_profile import 0, cli.py가 별도로 --all 붙임, --skip-verify 존재) — 재제안 금지.
-- discipline은 매 dispatch마다 파일 재조립, 부재 시 **침묵 아니라 하드크래시**(agent_resources.py:290-293 AgentResourceError raise). 8객체 전원 3 discipline 참조.
-- P7/P8 프로브는 전부 **BRICK 자기 clone**에서 돌았다(p8-dogfood-probe-0703.md:3 "프레시 clone") — "브릭-온-브릭" 문제가 원문에 그대로. **이 갭은 실물**.
-- source-template.md 8항목은 이미 repo-무관 계약 그 자체 but "repo-무관 코어"라고 **선언된 표면 없음** — 분류가 사람 머릿속에만.
+**⚠️ Smith 재정의(0704) — "이식성 문제"가 아니다**: 브릭은 로컬 설치해서 쓰는 도구고,
+쓸 때 체커가 딸려온다. 즉 "고객 repo에서 체커가 안 돈다"는 애초에 문제가 아니라
+**설계 의도**다 — 브릭을 쓰는 곳엔 항상 브릭 체커가 있다. 초안이 이걸 "기생/갭"으로
+부정 프레이밍한 게 틀렸다. 진짜 통찰은 반대 방향: **새 기능을 만들 때 그 기능을
+검사하는 체커를 같이 만들어 규칙을 닫는(못박는) 것** = 브릭이 "축 분리+에비던스"로
+스스로를 지키는 방식. 따라서 T9는 "고객 이식 대비"가 아니라 **"체커-동반 개발"을
+규율로 선언**하는 것.
 
-**근본 원인**: "repo-무관"이 두 뜻(A=코드가 체커 비의존 / B=규율이 별도 고객 repo에서 발화)을 가리키는데 구분된 적 없다. B는 테스트된 적 없음(P7/P8이 자기 clone이라).
+**실측 (여전히 유효한 부분만)**:
+- 체커는 물리적 repo-내장(check_profile.py:46 _REPO_ROOT 자기위치) — 이건 갭이 아니라 로컬 설치 도구의 정상.
+- discipline은 매 dispatch 파일 재조립, 부재 시 하드크래시(agent_resources.py:290-293) — fail-closed 정상.
+- source-template.md 8항목은 이미 계약 그 자체지만 "체커-동반 개발" 원칙이 선언된 표면 없음.
 
-**슬라이스**:
-- **S-a (선언)**: 규율 2분류 표면화 — repo-무관 코어(계약 템플릿·종료선·정직반환·에코·discipline) vs repo-의존(체커·pin·--all). 착지: source-template.md 또는 신설 정본에 분류 선언. 비엔진. 종료선: 분류 문서 + 각 규율의 소속 명시.
-- **S-b (프로브, Smith 게이트 가능)**: P8에 이식성 매트릭스 추가 — 체커 0개 repo(별도 clone 아닌 진짜 빈 트리)에서 빌딩 1개 굴려 규율별 발화/침묵 기록. driver.py sandbox 격리 건드리면 walker 인접 판정 필요.
-- **S-c**: 고객 repo 최소 게이트 킷 — 설치 시 브릭이 들고 가는 최소 검증(무엇이 정당한가). S-b 완료 후.
+**근본 원인 (재정의)**: 브릭의 자기방어 방식("기능 만들 때 체커도 만든다")이 관행으로만
+존재하고 규율로 선언된 표면이 없다. make-a-brick/make-a-gate 스킬이 개별 절차는 있으나,
+"모든 신규 기능은 검사 체커를 동반해 닫는다"는 상위 원칙이 명문화 안 됨.
 
-**Smith 게이트**: S-b가 driver.py sandbox 구성 수정 시.
+**슬라이스 (재설계)**:
+- **S-a (원칙 선언)**: "체커-동반 개발" 규율 명문화 — 신규 기능/선언 표면을 추가할 때 그것을 게이트하는 체커(또는 mutation-RED 프로브)를 같이 랜딩한다는 원칙. 착지: AGENTS.md 또는 make-a-brick/make-a-gate 스킬의 상위 원칙 절. 비엔진. 종료선: 원칙 선언 + 기존 make-a-* 스킬과 정합.
+- **S-b (선택)**: T3(선언-집행 패리티)·T11(교훈 원장)과 연동 — "집행자 없는 선언"(good_enough 같은 케이스)을 체커-동반 원칙 위반으로 자동 열거. T3/T11 랜딩 후.
 
-**함정**: 온보드/verify 분리를 "갭"으로 오인 재제안 금지(이미 존재). discipline 크래시를 "침묵 결여"로 서술 금지(raise한다).
+**Smith 게이트**: 없음(전 슬라이스 비엔진 선언).
+
+**함정**: 고객 repo 이식·P8 통과기준 재검토·"repo-무관 2분류" 초안 방향은 **폐기**(Smith
+0704: 로컬 설치가 맞다). 온보드/verify 분리를 갭으로 재제안 금지(이미 존재). T9는 크게
+축소됐고 T11(교훈 원장)에 흡수될 여지 있음 — 발주 전 T11과 통합 여부 판단.
 
 ---
 
 ## T10. 그래프 동적 표현력 — 선언 원칙 보존 확장
+
+**🚧 발주 금지 — Smith 논의 필요(0704)**: 이 항목은 아직 발주하지 마라. Smith 방향
+전환: 초안의 "정적 그래프에 동적 흉내 3단계(근사형→K-of-N→런타임)"가 소심하다.
+Smith 판정 = **브릭 그래프 DSL을 Claude 워크플로 수준 표현력으로 끌어올린다**
+(loop-until-dry, 예산-비례 팬, 데이터-의존 분기를 워크플로처럼 선언). 근거: 이번
+하네싱 감사도 브릭이 아니라 워크플로로 돌았다(동적 팬을 브릭으로 못 그림). Smith 0703
+메모리와 동일선 — "빌딩 그래프 = 워크플로 스크립트 동급 조합 언어".
+
+**미결 설계 논점 (발주 전 Smith와 확정)**: 워크플로는 "코드로 돌아가는" 유연함이
+GOAT의 이유인데, 브릭 정체성은 "선언+게이트+에비던스(감사가능성)"다. **워크플로
+표현력을 가져오되 브릭의 감사가능성을 안 잃는 경계를 어디에 긋냐** — 자유로운 코드 실행
+vs 선언적 감사가능성, 이 둘의 화해점이 T10의 핵심. 이게 박히기 전엔 슬라이스 발주 무효.
+
+아래 원래 조사 내용은 참고용 실물 근거로만 보존(발주 설계 아님):
+
 
 **실측/현재 기전**: 원시 부품 전부 CONFIRMED — 선언 그래프 위상(composition_graph_emit.py:553-587), edge 게이트(:1277-1356, 단 movement 필드가 항상 "forward" 고정이라 이진), reroute-budget 캐스케이드(:339-345). per-node coo-gate는 link/gate.py의 GATE_REGISTRY 파생(DECLARED_GATE_REFS/COO_GATE_REF, :30-42 — 상수 정의), stop 처분 실행은 walker_resume.py:568-631 `_paper_stop_adapter_error_hold`(`disposition_action="stop"`). (검증 정정: link/gate.py에는 "stop" 문자열 0건 — gate는 sufficiency만 기록, 처분 실행은 walker_resume 소관. 두 파일을 구분해 인용.) 부재 확인 — fan-in wait-any/K-of-N(grep 0), loop-until-dry(grep 0), 예산-비례 함대(branches가 정적 리스트, 실제 처리 :952-954 `raw_group.get("branches")`).
 
