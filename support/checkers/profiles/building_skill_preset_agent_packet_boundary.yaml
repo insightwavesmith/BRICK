@@ -1,0 +1,111 @@
+schema: checker-profile/v1
+profile_id: building-skill-preset-agent-packet-boundary
+description: BUILDING-SKILL-PRESET-AGENT-TOOL-HARDENING-0 agent candidate and preset ranking packet boundary profile.
+kernel_checks:
+  - package_path_admission
+  - axis_contract_projection
+path_exists:
+  - support/connection/building_design_toolkit.py
+  - support/operator/plan_rendering.py
+  - support/operator/composition_intent.py
+  - support/checkers/lib/agent_packets_check.py
+text_contains:
+  - path: support/connection/building_design_toolkit.py
+    texts:
+      - 'def render_agent_candidate_packet('
+      - 'def render_preset_ranking_packet('
+      - support does not pick among >= 2 candidates
+  - path: support/operator/plan_rendering.py
+    texts:
+      - 'def _resolve_agent_for_need('
+      - does NOT pick among >=2
+  - path: support/operator/composition_intent.py
+    texts:
+      - 'def materialize_building_intent('
+      - chain_preset_ref
+  - path: support/checkers/lib/agent_packets_check.py
+    texts:
+      - run_agent_candidate_packet_case
+      - run_preset_ranking_packet_case
+      - support must NOT pick among candidates
+      - mechanical hint-match
+# PART-2 Phase 3: READ-ONLY COO surface for the agent NEED<->CAPABILITY matcher's
+# candidates (render_agent_candidate_packet). The matcher's >= 2 ValueError is the
+# fail-closed halt; this packet is the informed surface beside it. The AXIS FIRE
+# here is the real guard: support records candidates + a MECHANICAL match reason
+# ONLY -- it does NOT pick among >= 2, rank, or recommend. If the packet were made
+# to pick/rank one, the no-forbidden-pick-field assertion goes RED; the case also
+# re-asserts that _resolve_agent_for_need still RAISES for the ambiguous need.
+agent_candidate_packet_case:
+  # MULTI: leader / write_need=false -> 5 candidates -> ambiguous -> COO decision.
+  # All qualifying leaders are listed (none omitted); each match_reason is mechanical.
+  - label: multi-leader-coordination-five-candidates
+    role_need: leader
+    write_need: false
+    selected_adapter_ref: adapter:codex-local
+    expect_min_candidates: 2
+    expect_ambiguous: true
+    expected_candidate_refs:
+      - agent-object:coo
+      - agent-object:cto-lead
+      - agent-object:design-lead
+      - agent-object:pm-lead
+      - agent-object:qa-lead
+    rejected_selected_adapter_refs:
+      - adapter:gemini-api
+      - adapter:not-admitted
+  # MULTI + WRITE NEED: leader / write_need=true -> the four write-capable team
+  # leads ONLY. The COO is PURE READ-ONLY (Smith ruling 0610: the Movement/
+  # judgment authority carries no write tools), so a write-need brick's
+  # candidate set EXCLUDES agent-object:coo. Re-adding read-write-scoped to
+  # coo.yaml turns this RED (expected_candidate_refs is an exact-set match).
+  - label: multi-leader-write-need-excludes-coo
+    role_need: leader
+    write_need: true
+    expect_min_candidates: 2
+    expect_ambiguous: true
+    expected_candidate_refs:
+      - agent-object:cto-lead
+      - agent-object:design-lead
+      - agent-object:pm-lead
+      - agent-object:qa-lead
+  # SINGLE: worker / write_need=true -> exactly one candidate (dev) -> unambiguous;
+  # the matcher still auto-resolves it (this surface does not change that path).
+  - label: single-worker-writer-dev
+    role_need: worker
+    write_need: true
+    expect_min_candidates: 1
+    expect_ambiguous: false
+    expected_candidate_refs:
+      - agent-object:dev
+# PART-2 P4: the READ-ONLY, NON-BINDING preset-ranking packet. Each case drives
+# render_preset_ranking_packet over the real chain-preset catalog and asserts
+# (1) RANK = mechanical hint-match ordering (ranking_basis says "not quality"),
+# (2) NO pick/recommend field (axis FIRE -- inject one to RED), and
+# (3) the materializer STILL hard-refuses a run with no/blank chain_preset_ref
+# (the ranking NEVER auto-applies -- proving it is non-binding).
+preset_ranking_packet_case:
+  # GOVERNANCE hint -> the governed-change-review preset is the top mechanical
+  # match (its declared intent + selection_hint name contracts/policy/permissions/
+  # authority). >= 2 presets match, so the COO still chooses among the ranking.
+  - label: governance-hint-ranks-governed-change-review-top
+    selection_hint: "Use when the requested work changes active instructions, public contracts, review policy, permissions, or authority boundaries."
+    expect_min_candidates: 2
+    expect_top_ref: building-chain-preset:governed-change-review
+    expect_min_top_score: 5
+  # SCOPE FILTER: restricting to the common scope returns only common presets and
+  # never leaks a dogfood-scope route into the ranking.
+  - label: governance-hint-common-scope-only
+    selection_hint: "Use when the requested work changes active instructions, public contracts, review policy, permissions, or authority boundaries."
+    catalog_scope: common
+    expect_min_candidates: 2
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic fitness of future chain preset selection
+  - native hook execution behavior
+  - provider-native tool permission behavior
