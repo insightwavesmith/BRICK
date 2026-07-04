@@ -252,8 +252,8 @@ Smith 3결정 확정(선언시점 결정권 설정 · Link 게이트 승인 · r
   adapter_error_frontier · chat_session_park_frontier · invalid_transition_concern_evidence ·
   multi_candidate_no_agent_transition_concern · multi_candidate_requires_declared_policy ·
   **동적 리터럴 전부(gate_sequence_*:<ref>, broken_mail_reason 등) 및 미열거 = 금지
-  (fail-closed)**. (리터럴판은 Smith 취지("다음 수가 보이는 홀드")의 기계 번역 — **Smith
-  재확인 1건 대기**.)
+  (fail-closed)**. (**Smith 0704 확정 2차 — 리터럴판 승인**: "일부러 세운 판 + 새 카드
+  필요하다고 손든 판에서만 허용, 나머지 전부 금지" 취지 그대로. S3 발주 차단 해제.)
   **design 선결 4건 기본안(채택 주체 = S3 design 노드, COO 재량)**: ①결정권 표현 =
   휴먼게이트 선언 파생 ②placement 신규 리터럴 불요(기본값 none 채택 시) ③확장 plan 운반
   = revision 파일 실물(위 6필드 기본값에 반영) ④감사 사슬 = 편입 이벤트에 제안 레인 ref +
