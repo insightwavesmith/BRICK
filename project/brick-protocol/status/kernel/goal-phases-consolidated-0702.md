@@ -425,6 +425,17 @@ kernel_checks(§4-1)에 이어 두 번째 갓모듈 해체 — GP3 잔여는 §4
 **T1-2단계 첫 실전 발화**: 랜딩 직후 COO 자신의 슬라이스 9 발주문을 L1(종료마커 부재)로
 거부 — 발주문에 `종료선:` 독립 행이 신규 표준. 오탐 아님(마커가 산문에 묻힘).
 
+## 현재 판 (0705 아침)
+
+**걷는 중**: §4-4 Batch 2(step_template 16± → 신규 step_template_boundary, work 진행) ·
+T4 행동-RED 프로브(design 착지 — 좌표 계약 안, work 진입). 표면 비충돌 병행.
+**직전 랜딩**: §4-2 본대 완주(1d19b42c, case_runners 971행 허브) · T1-2단계 v4(117405c0,
+발주 린트 양 관문 — 첫 실전 발화로 COO 발주문 거부 실측) · Batch 0·1.
+**대기열(순서 확정)**: Batch 3 carry(→ Batch 2 뒤 직렬, hardening.yaml 공유) → Batch 4
+materialize(builder_composition 확장) → Batch 5 compose(최심부 31, 최후). T5 핀 통합은
+T4 랜딩 후(측정 없는 다이어트 금지). P8 신뢰성 반복은 분해 창 종료로 해금 — 슬롯 대기.
+push 13차+골문서까지 origin 동기(a39fdfbc).
+
 ## 백로그 통합 (소형·주시·대기)
 
 | 항목 | 분류 |
