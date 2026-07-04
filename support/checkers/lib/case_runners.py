@@ -46,6 +46,13 @@ from support.checkers.lib.gate_evidence_readers import (
     _json_records,
     _nested_values_for_key,
 )
+from support.checkers.lib.fixture_graph_helpers import (
+    fixture_agent_row,
+    fixture_brick_row,
+    fixture_graph_brick_step,
+    fixture_graph_link_edge,
+    fixture_proof_limits,
+)
 from support.checkers.lib.rule_runners import (
     _admitted_agent_object_refs,
     validate_building_plan_boundary,
@@ -7978,18 +7985,17 @@ def _graph_brick_step(
     source_facts: Sequence[str] | None = None,
     step_template_ref: str = "",
 ) -> Mapping[str, Any]:
-    step: dict[str, Any] = {
-        "step_ref": step_ref,
-        "completion_edge_ref": completion_edge_ref,
-        "selected_adapter_ref": "adapter:local",
-        "rows": [
-            _brick_row(step_ref, brick_ref, source_facts=source_facts),
-            _agent_row(step_ref),
-        ],
-    }
-    if step_template_ref:
-        step["step_template_ref"] = step_template_ref
-    return step
+    return fixture_graph_brick_step(
+        step_ref,
+        brick_ref,
+        completion_edge_ref,
+        agent_object_ref="agent-object:coo",
+        work_statement=f"Run checker live step-output drain step {step_ref}.",
+        required_return_shape="body_marker, source_fact_body_refs, carried_markers, not_proven",
+        source_facts=source_facts,
+        selected_adapter_ref="adapter:local",
+        step_template_ref=step_template_ref,
+    )
 
 
 def _graph_link_edge(
@@ -8002,31 +8008,16 @@ def _graph_link_edge(
     route_replay_plan: Mapping[str, Any] | None = None,
     declared_gate_refs: Sequence[str] | None = None,
 ) -> Mapping[str, Any]:
-    link_row: dict[str, Any] = {
-        "axis": "Link",
-        "row_ref": f"link-row:{edge_ref}",
-        "movement": movement,
-        "target_ref": target_ref,
-    }
-    if declared_gate_refs is not None:
-        link_row["declared_gate_refs"] = list(declared_gate_refs)
-    else:
-        link_row["declared_gate_refs"] = ["link-gate:default-transition"]
-    if route_replay_plan is not None:
-        link_row["route_replay_plan"] = dict(route_replay_plan)
-    edge: dict[str, Any] = {
-        "edge_ref": edge_ref,
-        "source_step_ref": source_step_ref,
-        "rows": [link_row],
-    }
-    if target_step_ref:
-        edge["target_step_ref"] = target_step_ref
-    else:
-        link_row["building_lifecycle"] = {
-            "state": "closed",
-            "reason": "checker live step-output drain close",
-        }
-    return edge
+    return fixture_graph_link_edge(
+        edge_ref,
+        source_step_ref,
+        target_ref,
+        target_step_ref=target_step_ref,
+        movement=movement,
+        route_replay_plan=route_replay_plan,
+        declared_gate_refs=declared_gate_refs,
+        close_reason="checker live step-output drain close",
+    )
 
 
 def _axis_row(step: Mapping[str, Any], axis: str) -> Mapping[str, Any]:
@@ -8058,34 +8049,21 @@ def _brick_row(
     *,
     source_facts: Sequence[str] | None,
 ) -> Mapping[str, Any]:
-    return {
-        "axis": "Brick",
-        "row_ref": f"brick-row:{step_ref}",
-        "brick_work_ref": f"work:{step_ref}",
-        "brick_instance_ref": brick_ref,
-        "work_statement": f"Run checker live step-output drain step {step_ref}.",
-        "comparison_rule": "Observe support evidence only; do not choose Movement or judge quality.",
-        "required_return_shape": "body_marker, source_fact_body_refs, carried_markers, not_proven",
-        "source_facts": list(source_facts or []),
-    }
+    return fixture_brick_row(
+        step_ref,
+        brick_ref,
+        work_statement=f"Run checker live step-output drain step {step_ref}.",
+        required_return_shape="body_marker, source_fact_body_refs, carried_markers, not_proven",
+        source_facts=source_facts,
+    )
 
 
 def _agent_row(step_ref: str) -> Mapping[str, Any]:
-    return {
-        "axis": "Agent",
-        "row_ref": f"agent-row:{step_ref}",
-        "agent_object_ref": "agent-object:coo",
-    }
+    return fixture_agent_row(step_ref, agent_object_ref="agent-object:coo")
 
 
 def _step_output_drain_proof_limits() -> list[str]:
-    return [
-        "support evidence only",
-        "not source truth",
-        "not success judgment",
-        "not quality judgment",
-        "not Movement authority",
-    ]
+    return fixture_proof_limits()
 
 
 def _checker_step_output_relative_ref(ref: str) -> str:
