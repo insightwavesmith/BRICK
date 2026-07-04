@@ -1544,22 +1544,57 @@ def _assert_reporter_closure_decision_packet_fields(reporter: Any) -> tuple[str,
             )
         reporter.validate_report_packet(legacy_packet)
 
-        bad_packet = {
-            **packet,
-            "report_id": "closure-decision-field-forbidden-probe",
-            "deferred_smith_review_queue": [{"success": True}],
+        dirty_keys = (
+            "Verdict",
+            "VERDICT",
+            "ver-dict",
+            "Ｖｅｒｄｉｃｔ",
+            "ver\tdict",
+            "verdict",
+            "success",
+            "good_enough",
+            "movement",
+        )
+        clean_packet = {
+            **_minimal_reporter_packet(),
+            "report_id": "closure-decision-field-clean-probe",
+            "narrowly_proven": [{"observation_ref": "observation:clean-probe"}],
+            "remaining_delta": [{"delta_ref": "observation:remaining-delta-probe"}],
+            "deferred_smith_review_queue": [
+                {"review_ref": "smith-review:clean-closure-field-probe"}
+            ],
+            "deliverable_crosscheck": [
+                {
+                    "deliverable_ref": "D1",
+                    "observed_ref": "observation:clean-crosscheck-probe",
+                }
+            ],
         }
-        try:
-            reporter.validate_report_packet(bad_packet)
-        except ValueError as exc:
-            if "success" not in str(exc):
+        reporter.validate_report_packet(clean_packet)
+        for dirty_key in dirty_keys:
+            bad_packet = {
+                **_minimal_reporter_packet(),
+                "report_id": f"closure-decision-field-forbidden-{dirty_key}",
+                "deferred_smith_review_queue": [{dirty_key: True}],
+            }
+            try:
+                reporter.validate_report_packet(bad_packet)
+            except ValueError as exc:
+                message = str(exc)
+                if (
+                    "closure decision field(s) include forbidden authority key(s)"
+                    not in message
+                    and "includes forbidden authority field(s)" not in message
+                ):
+                    raise ProfileError(
+                        "closure decision forbidden-field probe rejected for the wrong reason"
+                    ) from exc
+            else:
                 raise ProfileError(
-                    "closure decision forbidden-field probe rejected for the wrong reason"
-                ) from exc
-        else:
-            raise ProfileError("closure decision forbidden-field probe was accepted")
+                    f"closure decision forbidden-field probe {dirty_key!r} was accepted"
+                )
 
-    return "closure decision fields copied into report packets", 10
+    return "closure decision fields copied into report packets", 19
 
 
 def _write_reporter_closure_probe_root(

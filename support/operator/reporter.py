@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import os
+import re
+import unicodedata
 from collections.abc import Iterable, Mapping
 from datetime import datetime, timezone
 from pathlib import Path
@@ -15,6 +17,7 @@ from brick_protocol.support.connection.agent_resources import (
     resolve_agent_object,
 )
 from brick_protocol.support.operator.building_operation import observe_building_frontier
+from brick_protocol.agent.return_fact import TOP_LEVEL_VERDICT_KEYS
 from brick_protocol.support.recording.capture import (
     BRICK_EVIDENCE_HOME,
     REPO_ROOT as _CAPTURE_REPO_ROOT,
@@ -29,6 +32,7 @@ from brick_protocol.support.operator.report_sinks import (
     DASHBOARD_SINK_REF,
     LOCAL_INBOX_SINK_REF,
     OPERATOR_WAKE_LOCAL_SINK_REF,
+    SINK_FORBIDDEN_PACKET_FIELDS,
     SLACK_BOT_TOKEN_ENV,
     SLACK_CHANNEL_ID_ENV,
     SLACK_SINK_REF,
@@ -219,6 +223,34 @@ CLOSURE_DECISION_PACKET_FIELDS: tuple[str, ...] = (
     "remaining_delta",
     "deferred_smith_review_queue",
     "deliverable_crosscheck",
+)
+
+
+def _closure_decision_normalized_key(key: Any) -> str:
+    # Same rule as agent/return_fact.py:123 _normalize_return_key.
+    return str(key).strip().lower().replace("-", "_").replace(" ", "_")
+
+
+def _closure_decision_comparison_forms(key: Any) -> frozenset[str]:
+    raw = str(key)
+    normalized = _closure_decision_normalized_key(raw)
+    compatibility = unicodedata.normalize("NFKC", raw)
+    whitespace_collapsed = re.sub(r"\s+", "_", compatibility.strip())
+    strict = _closure_decision_normalized_key(whitespace_collapsed)
+    return frozenset(
+        form
+        for candidate in (normalized, strict)
+        for form in (candidate, candidate.replace("_", ""))
+    )
+
+
+CLOSURE_DECISION_FORBIDDEN_PACKET_KEYS = frozenset(
+    SINK_FORBIDDEN_PACKET_FIELDS | TOP_LEVEL_VERDICT_KEYS
+)
+CLOSURE_DECISION_FORBIDDEN_PACKET_KEY_FORMS = frozenset(
+    form
+    for key in CLOSURE_DECISION_FORBIDDEN_PACKET_KEYS
+    for form in _closure_decision_comparison_forms(key)
 )
 
 
@@ -798,6 +830,12 @@ def validate_report_packet(packet: Mapping[str, Any]) -> None:
     forbidden = sorted(set(_nested_keys(packet)) & FORBIDDEN_REPORT_PACKET_FIELDS)
     if forbidden:
         raise ValueError(f"report packet includes forbidden authority field(s): {forbidden}")
+    closure_forbidden = _closure_decision_forbidden_keys(packet)
+    if closure_forbidden:
+        raise ValueError(
+            "report packet closure decision field(s) include forbidden authority "
+            f"key(s): {closure_forbidden}"
+        )
     if packet.get("source_truth") is not False:
         raise ValueError("report packet source_truth must be false")
     report_kind = _required_text(packet.get("report_kind"), "report_kind")
@@ -1639,6 +1677,19 @@ def _nested_keys(value: Any) -> Iterable[str]:
     elif isinstance(value, list):
         for child in value:
             yield from _nested_keys(child)
+
+
+def _closure_decision_forbidden_keys(packet: Mapping[str, Any]) -> list[str]:
+    observed: set[str] = set()
+    for field in CLOSURE_DECISION_PACKET_FIELDS:
+        if field not in packet:
+            continue
+        for key in _nested_keys(packet[field]):
+            normalized = _closure_decision_normalized_key(key)
+            forms = _closure_decision_comparison_forms(key)
+            if forms & CLOSURE_DECISION_FORBIDDEN_PACKET_KEY_FORMS:
+                observed.add(normalized)
+    return sorted(observed)
 
 
 def _read_json_mapping(path: Path) -> Mapping[str, Any]:
