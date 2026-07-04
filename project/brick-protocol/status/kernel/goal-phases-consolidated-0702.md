@@ -1,5 +1,7 @@
 # 운영 골 페이즈 통합 (0702 정본 — Smith·COO 합의 프레임, 0703 밤 정리)
 
+교훈 계보: lessons-ledger.yaml (처방 1건=1행, T11 — 0704 신설)
+
 Status: support evidence only. 운영 순서의 정본. 골 오브 레코드 자체는
 customer-ready-goal-phases-0629.md(+GOAL/)가 소유 — 이 문서는 그걸 향해 가는
 워크스트림들의 통합 순서표다. 상태값은 0703 밤 기준 실측(HEAD f4d7b58b).
