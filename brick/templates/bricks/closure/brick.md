@@ -46,6 +46,10 @@ Return: fill the `required_return_shape` from the return_template
 `diff_artifact_refs` must be accompanied by `transition_concern_evidence` (`implementation_gap`) —
 never by a complete-style return, and never deferred to a human review queue as a substitute
 (0702 fake-landing postmortem).
+When prior Work returns include `received_deliverables_echo`, compare the original contract's
+numbered deliverables, the Work echo, and the diff artifacts as three separate observations. Record
+any contract/echo/diff mismatch in `deliverable_crosscheck` without turning that comparison into
+success, quality, approval, sufficiency, or Movement language.
 
 `transition_concern_evidence` (shape: `brick/templates/bricks/transition-concern-return.yaml`)
 is **non-binding** Agent evidence — it carries `concern_ref`, `concern_kind`, `reason_refs`,
