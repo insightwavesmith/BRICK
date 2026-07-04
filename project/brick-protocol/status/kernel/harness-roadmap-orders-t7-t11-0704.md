@@ -25,6 +25,7 @@ T1~T6(harness-roadmap-orders-0704.md, 발주 품질·에이전트 검증 축)에
 2순위: T11-Sa(교훈 원장 파일) · T8-Sa(reporter 패킷에 결정필드 확장)
 3순위: T6(홀드 자기서술 — T7-Sb 재현 결과 흡수 후) · T8-Sb(패킷 과잉주장 체커) · T10-S1/S3(순수함수·Link 선언 표면, 비엔진)
 Smith 게이트(후행): T7 엔진 수리들 · T10-S2/S4(walker_resume 표면 — revision 읽기·확장 분기)
+명시 의존: T10-S4는 T7-Sb(resume 검증-후-저장 순서 교정) 랜딩 후에만 발주(§T10 보강 3)
 ```
 
 **0704 Smith 재정의 반영**: T8 = 신설 렌더러 ❌ → reporter 패킷 확장(출구는 기존 sink).
@@ -206,8 +207,52 @@ Smith 3결정 확정(선언시점 결정권 설정 · Link 게이트 승인 · r
   파일 분리 + 재실체화 시 원본 보존" 요구를 명시하라(Smith 결정 ③의 집행 지점).
 - **budget_delta 재사용 금지**(위 실측 — 이중 잠금, 열려고 하지 마라).
 - **잔여 미확인(발주 내 조사 D 또는 후속)**: walker_fan_in.py cohort 함수(:270 이후)
-  전수 정독, walk 종료 후 recording 계열의 declared-building-plan.json 재직렬화 여부,
-  _validate_gate_sequence_action 본문(plan_validation.py)의 추가 거부 조건.
+  전수 정독(특히 wait-all이 미실행 소스를 무기한 대기하는지), walk 종료 후 recording
+  계열의 declared-building-plan.json 재직렬화 여부, _validate_gate_sequence_action
+  본문(plan_validation.py)의 추가 거부 조건.
+
+**0704 밤 적대 검토 3렌즈 반영 — 발주 전 필수 보강 5건** (독립 sonnet 3렌즈:
+유계성·동시성 / 축경계·감사 / 대안비용. 판정 전원 DESIGN_HOLDS_WITH_GAPS, BROKEN 0건.
+아래 5건은 슬라이스 계약에 반드시 편입 — 특히 ①②는 렌즈 판정 기준 "design 선결로
+미룬 것"이 아니라 "인지조차 안 된 사각"이었다):
+1. **확장 예산(expansion budget) 필수**: 현 유계성 증명(dynamic_walker.py:23-25)은 "노드
+   집합 유한"을 전제하는데, T10은 그 전제를 깬다. COO-단독 모드 + 자동 게이트 조합이면
+   "자기 자신이 게이트인 무한 확장"이 논리적으로 가능(expansion_budget류 개념 코드·문서
+   전역 0건 — grep 확인). 처방: 빌딩 선언에 개정 최대 횟수(또는 편입 노드 총량) 필드를
+   싣고(S3 플래그와 동소, 선언 시점 Smith/발주자 설정), 소진 검증은 S2 동반 체커 +
+   revision 쓰기 API의 선-검증에 배정. reroute 예산과 동형의 소모성 자원으로.
+2. **확장 가능 홀드 클래스 정의**: hold_reason은 최소 8종 실물(human_or_coo_gate_pause /
+   target_node_budget_exhausted / unresolvable_reroute_address / adapter_error_frontier /
+   chat_session_park_frontier / multi_candidate_* 등 — walker_kernel.py:2013·2051·2086,
+   walker_transition_concern.py:209·366, walker_frontier.py:291·334, driver.py:1947-1977).
+   어떤 클래스에서 편입 허용인지 T10 계약에 정의 필수 — 특히 **예산 소진 홀드에서의
+   노드 추가는 예산 규율 우회 뒷문**이 될 수 있어 기본 금지(확장 예산과 별도 판단) 권고.
+3. **승인 검증은 저작 시점 선-검증으로 명시 + T7-Sb 선행 의존 선언**: T7 결함②(자기잠금)
+   의 기전 = "저장된 행을 읽은 뒤 검증"(walker_resume.py:978 _read_disposition_row →
+   :504 검증, 실물 재확인). T10 승인·revision 검증을 resume 시점 사후검증으로 설계하면
+   같은 자기잠금 클래스가 재현된다 — S2 동반 체커는 **revision 저작(쓰기) 시점 선-검증**
+   으로 계약에 못박고, **T10-S4 발주는 T7-Sb(resume 실행 경로 순서 교정) 랜딩을 명시적
+   전제로** 선언(발주 순서표의 병기는 의존 선언이 아니다).
+4. **revision 쓰기 내구성 3종을 S2 계약에 명시**: ①원자적 쓰기(임시파일+rename —
+   기존 write_text 직접 쓰기 declaration_packets.py:164는 부분쓰기 크래시에 무방비)
+   ②깨진/반쪽 최신 revision 발견 시 판정 규칙(파일명만으로 최신 선정 금지, 내용 검증 후
+   선정) ③승인 기록↔revision 파일↔처분 재개가 3개의 별도 쓰기라는 사실에 대한 정정
+   경로 선언(승인만 있고 revision 없는 중간 상태의 재시도 규칙 — T7 결함③과 동형 클래스).
+5. **재실체화 수정의 슬라이스 책임 배정**: 함정란의 "원본 보존 요구"를 집행하는 실제
+   코드 수정(walker_kernel.py:1036 경유 무조건 덮어쓰기 경로의 revision-인지 처리)은
+   **S2 소유**로 확정 — S4는 그 결과를 소비만 한다. 부수: 감사 사슬에 제안 Agent 신원 +
+   거부된 제안 기록 표면을 S3 required_return_fields design 선결에 추가.
+
+**대안 비교 판정(0704 밤 렌즈 R3 — T10 정당성 오히려 강화)**: "개발 노드 N개 여유
+선선언 + 안 쓰는 가지 stop 폐쇄" 대안은 **불성립** — stop은 가지 폐쇄가 아니라 빌딩
+전체 종결이다(walker_kernel.py:1613-1626 walk 루프 break, walker_resume_seed.py:296-303
+building closed 실물). 여분 노드는 fan-in에 물려 실행/대기 비용을 실제 소비하고, 사후
+축소 경로도 전무(사전 과다선언의 대칭 문제). fresh 재발주 대안은 replay 경로 포기(완료
+노드 전부 provider 재호출)와 기계 판독 계보 상실이 비용 — 정성 경계: 확장이 빌딩당
+1회뿐인 일이면 fresh가 싸고, "QA 홀드 후 다음 수"가 상시 반복 워크플로면 T10이 큰 폭
+역전(S1·S3는 시스템 고정비, S2·S4가 반복 상환 대상). 단 자동판단 게이트는 현
+disposition "auto"(무조건 통과, link-gate:default-transition 1행)와 다른 신규 클래스
+필요 — "심사하는 자동"과 Link 독트린(sufficiency만) 사이 표현 설계가 미래 과제.
 
 ---
 
