@@ -604,6 +604,56 @@ modules:
     decomposition_target: ""
     pinned_by: route_materialization / compose_building profile cases
 
+  - module: support/checkers/lib/route_materialization_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (route_materialization_case behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
+  - module: support/checkers/lib/building_intake_seam_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (building_intake_seam_case behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
+  - module: support/checkers/lib/onboard_seam_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (onboard_seam_case behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
+  - module: support/checkers/lib/native_dispatch_close_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (native_dispatch_close_case behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
+  - module: support/checkers/lib/plan_expansion_case_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (plan_expansion_case behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
   - module: support/checkers/lib/casting_node_carry_check.py
     layer: checkers/lib
     role: checker-lib
