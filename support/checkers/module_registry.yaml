@@ -854,6 +854,36 @@ modules:
     decomposition_target: ""
     pinned_by: preset_building_completion profile cases
 
+  - module: support/checkers/lib/intake_project_vessel_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (intake_project_vessel_case behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
+  - module: support/checkers/lib/intake_evidence_projection_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (intake_evidence_projection_case behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
+  - module: support/checkers/lib/preset_completion_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (preset_building_completion_case behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
   - module: support/checkers/lib/kernel_checks.py
     layer: checkers/lib
     role: checker-lib
