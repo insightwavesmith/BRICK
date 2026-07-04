@@ -1,6 +1,15 @@
 declared_by: smith
 provenance: constitutional-default
 default_node_reroute_budget: 5
+# Endline rules for adopted-reroute re-dispatch text (Smith 0704 ratification;
+# root cause: 0703 six-round repair-loop postmortem — re_instruction without a
+# Done endline lets QA escalate meta-verification without limit). The fields
+# are the declaration; a Link-side gate is a later consumer
+# (closure/return.yaml deliverable_crosscheck precedent).
+re_instruction_endline_rules:
+  - a re_instruction must restate the Done endline of the contract it serves
+  - proof demands must be executable in the receiving lane's environment
+  - repairs outside the receiving lane's scope are COO gate items, not re-dispatch
 proof_limits:
   - human-declared fallback for graph presets that omit node_reroute_budgets
   - not source truth
@@ -9,3 +18,4 @@ proof_limits:
   - not Movement authority
 not_proven:
   - semantic fitness of the default budget for future graph presets
+  - machine enforcement of re_instruction endline rules (declaration only; gate is a later consumer)
