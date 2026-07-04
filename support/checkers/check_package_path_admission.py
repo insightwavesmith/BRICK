@@ -450,6 +450,18 @@ TASK_ORDER_PREFLIGHT0_TARGETS = {
     "support/operator/task_order_preflight.py",
 }
 
+PLAN_EXPANSION0_TARGETS = {
+    "support/operator/plan_expansion.py",
+}
+
+PLAN_EXPANSION0_FIXTURES = {
+    "support/checkers/fixtures/plan_expansion/valid_merge.json",
+    "support/checkers/fixtures/plan_expansion/cycle.json",
+    "support/checkers/fixtures/plan_expansion/missing_fan_in_member.json",
+    "support/checkers/fixtures/plan_expansion/upstream_target.json",
+    "support/checkers/fixtures/plan_expansion/duplicate_step_ref.json",
+}
+
 PRH_B_RECORDER_TARGETS = {
     "support/recording/__init__.py",
     "support/recording/records.py",
@@ -777,6 +789,8 @@ ALLOWED_DIRS = {
     "support/docs/projection",
     # support/docs/templates retired (#24, 0610): its only file
     # (work_contract_template.md) moved to archive/docs-templates/.
+    "support/checkers/fixtures",
+    "support/checkers/fixtures/plan_expansion",
     "support/connection",
     "support/operator",
     "support/onboarding",
@@ -1938,6 +1952,12 @@ def allowed_path(path: str) -> bool:
         return True
 
     if clean in TASK_ORDER_PREFLIGHT0_TARGETS:
+        return True
+
+    if clean in PLAN_EXPANSION0_TARGETS:
+        return True
+
+    if clean in PLAN_EXPANSION0_FIXTURES:
         return True
 
     if is_dashboard_surface_path(clean, is_dir=False):

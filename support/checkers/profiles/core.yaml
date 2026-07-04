@@ -90,6 +90,7 @@ path_allowlist:
       - support/checkers/profiles/link_routing_behavioral.yaml
       - support/checkers/profiles/mcp_dispatch_wire.yaml
       - support/checkers/profiles/native_dispatch_brick_backstop.yaml
+      - support/checkers/profiles/plan_expansion.yaml
       - support/checkers/profiles/provider_registry_ladder.yaml
       - support/checkers/profiles/read_side_projection_boundary.yaml
       - support/checkers/profiles/report_env_autoload.yaml

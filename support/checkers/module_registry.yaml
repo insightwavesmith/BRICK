@@ -1899,6 +1899,16 @@ modules:
     decomposition_target: ""
     pinned_by: compose_building cases (graph->linear projection)
 
+  - module: support/operator/plan_expansion.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: plan_expansion_case profile
+
   - module: support/operator/auto_repair_replay.py
     layer: operator
     role: operator

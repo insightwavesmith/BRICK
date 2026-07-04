@@ -1,0 +1,27 @@
+schema: checker-profile/v1
+profile_id: plan_expansion
+description: Pure graph plan expansion assembly profile with positive and mutation-RED cases.
+kernel_checks:
+  - package_path_admission
+plan_expansion_case:
+  - path: support/checkers/fixtures/plan_expansion/valid_merge.json
+    expected:
+      step_refs:
+        - step:c
+        - step:d
+      expansion_node_budgets:
+        step:c: 2
+        step:d: 3
+  - path: support/checkers/fixtures/plan_expansion/cycle.json
+    expect_reject: true
+  - path: support/checkers/fixtures/plan_expansion/missing_fan_in_member.json
+    expect_reject: true
+  - path: support/checkers/fixtures/plan_expansion/upstream_target.json
+    expect_reject: true
+  - path: support/checkers/fixtures/plan_expansion/duplicate_step_ref.json
+    expect_reject: true
+proof_limits:
+  - checker profile support evidence only
+  - not source truth, success judgment, quality judgment, or Movement authority
+not_proven:
+  - future S2/S4 revision packet or walker consumption
