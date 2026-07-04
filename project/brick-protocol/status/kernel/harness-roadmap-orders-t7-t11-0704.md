@@ -23,7 +23,7 @@ T1~T6(harness-roadmap-orders-0704.md, 발주 품질·에이전트 검증 축)에
 ```text
 1순위(즉시, 엔진 무수정): T9-Sa(체커-동반 원칙 선언) · T7-Sa/Sb(복구 조사·순서교정)
 2순위: T11-Sa(교훈 원장 파일) · T8-Sa(reporter 패킷에 결정필드 확장)
-3순위: T6(홀드 자기서술 — T7-Sb 재현 결과 흡수 후) · T8-Sb(패킷 과잉주장 체커) · T10-S1/S3(순수함수·Link 선언 표면, 비엔진)
+3순위: T6(홀드 자기서술 — T7-Sb 재현 결과 흡수 후) · T8-Sb(패킷 과잉주장 체커) · T10-S1/S3(비엔진 — S3는 홀드 화이트리스트 Smith 확정 후)
 Smith 게이트(후행): T7 엔진 수리들 · T10-S2/S4(walker_resume 표면 — revision 읽기·확장 분기)
 명시 의존: T10-S4는 T7-Sb(resume 검증-후-저장 순서 교정) 랜딩 후에만 발주(§T10 보강 3)
 ```
@@ -161,33 +161,61 @@ Smith 3결정 확정(선언시점 결정권 설정 · Link 게이트 승인 · r
   ADOPTION_LITERALS → walker_kernel.py:1934 소비) — 동형 패턴 사용 가능. 명명 시
   _BUILDING_PLAN_FORBIDDEN_KEYS(rule_runners.py:588 — movement/route 암시어) 회피.
 
-**슬라이스 (3결정 반영 재설계)**:
+**슬라이스 (3결정 + 적대보강 편입 확정본 — 슬라이스마다 착지·증명·종료선, 0704 심야)**:
 - **S1 (확장 plan 조립 순수함수, 비엔진)**: 기존 plan + 신규 brick_steps/link_edges/
-  execution_order/groups.member_refs를 **일관 병합**하는 순수함수 신설 — 넷 중 하나라도
-  빠지면 plan_graph.py:237(execution_order 전수 일치)·:391(fan-in 정합)이 거부한다(의도된
-  안전망, 재사용). 위상검사 _validate_graph_plan_topology(:323-394) 재사용 — 사이클 주입만
-  거부, 리프 추가·fan-in 소스 추가는 통과. extends_plan_hash 계보 필드 부착(plan_hash는
-  순수 함수라 새 해시 자동 생성). 종료선: 순수함수 + 병합 픽스처 green + 사이클 주입
-  거부 확인 + member_refs 누락 시 거부 확인.
-- **S2 (revision 표면 + 동반 체커 — 엔진 인접, Smith 게이트)**: ①revision 쓰기 API
-  (declaration_packets.py — 파일 명명 규칙은 design 확정, 후보: declared-building-plan.rev-N.json)
-  ②walker_resume.py:937 읽기 경로를 최신-revision-aware로(단일 파일명 하드코딩 해제)
-  ③**동반 체커 신설(T9 체커-동반 원칙 적용)**: revision 체인 검증 — 추가-only diff(기존
-  노드/엣지 변경·삭제 거부), extends_plan_hash 정합, 승인 증거(게이트 발화 기록) 없는
-  revision 거부. 이 체커가 위 "편입 정당성 증명 층 부재" 갭의 직접 처방이다.
-- **S3 (게이트+결정권 표면, Link 선언, 비엔진)**: link-gate:expansion-approval 등록
-  (make-a-gate 절차, 병렬 표면 4곳 동기화). 결정권(결정 1)의 기계 표현은 design 선결
-  2안 — (기본 후보) 기존 휴먼게이트 선언 여부에서 파생(신규 표면 최소: 휴먼게이트 걸린
-  빌딩=공동, 아니면 COO 단독) vs (대안) 명시 플래그(composition_compose.py:655 형제 키
-  + link/spec.py 어휘 선언, transition_concern_adoption 동형). 추가 design 선결: 신설
-  게이트의 placement/disposition이 기존 리터럴(qa/final_transition/none ·
-  auto/plain/human/coo) 안에 드는지, 확장 plan(그래프 조각)을 required_return_fields로
-  어떻게 나르는지.
-- **S4 (resume 확장 분기 — 엔진 인접, Smith 게이트)**: walker_resume.py 오케스트레이션에
-  확장-plan-resume 분기 — 최신 revision 읽기 → S1 병합 결과로 walk 재진입. 엔진 핵심
-  루프(walker_kernel.py:970)·정지 알고리즘(:2070 카운터 if) 무수정 유지. 무한루프 방지는
-  (A)노드 고정 + (B)예산 유한의 결합이므로, 확장 후에도 "그 시점 노드 집합 유한 + 예산
-  유한"이 유지된다는 서술을 dynamic_walker.py docstring(:23-25)에 개정 반영.
+  execution_order/groups.member_refs **일관 병합** 순수함수 — 하나라도 빠지면
+  plan_graph.py:237(전수 일치)·:391(fan-in 정합)이 거부(의도된 안전망, 재사용). 위상검사
+  _validate_graph_plan_topology(:323-394) 재사용. extends_plan_hash 계보 필드 +
+  expansion_budget 잔여 확인 훅 부착(소진 판정 정본은 S2 체커).
+  **착지**: support/operator/plan_expansion.py 신설(기본안 — plan_graph·composition_compose와
+  동열 순수 계층, walker/recording 파일 무접촉. design 이견 시 조정 가능하되 walker 파일
+  편입은 금지). **증명(워크트리 리터럴)**: 픽스처 3종 rc 쌍 — 정상 병합→재선형화 rc=0 /
+  사이클 주입 rc≠0 / member_refs 누락 rc≠0 (standalone 로드 프로브는 sys.modules 선등록
+  형식 — 0704 goodenough 교훈). **종료선**: 3픽스처 쌍 green + 계보·예산 필드 부착 확인.
+- **S2 (revision 표면 + 동반 체커 — 엔진 — Smith 게이트)**: ①revision 쓰기 API ②읽기
+  경로 revision-aware(단일 파일명 하드코딩 해제) ③동반 체커(T9 원칙).
+  **착지**: support/recording/declaration_packets.py(쓰기 API) +
+  support/operator/walker_resume.py:937 부근(읽기) + walker_kernel.py:1036 경유 재실체화
+  경로의 원본 보존 처리(보강 5 — **S2 소유 확정**, S4는 소비만) +
+  support/checkers/check_plan_revision_chain.py 신설. **파일 명명 확정**:
+  declared-building-plan.rev-N.json(N≥1, 원본은 무접미 불변) — 기본안 즉시 채택, S2
+  design이 이견 시만 조정(Smith 확인 불요). **검증 시점**: 저작(쓰기) 시점 선-검증,
+  resume 사후검증 금지(보강 3 — T7 결함② 클래스 차단). **쓰기 내구성(보강 4)**:
+  임시파일+rename 원자 쓰기 / 깨진 최신 rev는 내용 검증 후 직전 rev 후퇴+HOLD / "승인만
+  있고 rev 없음" 중간 상태의 재시도 규칙 선언. 체커 검사항: 추가-only diff(기존 노드·엣지
+  변경/삭제 거부)·extends_plan_hash 정합·승인 증거 동반·expansion_budget 소진.
+  **증명(워크트리 리터럴, 기계 게이트 항목은 proof_obligations로 선언)**: rev-1 생성 전후
+  원본 sha256 동일 / 읽기 경로 rev-1 채택 / 체커 RED 3종 rc≠0 + green rc=0 / 재실체화
+  재진입 후 원본 sha256 불변. **종료선**: 증명 4종 쌍 + 격리 워크트리 --all green.
+- **S3 (게이트 + 정책 선언 표면, Link, 비엔진)**: **착지**: link/spec.py GATE_REGISTRY
+  1행 APPEND(link-gate:expansion-approval) + 병렬 표면 4곳 동기화(make-a-gate 절차) +
+  선언 필드 신설 — **expansion_budget(개정 최대 횟수. 미선언=0=확장 불가 fail-closed —
+  Smith 0704 확정. 값은 발주자가 빌딩마다 설정, 결정 1과 동일 패턴)**, (표현 대안 채택
+  시) expansion_decision_mode(composition_compose.py:655 형제 키).
+  **확장 허용 홀드 화이트리스트(보강 2 편입)**: 허용 = human_or_coo_gate_pause(의도적
+  정지)·transition_concern 계열(다음 수가 보이는 홀드) / 금지 =
+  target_node_budget_exhausted(**그 홀드의 정당 도구는 raise 예산 주입 — 브리지
+  end-to-end 실증 완료, 확장은 예산 규율 우회 뒷문**)·unresolvable_reroute_address·
+  adapter_error_frontier·chat_session_park_frontier·multi_candidate_*(수리/장애 홀드는
+  확장 지점 아님). (기본안 — Smith 최종 확정 대기 1건.)
+  **design 선결 4건 기본안(채택 주체 = S3 design 노드, COO 재량 — 정책은 결정 1·2로
+  기확정)**: ①결정권 표현 = 휴먼게이트 선언 파생(신규 표면 최소) ②placement가 기존
+  3값(qa/final_transition/none) 밖이면 신규 리터럴 + gate_placement_for_row 위임(RULE2
+  준수) ③확장 plan 운반 = return field 아님 — revision 파일 실물로 나르고 게이트는
+  revision ref + 승인 증거의 sufficiency만 본다(Link 독트린 유지) ④감사 사슬 = 편입
+  이벤트에 제안 레인 ref 기록, 거부된 제안도 원장 행으로 보존.
+  **증명**: 레지스트리 로드 green + check_gate_registry_single_source rc=0 + 병렬 표면
+  4곳 grep 확인 + 필드 어휘 로드 프로브. **종료선**: 게이트 행·표면 4곳 동기화·선언
+  필드 전부 랜딩 + 전부 green.
+- **S4 (resume 확장 분기 — 엔진 — Smith 게이트. 전제: T7-Sb 랜딩)**: **착지**:
+  support/operator/walker_resume.py 오케스트레이션(:150 birth-certificate 회수부에
+  revision-resume 분기 — S1 병합 결과로 walk 재진입) + dynamic_walker.py:23-25 docstring
+  개정(유계성 증명 재서술: "각 시점 노드 집합 유한 + 확장 예산 유한 → 총 착지 유한").
+  엔진 핵심 루프(walker_kernel.py:970)·정지 알고리즘(:2070 카운터 if) 무수정 유지.
+  **증명(전부 워크트리 실행 — 커밋-의존 증명 배정 금지 준수)**: 확장 픽스처(홀드 빌딩 +
+  rev-1) resume → 완료 노드 replay 관측(provider 재호출 0) / 신규 노드 live 실행 관측 /
+  원본 sha256 불변 / gap-2 가드(walker_kernel.py:2310) green / 격리 --all.
+  **종료선**: 관측 5종 + Invariant D 체커에 확장 시나리오 프로브 추가분 green.
 
 **Smith 게이트**: S2·S4(walker_resume/recording 표면 수정). S1·S3는 비엔진.
 
@@ -214,7 +242,9 @@ Smith 3결정 확정(선언시점 결정권 설정 · Link 게이트 승인 · r
 **0704 밤 적대 검토 3렌즈 반영 — 발주 전 필수 보강 5건** (독립 sonnet 3렌즈:
 유계성·동시성 / 축경계·감사 / 대안비용. 판정 전원 DESIGN_HOLDS_WITH_GAPS, BROKEN 0건.
 아래 5건은 슬라이스 계약에 반드시 편입 — 특히 ①②는 렌즈 판정 기준 "design 선결로
-미룬 것"이 아니라 "인지조차 안 된 사각"이었다):
+미룬 것"이 아니라 "인지조차 안 된 사각"이었다. **0704 심야 편입 완료: 1→S3 필드+S1 훅+S2
+체커, 2→S3 화이트리스트, 3→S2 검증시점+발주순서표 의존, 4→S2 내구성, 5→S2 착지 소유.
+본 절은 근거 원문 보존용**):
 1. **확장 예산(expansion budget) 필수**: 현 유계성 증명(dynamic_walker.py:23-25)은 "노드
    집합 유한"을 전제하는데, T10은 그 전제를 깬다. COO-단독 모드 + 자동 게이트 조합이면
    "자기 자신이 게이트인 무한 확장"이 논리적으로 가능(expansion_budget류 개념 코드·문서
