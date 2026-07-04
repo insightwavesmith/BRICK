@@ -229,7 +229,7 @@ harness-roadmap-orders-t7-t11-0704.md)**:
 | T7 실패 복구 4결함 | S-a 예산브리지 조사 / S-b 검증 순서 재배치(비엔진, 축배치 design 선결) / S-c·S-d 선언. S-a2·S-d 수리는 엔진 Smith 게이트 | 발주 가능 |
 | T8 증거 투영 | **신설 렌더러 폐기 → reporter 패킷 확장**(기존 sink 4개 출구, closure 결정 3필드 추가) | 발주 가능 |
 | T9 | **"이식성" 폐기 → 체커-동반 개발 원칙**(신규 기능=게이트 체커 동반, 브릭은 로컬 설치가 맞다 — Smith). T11 흡수 가능 | 발주 가능 |
-| T10 동적 그래프 | **Smith 3결정 확정(dd49bab9 — 결정권=선언 시점 휴먼게이트 파생 / 승인=Link 게이트 / birth-cert=새 revision 파일+extends_plan_hash 병행). 홀드 화이트리스트 리터럴판 승인(허용 3종·잔여 fail-closed). S1(plan_expansion 순수함수)·S3(게이트+정책 선언) 즉시 발주 가능, S2·S4는 엔진 — Smith 게이트(발주문 초안까지)** | S1·S3 발주 |
+| T10 동적 그래프 | **전체 실행(5a5663f7 — S2·S4 Smith 게이트 → 사전 승인 전환, 경계 3조건: ①계약 밖 표면 필요 시 중단·엔진 불가침 4종 ②기계 게이트(RED/GREEN 쌍+격리 --all+번호별 diff 실물) ③같은 자리 3라운드+ 홀드 시 중단·Smith 복귀). 순차 S1→S2→S3→S4 — 단 S3는 직전 지시로 이미 걷는 중이라 S1·S3 랜딩 → S2(S1 스키마·S3 게이트 행 참조) → S4 순으로 집행. 독자 판정 기본 규칙 고정: 실행·재개=rev 인지 필수 / 투영=단일 읽기 헬퍼 기본 / spine ORPHAN-SKIP 해소는 이월 불가 1차 필수. rev 파일 _DECLARATION_EVIDENCE_REFS 편입 확정** | 전 슬라이스 진행 |
 | T11 교훈 원장 | lessons-ledger.yaml + 커밋 동반 관행 (T3 패리티 원장·ledger_projection과 3자 구분 명시) | 발주 가능 |
 
 조사자 세션은 Opus 폴백 후 핸드오프 문서로 인계 종료(다음 조사자 세션은 Fable5 재개).
@@ -322,7 +322,7 @@ A)" 줄 재발주 금지 — 잔여는 T10 4조각 + T8-Sb + T6뿐.
 | reason_refs bare 산문 허용 vs related_boundary_refs 산문 거부 — 정합 논점 | gp3-threshold 후속 3 |
 | QA 산문 픽스처 세션ID 리터럴('sess-…') 재발 시 레인 계약 지침 승격 | gp3-threshold 후속 4 |
 | 라이브 --all vs 걷는 빌딩 보고패킷 경합(rc=1이면 착지 직후 확인 후 재실행) | 운영 규칙 등재 |
-| **증명-예산 HOLD 경로 WIP 앵커 미보존**(0704 실측 — 렌즈-정지는 보존) — 미완 처분 보존 원칙 위반 | 엔진 갭, 소형 |
+| ~~증명-예산 HOLD 경로 WIP 앵커 미보존~~ → **종결(5a5663f7 Smith 확정 — 수리 불요: diff 없음이라 보존 대상 자체가 없음)**. temp_dir 앵커도 설계 예외 확정 — T7 엔진 수리 잔여 0 | 종결 |
 | llm= D5/D6(동시사용 거부) / effort 기록 / #18 부검 프리셋 / #20 write_scope 캐스케이드 | 소형 대기 |
 | claude 레인 SIGTERM(143) 2건 — 3회째면 원인파악 빌딩 | 주시 |
 | **Smith 게이트**: coo·dev 오브젝트 처분(이월) | Smith 대기 |
