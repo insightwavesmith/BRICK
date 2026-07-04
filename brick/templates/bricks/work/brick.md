@@ -31,9 +31,13 @@ within `write_scope` (the write fence is separate and hard; reading is unconstra
 
 Return: fill the `required_return_shape` from the return_template
 (`brick/templates/bricks/work/return.yaml`):
-`received_work_ref`, `made_changes`, `changed_files`, `observed_evidence`, `commands_run`,
-`blocked_or_missing_evidence`, `handoff_refs`, `not_proven`.
+`received_work_ref`, `received_deliverables_echo`, `made_changes`, `changed_files`,
+`observed_evidence`, `commands_run`, `blocked_or_missing_evidence`, `handoff_refs`, `not_proven`.
 (`no_changes_reason` is the `made_changes` waiver when no file/content change was made.)
+
+`received_deliverables_echo` restates the numbered deliverables you understood from the received
+contract. It is an echo for later contract comparison only, not a sufficiency, quality, success,
+approval, or `good_enough` judgment.
 
 Self-report / measurement coherence: `made_changes` states the factual write outcome, and support
 overwrites `changed_files` from the measured diff (write observation) — the two must never
