@@ -185,6 +185,13 @@ text_contains:
     texts:
       - 'transition_concern_evidence: null'
       - 'never return `{}`'
+  - path: support/checkers/lib/fixture_graph_helpers.py
+    texts:
+      - support evidence only
+      - not source truth
+      - not success judgment
+      - not quality judgment
+      - not Movement authority
 text_absent:
   # zeta7 source guard: the walker must not author a support: route author_ref or
   # invent a movement choice; AgentFact must not expand. P3c: the guard now also

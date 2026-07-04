@@ -32,6 +32,7 @@ REF_COERCION_PATTERNS = (
     re.compile(r"(?is)\breason_refs\b.{0,120}\bfile:line\b"),
     re.compile(r"(?is)\bfile:line\b.{0,120}\breason_refs\b"),
     re.compile(r"(?is)\breason_refs\b.{0,120}파일\s*:\s*줄"),
+    re.compile(r"(?is)(?<![A-Za-z0-9_])file:line(?![A-Za-z0-9_])[^\n]{0,80}(?:만\s*반환|(?:return|emit|provide)\s+only|only\s+(?:return|emit|provide))"),
     re.compile(r"(?is)\brelated_boundary_refs\b.{0,160}\bbrick:(?!//)"),
     re.compile(r"(?is)\brelated_boundary_refs\b.{0,160}\bbrick-instance:"),
     re.compile(r"(?is)\brelated_boundary_refs\b.{0,160}\bbrick-boundary:"),
@@ -355,6 +356,17 @@ def _self_test(repo: Path) -> tuple[int, tuple[str, ...]]:
                 ),
             },
         )
+        dirty_file_line_only = _write_fixture(
+            root,
+            "file-line-only-coercion.json",
+            {
+                **base,
+                "work_statement": (
+                    "## Deliverables\nD1: edit support/operator/task_order_preflight.py\n"
+                    "## Done Criteria\nobserved\n근거 file:line만 반환"
+                ),
+            },
+        )
         dirty_scope_mismatch = _write_fixture(
             root,
             "scope-mismatch.json",
@@ -443,11 +455,23 @@ def _self_test(repo: Path) -> tuple[int, tuple[str, ...]]:
                 ),
             },
         )
+        clean_observed_evidence_guidance = _write_fixture(
+            root,
+            "clean-observed-evidence-guidance.json",
+            {
+                **base,
+                "work_statement": (
+                    "## Deliverables\nD1: edit support/operator/task_order_preflight.py\n"
+                    "## Done Criteria\nobserved\nfile:line 인용은 observed_evidence에 기록"
+                ),
+            },
+        )
         results: list[str] = []
         for path in (
             dirty_missing_done,
             dirty_read_proof,
             dirty_ref,
+            dirty_file_line_only,
             dirty_scope_mismatch,
             dirty_scope_prefix,
             dirty_scope_star,
@@ -464,7 +488,11 @@ def _self_test(repo: Path) -> tuple[int, tuple[str, ...]]:
         if violations:
             raise ValueError(f"self-test clean fixture rejected: {violations}")
         results.append("clean.json: passed")
-    return 10, tuple(results)
+        violations, _warnings, _count = lint_file(clean_observed_evidence_guidance, repo=repo)
+        if violations:
+            raise ValueError(f"self-test clean observed-evidence guidance rejected: {violations}")
+        results.append("clean-observed-evidence-guidance.json: passed")
+    return 11, tuple(results)
 
 
 def main(argv: list[str] | None = None) -> int:
