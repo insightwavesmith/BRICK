@@ -1466,6 +1466,184 @@ def _assert_reporter_dashboard_project_ref_guard(report_sinks: Any) -> str:
     return "dashboard project_ref guard observed: missing project_ref records non-delivery; present project_ref reaches delta sender; mutation-RED would call the sender on missing project_ref."
 
 
+def _assert_reporter_closure_decision_packet_fields(reporter: Any) -> tuple[str, int]:
+    with tempfile.TemporaryDirectory(prefix="bp-reporter-closure-fields-") as tmp:
+        temp_repo = Path(tmp)
+        closure_root = temp_repo / "buildings" / "closure-rich"
+        legacy_root = temp_repo / "buildings" / "closure-legacy"
+        expected_fields = {
+            "narrowly_proven": ["closure field probe copied narrowly proven evidence"],
+            "remaining_delta": ["closure field probe copied remaining delta"],
+            "deferred_smith_review_queue": [
+                {"review_ref": "smith-review:closure-field-probe"}
+            ],
+            "deliverable_crosscheck": [
+                {
+                    "deliverable_ref": "D1",
+                    "observed_ref": "observation:closure-field-probe",
+                }
+            ],
+        }
+        _write_reporter_closure_probe_root(
+            closure_root,
+            building_id="closure-rich",
+            returned=expected_fields,
+        )
+        _write_reporter_closure_probe_root(
+            legacy_root,
+            building_id="closure-legacy",
+            returned={
+                "observed_evidence": ["legacy closure field probe"],
+                "not_proven": ["legacy closure decision fields absent"],
+            },
+        )
+
+        packet = reporter.render_report_packet(
+            building_root=closure_root,
+            repo_root=temp_repo,
+            generated_at="2026-07-04T00:00:00+00:00",
+        )
+        for field, expected in expected_fields.items():
+            if packet.get(field) != expected:
+                raise ProfileError(
+                    f"closure decision field {field!r} was not copied into report packet"
+                )
+        reporter.validate_report_packet(packet)
+        dry_run = reporter.dry_run_report_delivery_packet(packet)
+        wrote_packet = any(
+            bool(observation.get("written_path"))
+            for observation in dry_run.get("sink_observations", ())
+            if isinstance(observation, Mapping)
+        )
+        if wrote_packet:
+            raise ProfileError("closure decision field dry-run wrote a sink packet")
+
+        event_packet = reporter.render_building_event_report_packet(
+            event_kind="building_finished",
+            building_id="closure-rich",
+            building_root=closure_root,
+            repo_root=temp_repo,
+            generated_at="2026-07-04T00:01:00+00:00",
+        )
+        for field, expected in expected_fields.items():
+            if event_packet.get(field) != expected:
+                raise ProfileError(
+                    f"closure decision field {field!r} was not copied into event packet"
+                )
+
+        legacy_packet = reporter.render_report_packet(
+            building_root=legacy_root,
+            repo_root=temp_repo,
+            generated_at="2026-07-04T00:02:00+00:00",
+        )
+        leaked_fields = [field for field in expected_fields if field in legacy_packet]
+        if leaked_fields:
+            raise ProfileError(
+                "legacy closure packet unexpectedly carried closure decision field(s): "
+                + ", ".join(leaked_fields)
+            )
+        reporter.validate_report_packet(legacy_packet)
+
+        bad_packet = {
+            **packet,
+            "report_id": "closure-decision-field-forbidden-probe",
+            "deferred_smith_review_queue": [{"success": True}],
+        }
+        try:
+            reporter.validate_report_packet(bad_packet)
+        except ValueError as exc:
+            if "success" not in str(exc):
+                raise ProfileError(
+                    "closure decision forbidden-field probe rejected for the wrong reason"
+                ) from exc
+        else:
+            raise ProfileError("closure decision forbidden-field probe was accepted")
+
+    return "closure decision fields copied into report packets", 10
+
+
+def _write_reporter_closure_probe_root(
+    root: Path,
+    *,
+    building_id: str,
+    returned: Mapping[str, Any],
+) -> None:
+    for relative in (
+        "capture/events.jsonl",
+        "raw/raw-manifest.json",
+        "raw/brick-work.jsonl",
+        "raw/agent-return.jsonl",
+        "raw/link.jsonl",
+        "evidence/evidence-manifest.json",
+        "evidence/claim_trace/brick/work_contract.json",
+        "evidence/claim_trace/agent/returned_claims.json",
+        "evidence/claim_trace/link/transfer_trace.json",
+        "evidence/claim_trace/link/carry_trace.json",
+        "evidence/claim_trace/link/sufficiency_trace.json",
+        "evidence/claim_trace/link/movement_trace.json",
+        "work/building-work.json",
+        "work/building-map.json",
+    ):
+        path = root / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if path.suffix == ".jsonl":
+            path.write_text("", encoding="utf-8")
+        else:
+            path.write_text("{}\n", encoding="utf-8")
+    step_output_ref = f"work/step-outputs/{building_id}-closure/step-output.json"
+    step_output = root / step_output_ref
+    step_output.parent.mkdir(parents=True, exist_ok=True)
+    step_output.write_text(
+        json.dumps(
+            {
+                "step_ref": f"{building_id}-closure",
+                "returned": dict(returned),
+            },
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (root / "raw" / "agent-return.jsonl").write_text(
+        json.dumps({"step_ref": f"{building_id}-closure"}) + "\n",
+        encoding="utf-8",
+    )
+    (root / "raw" / "link.jsonl").write_text(
+        json.dumps(
+            {
+                "raw_ref": "raw:link:01",
+                "source_step_ref": f"{building_id}-closure",
+                "source_brick_instance_ref": f"brick-{building_id}-closure",
+                "target_brick_instance_ref": f"building-boundary:{building_id}-closed",
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (root / "work" / "building-map.json").write_text(
+        json.dumps(
+            {
+                "building_id": building_id,
+                "brick_instances": [
+                    {"brick_instance_id": f"brick-{building_id}-closure"}
+                ],
+                "link_edges": [
+                    {
+                        "source_step_ref": f"{building_id}-closure",
+                        "target_brick_instance_ref": (
+                            f"building-boundary:{building_id}-closed"
+                        ),
+                        "step_output_ref": step_output_ref,
+                    }
+                ],
+            },
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
 def _assert_reporter_structure_diagram_branch_rendering(reporter: Any) -> str:
     order = ["plan", "design-a", "design-b", "join", "work-a", "work-b", "done"]
     labels = {
@@ -1558,6 +1736,9 @@ def run_reporter_notification_projection(repo: Path) -> KernelResult:
     ) = _assert_reporter_brick_grain_threading(repo, reporter, report_sinks)
     no_scheduler_count = _assert_no_scheduler_constructs(repo)
     dashboard_project_ref_text = _assert_reporter_dashboard_project_ref_guard(report_sinks)
+    closure_decision_text, closure_decision_count = (
+        _assert_reporter_closure_decision_packet_fields(reporter)
+    )
     structure_diagram_text = _assert_reporter_structure_diagram_branch_rendering(reporter)
 
     observations = tuple(reporter.reporter_negative_probe_observations())
@@ -1757,6 +1938,7 @@ def run_reporter_notification_projection(repo: Path) -> KernelResult:
             + auto_wire_count
             + brick_grain_count
             + no_scheduler_count
+            + closure_decision_count
             + 8
         ),
         output=(
@@ -1771,6 +1953,7 @@ def run_reporter_notification_projection(repo: Path) -> KernelResult:
             f"{auto_wire_count} auto-wire assertion(s), "
             f"{brick_grain_count} brick-grain thread assertion(s), "
             f"{no_scheduler_count} no-scheduler source file(s), "
+            f"{closure_decision_count} closure decision field assertion(s), "
             "local inbox write, operator wake write, forbidden field rejects, "
             "unadmitted sink reject, and the G6 sink ceiling (4 ratified sinks: "
             "local-inbox, operator-wake-local, slack, dashboard — Smith 0611; "
@@ -1781,6 +1964,7 @@ def run_reporter_notification_projection(repo: Path) -> KernelResult:
             f"Brick-grain Slack text: {brick_grain_text!r}. "
             f"Disposition Slack text: {disposition_text!r}. "
             f"{dashboard_project_ref_text} "
+            f"{closure_decision_text} "
             f"{structure_diagram_text} "
             f"Temp local inbox packet bytes: {len(auto_wire_inbox_text.encode('utf-8'))}."
         ),

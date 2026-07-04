@@ -214,6 +214,12 @@ BUILDING_EVENT_NOT_PROVEN: tuple[str, ...] = (
     "parallel runtime timing",
     "production readiness",
 )
+CLOSURE_DECISION_PACKET_FIELDS: tuple[str, ...] = (
+    "narrowly_proven",
+    "remaining_delta",
+    "deferred_smith_review_queue",
+    "deliverable_crosscheck",
+)
 
 
 def report_event_policy_from_plan(plan: Mapping[str, Any]) -> Mapping[str, Any] | None:
@@ -495,6 +501,12 @@ def render_building_event_report_packet(
             packet["structure_diagram"] = diagram
     if checked_stage_mode == "verbose":
         packet["completed_step_kinds"] = list(_completed_step_kinds(root, building_map))
+    packet.update(
+        _closure_decision_packet_fields(
+            root,
+            projected_last_completed_step_ref,
+        )
+    )
     validate_report_packet(packet)
     return packet
 
@@ -1478,6 +1490,7 @@ def _building_report_packet(
         "not_proven": list(not_proven),
         "proof_limits": list(_merge_texts(REPORTER_PROOF_LIMITS, frontier.get("proof_limits"))),
     }
+    packet.update(_closure_decision_packet_fields(root, last_completed_step_ref))
     if project_ref is not None:
         packet["project_ref"] = project_ref
     if operator_wake_targets is not None:
@@ -1552,6 +1565,54 @@ def _minimal_valid_probe_packet() -> Mapping[str, Any]:
         "not_proven": ["negative probe"],
         "proof_limits": ["negative probe support evidence only"],
     }
+
+
+def _closure_decision_packet_fields(
+    root: Path,
+    last_completed_step_ref: str,
+) -> Mapping[str, Any]:
+    """Copy admitted closure-return fields from an existing step output."""
+
+    packet = _closure_step_output_packet(root, last_completed_step_ref)
+    if not packet or not _summary_is_closure_packet(packet, last_completed_step_ref):
+        return {}
+    returned = packet.get("returned")
+    returned_map = returned if isinstance(returned, Mapping) else packet
+    copied: dict[str, Any] = {}
+    for field in CLOSURE_DECISION_PACKET_FIELDS:
+        if field in returned_map:
+            copied[field] = returned_map[field]
+    return copied
+
+
+def _closure_step_output_packet(
+    root: Path,
+    last_completed_step_ref: str,
+) -> Mapping[str, Any]:
+    raw_ref = str(last_completed_step_ref or "").strip()
+    if not raw_ref:
+        return {}
+    path = Path(raw_ref)
+    if not path.is_absolute():
+        path = root / path
+    try:
+        path.resolve().relative_to(root.resolve())
+    except ValueError:
+        return {}
+    return _read_json_mapping(path)
+
+
+def _summary_is_closure_packet(
+    packet: Mapping[str, Any],
+    last_completed_step_ref: str,
+) -> bool:
+    step_ref = str(packet.get("step_ref") or "").strip()
+    if step_ref.endswith("-closure"):
+        return True
+    output_ref = str(last_completed_step_ref or "").strip()
+    if output_ref:
+        return Path(output_ref).parent.name.endswith("-closure")
+    return False
 
 
 def _minimal_operator_wake_target() -> Mapping[str, Any]:
