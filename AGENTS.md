@@ -255,6 +255,7 @@ link-gate:default-transition
 link-gate:strict
 link-gate:human
 link-gate:coo
+link-gate:expansion-approval
 ```
 
 LINK-DECISION-DISPOSITION-0 and LINK-OWNED-AUTOMATION-0 remain Link/routing

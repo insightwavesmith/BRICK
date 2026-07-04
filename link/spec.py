@@ -134,6 +134,14 @@ GATE_REGISTRY: tuple[GateRegistryRow, ...] = (
         placement_order=1,
         disposition="coo",
     ),
+    GateRegistryRow(
+        ref="link-gate:expansion-approval",
+        concept_token=None,
+        required_return_fields=(),
+        placement="none",
+        placement_order=3,
+        disposition="coo",
+    ),
 )
 
 # The Link-owned ordered gate-ref vocabulary, DERIVED from the registry rows (no
@@ -250,6 +258,18 @@ GATE_CONCEPT_TOKENS: frozenset[str] = (
 # HERE on the Link axis (adoption is Link-movement property), so the builder
 # ``Adoption`` enum derives its ``.value``s rather than re-stating literals.
 ADOPTION_LITERALS: tuple[str, ...] = ("binding", "advisory")
+
+# Hold-after-expansion declaration vocabulary (T10/S3): absent/unset expansion
+# budget means 0, so extension is forbidden unless the Building declaration sets
+# a positive finite budget. Approval evidence is intended for the out-of-walk
+# work/expansion-approvals.jsonl audit surface; raw/link.jsonl remains walk-time
+# replay evidence and is not the expansion approval sink.
+EXPANSION_BUDGET_DEFAULT: int = 0
+EXPANSION_APPROVAL_HOLD_LITERALS: tuple[str, ...] = (
+    "human_or_coo_gate_pause",
+    "proposed_candidate_not_in_declared_set",
+    "no_declared_candidate_proposed",
+)
 
 
 # ---------------------------------------------------------------------------

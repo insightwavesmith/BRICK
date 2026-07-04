@@ -49,6 +49,10 @@ declared_gate_refs:
     meaning: COO disposition evidence required before transition resumes
     # Disposition evidence arrives via the Link row's route_decision_basis
     # (same generic decision-evidence container as link-gate:human above).
+  - gate_ref: link-gate:expansion-approval
+    meaning: out-of-walk expansion approval evidence before an approved revision is used
+    # Approval evidence is intended for work/expansion-approvals.jsonl; raw/link.jsonl
+    # remains walk-time replay evidence, not the expansion approval audit sink.
 
 # --- GATE WORD MAP (vocabulary, 0610) ---------------------------------------
 # Four word families touch "gates"; they are NOT the same thing:

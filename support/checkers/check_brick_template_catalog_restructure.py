@@ -288,8 +288,8 @@ def _py_constant(path: Path, name: str) -> Any:
     raise ProfileError(f"{path}: missing Python constant {name}")
 
 
-def _canonical_gate_refs(repo: Path) -> tuple[str, ...]:
-    """The Link-owned ordered gate-ref vocabulary, read from its SINGLE SOURCE.
+def _gate_registry_rows(repo: Path) -> tuple[tuple[str, str | None], ...]:
+    """The Link-owned ordered gate rows, read from the SINGLE SOURCE.
 
     STRUCT-SURGERY (2) (0623): the gate vocabulary moved to the data table
     ``GATE_REGISTRY`` in ``link/spec.py`` (one ``GateRegistryRow`` per gate);
@@ -318,20 +318,39 @@ def _canonical_gate_refs(repo: Path) -> tuple[str, ...]:
             break
     if not isinstance(registry_value, ast.Tuple):
         raise ProfileError(f"{path}: missing GATE_REGISTRY tuple of GateRegistryRow rows")
-    refs: list[str] = []
+    rows: list[tuple[str, str | None]] = []
     for row in registry_value.elts:
         if not isinstance(row, ast.Call):
             raise ProfileError(f"{path}: GATE_REGISTRY row is not a GateRegistryRow(...) call")
         ref_value: Any = None
+        concept_token: str | None = None
         for kw in row.keywords:
             if kw.arg == "ref" and isinstance(kw.value, ast.Constant):
                 ref_value = kw.value.value
+            elif kw.arg == "concept_token" and isinstance(kw.value, ast.Constant):
+                if kw.value.value is not None and not isinstance(kw.value.value, str):
+                    raise ProfileError(
+                        f"{path}: GATE_REGISTRY row concept_token= must be a string or None"
+                    )
+                concept_token = kw.value.value
         if not isinstance(ref_value, str):
             raise ProfileError(f"{path}: GATE_REGISTRY row missing a string ref= keyword")
-        refs.append(ref_value)
-    if not refs:
+        rows.append((ref_value, concept_token))
+    if not rows:
         raise ProfileError(f"{path}: GATE_REGISTRY enumerates no gate rows")
-    return tuple(refs)
+    return tuple(rows)
+
+
+def _canonical_gate_refs(repo: Path) -> tuple[str, ...]:
+    return tuple(ref for ref, _concept_token in _gate_registry_rows(repo))
+
+
+def _compact_support_gate_indexes(repo: Path) -> tuple[int, ...]:
+    rows = _gate_registry_rows(repo)
+    concept_indexes = tuple(
+        index for index, (_ref, concept_token) in enumerate(rows) if concept_token is not None
+    )
+    return (0, *concept_indexes)
 
 
 def _gate_refs_from_gate_yaml(repo: Path) -> tuple[str, ...]:
@@ -363,6 +382,7 @@ def _gate_refs_from_agents(repo: Path) -> tuple[str, ...]:
 def _support_gate_refs(repo: Path) -> tuple[str, ...]:
     path = repo / "support/operator/building_operation_common.py"
     canonical = _canonical_gate_refs(repo)
+    expected_indexes = list(_compact_support_gate_indexes(repo))
     tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
     alias = ""
     for node in tree.body:
@@ -415,13 +435,13 @@ def _support_gate_refs(repo: Path) -> tuple[str, ...]:
                     f"{path}: COMPACT_LINK_GATE_TOKENS values must read DECLARED_GATE_REFS"
                 )
     observed_indexes = [default_index, *token_indexes]
-    expected_indexes = list(range(len(canonical)))
     if observed_indexes != expected_indexes:
         raise ProfileError(
-            f"{path}: compact Link gate refs must preserve DECLARED_GATE_REFS order "
+            f"{path}: compact Link gate refs must preserve default and concept-backed "
+            f"DECLARED_GATE_REFS order "
             f"{expected_indexes}, observed {observed_indexes}"
         )
-    return canonical
+    return tuple(canonical[index] for index in observed_indexes if index is not None)
 
 
 def _agent_object_refs(repo: Path) -> tuple[set[str], list[CatalogViolation]]:
@@ -1478,7 +1498,6 @@ def _validate_state(
     for source_name, observed in (
         ("link/gate.yaml declared_gate_refs", tuple(state.get("declared_gate_refs_yaml", ()))),
         ("AGENTS.md link-gate refs", tuple(state.get("declared_gate_refs_agents", ()))),
-        ("support compact Link gate tokens", tuple(state.get("support_gate_refs", ()))),
     ):
         if set(observed) != canonical_gate_ref_set:
             violations.append(
@@ -1488,15 +1507,33 @@ def _validate_state(
                     f"observed {sorted(observed)} but link/gate.py declares {sorted(canonical_gate_refs)}",
                 )
             )
+    support_gate_refs = tuple(state.get("support_gate_refs", ()))
+    expected_support_gate_refs = tuple(
+        state.get("compact_support_gate_refs_expected", support_gate_refs)
+    )
+    if support_gate_refs != expected_support_gate_refs:
+        violations.append(
+            CatalogViolation(
+                "link_gate_token_drift",
+                "support compact Link gate tokens",
+                "observed "
+                f"{sorted(support_gate_refs)} but compact authoring requires "
+                f"{sorted(expected_support_gate_refs)}",
+            )
+        )
 
     for rel, document, _compat_old in documents:
         catalog_gate_refs = _catalog_gate_refs(document)
-        if catalog_gate_refs and catalog_gate_refs != canonical_gate_ref_set:
+        compact_gate_ref_set = set(
+            state.get("compact_support_gate_refs_expected", support_gate_refs)
+        )
+        if catalog_gate_refs and catalog_gate_refs != compact_gate_ref_set:
             violations.append(
                 CatalogViolation(
                     "link_gate_token_drift",
                     rel,
-                    "compact_link_authoring gate refs drift from link/gate.py DECLARED_GATE_REFS",
+                    "compact_link_authoring gate refs drift from default/concept-backed "
+                    "link/gate.py DECLARED_GATE_REFS",
                 )
             )
         for value_path, value in _walk_values(document):
@@ -1752,6 +1789,9 @@ def _live_state(repo: Path) -> Mapping[str, Any]:
         "declared_gate_refs_yaml": _gate_refs_from_gate_yaml(repo),
         "declared_gate_refs_agents": _gate_refs_from_agents(repo),
         "support_gate_refs": _support_gate_refs(repo),
+        "compact_support_gate_refs_expected": tuple(
+            _canonical_gate_refs(repo)[index] for index in _compact_support_gate_indexes(repo)
+        ),
         "movement_literals": tuple(_py_constant(repo / "link/movement.py", "MOVEMENT_LITERALS")),
         "gate_concepts": _gate_concepts_from_gate_yaml(repo),
         "agent_object_refs": agent_refs,
@@ -1917,6 +1957,12 @@ def _synthetic_base(temp_root: Path) -> Mapping[str, Any]:
             "link-gate:strict",
         ),
         "support_gate_refs": (
+            "link-gate:default-transition",
+            "link-gate:strict",
+            "link-gate:human",
+            "link-gate:coo",
+        ),
+        "compact_support_gate_refs_expected": (
             "link-gate:default-transition",
             "link-gate:strict",
             "link-gate:human",
