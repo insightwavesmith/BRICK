@@ -55,6 +55,7 @@ TOP_LEVEL_VERDICT_KEYS: frozenset[str] = frozenset(
         "fail",
         "failed",
         "failure",
+        "good_enough",
         "movement",
         "movement_choice",
         "pa" + "ss",
