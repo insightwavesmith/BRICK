@@ -612,7 +612,27 @@ modules:
     imports_axis: []
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
-    pinned_by: route_materialization / compose_building profile cases
+    pinned_by: pure re-export hub for behavioral profile case-runner leaves
+
+  - module: support/checkers/lib/materialize_intent_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (materialize_building_intent profile cases; imports no axis at module level)
+
+  - module: support/checkers/lib/compose_building_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (compose_building profile cases; imports no axis at module level)
 
   - module: support/checkers/lib/checker_temp_vessel.py
     layer: checkers/lib
