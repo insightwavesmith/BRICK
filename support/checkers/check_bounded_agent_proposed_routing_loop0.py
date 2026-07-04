@@ -48,6 +48,12 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from support.checkers.lib.fixture_graph_helpers import (
+    fixture_graph_brick_step,
+    fixture_graph_link_edge,
+    fixture_proof_limits,
+)
+
 
 def _repo_root_from_arg(repo: str | None) -> Path:
     if repo:
@@ -65,61 +71,40 @@ def _ensure_import_path(repo: Path) -> None:
 # ---- adapter:local fixture builders (no providers) ----
 
 def _brick_step(step_ref: str, brick_ref: str, agent_ref: str, completion_edge_ref: str) -> Mapping[str, Any]:
-    return {
-        "step_ref": step_ref,
-        "completion_edge_ref": completion_edge_ref,
-        "rows": [
-            {
-                "axis": "Brick",
-                "row_ref": f"brick-row:{step_ref}",
-                "brick_work_ref": f"work:{step_ref}",
-                "brick_instance_ref": brick_ref,
-                "work_statement": f"Declared work for {step_ref}.",
-                "comparison_rule": "Observe support evidence only; do not choose Movement or judge quality.",
-                "required_return_shape": "observed_evidence, not_proven",
-                "source_facts": ["AGENTS.md", "support/operator/dynamic_walker.py"],
-            },
-            {"axis": "Agent", "row_ref": f"agent-row:{step_ref}", "agent_object_ref": agent_ref},
-        ],
-    }
+    return fixture_graph_brick_step(
+        step_ref,
+        brick_ref,
+        completion_edge_ref,
+        agent_object_ref=agent_ref,
+        work_statement=f"Declared work for {step_ref}.",
+        required_return_shape="observed_evidence, not_proven",
+        source_facts=["AGENTS.md", "support/operator/dynamic_walker.py"],
+    )
 
 
 def _fwd_edge(edge_ref: str, src: str, tgt_step: str, tgt_brick: str, gate: list[str] | None = None) -> Mapping[str, Any]:
-    link_row: dict[str, Any] = {
-        "axis": "Link",
-        "row_ref": f"link-row:{edge_ref}",
-        "movement": "forward",
-        "target_ref": tgt_brick,
-        "declared_gate_refs": list(gate or ["link-gate:default-transition"]),
-    }
-    return {"edge_ref": edge_ref, "source_step_ref": src, "target_step_ref": tgt_step, "rows": [link_row]}
+    return fixture_graph_link_edge(
+        edge_ref,
+        src,
+        tgt_brick,
+        target_step_ref=tgt_step,
+        declared_gate_refs=gate,
+        falsy_declared_gate_refs_use_default=True,
+    )
 
 
 def _close_edge(edge_ref: str, src: str, reason: str, boundary: str) -> Mapping[str, Any]:
-    return {
-        "edge_ref": edge_ref,
-        "source_step_ref": src,
-        "rows": [
-            {
-                "axis": "Link",
-                "row_ref": f"link-row:{edge_ref}",
-                "movement": "forward",
-                "declared_gate_refs": ["link-gate:default-transition"],
-                "building_lifecycle": {"state": "closed", "reason": reason},
-                "target_ref": boundary,
-            }
-        ],
-    }
+    return fixture_graph_link_edge(
+        edge_ref,
+        src,
+        boundary,
+        close_reason=reason,
+        falsy_declared_gate_refs_use_default=True,
+    )
 
 
 def _proof_limits() -> list[str]:
-    return [
-        "support evidence only",
-        "not source truth",
-        "not success judgment",
-        "not quality judgment",
-        "not Movement authority",
-    ]
+    return fixture_proof_limits()
 
 
 def _checker_plan(prefix: str, budget: int) -> tuple[Mapping[str, Any], str]:
@@ -828,15 +813,16 @@ def _reroute_edge(
     route_replay_plan: Mapping[str, Any],
     gate: list[str] | None = None,
 ) -> Mapping[str, Any]:
-    link_row: dict[str, Any] = {
-        "axis": "Link",
-        "row_ref": f"link-row:{edge_ref}",
-        "movement": "reroute",
-        "target_ref": tgt_brick,
-        "route_replay_plan": dict(route_replay_plan),
-        "declared_gate_refs": list(gate or ["link-gate:default-transition"]),
-    }
-    return {"edge_ref": edge_ref, "source_step_ref": src, "target_step_ref": tgt_step, "rows": [link_row]}
+    return fixture_graph_link_edge(
+        edge_ref,
+        src,
+        tgt_brick,
+        target_step_ref=tgt_step,
+        movement="reroute",
+        route_replay_plan=route_replay_plan,
+        declared_gate_refs=gate,
+        falsy_declared_gate_refs_use_default=True,
+    )
 
 
 def _with_link_edge_gate(plan: Mapping[str, Any], edge_ref: str, gate: list[str]) -> Mapping[str, Any]:
