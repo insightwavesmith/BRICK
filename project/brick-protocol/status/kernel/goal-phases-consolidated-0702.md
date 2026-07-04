@@ -157,6 +157,11 @@ falsy_declared_gate_refs_use_default로 보존, docstring이 양쪽 원점 file:
 발주 중지, 감시 모드. Smith 게이트 대기 항목:
 1. **§4-2 2·3단계 진입 승인** — loop0 소비 전환 → case_runners 소비 전환(각 별 커밋·별
    변이-RED, 스펙 정본 순서). 이후 §4-2 본대(case_runners 108 def 패밀리 분해).
+   → ✅ **Smith 승인(0704 오전, 새 COO 세션 — 이전 세션은 골 완주 후 감시 모드에서 API
+   에러로 종료, 상태 손실 0 재구성)**. 2단계 발주 fgh-stage2-loop0-0704a 발사(09:10).
+   게이트 추가 설계: 베이스라인-대조 등가 프로브(merge-base 원본 vs alias본 dict 대조 +
+   base/new 소스 assert로 공허한 green 차단), 변이-RED는 공유 모듈 독 주입→loop0 프로파일
+   rc≠0(소비 실증), falsy-gate는 falsy_declared_gate_refs_use_default=True 강제 명문화.
 2. §4-4 체커다이어트 순서 확정(87라벨 — 잎별 --probe-mutation-red 패턴 재사용).
 3. coo·dev 오브젝트 처분(이월).
 4. 백로그 소형 2건 발주 승인 여부: 증명-HOLD WIP 앵커 미보존(엔진 갭)·렌즈 구형주소
