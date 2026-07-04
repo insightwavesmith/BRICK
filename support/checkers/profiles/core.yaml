@@ -77,6 +77,7 @@ path_allowlist:
       - support/checkers/profiles/building_automation.yaml
       - support/checkers/profiles/brick_cli_entrypoint.yaml
       - support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml
+      - support/checkers/profiles/building_skill_preset_carry_boundary.yaml
       - support/checkers/profiles/building_skill_preset_agent_packet_boundary.yaml
       - support/checkers/profiles/building_skill_preset_agent_resource_boundary.yaml
       - support/checkers/profiles/building_skill_preset_builder_composition.yaml
