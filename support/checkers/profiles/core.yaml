@@ -81,6 +81,7 @@ path_allowlist:
       - support/checkers/profiles/building_skill_preset_agent_packet_boundary.yaml
       - support/checkers/profiles/building_skill_preset_agent_resource_boundary.yaml
       - support/checkers/profiles/building_skill_preset_builder_composition.yaml
+      - support/checkers/profiles/building_skill_preset_compose_boundary.yaml
       - support/checkers/profiles/building_skill_preset_intake_adapter_gate.yaml
       - support/checkers/profiles/building_skill_preset_step_template_boundary.yaml
       - support/checkers/profiles/chained_carry_dependency.yaml
