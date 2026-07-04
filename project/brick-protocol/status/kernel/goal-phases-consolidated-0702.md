@@ -274,6 +274,17 @@ T1(t1-tasklint-0704a)·T3(t3-parityledger-0704a) 병행 걷는 중 — T3 계약
    wip_anchor_ref="" 예외/결함 판정 + 증명-예산 HOLD 앵커 미보존(0704 실측, 같은 가족)
    흡수. fake-landing no-diff 가드 홀드가 정상 경로임을 계약에 선명시(0704 교훈).
 
+**웨이브 A 경과(0704 저녁)**: ③ScSd ✅ 수확 8bac93d4(정정경로+보존원칙 선언 2문서, no-diff
+가드 정상경로 2회째 관측). ①T7-Sb ✅ **결함② stale 3중 확인** — design 실물 조사(선-검증
+onboard.py:3409-3423 실존, 유일 저작 진입점 :3142)·COO 손 재검증·QA 공격 무결. 레인 전원
+정직 무변경 반환, 가드 홀드 검수-forward. 잔여 관측 1건 백로그: forward-resume 후 무변경
+조사 vessel의 frontier가 evidence_incomplete(수취 영수증 0 vs 반환 5 — 장부 꼬리, 산출과
+무관, 추격 금지 적용·결함 관측 등재). ②s2는 closure 경계질문(기존 :33 패턴 오탐 수리가
+종료선 안인가) — 라우트 결정 대기, complete 시 COO 게이트에서 범위 처분. **T7 4결함 최종
+상태: ①stale ②stale ③④선언 랜딩 — 엔진 수리 잔여는 temp_dir·증명-HOLD 앵커(Smith 판정
+대기)뿐.** 병행 신호: T10 발주-준비가 형제 세션에서 Smith 결정 반영하며 진행 중(d67a03d7
+expansion_budget fail-closed 확정 등) — 이 골의 T10 제외는 유지, 발주는 그쪽 정본 따름.
+
 **웨이브 B (A 랜딩 후, 병행 2)**
 4. **T6 홀드 자기서술 선언** — hold_reason→{합법 처분·실제 의미·오판 사례} 매핑 정본.
    S-b/S-c/S-d 산출 + 오늘 실측 2건(설계-질문 concern에도 재파견 채택 / fake-landing
