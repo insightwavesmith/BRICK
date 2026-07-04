@@ -55,10 +55,18 @@ from brick_protocol.support.operator.composition_compose import compose_building
 from brick_protocol.support.operator.composition_gate_translation import (
     _materializer_human_gate_hold_policy,
 )
+from brick_protocol.support.operator.composition_problem import (
+    CompositionError,
+    CompositionProblem,
+)
 from brick_protocol.support.operator.composition_intent import inline_task_source_carry
 from brick_protocol.support.operator.composition_route_policy import (
     _materializer_apply_constitutional_default_reroute_budget,
     _materializer_constitutional_default_reroute_budget,
+)
+from brick_protocol.support.operator.task_order_preflight import (
+    lint_nodes,
+    nodes_from_assembly_specs,
 )
 from brick_protocol.support.operator.plan_rendering import (
     _LOCAL_ADAPTER_REF,
@@ -580,6 +588,9 @@ def build(items: Sequence[Any]) -> GraphSpec:
     ]
     coerced_nodes = _auto_id_repeated_kinds(coerced_nodes)
     linear: list[BrickSpec] = [n for n in coerced_nodes if isinstance(n, BrickSpec)]
+    _raise_task_order_preflight_violations(
+        nodes_from_assembly_specs(linear, repo=REPO_ROOT, registry=registry)
+    )
 
     def _resolve_back(source_position: int, target: _BackTarget) -> BrickSpec:
         # Resolve N items up over the linear spine of plain nodes preceding here.
@@ -793,6 +804,7 @@ def assemble(
     selected_model_ref = _prefixed_ref("model", model)
     selected_shape_ref = _prefixed_ref("building-shape", shape) if shape else ""
     concern_adoption = _adoption_value(adoption)
+    graph_nodes = _unique_nodes((*graph.nodes, graph.terminal) if graph.terminal else graph.nodes)
 
     lowered_nodes, lowered_edges, lowered_groups = _lower_graph(
         graph,
@@ -803,6 +815,15 @@ def assemble(
         registry=registry,
         gates=gates,
         write_scope=write_scope,
+    )
+    _raise_task_order_preflight_violations(
+        nodes_from_assembly_specs(
+            graph_nodes,
+            repo=repo,
+            registry=registry,
+            write_scope=write_scope,
+            context=task_body,
+        )
     )
     _validate_interim_fan_in_contract(lowered_nodes, lowered_edges, lowered_groups)
 
@@ -1028,6 +1049,25 @@ def lower_route(
             raise TypeError("route marks must be reroute() or hold() values")
     if policy:
         converge_node["closure_transition_target_policy"] = policy  # type: ignore[index]
+
+
+def _raise_task_order_preflight_violations(nodes: Sequence[Any]) -> None:
+    violations, _warnings = lint_nodes(nodes)
+    if not violations:
+        return
+    problems: list[CompositionProblem] = []
+    for violation in violations:
+        node_id, _sep, detail = violation.partition(": ")
+        code_match = detail.split(" ", 1)[0] if detail else "task_order_preflight"
+        code = code_match if code_match.startswith("L") else "task_order_preflight"
+        problems.append(
+            CompositionProblem(
+                code=code,
+                node_id=node_id or "task-order-preflight",
+                detail=detail or violation,
+            )
+        )
+    raise CompositionError(problems)
 
 
 def _lower_graph(

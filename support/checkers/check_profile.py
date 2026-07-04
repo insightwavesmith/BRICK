@@ -351,6 +351,10 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "assembly_equivalence",
         "support.checkers.check_assembly_equivalence",
     ),
+    "preflight_injection_survival": _repo_main(
+        "preflight_injection_survival",
+        "support.checkers.check_preflight_injection_survival",
+    ),
     "declared_verifier_exists": _repo_main(
         "declared_verifier_exists",
         "support.checkers.check_declared_verifier_exists",
