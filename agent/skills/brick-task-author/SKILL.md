@@ -416,6 +416,11 @@ node_write_scope는 assemble()/build() 호출 시점에 COO가 고정하고, des
   확인하고, 더 안 파고 fresh 재발주로 우회한다(resume을 억지로 밀어붙이지 마라).
   격리 워크트리에서 직접 재현했나, vessel 자기보고만 믿었나?
 
+처방을 랜딩하는 커밋에는 lessons-ledger.yaml 원장 1행 동반을 관행으로 둔다. 아직
+게이트는 차후 소비자다. enforcement-ledger에 등재될 금지어/패리티 처방과는 구분해서,
+교훈 처방 계보는 `project/brick-protocol/status/kernel/lessons-ledger.yaml`에 1처방=1행으로
+남긴다.
+
 ## 3.1 증거 수집 (전부 읽기 전용)
 
 빌딩 루트 = build 결과 packet이 반환한 `evidence_root`.

@@ -400,6 +400,13 @@ Prefer `support/checkers/check_profile.py` + profile YAML + kernel helpers.
 Avoid new standalone `check_*.py` unless separately admitted. Negative probes
 are required for high-risk boundaries.
 
+Checker-companion development principle / 체커-동반 개발 원칙: every new
+feature or declaration surface lands with the checker or mutation-RED probe
+that gates that surface. If the checker/probe cannot land in the same slice,
+the gap must be named as support evidence and not treated as enforcement. This
+principle aligns with the existing make-a-brick and make-a-gate procedures; it
+does not admit a new checker family or gate by itself.
+
 Ask six questions: Brick, Agent, Link, Support, Evidence, Admission.
 
 ## Binding Safety Schemas
