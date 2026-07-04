@@ -399,6 +399,21 @@ v1 vessel은 기록용 주차 예정(미머지). **증명-형식 공전(2번 문
 build 호출) 정정하고 assemble() 하강부로 조정, work 진행.
 push 7차까지 완료(79457344 = origin 동기).
 
+### T1-2단계 완결 기록 (0705 새벽)
+
+**T1-2단계 랜딩 117405c0 (v4)** — 발주문 린트가 build()·assemble() 양 공식 관문에 배선.
+여정: v1 compose 이음새 진동(구조 판정) → v2 assembly 골격(필터 자기모순 — 오염일수록
+린트 전에 걸러짐) → v3 필터 수리(write_requested, 단 build 관문 미배선) → v4 양 관문 완결.
+COO 게이트: build 오염 CompositionError·클린 통과·생존성 변이 RED·--all rc=0 전부 손 재현.
+경화 나선(fixture-텍스트/sentinel 우회)은 경계 조항으로 게이트에서 절단 — 후속 소형 후보.
+
+**엔진 관찰 2건 백로그 추가**:
+- write_scope allowed_paths 소극 집행 의심: v3·v4 모두 allowed에 없는 check_profile.py
+  diff가 walker를 통과(등재 4줄 — 내용은 정당). forbidden은 물었는데 allowed 밖은 안 문
+  것으로 보임 — 재현 조사 후 소형 후보.
+- route policy 커버리지 나선 3번째 실측(v3 6R·v4 경화 4R) — 기존 backlog 행(957b382d)
+  근거 보강.
+
 ## 백로그 통합 (소형·주시·대기)
 
 | 항목 | 분류 |
