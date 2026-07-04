@@ -7,19 +7,286 @@ their original case_runners.py definitions.
 
 from __future__ import annotations
 
+import contextlib
 import copy
 import json
 import os
 import tempfile
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from support.checkers.lib.preset_completion_fixture import (
+    _preset_completion_command_runner,
+    _preset_completion_prompt_from_cli_args,
+    _return_labels_from_cli_prompt,
+)
 from support.checkers.lib.plan_fixture_helpers import (
+    _case_slug,
     _graph_test_plan_from_linear,
     _validation_plan_for_declared_plan,
 )
-from support.checkers.lib.yaml_subset import ProfileError
+from support.checkers.lib.yaml_subset import (
+    ProfileError,
+    require_mapping,
+    require_string,
+    rule_items,
+)
+
+
+@contextlib.contextmanager
+def _fixture_gemini_api_key():
+    """Open gemini-local fixture dispatch without depending on real credentials."""
+
+    from brick_protocol.support.connection.agent_adapter import _GEMINI_API_KEY_ENV_VARS
+
+    saved_env = {name: os.environ.get(name) for name in _GEMINI_API_KEY_ENV_VARS}
+    for name in _GEMINI_API_KEY_ENV_VARS:
+        os.environ.pop(name, None)
+    os.environ["GEMINI_API_KEY"] = "checker-fixture-key"
+    try:
+        yield
+    finally:
+        for name in _GEMINI_API_KEY_ENV_VARS:
+            os.environ.pop(name, None)
+            if saved_env[name] is not None:
+                os.environ[name] = saved_env[name]
+
+
+def _optional_non_negative_int(value: Any, label: str) -> int:
+    text = str(value).strip()
+    if not text.isdecimal():
+        raise ProfileError(f"{label} must be a non-negative integer")
+    return int(text)
+
+
+def run_adapter_model_selection_case(repo: Path, profile: Mapping[str, Any]) -> int:
+    items = rule_items(profile, "adapter_model_selection_case")
+    if not items:
+        return 0
+    from brick_protocol.support.connection.adapter_model_casting import project_model_ref_to_cli_arg
+
+    count = 0
+    for item in items:
+        mapping = require_mapping(item, "adapter_model_selection_case item")
+        adapter_ref = require_string(mapping.get("adapter_ref"), "adapter_model_selection_case.adapter_ref")
+        selected_model_ref = require_string(
+            mapping.get("selected_model_ref", "model:default"),
+            "adapter_model_selection_case.selected_model_ref",
+        )
+        expected_raw = mapping.get("expected_cli_arg", "")
+        if not isinstance(expected_raw, str):
+            raise ProfileError("adapter_model_selection_case.expected_cli_arg must be a string")
+        expected_cli_arg = expected_raw
+        observed_cli_arg = project_model_ref_to_cli_arg(adapter_ref, selected_model_ref)
+        if observed_cli_arg != expected_cli_arg:
+            raise ProfileError(
+                "adapter_model_selection_case rejected "
+                f"{adapter_ref}/{selected_model_ref}: expected {expected_cli_arg!r}, "
+                f"observed {observed_cli_arg!r}"
+            )
+        count += 1
+    return count
+
+
+def run_adapter_model_selection_rejects(repo: Path, profile: Mapping[str, Any]) -> int:
+    items = rule_items(profile, "adapter_model_selection_rejects")
+    if not items:
+        return 0
+    from brick_protocol.support.connection.adapter_model_casting import project_model_ref_to_cli_arg
+
+    count = 0
+    for item in items:
+        mapping = require_mapping(item, "adapter_model_selection_rejects item")
+        adapter_ref = require_string(mapping.get("adapter_ref"), "adapter_model_selection_rejects.adapter_ref")
+        selected_model_ref = require_string(
+            mapping.get("selected_model_ref", ""),
+            "adapter_model_selection_rejects.selected_model_ref",
+        )
+        try:
+            project_model_ref_to_cli_arg(adapter_ref, selected_model_ref)
+        except (TypeError, ValueError):
+            count += 1
+            continue
+        raise ProfileError(
+            "adapter_model_selection_rejects expected rejection but passed: "
+            f"{adapter_ref}/{selected_model_ref}"
+        )
+    return count
+
+
+def run_adapter_gate_shape_union_case(repo: Path, profile: Mapping[str, Any]) -> int:
+    """GATE-WIRING FIRE A3 (0610): the adapter ASK is the Brick+gate UNION.
+
+    Pins the NEW correct behavior of run._adapter_required_return_shape over a
+    REAL walk: a stored plan row whose Brick required_return_shape LACKS a
+    default-gate-required field (the legacy under-ask, repro shape of
+    brick/building_plans/fixture-link-route-replay-0.yaml)
+    must still be ASKED for the gate-implied union through the adapter prompt.
+    The observation is the OUTWARD surface (the CLI prompt's
+    required_return_labels actually sent by the adapter), not the helper's own
+    return value, so the old Brick-shape-only under-ask REDs this case
+    (observed labels would lack the dropped field). The same item also pins the
+    VERBATIM passthrough half on an untouched row (gates adding nothing -> the
+    declared labels pass through unchanged), so over-asking everywhere cannot
+    masquerade as the fix.
+    """
+    items = rule_items(profile, "adapter_gate_shape_union_case")
+    if not items:
+        return 0
+    from brick_protocol.brick.work import parse_required_return_shape
+    from brick_protocol.support.connection.agent_adapter import LocalCliCompleted
+    from support.operator.building_operation import (
+        materialize_building_intent,
+        observe_building_frontier,
+    )
+    from support.operator.run import run_building_plan
+
+    count = 0
+    for item in items:
+        mapping = require_mapping(item, "adapter_gate_shape_union_case item")
+        label = require_string(mapping.get("label"), "adapter_gate_shape_union_case.label")
+        task_source_ref = require_string(
+            mapping.get("task_source_ref"), f"{label}: task_source_ref"
+        )
+        chain_preset_ref = require_string(
+            mapping.get("chain_preset_ref"), f"{label}: chain_preset_ref"
+        )
+        target_step_index = _optional_non_negative_int(
+            mapping.get("target_step_index", 0), f"{label}: target_step_index"
+        )
+        drop_field = require_string(mapping.get("drop_field"), f"{label}: drop_field")
+        expected_request_labels = [
+            part.strip()
+            for part in require_string(
+                mapping.get("expected_request_labels"),
+                f"{label}: expected_request_labels",
+            ).split(",")
+            if part.strip()
+        ]
+        passthrough_step_index = mapping.get("passthrough_step_index")
+        if passthrough_step_index is not None:
+            passthrough_step_index = _optional_non_negative_int(
+                passthrough_step_index, f"{label}: passthrough_step_index"
+            )
+
+        # CLI adapter on purpose: the assertion surface is the OUTWARD CLI
+        # prompt (required_return_labels actually sent), so the case must walk
+        # a command-runner adapter, not the in-process adapter:local callable.
+        selected_adapter_ref = require_string(
+            mapping.get("selected_adapter_ref", "adapter:codex-local"),
+            f"{label}: selected_adapter_ref",
+        )
+        building_id = f"{_case_slug(label)}-gate-shape-union"
+        intent = {
+            "plan_ref": f"building-plan:{building_id}",
+            "building_id": building_id,
+            "declared_by": "coo",
+            "task_source_ref": task_source_ref,
+            "chain_preset_ref": chain_preset_ref,
+            "selected_adapter_ref": selected_adapter_ref,
+            "selected_model_ref": "model:default",
+            "not_proven": ["checker fixture task source only"],
+        }
+        plan = json.loads(json.dumps(materialize_building_intent(intent, repo_root=repo)))
+        steps = plan.get("brick_steps") if plan.get("plan_shape") == "graph" else plan.get("steps")
+        if not isinstance(steps, list) or target_step_index >= len(steps):
+            raise ProfileError(
+                f"adapter_gate_shape_union_case rejected {label}: "
+                f"target_step_index {target_step_index} outside {len(steps or [])} step(s)"
+            )
+        brick_row = _gate_shape_union_brick_row(steps[target_step_index], label=label)
+        original_fields = list(parse_required_return_shape(brick_row["required_return_shape"]))
+        if drop_field not in original_fields:
+            raise ProfileError(
+                f"adapter_gate_shape_union_case rejected {label}: drop_field "
+                f"{drop_field!r} not present in the materialized shape "
+                f"{original_fields!r} (fixture must remove a REAL field)"
+            )
+        # Emulate the stored-legacy under-ask: the plan ROW declares a Brick
+        # shape missing a default-gate-required field. Only this string changes;
+        # everything else is the freshly materialized plan.
+        brick_row["required_return_shape"] = ", ".join(
+            field for field in original_fields if field != drop_field
+        )
+
+        captured_labels: list[tuple[str, ...]] = []
+        base_runner = _preset_completion_command_runner(LocalCliCompleted)
+
+        def _capturing_runner(args: Sequence[str], cwd: Path, timeout_seconds: int) -> Any:
+            checked_args = tuple(str(arg) for arg in args)
+            if "--version" not in checked_args:
+                labels = _return_labels_from_cli_prompt(
+                    _preset_completion_prompt_from_cli_args(checked_args)
+                )
+                if labels:
+                    captured_labels.append(labels)
+            return base_runner(args, cwd, timeout_seconds)
+
+        with tempfile.TemporaryDirectory(prefix="bp-adapter-gate-shape-union-") as tmpdir, _fixture_gemini_api_key():
+            result = run_building_plan(
+                plan,
+                output_root=Path(tmpdir) / "buildings",
+                overwrite_existing=True,
+                command_runner=_capturing_runner,
+                adapter_cwd=repo,
+                adapter_timeout_seconds=10,
+            )
+            frontier = observe_building_frontier(result.lifecycle_write.root, repo_root=repo)
+        if frontier.get("frontier_kind") != "complete":
+            raise ProfileError(
+                f"adapter_gate_shape_union_case rejected {label}: frontier_kind "
+                f"expected 'complete', observed {frontier.get('frontier_kind')!r}"
+            )
+        if len(captured_labels) != len(steps):
+            raise ProfileError(
+                f"adapter_gate_shape_union_case rejected {label}: captured "
+                f"{len(captured_labels)} adapter prompt(s) for {len(steps)} step(s)"
+            )
+        observed = list(captured_labels[target_step_index])
+        if observed != expected_request_labels:
+            raise ProfileError(
+                f"adapter_gate_shape_union_case rejected {label}: adapter request "
+                f"labels expected {expected_request_labels!r}, observed {observed!r}"
+            )
+        if drop_field not in observed:
+            raise ProfileError(
+                f"adapter_gate_shape_union_case rejected {label}: the adapter ask "
+                f"must include the gate-implied field {drop_field!r} the Brick "
+                f"shape under-asked (old under-ask behavior observed)"
+            )
+        if passthrough_step_index is not None:
+            if passthrough_step_index >= len(steps):
+                raise ProfileError(
+                    f"adapter_gate_shape_union_case rejected {label}: "
+                    f"passthrough_step_index {passthrough_step_index} outside plan"
+                )
+            passthrough_row = _gate_shape_union_brick_row(
+                steps[passthrough_step_index], label=label
+            )
+            declared = list(parse_required_return_shape(passthrough_row["required_return_shape"]))
+            observed_passthrough = list(captured_labels[passthrough_step_index])
+            if observed_passthrough != declared:
+                raise ProfileError(
+                    f"adapter_gate_shape_union_case rejected {label}: untouched row "
+                    f"must pass through VERBATIM; declared {declared!r}, adapter "
+                    f"asked {observed_passthrough!r}"
+                )
+        count += 1
+    return count
+
+
+def _gate_shape_union_brick_row(step: Any, *, label: str) -> dict[str, Any]:
+    if isinstance(step, Mapping):
+        for row in step.get("rows", []):
+            if isinstance(row, Mapping) and row.get("axis") == "Brick":
+                if not isinstance(row.get("required_return_shape"), str):
+                    break
+                return row
+    raise ProfileError(
+        f"adapter_gate_shape_union_case rejected {label}: step has no Brick row "
+        "with a text required_return_shape"
+    )
 
 
 def _expect_adapter_capability_rejection(
@@ -124,6 +391,138 @@ def _adapter_capability_plan(
         ],
     }
     return _graph_test_plan_from_linear(linear_plan)
+
+
+def run_adapter_capability_rehome_case(repo: Path, profile: Mapping[str, Any]) -> int:
+    items = rule_items(profile, "adapter_capability_rehome_case")
+    if not items:
+        return 0
+    count = 0
+    for item in items:
+        mapping = require_mapping(item, "adapter_capability_rehome_case item")
+        label = require_string(mapping.get("label"), "adapter_capability_rehome_case.label")
+        case_kind = require_string(mapping.get("case_kind"), f"{label}: case_kind")
+        expected_reason = str(mapping.get("expected_reason", "") or "")
+        if case_kind == "ok_all_four":
+            _check_adapter_capability_ok_all_four(label)
+        elif case_kind == "claude_write_ok":
+            _check_adapter_capability_claude_write_ok(label)
+        elif case_kind == "missing_brick_scope":
+            _expect_adapter_capability_rejection(
+                label,
+                expected_reason,
+                lambda: _check_adapter_capability_missing_brick_scope(label),
+            )
+        elif case_kind == "missing_agent_policy":
+            # Smith 0623 LOCK: the request no longer raises -- assert the recorded fact.
+            _check_adapter_capability_missing_agent_policy(label, expected_reason)
+        elif case_kind == "missing_adapter_capability":
+            _expect_adapter_capability_rejection(
+                label,
+                expected_reason,
+                lambda: _check_adapter_capability_missing_adapter_capability(label),
+            )
+        elif case_kind == "observation_out_of_scope":
+            # Smith 0623 LOCK: this no longer rejects -- it asserts the recorded fact.
+            _check_adapter_capability_observation_out_of_scope(label)
+        elif case_kind == "poc_read_only_adapter_with_write_scope":
+            # Smith 0623 LOCK: the request no longer raises -- assert the recorded fact.
+            _check_adapter_capability_poc_read_only_with_write_scope(label, expected_reason)
+        elif case_kind == "legacy_adapter_identity_only_not_authority":
+            # Smith 0623 LOCK: the request no longer raises -- it asserts the recorded fact.
+            _check_adapter_capability_legacy_identity_only(label, expected_reason)
+        elif case_kind == "write_capable_adapter_without_write_scope_no_write_observation":
+            _check_adapter_capability_no_write_observation_without_scope(label)
+        elif case_kind == "write_capable_leader_effective_write_gated_by_brick_scope":
+            _check_adapter_capability_write_capable_leader_effective_write_gated_by_brick_scope(
+                label
+            )
+        elif case_kind == "write_capable_leader_read_only_brick_projection_read_only":
+            _check_adapter_capability_write_capable_leader_read_only_brick_projection(
+                label
+            )
+        elif case_kind == "write_capable_leader_write_needed_brick_projection_write":
+            _check_adapter_capability_write_capable_leader_write_needed_brick_projection(
+                label
+            )
+        elif case_kind == "native_grant_roundtrip":
+            _check_adapter_capability_native_grant_roundtrip(label)
+        elif case_kind == "native_grant_semantic_codex_gemini_parity":
+            _check_adapter_capability_native_grant_semantic_codex_gemini_parity(label)
+        elif case_kind == "retired_gemini_api_no_write_or_probe":
+            _check_adapter_capability_retired_gemini_api_no_write_or_probe(label)
+        elif case_kind == "boundary_matrix_support_only":
+            _check_adapter_capability_boundary_matrix_support_only(label)
+        elif case_kind == "checker_sweep_blocks_live_provider_cli":
+            _check_adapter_capability_checker_sweep_blocks_live_provider_cli(label)
+        elif case_kind == "native_grant_policy_only_fails_closed":
+            _check_adapter_capability_native_grant_policy_only_fails_closed(label)
+        elif case_kind == "native_grant_write_home_pin":
+            _expect_adapter_capability_rejection(
+                label,
+                expected_reason,
+                lambda: _check_adapter_capability_native_grant_write_home_pin(label),
+            )
+        elif case_kind == "native_grant_unknown_capability":
+            _expect_adapter_capability_rejection(
+                label,
+                expected_reason,
+                lambda: _check_adapter_capability_native_grant_unknown_capability(label),
+            )
+        elif case_kind == "write_scope_on_read_only_brick_rejected":
+            _expect_adapter_capability_rejection(
+                label,
+                expected_reason,
+                lambda: _check_adapter_capability_write_scope_on_read_only_brick_rejected(
+                    label
+                ),
+            )
+        elif case_kind == "silent_write_grant_rejected_at_run_admission":
+            _expect_adapter_capability_rejection(
+                label,
+                expected_reason,
+                lambda: _check_adapter_capability_silent_write_grant_rejected_at_run_admission(
+                    label
+                ),
+            )
+        elif case_kind == "explicit_write_need_marker_admitted_strict":
+            _check_adapter_capability_explicit_write_need_marker_admitted_strict(
+                label,
+                repo,
+            )
+        elif case_kind == "silent_write_grant_rejected_at_single_step_admission":
+            _expect_adapter_capability_rejection(
+                label,
+                expected_reason,
+                lambda: _check_adapter_capability_silent_write_grant_rejected_single_step(
+                    label
+                ),
+            )
+        elif case_kind == "explicit_write_need_marker_single_step_proceeds":
+            _check_adapter_capability_explicit_write_need_marker_single_step_proceeds(
+                label
+            )
+        elif case_kind == "legacy_write_need_marker_not_recognized_strict":
+            _expect_adapter_capability_rejection(
+                label,
+                expected_reason,
+                lambda: _check_adapter_capability_legacy_write_need_marker_not_recognized(
+                    label,
+                    repo,
+                ),
+            )
+        elif case_kind == "legacy_write_need_graph_row_key_rejected":
+            _expect_adapter_capability_rejection(
+                label,
+                expected_reason,
+                lambda: _check_adapter_capability_legacy_write_need_graph_row_key_rejected(
+                    label
+                ),
+            )
+        else:
+            raise ProfileError(f"unknown adapter_capability_rehome case_kind: {case_kind}")
+        count += 1
+    return count
 
 
 def _check_adapter_capability_ok_all_four(label: str) -> None:
