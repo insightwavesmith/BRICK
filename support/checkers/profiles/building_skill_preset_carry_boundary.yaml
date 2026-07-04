@@ -1,0 +1,309 @@
+schema: checker-profile/v1
+profile_id: building-skill-preset-carry-boundary
+description: BUILDING-SKILL-PRESET-AGENT-TOOL-HARDENING-0 carry boundary profile for source_fact body carry and step-output drain behavior.
+kernel_checks:
+  - package_path_admission
+  - axis_contract_projection
+path_exists:
+  - support/checkers/lib/source_fact_body_carry_check.py
+  - support/checkers/lib/wiki_carry_check.py
+  - support/checkers/lib/step_output_drain_check.py
+text_contains:
+  - path: support/checkers/check_profile.py
+    texts:
+      - source_fact_body_carry_case
+      - wiki_carry_truncation_survival_case
+      - step_output_drain_case
+      - step_output_drain_rejects
+  - path: support/checkers/lib/case_runners.py
+    texts:
+      - run_source_fact_body_carry_case
+      - run_wiki_carry_truncation_survival_case
+      - run_step_output_drain_case
+      - run_step_output_drain_rejects
+  - path: support/checkers/lib/source_fact_body_carry_check.py
+    texts:
+      - run_source_fact_body_carry_case
+      - _source_fact_body_carry_for_step
+  - path: support/checkers/lib/wiki_carry_check.py
+    texts:
+      - run_wiki_carry_truncation_survival_case
+      - _wiki_carry_view
+  - path: support/checkers/lib/step_output_drain_check.py
+    texts:
+      - run_step_output_drain_case
+      - run_step_output_drain_rejects
+# D1 recount/classification table for Batch 3 carry labels.
+# Evidence grep literals:
+# - support/checkers/check_profile.py carries source_fact_body_carry_case,
+#   wiki_carry_truncation_survival_case, step_output_drain_case, and
+#   step_output_drain_rejects dispatch labels.
+# - support/checkers/lib/case_runners.py carries run_source_fact_body_carry_case,
+#   run_wiki_carry_truncation_survival_case, run_step_output_drain_case, and
+#   run_step_output_drain_rejects runner literals.
+# - Domain runner files carry the same runner literals:
+#   support/checkers/lib/source_fact_body_carry_check.py,
+#   support/checkers/lib/wiki_carry_check.py, and
+#   support/checkers/lib/step_output_drain_check.py.
+# Classification: every listed label has an observed runner literal, so orphan=no
+# for all 14 and each listed case is eligible for this moved profile.
+# | label | runner | orphan |
+# | p4-compatible-fan-in-n3-no-consumer-source-facts-body-carry | run_source_fact_body_carry_case | no |
+# | p4-compatible-fan-in-n3-no-consumer-source-facts-missing-upstream | run_source_fact_body_carry_case | no |
+# | p5-fan-in-n3-declared-source-fact-body-carry | run_source_fact_body_carry_case | no |
+# | p5-fan-in-n3-missing-upstream-body-observation | run_source_fact_body_carry_case | no |
+# | p5-linear-n1-declared-source-fact-body-carry | run_source_fact_body_carry_case | no |
+# | oversize-returned-path-and-note-survive-downstream-retruncation | run_wiki_carry_truncation_survival_case | no |
+# | p5-live-linear-n1-step-close-handoff | run_step_output_drain_case | no |
+# | p5-live-dynamic-fan-in-n3-step-close-handoff | run_step_output_drain_case | no |
+# | p6-live-dynamic-work-reroute-full-replay-n3 | run_step_output_drain_case | no |
+# | p3-live-fan-in-source-concerns-are-advisory-n4 | run_step_output_drain_case | no |
+# | p5-step-output-disk-fallback-rejected | run_step_output_drain_rejects | no |
+# | p5-live-linear-missing-step-output-body-red | run_step_output_drain_rejects | no |
+# | p5-live-dynamic-missing-step-output-body-red | run_step_output_drain_rejects | no |
+# | p6-live-dynamic-partial-qa-reuse-red | run_step_output_drain_rejects | no |
+source_fact_body_carry_case:
+  - label: p4-compatible-fan-in-n3-no-consumer-source-facts-body-carry
+    building_id: checker-p4-compatible-fan-in-body-carry
+    target_step_ref: closure-synthesis
+    cascade_depth: 0
+    consumer_source_facts: []
+    upstream_results:
+      - step_ref: code-qa
+        returned:
+          body_marker: code-body
+      - step_ref: axis-qa
+        returned:
+          body_marker: axis-body
+      - step_ref: evidence-qa
+        returned:
+          body_marker: evidence-body
+    fan_in_sources_by_target:
+      closure-synthesis:
+        - code-qa
+        - axis-qa
+        - evidence-qa
+    expected:
+      body_absent: false
+      declared_source_fact_refs: []
+      source_fact_body_refs:
+        - work/step-outputs/code-qa-attempt-1/step-output.json
+        - work/step-outputs/axis-qa-attempt-1/step-output.json
+        - work/step-outputs/evidence-qa-attempt-1/step-output.json
+      missing_source_fact_refs: []
+      body_expectations:
+        - source_fact_ref: work/step-outputs/code-qa-attempt-1/step-output.json
+          returned_marker: code-body
+        - source_fact_ref: work/step-outputs/axis-qa-attempt-1/step-output.json
+          returned_marker: axis-body
+        - source_fact_ref: work/step-outputs/evidence-qa-attempt-1/step-output.json
+          returned_marker: evidence-body
+  - label: p4-compatible-fan-in-n3-no-consumer-source-facts-missing-upstream
+    building_id: checker-p4-compatible-fan-in-body-carry
+    target_step_ref: closure-synthesis
+    cascade_depth: 0
+    consumer_source_facts: []
+    upstream_results:
+      - step_ref: code-qa
+        returned:
+          body_marker: code-body
+      - step_ref: axis-qa
+        returned:
+          body_marker: axis-body
+    fan_in_sources_by_target:
+      closure-synthesis:
+        - code-qa
+        - axis-qa
+        - evidence-qa
+    expected:
+      body_absent: true
+      declared_source_fact_refs: []
+      source_fact_body_refs:
+        - work/step-outputs/code-qa-attempt-1/step-output.json
+        - work/step-outputs/axis-qa-attempt-1/step-output.json
+      missing_source_fact_refs:
+        - fan-in-source:evidence-qa:cascade-0
+      body_expectations:
+        - source_fact_ref: work/step-outputs/code-qa-attempt-1/step-output.json
+          returned_marker: code-body
+        - source_fact_ref: work/step-outputs/axis-qa-attempt-1/step-output.json
+          returned_marker: axis-body
+  - label: p5-fan-in-n3-declared-source-fact-body-carry
+    building_id: checker-p5-fan-in-body-carry
+    target_step_ref: closure-synthesis
+    cascade_depth: 0
+    consumer_source_facts:
+      - source-fact:closure-code/work/step-outputs/code-qa-attempt-1/step-output.json
+      - source-fact:closure-axis/work/step-outputs/axis-qa-attempt-1/step-output.json
+      - source-fact:closure-evidence/work/step-outputs/evidence-qa-attempt-1/step-output.json
+    upstream_results:
+      - step_ref: code-qa
+        returned:
+          body_marker: code-body
+      - step_ref: axis-qa
+        returned:
+          body_marker: axis-body
+      - step_ref: evidence-qa
+        returned:
+          body_marker: evidence-body
+    fan_in_sources_by_target:
+      closure-synthesis:
+        - code-qa
+        - axis-qa
+        - evidence-qa
+    expected:
+      body_absent: false
+      declared_source_fact_refs:
+        - source-fact:closure-code/work/step-outputs/code-qa-attempt-1/step-output.json
+        - source-fact:closure-axis/work/step-outputs/axis-qa-attempt-1/step-output.json
+        - source-fact:closure-evidence/work/step-outputs/evidence-qa-attempt-1/step-output.json
+      source_fact_body_refs:
+        - source-fact:closure-code/work/step-outputs/code-qa-attempt-1/step-output.json
+        - source-fact:closure-axis/work/step-outputs/axis-qa-attempt-1/step-output.json
+        - source-fact:closure-evidence/work/step-outputs/evidence-qa-attempt-1/step-output.json
+      missing_source_fact_refs: []
+      body_expectations:
+        - source_fact_ref: source-fact:closure-code/work/step-outputs/code-qa-attempt-1/step-output.json
+          returned_marker: code-body
+        - source_fact_ref: source-fact:closure-axis/work/step-outputs/axis-qa-attempt-1/step-output.json
+          returned_marker: axis-body
+        - source_fact_ref: source-fact:closure-evidence/work/step-outputs/evidence-qa-attempt-1/step-output.json
+          returned_marker: evidence-body
+  - label: p5-fan-in-n3-missing-upstream-body-observation
+    building_id: checker-p5-fan-in-body-carry
+    target_step_ref: closure-synthesis
+    cascade_depth: 0
+    consumer_source_facts:
+      - source-fact:closure-code/work/step-outputs/code-qa-attempt-1/step-output.json
+      - source-fact:closure-axis/work/step-outputs/axis-qa-attempt-1/step-output.json
+      - source-fact:closure-evidence/work/step-outputs/evidence-qa-attempt-1/step-output.json
+    upstream_results:
+      - step_ref: code-qa
+        returned:
+          body_marker: code-body
+      - step_ref: axis-qa
+        returned:
+          body_marker: axis-body
+    fan_in_sources_by_target:
+      closure-synthesis:
+        - code-qa
+        - axis-qa
+        - evidence-qa
+    expected:
+      body_absent: true
+      source_fact_body_refs:
+        - source-fact:closure-code/work/step-outputs/code-qa-attempt-1/step-output.json
+        - source-fact:closure-axis/work/step-outputs/axis-qa-attempt-1/step-output.json
+      missing_source_fact_refs_contains:
+        - source-fact:closure-evidence/work/step-outputs/evidence-qa-attempt-1/step-output.json
+        - fan-in-source:evidence-qa:cascade-0
+      body_expectations:
+        - source_fact_ref: source-fact:closure-code/work/step-outputs/code-qa-attempt-1/step-output.json
+          returned_marker: code-body
+        - source_fact_ref: source-fact:closure-axis/work/step-outputs/axis-qa-attempt-1/step-output.json
+          returned_marker: axis-body
+  - label: p5-linear-n1-declared-source-fact-body-carry
+    building_id: checker-p5-linear-body-carry
+    target_step_ref: linear-consumer
+    cascade_depth: 0
+    consumer_source_facts:
+      - source-fact:linear/work/step-outputs/linear-source-attempt-1/step-output.json
+    upstream_results:
+      - step_ref: linear-source
+        returned:
+          body_marker: linear-body
+    expected:
+      body_absent: false
+      source_fact_body_refs:
+        - source-fact:linear/work/step-outputs/linear-source-attempt-1/step-output.json
+      missing_source_fact_refs: []
+      body_expectations:
+        - source_fact_ref: source-fact:linear/work/step-outputs/linear-source-attempt-1/step-output.json
+          returned_marker: linear-body
+# WIKI-CARRY downstream-truncation survival (0619 adversarial-verify blocker):
+# the wiki view's load-bearing absolute PATH + NOTE must survive being
+# re-truncated by safe_source_fact_body downstream (agent adapter floors the
+# carried body AGAIN at limit 12000 / gemini 4000, tail-cut). PATH/NOTE lead the
+# view, SUMMARY trails, so a large `returned` only loses its summary tail. This
+# pin builds an oversize view via the real _wiki_carry_view, re-truncates at
+# both limits, and asserts the path text + note survive (reorder->tail REDs it).
+wiki_carry_truncation_survival_case:
+  - label: oversize-returned-path-and-note-survive-downstream-retruncation
+    oversize_returned_chars: 20000
+step_output_drain_case:
+  - label: p5-live-linear-n1-step-close-handoff
+    case_kind: live_linear_n1
+    expected:
+      consumer_brick_instance_ref: brick-linear-consumer
+      source_fact_body_refs:
+        - work/step-outputs/linear-producer-attempt-1/step-output.json
+      carried_markers:
+        - brick-linear-producer
+  - label: p5-live-dynamic-fan-in-n3-step-close-handoff
+    case_kind: live_dynamic_fan_in_n3
+    expected:
+      consumer_step_ref: fan-closure
+      consumer_brick_instance_ref: brick-fan-closure
+      source_fact_body_refs:
+        - work/step-outputs/fan-code-qa-attempt-1/step-output.json
+        - work/step-outputs/fan-axis-qa-attempt-1/step-output.json
+        - work/step-outputs/fan-evidence-qa-attempt-1/step-output.json
+      carried_markers:
+        - brick-fan-code-qa
+        - brick-fan-axis-qa
+        - brick-fan-evidence-qa
+      carry_gate_sufficiency: sufficient
+      carry_gate_missing_required_facts: []
+  - label: p6-live-dynamic-work-reroute-full-replay-n3
+    case_kind: live_dynamic_full_replay_n3
+    expected:
+      reroute_source_brick_instance_ref: brick-replay-closure-a
+      replay_window_brick_instance_refs:
+        - brick-replay-work-b
+        - brick-replay-code-qa-b
+        - brick-replay-axis-qa-b
+        - brick-replay-evidence-qa-b
+        - brick-replay-closure-b
+      replay_segment_step_refs: []
+      consumer_brick_instance_ref: brick-replay-closure-b
+      source_fact_body_refs:
+        - work/step-outputs/replay-code-qa-b-attempt-1/step-output.json
+        - work/step-outputs/replay-axis-qa-b-attempt-1/step-output.json
+        - work/step-outputs/replay-evidence-qa-b-attempt-1/step-output.json
+      carried_markers:
+        - brick-replay-code-qa-b
+        - brick-replay-axis-qa-b
+        - brick-replay-evidence-qa-b
+  - label: p3-live-fan-in-source-concerns-are-advisory-n4
+    case_kind: live_dynamic_fan_in_source_concerns_n4
+    expected:
+      observed_source_brick_refs:
+        - brick-source-concern-code-attack-qa
+        - brick-source-concern-axis-attack-qa
+        - brick-source-concern-evidence-integrity
+        - brick-source-concern-inspect
+      malformed_source_brick_refs:
+        - brick-source-concern-inspect
+step_output_drain_rejects:
+  - label: p5-step-output-disk-fallback-rejected
+    case_kind: step_output_source_fact_disk_fallback_rejected
+    expected_message: step-output source_fact refs must be supplied from step-close evidence
+  - label: p5-live-linear-missing-step-output-body-red
+    case_kind: live_linear_missing_step_output_body
+    expected_message: missing step-output source_fact body/evidence
+  - label: p5-live-dynamic-missing-step-output-body-red
+    case_kind: live_dynamic_missing_step_output_body
+    expected_message: dynamic fan-in missing step-output carry HOLD
+    expected_hold_reason: fan_in_wait_all_missing_source
+  - label: p6-live-dynamic-partial-qa-reuse-red
+    case_kind: live_dynamic_partial_replay_rejected
+    expected_message: partial QA reuse is not admitted
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic correctness of future Agent transition_concern_evidence
+  - provider runtime behavior
