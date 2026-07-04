@@ -23,7 +23,7 @@ T1~T6(harness-roadmap-orders-0704.md, 발주 품질·에이전트 검증 축)에
 ```text
 1순위(즉시, 엔진 무수정): T9-Sa(체커-동반 원칙 선언) · T7-Sa/Sb(복구 조사·순서교정)
 2순위: T11-Sa(교훈 원장 파일) · T8-Sa(reporter 패킷에 결정필드 확장)
-3순위: T6(홀드 자기서술 — T7-Sb 재현 결과 흡수 후) · T8-Sb(패킷 과잉주장 체커) · T10-S1/S3(비엔진 — S3는 홀드 화이트리스트 Smith 확정 후)
+3순위: T6(홀드 자기서술 — T7-Sb 재현 결과 흡수 후) · T8-Sb(패킷 과잉주장 체커) · T10-S1/S3(비엔진 — 홀드 화이트리스트 포함 정책 전부 Smith 확정 완료)
 Smith 게이트(후행): T7 엔진 수리들 · T10-S2/S4(walker_resume 표면 — revision 읽기·확장 분기)
 명시 의존: T10-S4는 T7-Sb(resume 검증-후-저장 순서 교정) 랜딩 후에만 발주(§T10 보강 3)
 ```
@@ -197,7 +197,7 @@ Smith 3결정 확정(선언시점 결정권 설정 · Link 게이트 승인 · r
   target_node_budget_exhausted(**그 홀드의 정당 도구는 raise 예산 주입 — 브리지
   end-to-end 실증 완료, 확장은 예산 규율 우회 뒷문**)·unresolvable_reroute_address·
   adapter_error_frontier·chat_session_park_frontier·multi_candidate_*(수리/장애 홀드는
-  확장 지점 아님). (기본안 — Smith 최종 확정 대기 1건.)
+  확장 지점 아님). (**Smith 0704 확정** — "예산 홀드는 raise로 잇는다" 문답으로 근거 재확인.)
   **design 선결 4건 기본안(채택 주체 = S3 design 노드, COO 재량 — 정책은 결정 1·2로
   기확정)**: ①결정권 표현 = 휴먼게이트 선언 파생(신규 표면 최소) ②placement가 기존
   3값(qa/final_transition/none) 밖이면 신규 리터럴 + gate_placement_for_row 위임(RULE2
