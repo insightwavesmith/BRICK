@@ -2103,7 +2103,12 @@ def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
         "transition_concern_evidence",
     )
     _EXPECTED_RETURN_JSON_FIELDS = ("transition_concern_evidence",)
-    _EXPECTED_TOP_LEVEL_VERDICT_KEYS = ("movement_choice", "route_target", "target_ref")
+    _EXPECTED_TOP_LEVEL_VERDICT_KEYS = (
+        "good_enough",
+        "movement_choice",
+        "route_target",
+        "target_ref",
+    )
     _EXPECTED_ALWAYS_SECRET_KEYS = ("credential", "secret", "session", "setup_token")
     missing_label_fields = sorted(
         set(_EXPECTED_RETURN_LABEL_FIELDS) - set(adapter._RETURN_LABEL_FIELDS)
