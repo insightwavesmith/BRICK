@@ -152,6 +152,18 @@ stop-and-gate 1회(슬라이스 1)·발주 오염 폐기 1회(슬라이스 5 v1 
 falsy_declared_gate_refs_use_default로 보존, docstring이 양쪽 원점 file:line 인용(스펙 D1
 대조 완료). --self-check COO 손 rc=0. **새벽 골(/goal 0704) 종료선 2개 전부 달성.**
 
+**§4-2 2단계 ✅ 랜딩(0704 오전, dc59c4e0)** — loop0 로컬 헬퍼 5개 thin alias 전환
+(fgh-stage2-loop0-0704a, 전 4노드 1라운드 자가완주, +41/-55 단일 파일). COO 게이트
+detached 워크트리 손 재현: 베이스라인-등가 프로브 7종 rc=0(selected_adapter_ref
+미방출·falsy 빈-게이트 승격 assert 포함)·self-check rc=0·포커스 rc=0·변이-RED(게이트
+ref 독 → rc=1 → 복원 green·오염 0)·격리 --all rc=0. **QA 정직 발견 1건**: proof-limits
+텍스트 변이는 loop0 프로파일 무감(프로브 A rc=0, non-binding verification_gap) — 소비
+실증은 프로브 B(게이트 ref RED)로 성립, 텍스트 감지 재검증은 3단계 계약이 보유.
+
+**§4-2 3단계 걷는 중(0704 오전, fgh-stage3-caserunners-0704a)** — case_runners 로컬 헬퍼
+5개 전환. 계약이 loop0과 반대 방향 falsy 의미론(None-only, 빈 리스트 보존)·고정 close
+reason·adapter:local 상시 방출·_axis_row/_brick_ref_by_step 무접촉을 assert로 봉인.
+
 ## 새벽 골 마감 (0704 05:0x) — Smith 기상 대기 큐
 
 발주 중지, 감시 모드. Smith 게이트 대기 항목:
@@ -180,6 +192,27 @@ frozenset 1키+체커 핀(_EXPECTED... :2106)+행동-RED 계약으로 goodenough
 re_instruction_endline_rules 3행 선언 시공(616c97c0, Smith 비준): 종료선 재진술 / 레인
 환경-실행가능 증명만 / scope 밖 수리는 COO 게이트. 로더 3키 한정 재검증·경로 admission
 프로파일 green. 집행 게이트는 후일 소비자(선언-먼저 공인 패턴).
+
+## GP-H — 하네스 구조 강화 T1~T6 (0704 등재, Smith 지시로 골페이즈 편입)
+
+정본: harness-roadmap-orders-0704.md (하네싱 세션 저작, COO 검토·앵커 스팟체크 0704 —
+coo.md 332줄 실측 일치·work/return.yaml 에코 필드 0 일치·compose 경로 콘텐츠 린트 부재
+일치. 참고: run.py:1089 _preflight_step_output_building_root는 다른 용도의 preflight
+선례 — T1 design 노드가 경계 확정 시 참조). 발주 시점 재확인 조항 유지.
+
+| 항목 | 내용 | 의존/게이트 | 슬롯 |
+|---|---|---|---|
+| T1 발주문 린트 | 프리플라이트 모듈+오염 픽스처 RED (compose 배선은 2단계 별도) | 독립, **T계열 최우선** | §4-2와 파일 비충돌 — 발주 준비 완료 |
+| T2 계약 수신 에코 | work 반환 received_deliverables_echo 선언+3자 대조 지침 | 독립 (D4 픽스처 스윕이 핵심) | T1과 병행 가능 |
+| T3 패리티 원장 | 선언-집행 갭 열거 체커+원장 | 독립. **선/후 결정 확정: Gap 1 선랜딩(Smith 0704 오전 명시 지시 — 걷는 중)** → 체커는 green 탄생, 첫-RED 도그푸드 증명 가치는 소멸(정직 기록). 로드맵 권고(후자)와 상충했으나 Smith 지시 우선 | T1·T2와 병행 가능 |
+| T4 프롬프트 행동-RED | 유혹 픽스처 실레인 프로브(N=3, 프롬프트 무수정) | 독립이나 실어댑터 비용 | GP3 분해 창과 레인 경합 주의 — §4-2 랜딩 후 |
+| T5 핀 통합 | 프롬프트 중복 핀 다이어트 | **T4 랜딩 전 발주 금지**(측정 없는 다이어트 금지) | T4 후 |
+| T6 홀드 자기서술 | hold_reason→처분 매핑 정본(선언만) | 선언 슬라이스 독립·소형. 소비 슬라이스는 walker 인접 = **Smith 게이트** | 틈새 소형 |
+
+공통 규율은 로드맵 §공통 발주 규율 그대로 상속(fable5 레인 금지·계약 인라인·종료선
+필수·레인-불가능 D 분리·_run_dynamic_graph_walker 불가침). 순서 원칙 2(GP3 분해 중
+프로브 금지)는 T4에 적용 — T4는 픽스처 격리라 P8 신호 오염과는 다르지만 레인
+파이프라인 경합이 실비용이라 §4-2 창 종료 후 슬롯.
 
 ## 백로그 통합 (소형·주시·대기)
 
