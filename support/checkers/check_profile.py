@@ -550,6 +550,10 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "return_field_merge_set_parity",
         "support.checkers.check_return_field_merge_set_parity",
     ),
+    "declaration_enforcement_parity": _repo_main(
+        "declaration_enforcement_parity",
+        "support.checkers.check_declaration_enforcement_parity",
+    ),
     # F3 STEP-OUTPUT EVIDENCE FIELD-SET PARITY. AST-parses (no import)
     # support/recording/step_outputs.py: the normal step-output manifest,
     # adapter-error record, and chat-session park record all carry the same

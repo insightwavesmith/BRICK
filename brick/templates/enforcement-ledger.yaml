@@ -1,0 +1,22 @@
+schema: declaration-enforcement-ledger/v1
+owner_axis: Brick
+description: Central ledger for Brick template declarations that intentionally name a later enforcement consumer.
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+declarations:
+  - declaration_ref: "brick/templates/bricks/closure/return.yaml:44"
+    declaration_text: "future Link-side completion gate consumes this declared field"
+    gate_pending: "Link-side completion gate consumer is declared, not implemented here."
+  - declaration_ref: "brick/templates/bricks/closure/return.yaml:45"
+    declaration_text: "gate is a later consumer"
+    gate_pending: "Link-side completion gate consumer is declared, not implemented here."
+  - declaration_ref: "brick/templates/reroute-defaults.yaml:7"
+    declaration_text: "Link-side gate is a later consumer"
+    gate_pending: "Link-side gate consumer for adopted-reroute re-dispatch text is declared, not implemented here."
+  - declaration_ref: "brick/templates/reroute-defaults.yaml:21"
+    declaration_text: "gate is a later consumer"
+    gate_pending: "Machine enforcement of re_instruction endline rules is declared, not implemented here."
