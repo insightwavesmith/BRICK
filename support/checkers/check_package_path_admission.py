@@ -446,6 +446,10 @@ BRICK_KIND_SCAFFOLD0_TARGETS = {
     "support/operator/brick_kind_scaffold.py",
 }
 
+TASK_ORDER_PREFLIGHT0_TARGETS = {
+    "support/operator/task_order_preflight.py",
+}
+
 PRH_B_RECORDER_TARGETS = {
     "support/recording/__init__.py",
     "support/recording/records.py",
@@ -1924,6 +1928,9 @@ def allowed_path(path: str) -> bool:
         return True
 
     if clean in BRICK_KIND_SCAFFOLD0_TARGETS:
+        return True
+
+    if clean in TASK_ORDER_PREFLIGHT0_TARGETS:
         return True
 
     if is_dashboard_surface_path(clean, is_dir=False):

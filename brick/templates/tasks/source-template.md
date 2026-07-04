@@ -121,6 +121,15 @@ present before closure?
 What is ambiguous, high impact, reversible only with care, or outside the
 current proof target?
 
+## 기계 검사 항목 (프리플라이트 린트)
+
+작성자는 발사 전 독립 프리플라이트 린트가 확인할 수 있도록 아래 항목을 명시한다:
+
+- L1: `work` / `development` 노드의 `work_statement`에는 `Done`, `종료선`, `완료선`, 또는 `DONE Criteria` 같은 종료선 마커가 있어야 한다.
+- L2: `proof_obligations` / `Proof required`는 대상 Brick kind의 `capability_class`와 모순되면 안 된다. read 렌즈에는 source mutation, `git commit`, `git push`, 전체 `--all` 재실행 같은 proof를 배정하지 않는다.
+- L3: `work_statement`는 `reason_refs`를 `file:line` 형식으로 유도하거나 `related_boundary_refs`를 구형 `brick:` / `brick-instance:` / `brick-boundary:` 형식으로 유도하지 않는다.
+- L4: `## Deliverables` 아래에 `D1:` 같은 번호형 deliverable을 두고, deliverable에 적은 literal repo path가 선언된 `write_scope.allowed_paths`와 맞아야 한다.
+
 ## Proof Limits
 
 This template is Brick-owned input only. It is not source truth, success

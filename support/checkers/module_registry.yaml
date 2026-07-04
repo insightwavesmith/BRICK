@@ -1994,6 +1994,16 @@ modules:
     decomposition_target: ""
     pinned_by: report_env_autoload kernel check (#56; the engine-entry auto-loader that injects the NARROW allowlist of slack/dashboard/provider credential keys from ~/.brick/report.env + ~/.brick/credentials.env into os.environ at the run.py building seam so the environment-gated report sinks can deliver; allowlist-only, 0600-gated, env-precedence, no value echo, absent-file no-op; owns no crossing, stores no secret at rest, judges nothing)
 
+  - module: support/operator/task_order_preflight.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: task_order_preflight --self-test + dirty/clean task-order fixture probes (standalone pre-launch lint only; records support evidence, authors no Brick contract, Agent resource, Link Movement, route, success, or quality judgment)
+
   # ---- support/recording --------------------------------------------------
   - module: support/recording/records.py
     layer: recording
