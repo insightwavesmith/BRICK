@@ -1116,6 +1116,11 @@ def is_project_status_path(path: str, *, is_dir: bool) -> bool:
         # input packets, not admitted source/status truth. Keep the JSON opening
         # narrow so arbitrary status JSON remains closed.
         return True
+    if len(parts) == 2 and parts[1] == "lessons-ledger.yaml":
+        # The prescription-lineage ledger is the single admitted kernel YAML
+        # (T11, Smith 0704 ratified landing path); arbitrary kernel YAML/JSON
+        # stays closed.
+        return True
     return len(parts) >= 2 and parts[-1].endswith(".md")
 
 
@@ -1128,6 +1133,8 @@ def package_path_admission_self_probe_violations() -> list[str]:
         "project/brick-protocol/status/kernel/GOAL/nested/graph.json": False,
         "project/brick-protocol/status/kernel/GOAL/.hidden.json": False,
         "project/brick-protocol/status/kernel/arbitrary.json": False,
+        "project/brick-protocol/status/kernel/lessons-ledger.yaml": True,
+        "project/brick-protocol/status/kernel/other-ledger.yaml": False,
         "project/brick-protocol/status/arbitrary.json": False,
         "project/brick-protocol/buildings/agents-md-align-0702a/task-statement-30d7bc45e2bc-node/": True,
         "project/brick-protocol/buildings/agents-md-align-0702a/task-statement-30d7bc45e2bc-node/capture/": True,
