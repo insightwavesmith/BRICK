@@ -172,6 +172,15 @@ falsy_declared_gate_refs_use_default로 보존, docstring이 양쪽 원점 file:
    vessels·inbox — **WIP 앵커 구제 선행**: 미머지 앵커 464105cf(관측측 v2, 참고용)·
    link-part4-r6(머지됨, 정리 가능))
 
+**하네싱 세션 Gap 2건 처분(0704 오전, Smith 승인)**: ①Gap1 good_enough 선언-집행 분리 —
+선언(10 KIND return.yaml)은 완료돼 있었고 집행 세트(agent/return_fact.py:49-74
+TOP_LEVEL_VERDICT_KEYS)에만 부재. COO 전수 대조로 유일 갭 확인(선언 7키 중 미집행 1키).
+frozenset 1키+체커 핀(_EXPECTED... :2106)+행동-RED 계약으로 goodenough-enforce-0704a 발주
+(§4-2와 파일 비충돌 병행). ②Gap3 재파견 종료선 — reroute-defaults.yaml에
+re_instruction_endline_rules 3행 선언 시공(616c97c0, Smith 비준): 종료선 재진술 / 레인
+환경-실행가능 증명만 / scope 밖 수리는 COO 게이트. 로더 3키 한정 재검증·경로 admission
+프로파일 green. 집행 게이트는 후일 소비자(선언-먼저 공인 패턴).
+
 ## 백로그 통합 (소형·주시·대기)
 
 | 항목 | 분류 |
