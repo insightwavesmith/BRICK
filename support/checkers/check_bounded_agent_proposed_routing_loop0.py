@@ -181,6 +181,64 @@ def _expanded_plan_with_resume_node(
     return changed, fragment, {"expansion_node_budgets": {new_step_ref: 1}}
 
 
+def _expanded_fan_in_plan_with_revision_source(
+    plan: Mapping[str, Any],
+    *,
+    prefix: str,
+    new_step_ref: str,
+    new_brick_ref: str,
+) -> tuple[dict[str, Any], Mapping[str, Any]]:
+    changed = copy.deepcopy(plan)
+    join_step_ref = f"{prefix}-join"
+    join_brick_ref = f"brick-{join_step_ref}"
+    root_to_new_ref = f"edge:{prefix}-root-to-c"
+    new_to_join_ref = f"edge:{prefix}-c-to-join"
+    brick_step = _brick_step(
+        new_step_ref,
+        new_brick_ref,
+        "agent-object:qa",
+        new_to_join_ref,
+    )
+    root_edge = _fwd_edge(
+        root_to_new_ref,
+        f"{prefix}-root",
+        new_step_ref,
+        new_brick_ref,
+    )
+    join_edge = _fwd_edge(
+        new_to_join_ref,
+        new_step_ref,
+        join_step_ref,
+        join_brick_ref,
+    )
+    changed["brick_steps"].append(brick_step)
+    changed["link_edges"].extend([root_edge, join_edge])
+    changed["execution_order"].append(new_step_ref)
+    for group in changed.get("groups", []):
+        if not isinstance(group, dict):
+            continue
+        if group.get("group_role") == "fan_out":
+            group.setdefault("member_refs", []).append(root_to_new_ref)
+        if group.get("group_role") == "fan_in":
+            group.setdefault("member_refs", []).append(new_to_join_ref)
+    fragment = {
+        "brick_steps": [brick_step],
+        "link_edges": [root_edge, join_edge],
+        "execution_order": [new_step_ref],
+        "groups": [
+            {
+                "group_id": f"group:{prefix}-fan-out",
+                "added_member_refs": [root_to_new_ref],
+            },
+            {
+                "group_id": f"group:{prefix}-fan-in",
+                "added_member_refs": [new_to_join_ref],
+            },
+        ],
+    }
+    return changed, fragment
+
+
 def _plan_with_build_source_fact(
     plan: Mapping[str, Any],
     *,
@@ -1275,6 +1333,85 @@ def _step_output_path(root: Path, step_ref: str, attempt: int) -> Path:
     return root / "work" / "step-outputs" / f"{step_ref}-attempt-{attempt}" / "step-output.json"
 
 
+def _assert_revision_fan_in_wait_all_observed(
+    *,
+    label: str,
+    root: Path,
+    step_bricks: Sequence[str],
+    prefix: str,
+    new_step_ref: str,
+    mutate_expected_required_sources: bool = False,
+) -> list[str]:
+    join_step_ref = f"{prefix}-join"
+    new_brick_ref = f"brick-{new_step_ref}"
+    join_brick_ref = f"brick-{join_step_ref}"
+    required_sources = [
+        f"{prefix}-lane-a",
+        f"{prefix}-lane-b",
+        new_step_ref,
+    ]
+    if mutate_expected_required_sources:
+        required_sources = required_sources[:-1]
+    violations: list[str] = []
+    if not _step_output_path(root, new_step_ref, 1).is_file():
+        violations.append(f"{label}: revision-added fan-in source did not run live")
+    if new_brick_ref not in step_bricks:
+        violations.append(f"{label}: resumed step list does not include revision source")
+    if join_brick_ref not in step_bricks:
+        violations.append(f"{label}: resumed step list does not include fan-in join")
+    if new_brick_ref in step_bricks and join_brick_ref in step_bricks:
+        if step_bricks.index(join_brick_ref) < step_bricks.index(new_brick_ref):
+            violations.append(
+                f"{label}: fan-in join ran before revision-added source completed"
+            )
+    if mutate_expected_required_sources and new_brick_ref in step_bricks:
+        mutated_step_bricks = [brick for brick in step_bricks if brick != new_brick_ref]
+        if join_brick_ref in mutated_step_bricks:
+            violations.append(
+                f"{label}: early-completion expectation omitted the revision-added source"
+            )
+    from brick_protocol.support.operator.walker_resume import (
+        _read_written_dynamic_plan,
+    )
+    from brick_protocol.support.operator.plan_graph import (
+        _graph_fan_in_sources_by_target_step_ref,
+        _linear_plan_from_graph_plan,
+    )
+    from brick_protocol.support.recording.declaration_packets import (
+        latest_valid_declared_plan,
+    )
+
+    _plan_after, evidence_after = _read_written_dynamic_plan(root)
+    latest_plan = latest_valid_declared_plan(root)
+    _linear_plan, graph_context = _linear_plan_from_graph_plan(latest_plan)
+    graph_required = list(
+        _graph_fan_in_sources_by_target_step_ref(graph_context).get(join_step_ref, ())
+    )
+    if graph_required != required_sources:
+        violations.append(
+            f"{label}: revised graph fan-in sources drifted "
+            f"(expected={required_sources} observed={graph_required})"
+        )
+    observations = [
+        item
+        for item in evidence_after.get("fan_in_wait_all_observations", [])
+        if isinstance(item, Mapping)
+        and item.get("target_step_ref") == join_step_ref
+    ]
+    if observations:
+        observed_required = list(observations[-1].get("required_source_step_refs", []))
+        if observed_required != required_sources:
+            violations.append(
+                f"{label}: fan-in wait-all required sources drifted "
+                f"(expected={required_sources} observed={observed_required})"
+            )
+        if new_step_ref not in list(observations[-1].get("observed_source_step_refs", [])):
+            violations.append(
+                f"{label}: revision-added source missing from observed fan-in sources"
+            )
+    return violations
+
+
 def _f1_assert_surviving_sibling_outputs(
     *,
     mode: str,
@@ -2168,6 +2305,356 @@ def check(repo: Path) -> list[str]:
                 ):
                     violations.append(
                         "expansion-resume: revision node still held for missing Link budget"
+                    )
+
+    # T10-S4 carry-forward: when rev-1 adds a NEW source to an existing fan-in
+    # group, resume must read the revised member_refs at runtime and wait for
+    # that source before running the convergence node.
+    prefix_fan_exp = "bapr-loop0-expansion-fanin"
+    plan_fan_exp = dict(_fan_plan(prefix_fan_exp, held_source=True))
+    plan_fan_exp["expansion_budget"] = 1
+    new_step_fan_exp = f"{prefix_fan_exp}-lane-c"
+    new_brick_fan_exp = f"brick-{new_step_fan_exp}"
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-expansion-fanin-") as tmp:
+        res_fan_exp = run_building_plan(
+            plan_fan_exp,
+            output_root=Path(tmp),
+            overwrite_existing=True,
+            local_callables={
+                "callable:local:agent-invoke0-smoke": _fan_callable(
+                    held_brick=f"brick-{prefix_fan_exp}-lane-b",
+                    reroute_target=f"brick-{prefix_fan_exp}-join",
+                )
+            },
+            adapter_cwd=repo,
+            adapter_timeout_seconds=30,
+        )
+        root_fan_exp = res_fan_exp.lifecycle_write.root
+        before_fan_exp = observe_building_frontier(root_fan_exp, repo_root=repo)
+        if before_fan_exp["frontier_kind"] != "link_paused":
+            violations.append(
+                "expansion-fanin: setup did not pause before fan-in join "
+                f"(frontier={before_fan_exp['frontier_kind']})"
+            )
+        hold_ref_fan_exp = _current_hold_paused_at_ref(root_fan_exp) or "hold:expansion-fanin"
+        approval_ref_fan_exp = "approval:bapr-loop0-expansion-fanin"
+        with (root_fan_exp / "work" / "expansion-approvals.jsonl").open("a", encoding="utf-8") as handle:
+            handle.write(
+                json.dumps(
+                    {
+                        "approval_evidence_ref": approval_ref_fan_exp,
+                        "gate_ref": "link-gate:expansion-approval",
+                        "hold_class": "proposed_candidate_not_in_declared_set",
+                        "hold_paused_at_ref": hold_ref_fan_exp,
+                    },
+                    separators=(",", ":"),
+                )
+                + "\n"
+            )
+        parent_plan_fan_exp = latest_valid_declared_plan(root_fan_exp)
+        expanded_plan_fan_exp, fragment_fan_exp = _expanded_fan_in_plan_with_revision_source(
+            parent_plan_fan_exp,
+            prefix=prefix_fan_exp,
+            new_step_ref=new_step_fan_exp,
+            new_brick_ref=new_brick_fan_exp,
+        )
+        try:
+            write_declared_plan_revision(
+                root_fan_exp,
+                expanded_plan_fan_exp,
+                {
+                    "extends_plan_hash": _declared_plan_hash(parent_plan_fan_exp),
+                    "extends_plan_hash_algorithm": "sha256",
+                    "extends_plan_hash_basis": (
+                        "canonical sorted-key JSON of the pure declared-building-plan "
+                        "copy (runtime walker state excluded)"
+                    ),
+                    "expansion_fragment": fragment_fan_exp,
+                    "expansion_node_budgets": {new_step_fan_exp: 1},
+                    "hold_paused_at_ref": hold_ref_fan_exp,
+                },
+                approval_ref_fan_exp,
+            )
+        except ValueError as exc:
+            violations.append(f"expansion-fanin: rev-1 write rejected: {exc}")
+        else:
+            _append_disposition_row(
+                root_fan_exp,
+                building_id=res_fan_exp.building_id,
+                pending_target_ref=f"brick-{prefix_fan_exp}-join",
+                action="forward",
+                author_ref="coo:checker",
+            )
+            try:
+                resumed_fan_exp = resume_building_plan(
+                    root_fan_exp,
+                    local_callables={
+                        "callable:local:agent-invoke0-smoke": _fan_callable(
+                            held_brick=f"brick-{prefix_fan_exp}-lane-b",
+                            reroute_target=f"brick-{prefix_fan_exp}-join",
+                        )
+                    },
+                    adapter_cwd=repo,
+                    adapter_timeout_seconds=30,
+                )
+            except ValueError as exc:
+                violations.append(f"expansion-fanin: resume over rev-1 crashed: {exc}")
+            else:
+                after_fan_exp = observe_building_frontier(
+                    resumed_fan_exp.lifecycle_write.root,
+                    repo_root=repo,
+                )
+                if after_fan_exp["frontier_kind"] != "complete":
+                    violations.append(
+                        "expansion-fanin: resumed fan-in revision did not complete "
+                        f"(frontier={after_fan_exp['frontier_kind']})"
+                    )
+                positive_fan_exp = _assert_revision_fan_in_wait_all_observed(
+                    label="expansion-fanin",
+                    root=resumed_fan_exp.lifecycle_write.root,
+                    step_bricks=_step_bricks(resumed_fan_exp),
+                    prefix=prefix_fan_exp,
+                    new_step_ref=new_step_fan_exp,
+                )
+                violations.extend(positive_fan_exp)
+                mutated_fan_exp = _assert_revision_fan_in_wait_all_observed(
+                    label="expansion-fanin-red",
+                    root=resumed_fan_exp.lifecycle_write.root,
+                    step_bricks=_step_bricks(resumed_fan_exp),
+                    prefix=prefix_fan_exp,
+                    new_step_ref=new_step_fan_exp,
+                    mutate_expected_required_sources=True,
+                )
+                if not any(
+                    "required sources drifted" in item
+                    or "early-completion expectation" in item
+                    or "revised graph fan-in sources drifted" in item
+                    for item in mutated_fan_exp
+                ):
+                    violations.append(
+                        "expansion-fanin-red: expectation mutation that drops the "
+                        "revision-added source did not RED"
+                    )
+
+    # D2 RED: inject the live early-completion defect the positive fixture is
+    # meant to catch. The walker sees a fan-in source map with the rev-added
+    # source omitted, so the cohort replay/wait-all path can complete without
+    # re-running that source. The checker must report that as RED.
+    prefix_fan_exp_red = "bapr-loop0-expansion-fanin-live-red"
+    plan_fan_exp_red = dict(_fan_plan(prefix_fan_exp_red, held_source=True))
+    plan_fan_exp_red["expansion_budget"] = 1
+    new_step_fan_exp_red = f"{prefix_fan_exp_red}-lane-c"
+    new_brick_fan_exp_red = f"brick-{new_step_fan_exp_red}"
+    join_step_fan_exp_red = f"{prefix_fan_exp_red}-join"
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-expansion-fanin-red-") as tmp:
+        res_fan_exp_red = run_building_plan(
+            plan_fan_exp_red,
+            output_root=Path(tmp),
+            overwrite_existing=True,
+            local_callables={
+                "callable:local:agent-invoke0-smoke": _fan_callable(
+                    held_brick=f"brick-{prefix_fan_exp_red}-lane-b",
+                    reroute_target=f"brick-{prefix_fan_exp_red}-join",
+                )
+            },
+            adapter_cwd=repo,
+            adapter_timeout_seconds=30,
+        )
+        root_fan_exp_red = res_fan_exp_red.lifecycle_write.root
+        hold_ref_fan_exp_red = (
+            _current_hold_paused_at_ref(root_fan_exp_red) or "hold:expansion-fanin-red"
+        )
+        approval_ref_fan_exp_red = "approval:bapr-loop0-expansion-fanin-live-red"
+        with (root_fan_exp_red / "work" / "expansion-approvals.jsonl").open(
+            "a",
+            encoding="utf-8",
+        ) as handle:
+            handle.write(
+                json.dumps(
+                    {
+                        "approval_evidence_ref": approval_ref_fan_exp_red,
+                        "gate_ref": "link-gate:expansion-approval",
+                        "hold_class": "proposed_candidate_not_in_declared_set",
+                        "hold_paused_at_ref": hold_ref_fan_exp_red,
+                    },
+                    separators=(",", ":"),
+                )
+                + "\n"
+            )
+        parent_plan_fan_exp_red = latest_valid_declared_plan(root_fan_exp_red)
+        expanded_plan_fan_exp_red, fragment_fan_exp_red = _expanded_fan_in_plan_with_revision_source(
+            parent_plan_fan_exp_red,
+            prefix=prefix_fan_exp_red,
+            new_step_ref=new_step_fan_exp_red,
+            new_brick_ref=new_brick_fan_exp_red,
+        )
+        try:
+            write_declared_plan_revision(
+                root_fan_exp_red,
+                expanded_plan_fan_exp_red,
+                {
+                    "extends_plan_hash": _declared_plan_hash(parent_plan_fan_exp_red),
+                    "extends_plan_hash_algorithm": "sha256",
+                    "extends_plan_hash_basis": (
+                        "canonical sorted-key JSON of the pure declared-building-plan "
+                        "copy (runtime walker state excluded)"
+                    ),
+                    "expansion_fragment": fragment_fan_exp_red,
+                    "expansion_node_budgets": {new_step_fan_exp_red: 1},
+                    "hold_paused_at_ref": hold_ref_fan_exp_red,
+                },
+                approval_ref_fan_exp_red,
+            )
+        except ValueError as exc:
+            violations.append(f"expansion-fanin-live-red: rev-1 write rejected: {exc}")
+        else:
+            _append_disposition_row(
+                root_fan_exp_red,
+                building_id=res_fan_exp_red.building_id,
+                pending_target_ref=f"brick-{prefix_fan_exp_red}-join",
+                action="forward",
+                author_ref="coo:checker",
+            )
+            from brick_protocol.support.operator import walker_fan_in as walker_fan_in_module
+            from brick_protocol.support.operator import walker_kernel as walker_kernel_module
+            from brick_protocol.support.operator import walker_resume as walker_resume_module
+
+            original_kernel_sources = walker_kernel_module._graph_fan_in_sources_by_target_step_ref
+            original_fan_in_sources = walker_fan_in_module._graph_fan_in_sources_by_target_step_ref
+            original_kernel_linear_plan = walker_kernel_module._linear_plan_from_graph_plan
+            original_resume_linear_plan = walker_resume_module._linear_plan_from_graph_plan
+            original_kernel_successors = (
+                walker_kernel_module._graph_successor_step_refs_by_source_step_ref
+            )
+
+            def _drop_revision_source(original):
+                def _patched(graph_context):
+                    sources_by_target = dict(original(graph_context))
+                    sources = tuple(
+                        source
+                        for source in sources_by_target.get(join_step_fan_exp_red, ())
+                        if source != new_step_fan_exp_red
+                    )
+                    sources_by_target[join_step_fan_exp_red] = sources
+                    return sources_by_target
+
+                return _patched
+
+            def _move_revision_source_after_join(original):
+                def _patched(plan):
+                    linear_plan, graph_context = original(plan)
+                    if not isinstance(linear_plan, Mapping):
+                        return linear_plan, graph_context
+                    changed_linear_plan = dict(linear_plan)
+                    changed_steps = list(changed_linear_plan.get("steps", []))
+                    def _item_step_ref(item):
+                        if isinstance(item, Mapping):
+                            return item.get("step_ref")
+                        return item
+
+                    new_index = next(
+                        (
+                            index
+                            for index, item in enumerate(changed_steps)
+                            if _item_step_ref(item) == new_step_fan_exp_red
+                        ),
+                        None,
+                    )
+                    join_index = next(
+                        (
+                            index
+                            for index, item in enumerate(changed_steps)
+                            if _item_step_ref(item) == join_step_fan_exp_red
+                        ),
+                        None,
+                    )
+                    if new_index is not None and join_index is not None and new_index < join_index:
+                        new_item = changed_steps.pop(new_index)
+                        join_index = next(
+                            (
+                                index
+                                for index, item in enumerate(changed_steps)
+                                if _item_step_ref(item) == join_step_fan_exp_red
+                            ),
+                            join_index,
+                        )
+                        changed_steps.insert(join_index + 1, new_item)
+                        changed_linear_plan["steps"] = changed_steps
+                    return changed_linear_plan, graph_context
+
+                return _patched
+
+            def _drop_revision_successor(original):
+                def _patched(graph_context):
+                    successors_by_source = {
+                        source: tuple(successors)
+                        for source, successors in original(graph_context).items()
+                    }
+                    root_step_ref = f"{prefix_fan_exp_red}-root"
+                    successors_by_source[root_step_ref] = tuple(
+                        successor
+                        for successor in successors_by_source.get(root_step_ref, ())
+                        if successor != new_step_fan_exp_red
+                    )
+                    successors_by_source.pop(new_step_fan_exp_red, None)
+                    return successors_by_source
+
+                return _patched
+
+            walker_kernel_module._graph_fan_in_sources_by_target_step_ref = _drop_revision_source(
+                original_kernel_sources
+            )
+            walker_fan_in_module._graph_fan_in_sources_by_target_step_ref = _drop_revision_source(
+                original_fan_in_sources
+            )
+            walker_kernel_module._linear_plan_from_graph_plan = _move_revision_source_after_join(
+                original_kernel_linear_plan
+            )
+            walker_resume_module._linear_plan_from_graph_plan = _move_revision_source_after_join(
+                original_resume_linear_plan
+            )
+            walker_kernel_module._graph_successor_step_refs_by_source_step_ref = (
+                _drop_revision_successor(original_kernel_successors)
+            )
+            resumed_fan_exp_red = None
+            try:
+                resumed_fan_exp_red = resume_building_plan(
+                    root_fan_exp_red,
+                    local_callables={
+                        "callable:local:agent-invoke0-smoke": _fan_callable(
+                            held_brick=f"brick-{prefix_fan_exp_red}-lane-b",
+                            reroute_target=f"brick-{prefix_fan_exp_red}-join",
+                        )
+                    },
+                    adapter_cwd=repo,
+                    adapter_timeout_seconds=30,
+                )
+            except ValueError as exc:
+                violations.append(f"expansion-fanin-live-red: resume crashed: {exc}")
+            finally:
+                walker_kernel_module._graph_fan_in_sources_by_target_step_ref = original_kernel_sources
+                walker_fan_in_module._graph_fan_in_sources_by_target_step_ref = original_fan_in_sources
+                walker_kernel_module._linear_plan_from_graph_plan = original_kernel_linear_plan
+                walker_resume_module._linear_plan_from_graph_plan = original_resume_linear_plan
+                walker_kernel_module._graph_successor_step_refs_by_source_step_ref = (
+                    original_kernel_successors
+                )
+            if resumed_fan_exp_red is not None:
+                live_red_fan_exp = _assert_revision_fan_in_wait_all_observed(
+                    label="expansion-fanin-live-red",
+                    root=resumed_fan_exp_red.lifecycle_write.root,
+                    step_bricks=_step_bricks(resumed_fan_exp_red),
+                    prefix=prefix_fan_exp_red,
+                    new_step_ref=new_step_fan_exp_red,
+                )
+                if not any(
+                    "revision-added fan-in source did not run live" in item
+                    or "resumed step list does not include revision source" in item
+                    or "fan-in join ran before revision-added source completed" in item
+                    for item in live_red_fan_exp
+                ):
+                    violations.append(
+                        "expansion-fanin-live-red: live source-map mutation did not RED"
                     )
 
     # Compose-time route-policy field consumers: the checker exercises the REAL
