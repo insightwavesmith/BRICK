@@ -143,6 +143,13 @@ text_contains:
       - not_proven
       - '키 유효성'
       - API_KEY_INVALID
+  - path: support/checkers/lib/fixture_graph_helpers.py
+    texts:
+      - support evidence only
+      - not source truth
+      - not success judgment
+      - not quality judgment
+      - not Movement authority
 text_absent:
   - path: support/operator/driver.py
     texts:
