@@ -1,8 +1,14 @@
 # 핸드오프 — 하네싱 로드맵 + T10 동적 그래프 논의 (0704, Fable5 전환 직전)
 
-이 세션은 Opus 4.8로 돌던 조사자 세션(원래 Fable5 시작 → 0704 01:05경 Opus 자동
-전환, 트랜스크립트 확인). 다음 세션은 **Fable5로 재개**. 역할·경계·미결 논점을 무손실
-인계한다. 정본 메모리: brick-coo-operating-rules.md, smith-reporting-style.md.
+이 세션은 Opus 4.8로 돌던 조사자 세션(원래 Fable5 시작 → 0704 01:05:27 Opus 전환).
+다음 세션은 **Fable5로 재개**. 역할·경계·미결 논점을 무손실 인계한다.
+정본 메모리: brick-coo-operating-rules.md, smith-reporting-style.md.
+
+**모델 전환 사유(트랜스크립트 확정)**: 01:05:07 Fable5가 낸 도구 호출이 malformed(내가
+`<invoke>` 태그를 텍스트로 잘못 출력, 파싱 실패)로 나갔고, 시스템 "retry" 직후 01:05:27부터
+Opus 4.8로 폴백됨. Smith 조작 아님 — 내 도구 호출 실패가 방아쇠. 교훈: AskUserQuestion/Edit
+등 인자에 특수문자·이모지·미이스케이프 백슬래시를 넣으면 JSON 파싱이 깨진다. 도구 인자는
+평문 위주로, 이모지·제어문자 회피.
 
 ## 역할 경계 (Smith 0704 확정 — 절대 준수)
 
