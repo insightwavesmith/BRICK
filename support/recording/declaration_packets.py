@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import Any
@@ -40,6 +41,7 @@ _DECLARATION_EVIDENCE_REFS: tuple[str, ...] = (
     "work/building-intake.json",
     "work/preset-expansion.json",
     "work/declared-building-plan.json",
+    "work/declared-building-plan.rev-*.json",
     "work/link-launch-policy.json",
 )
 
@@ -79,6 +81,99 @@ _DECLARED_PLAN_RUNTIME_KEYS: frozenset[str] = frozenset(
     }
 )
 
+_DECLARED_PLAN_REVISION_PREFIX = "declared-building-plan.rev-"
+_DECLARED_PLAN_REVISION_SUFFIX = ".json"
+_DECLARED_PLAN_REVISION_HOLDS = "declared-building-plan.revision-holds.jsonl"
+_EXPANSION_APPROVAL_REF = "link-gate:expansion-approval"
+_EXPANSION_APPROVAL_HOLD_WHITELIST = frozenset(
+    {
+        "human_or_coo_gate_pause",
+        "proposed_candidate_not_in_declared_set",
+        "no_declared_candidate_proposed",
+    }
+)
+
+_DECLARED_PLAN_REVISION_READER_DISPOSITION_ROWS: tuple[Mapping[str, str], ...] = (
+    {
+        "path": "support/operator/walker_resume.py",
+        "reader": "_declared_graph_plan_from_birth_certificate",
+        "disposition": "converted",
+        "reason": "execution/resume graph plan read uses latest_valid_declared_plan",
+    },
+    {
+        "path": "support/recording/spine_projection.py",
+        "reader": "_declared_plan_steps/_declared_link_edges/_declared_execution_order",
+        "disposition": "converted",
+        "reason": "spine ORPHAN-SKIP cannot defer; projector reads latest valid revision packet",
+    },
+    {
+        "path": "support/checkers/check_evidence_spine_projection.py",
+        "reader": "_declared_plan_step_refs revision fixture",
+        "disposition": "converted",
+        "reason": "checker reuses projector readers and pins a rev-introduced step_ref fixture",
+    },
+    {
+        "path": "support/operator/evidence_assembly.py",
+        "reader": "_write_declaration_work_evidence caller",
+        "disposition": "base_preserved_by_callee",
+        "reason": "shared declaration writer preserves existing declared-building-plan.json",
+    },
+    {
+        "path": "support/recording/adapter_error_frontier.py",
+        "reader": "_write_declaration_work_evidence caller",
+        "disposition": "base_preserved_by_callee",
+        "reason": "adapter-error re-entry writes through the idempotent shared declaration writer",
+    },
+    {
+        "path": "support/operator/walker_carry.py",
+        "reader": "_write_declaration_work_evidence caller",
+        "disposition": "base_preserved_by_callee",
+        "reason": "carry re-materialization writes through the idempotent shared declaration writer",
+    },
+    {
+        "path": "support/operator/run.py",
+        "reader": "chat-session parked resume declared plan read",
+        "disposition": "deferred_write_scope_forbidden",
+        "reason": "this Brick write_scope forbids support/operator/run.py mutation",
+    },
+    {
+        "path": "support/operator/reporter.py",
+        "reader": "_declared_plan_for_building/_declared_plan_packet",
+        "disposition": "deferred_output_contract",
+        "reason": "report packet output-contract change belongs to a later declared reader-fanout slice",
+    },
+    {
+        "path": "support/operator/onboard.py",
+        "reader": "summary declared_plan_copy read",
+        "disposition": "deferred_output_contract",
+        "reason": "onboard summary output-contract change belongs to a later declared reader-fanout slice",
+    },
+    {
+        "path": "support/operator/cli.py",
+        "reader": "summary declared_plan_copy read",
+        "disposition": "deferred_output_contract",
+        "reason": "CLI summary output-contract change belongs to a later declared reader-fanout slice",
+    },
+    {
+        "path": "support/operator/driver.py",
+        "reader": "portfolio declared plan path readers",
+        "disposition": "deferred_different_surface",
+        "reason": "driver reads caller-declared candidate plan files, not Building-root rev packets in this slice",
+    },
+    {
+        "path": "support/operator/native_dispatch.py",
+        "reader": "fixture/projection declared-plan comments",
+        "disposition": "deferred_no_active_reader_change",
+        "reason": "observed surface does not consume Building-root rev packets for S2 execution/projection",
+    },
+    {
+        "path": "support/operator/evidence_status.py",
+        "reader": "declared-building-plan marker list",
+        "disposition": "base_marker_preserved",
+        "reason": "status marker intentionally remains on the immutable base birth-certificate",
+    },
+)
+
 
 def _pure_declared_plan_copy(plan: Mapping[str, Any]) -> dict[str, Any]:
     """JSON-ready copy of the declared plan with runtime walker state stripped.
@@ -98,6 +193,16 @@ def _pure_declared_plan_copy(plan: Mapping[str, Any]) -> dict[str, Any]:
         for key, value in plan.items()
         if str(key) not in _DECLARED_PLAN_RUNTIME_KEYS
     }
+
+
+def declared_plan_revision_reader_disposition_rows() -> tuple[Mapping[str, str], ...]:
+    """Return D6 reader disposition evidence for the rev-packet landing slice.
+
+    The rows are support evidence only. They do not decide Movement, source truth,
+    success, quality, or whether a deferred reader must be adopted later.
+    """
+
+    return _DECLARED_PLAN_REVISION_READER_DISPOSITION_ROWS
 
 
 def _write_declaration_work_evidence(
@@ -161,9 +266,137 @@ def _write_declaration_work_evidence(
     }
     for filename, packet in packets.items():
         path = work_dir / filename
-        path.write_text(_canonical_json_text(packet), encoding="utf-8")
+        text = _canonical_json_text(packet)
+        if filename == "declared-building-plan.json" and path.exists():
+            existing = path.read_text(encoding="utf-8")
+            if existing == text:
+                written.append(path)
+                continue
+            # Re-materialization may re-enter an already-preserved Building root
+            # through adapter-error/carry surfaces. Preserve the original
+            # birth-certificate and let the caller record the new runtime evidence
+            # elsewhere; support must not clobber the base declaration.
+            written.append(path)
+            continue
+        else:
+            path.write_text(text, encoding="utf-8")
         written.append(path)
     return tuple(written)
+
+
+def write_declared_plan_revision(
+    root: Path | str,
+    expanded_plan: Mapping[str, Any],
+    expansion_metadata: Mapping[str, Any],
+    approval_evidence_ref: str,
+) -> Path:
+    """Append a declared-plan revision packet after author-time pre-verification.
+
+    Support records the already-approved expanded declaration as a new
+    ``work/declared-building-plan.rev-N.json`` file. It does not choose Movement,
+    select a target, or alter the base birth-certificate.
+    """
+
+    building_root = Path(root)
+    work_dir = building_root / "work"
+    base_packet = _load_declared_plan_packet(work_dir / "declared-building-plan.json")
+    previous_packet = latest_valid_declared_plan_packet(building_root)
+    previous_plan = _declared_plan_from_packet(previous_packet)
+    raw_expanded_plan = _json_ready(expanded_plan)
+    plan_copy = _pure_declared_plan_copy(expanded_plan)
+    expansion_fragment = _mapping_copy(expansion_metadata.get("expansion_fragment"))
+    if not expansion_fragment:
+        expansion_fragment = _expansion_fragment_from_metadata(expansion_metadata)
+    expansion_node_budgets = _positive_int_mapping(
+        "expansion_node_budgets",
+        expansion_metadata.get("expansion_node_budgets"),
+    )
+
+    _preverify_declared_plan_revision(
+        building_root=building_root,
+        base_plan=_declared_plan_from_packet(base_packet),
+        previous_plan=previous_plan,
+        expanded_plan=raw_expanded_plan,
+        expansion_metadata=expansion_metadata,
+        expansion_fragment=expansion_fragment,
+        expansion_node_budgets=expansion_node_budgets,
+        approval_evidence_ref=approval_evidence_ref,
+    )
+
+    canonical = _canonical_plan_hash_text(plan_copy)
+    packet = {
+        "kind": "declared_building_plan_provenance",
+        "building_id": _plan_text(plan_copy, "building_id") or str(base_packet.get("building_id") or ""),
+        "plan_ref": _plan_text(plan_copy, "plan_ref") or str(base_packet.get("plan_ref") or ""),
+        "plan_hash": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
+        "plan_hash_algorithm": "sha256",
+        "plan_hash_basis": (
+            "canonical sorted-key JSON of the pure declared-building-plan copy "
+            "(runtime walker state excluded)"
+        ),
+        "declared_plan_copy": plan_copy,
+        "extends_plan_hash": _required_text(
+            "expansion_metadata.extends_plan_hash",
+            expansion_metadata.get("extends_plan_hash"),
+        ),
+        "extends_plan_hash_algorithm": str(
+            expansion_metadata.get("extends_plan_hash_algorithm") or "sha256"
+        ),
+        "extends_plan_hash_basis": str(
+            expansion_metadata.get("extends_plan_hash_basis")
+            or "canonical sorted-key JSON of the pure declared-building-plan copy (runtime walker state excluded)"
+        ),
+        "expansion_fragment": expansion_fragment,
+        "expansion_node_budgets": expansion_node_budgets,
+        "approval_evidence_ref": approval_evidence_ref,
+        "proof_limits": list(_DECLARATION_PROOF_LIMITS),
+        "not_proven": [
+            "declared plan semantic correctness",
+            "future Agent or provider behavior",
+        ],
+    }
+    rev_path = work_dir / f"{_DECLARED_PLAN_REVISION_PREFIX}{_next_revision_number(work_dir)}{_DECLARED_PLAN_REVISION_SUFFIX}"
+    _write_exclusive_json_packet(rev_path, packet)
+    return rev_path
+
+
+def latest_valid_declared_plan(root: Path | str) -> Mapping[str, Any]:
+    """Return the latest declared plan whose revision chain verifies."""
+
+    return _declared_plan_from_packet(latest_valid_declared_plan_packet(Path(root)))
+
+
+def latest_valid_declared_plan_packet(root: Path | str) -> Mapping[str, Any]:
+    """Return the base or latest valid revision packet for a Building root.
+
+    A torn newest revision is treated as an incomplete append attempt: readers
+    retreat to the prior verified packet instead of hard-failing and dropping the
+    whole birth-certificate read path. Strict validation remains the checker's
+    job; this helper is the read-side "latest usable" surface.
+    """
+
+    work_dir = Path(root) / "work"
+    base_packet = _load_declared_plan_packet(work_dir / "declared-building-plan.json")
+    packets = [base_packet]
+    expected_parent_hash = str(base_packet.get("plan_hash") or "")
+    for rev_path in _revision_paths(work_dir):
+        try:
+            packet = _load_declared_plan_packet(rev_path)
+        except ValueError as exc:
+            _record_declared_plan_revision_hold(work_dir, rev_path, expected_parent_hash, str(exc))
+            continue
+        observed_parent_hash = str(packet.get("extends_plan_hash") or "")
+        if observed_parent_hash != expected_parent_hash:
+            _record_declared_plan_revision_hold(
+                work_dir,
+                rev_path,
+                expected_parent_hash,
+                "extends_plan_hash does not match the previous valid plan_hash",
+            )
+            continue
+        packets.append(packet)
+        expected_parent_hash = str(packet.get("plan_hash") or "")
+    return packets[-1]
 
 
 def _inline_task_statement(*plans: Mapping[str, Any] | None) -> str | None:
@@ -390,12 +623,7 @@ def _declared_building_plan_packet(
     # the pure declared copy so the stored hash is re-derivable from the recorded
     # declared_plan_copy.
     plan_copy = _pure_declared_plan_copy(plan)
-    canonical = json.dumps(
-        plan_copy,
-        ensure_ascii=False,
-        sort_keys=True,
-        separators=(",", ":"),
-    )
+    canonical = _canonical_plan_hash_text(plan_copy)
     return {
         "kind": "declared_building_plan_provenance",
         "building_id": building_id,
@@ -413,6 +641,236 @@ def _declared_building_plan_packet(
             "future Agent or provider behavior",
         ],
     }
+
+
+def _preverify_declared_plan_revision(
+    *,
+    building_root: Path,
+    base_plan: Mapping[str, Any],
+    previous_plan: Mapping[str, Any],
+    expanded_plan: Mapping[str, Any],
+    expansion_metadata: Mapping[str, Any],
+    expansion_fragment: Mapping[str, Any],
+    expansion_node_budgets: Mapping[str, int],
+    approval_evidence_ref: str,
+) -> None:
+    previous_hash = _declared_plan_hash(previous_plan)
+    extends_hash = _required_text(
+        "expansion_metadata.extends_plan_hash",
+        expansion_metadata.get("extends_plan_hash"),
+    )
+    if extends_hash != previous_hash:
+        raise ValueError(
+            "expansion_metadata.extends_plan_hash must match the current latest "
+            "declared plan hash"
+        )
+    if "expansion_node_budgets" in expanded_plan:
+        raise ValueError("expanded plan body must not carry expansion_node_budgets")
+    _verify_approval_record(building_root, approval_evidence_ref, expansion_metadata)
+    _verify_expansion_budget_available(base_plan, building_root)
+    _verify_add_only_revision(previous_plan, expanded_plan)
+    _verify_immutable_budget_fields(base_plan, previous_plan, expanded_plan)
+    _verify_expansion_node_budgets(
+        previous_plan,
+        expanded_plan,
+        expansion_node_budgets=expansion_node_budgets,
+    )
+    _verify_expansion_fragment_keys(expansion_fragment)
+
+
+def _verify_approval_record(
+    building_root: Path,
+    approval_evidence_ref: str,
+    expansion_metadata: Mapping[str, Any],
+) -> None:
+    ref = _required_text("approval_evidence_ref", approval_evidence_ref)
+    expected_hold_ref = _approval_hold_identity(expansion_metadata)
+    approval_path = building_root / "work" / "expansion-approvals.jsonl"
+    if not approval_path.is_file():
+        raise ValueError("work/expansion-approvals.jsonl approval evidence is required")
+    for index, line in enumerate(approval_path.read_text(encoding="utf-8").splitlines(), start=1):
+        if not line.strip():
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"{approval_path}:{index}: approval row is not valid JSON") from exc
+        if not isinstance(row, Mapping):
+            raise ValueError(f"{approval_path}:{index}: approval row is not a JSON object")
+        row_ref = _optional_text_or_none(row.get("approval_evidence_ref")) or _optional_text_or_none(
+            row.get("evidence_ref")
+        )
+        if row_ref != ref:
+            continue
+        gate_ref = _optional_text_or_none(row.get("gate_ref")) or _optional_text_or_none(
+            row.get("declared_gate_ref")
+        )
+        if gate_ref != _EXPANSION_APPROVAL_REF:
+            raise ValueError(
+                f"{approval_path}:{index}: approval row must carry gate_ref "
+                f"{_EXPANSION_APPROVAL_REF!r}"
+            )
+        hold_class = _optional_text_or_none(row.get("hold_class"))
+        if hold_class and hold_class not in _EXPANSION_APPROVAL_HOLD_WHITELIST:
+            raise ValueError(f"{approval_path}:{index}: hold_class {hold_class!r} is not whitelisted")
+        row_hold_ref = _approval_row_hold_identity(row)
+        if row_hold_ref != expected_hold_ref:
+            raise ValueError(
+                f"{approval_path}:{index}: approval row hold identity must echo "
+                "expansion_metadata.hold_paused_at_ref"
+            )
+        _verify_approval_not_consumed(building_root, ref)
+        return
+    raise ValueError(f"approval_evidence_ref {ref!r} was not found in work/expansion-approvals.jsonl")
+
+
+def _verify_approval_not_consumed(building_root: Path, approval_evidence_ref: str) -> None:
+    for packet in _valid_revision_chain_packets(building_root)[1:]:
+        prior_ref = _optional_text_or_none(packet.get("approval_evidence_ref"))
+        if prior_ref == approval_evidence_ref:
+            raise ValueError(
+                f"approval_evidence_ref {approval_evidence_ref!r} already authorized "
+                "a declared plan revision"
+            )
+
+
+def _approval_hold_identity(expansion_metadata: Mapping[str, Any]) -> str:
+    return _required_text(
+        "expansion_metadata.hold_paused_at_ref",
+        expansion_metadata.get("hold_paused_at_ref")
+        or expansion_metadata.get("paused_at_ref")
+        or expansion_metadata.get("resumed_from_ref"),
+    )
+
+
+def _approval_row_hold_identity(row: Mapping[str, Any]) -> str | None:
+    return (
+        _optional_text_or_none(row.get("hold_paused_at_ref"))
+        or _optional_text_or_none(row.get("paused_at_ref"))
+        or _optional_text_or_none(row.get("resumed_from_ref"))
+    )
+
+
+def _verify_expansion_budget_available(base_plan: Mapping[str, Any], building_root: Path) -> None:
+    budget = base_plan.get("expansion_budget", 0)
+    if not isinstance(budget, int) or budget <= 0:
+        raise ValueError("base declared plan expansion_budget must be a positive integer")
+    used = max(0, len(_valid_revision_chain_packets(building_root)) - 1)
+    if used >= budget:
+        raise ValueError("base declared plan expansion_budget is exhausted")
+
+
+def _verify_add_only_revision(
+    previous_plan: Mapping[str, Any],
+    expanded_plan: Mapping[str, Any],
+) -> None:
+    for key in ("brick_steps", "steps"):
+        if key in previous_plan or key in expanded_plan:
+            _verify_append_only_list(key, previous_plan.get(key), expanded_plan.get(key), "step_ref")
+    if "link_edges" in previous_plan or "link_edges" in expanded_plan:
+        _verify_append_only_list(
+            "link_edges",
+            previous_plan.get("link_edges"),
+            expanded_plan.get("link_edges"),
+            "edge_ref",
+        )
+    _verify_execution_order_append_only(previous_plan, expanded_plan)
+    _verify_groups_append_only(previous_plan, expanded_plan)
+
+
+def _verify_append_only_list(key: str, previous: Any, expanded: Any, ref_key: str) -> None:
+    previous_list = previous if isinstance(previous, list) else []
+    expanded_list = expanded if isinstance(expanded, list) else []
+    previous_by_ref = _mapping_list_by_ref(key, previous_list, ref_key)
+    expanded_by_ref = _mapping_list_by_ref(key, expanded_list, ref_key)
+    missing = sorted(set(previous_by_ref) - set(expanded_by_ref))
+    if missing:
+        raise ValueError(f"{key} revision deleted existing {ref_key}(s): " + ", ".join(missing))
+    changed = sorted(
+        ref
+        for ref, item in previous_by_ref.items()
+        if expanded_by_ref.get(ref) != item
+    )
+    if changed:
+        raise ValueError(f"{key} revision changed existing {ref_key}(s): " + ", ".join(changed))
+
+
+def _verify_execution_order_append_only(
+    previous_plan: Mapping[str, Any],
+    expanded_plan: Mapping[str, Any],
+) -> None:
+    previous = previous_plan.get("execution_order") or []
+    expanded = expanded_plan.get("execution_order") or []
+    if not isinstance(previous, list) or not isinstance(expanded, list):
+        raise ValueError("execution_order must be a list when present")
+    if expanded[: len(previous)] != previous:
+        raise ValueError("execution_order revision must append after the previous order")
+
+
+def _verify_groups_append_only(
+    previous_plan: Mapping[str, Any],
+    expanded_plan: Mapping[str, Any],
+) -> None:
+    previous_groups = previous_plan.get("groups") or []
+    expanded_groups = expanded_plan.get("groups") or []
+    if not isinstance(previous_groups, list) or not isinstance(expanded_groups, list):
+        raise ValueError("groups must be a list when present")
+    previous_by_id = _mapping_list_by_ref("groups", previous_groups, "group_id")
+    expanded_by_id = _mapping_list_by_ref("groups", expanded_groups, "group_id")
+    for group_id, previous_group in previous_by_id.items():
+        expanded_group = expanded_by_id.get(group_id)
+        if expanded_group is None:
+            raise ValueError(f"groups revision deleted existing group_id: {group_id}")
+        previous_members = previous_group.get("member_refs") or []
+        expanded_members = expanded_group.get("member_refs") or []
+        if not isinstance(previous_members, list) or not isinstance(expanded_members, list):
+            raise ValueError(f"groups[{group_id}].member_refs must be a list")
+        if expanded_members[: len(previous_members)] != previous_members:
+            raise ValueError(f"groups[{group_id}].member_refs must append without changing existing refs")
+        comparable_previous = dict(previous_group)
+        comparable_expanded = dict(expanded_group)
+        comparable_previous["member_refs"] = []
+        comparable_expanded["member_refs"] = []
+        if comparable_previous != comparable_expanded:
+            raise ValueError(f"groups revision changed existing group_id metadata: {group_id}")
+
+
+def _verify_immutable_budget_fields(
+    base_plan: Mapping[str, Any],
+    previous_plan: Mapping[str, Any],
+    expanded_plan: Mapping[str, Any],
+) -> None:
+    if "node_reroute_budgets" in expanded_plan:
+        raise ValueError("revision expanded plan must not carry node_reroute_budgets")
+    key = "expansion_budget"
+    if expanded_plan.get(key) != previous_plan.get(key):
+        raise ValueError(f"revision must not change existing {key}")
+    if previous_plan.get(key) != base_plan.get(key):
+        raise ValueError(f"prior revision already changed base {key}")
+
+
+def _verify_expansion_node_budgets(
+    previous_plan: Mapping[str, Any],
+    expanded_plan: Mapping[str, Any],
+    *,
+    expansion_node_budgets: Mapping[str, int],
+) -> None:
+    previous_refs = _plan_step_refs(previous_plan)
+    expanded_refs = _plan_step_refs(expanded_plan)
+    new_refs = expanded_refs - previous_refs
+    unknown = sorted(set(expansion_node_budgets) - new_refs)
+    if unknown:
+        raise ValueError("expansion_node_budgets must reference only new step_ref values: " + ", ".join(unknown))
+    missing = sorted(new_refs - set(expansion_node_budgets))
+    if missing:
+        raise ValueError("expansion_node_budgets must cover every new step_ref: " + ", ".join(missing))
+
+
+def _verify_expansion_fragment_keys(expansion_fragment: Mapping[str, Any]) -> None:
+    allowed = {"brick_steps", "link_edges", "execution_order", "groups", "expansion_node_budgets"}
+    unknown = sorted(str(key) for key in expansion_fragment if str(key) not in allowed)
+    if unknown:
+        raise ValueError("expansion_fragment contains unknown key(s): " + ", ".join(unknown))
 
 
 def _link_launch_policy_packet(
@@ -909,6 +1367,186 @@ def _step_rows(step: Mapping[str, Any]) -> tuple[Mapping[str, Any], ...]:
 
 def _mapping_copy(value: Any) -> dict[str, Any]:
     return _json_ready(value) if isinstance(value, Mapping) else {}
+
+
+def _declared_plan_hash(plan: Mapping[str, Any]) -> str:
+    return hashlib.sha256(_canonical_plan_hash_text(_pure_declared_plan_copy(plan)).encode("utf-8")).hexdigest()
+
+
+def _canonical_plan_hash_text(plan_copy: Mapping[str, Any]) -> str:
+    return json.dumps(
+        _json_ready(plan_copy),
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def _load_declared_plan_packet(path: Path) -> Mapping[str, Any]:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except OSError as exc:
+        raise ValueError(f"{path}: declared plan packet is not readable") from exc
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"{path}: declared plan packet is not valid JSON") from exc
+    if not isinstance(value, Mapping):
+        raise ValueError(f"{path}: declared plan packet is not a JSON object")
+    if value.get("kind") != "declared_building_plan_provenance":
+        raise ValueError(f"{path}: declared plan packet kind is not declared_building_plan_provenance")
+    _validate_packet_plan_hash(path, value)
+    return value
+
+
+def _declared_plan_from_packet(packet: Mapping[str, Any]) -> Mapping[str, Any]:
+    plan = packet.get("declared_plan_copy")
+    if not isinstance(plan, Mapping):
+        raise ValueError("declared plan packet declared_plan_copy is not a JSON object")
+    return plan
+
+
+def _validate_packet_plan_hash(path: Path, packet: Mapping[str, Any]) -> None:
+    plan = packet.get("declared_plan_copy")
+    if not isinstance(plan, Mapping):
+        raise ValueError(f"{path}: declared_plan_copy is not a JSON object")
+    expected = str(packet.get("plan_hash") or "")
+    observed = _declared_plan_hash(plan)
+    if not expected:
+        raise ValueError(f"{path}: plan_hash is missing")
+    if expected != observed:
+        raise ValueError(f"{path}: plan_hash does not match declared_plan_copy")
+
+
+def _revision_paths(work_dir: Path) -> tuple[Path, ...]:
+    paths: list[tuple[int, Path]] = []
+    for path in work_dir.glob(f"{_DECLARED_PLAN_REVISION_PREFIX}*{_DECLARED_PLAN_REVISION_SUFFIX}"):
+        number = _revision_number(path)
+        if number is not None:
+            paths.append((number, path))
+    return tuple(path for _number, path in sorted(paths))
+
+
+def _valid_revision_chain_packets(root: Path | str) -> tuple[Mapping[str, Any], ...]:
+    work_dir = Path(root) / "work"
+    base_packet = _load_declared_plan_packet(work_dir / "declared-building-plan.json")
+    packets: list[Mapping[str, Any]] = [base_packet]
+    expected_parent_hash = str(base_packet.get("plan_hash") or "")
+    for rev_path in _revision_paths(work_dir):
+        try:
+            packet = _load_declared_plan_packet(rev_path)
+        except ValueError:
+            continue
+        if str(packet.get("extends_plan_hash") or "") != expected_parent_hash:
+            continue
+        packets.append(packet)
+        expected_parent_hash = str(packet.get("plan_hash") or "")
+    return tuple(packets)
+
+
+def _record_declared_plan_revision_hold(
+    work_dir: Path,
+    rev_path: Path,
+    expected_parent_hash: str,
+    reason: str,
+) -> None:
+    hold_path = work_dir / _DECLARED_PLAN_REVISION_HOLDS
+    record = {
+        "kind": "declared_plan_revision_hold",
+        "state": "paused",
+        "progress_state": "in_progress",
+        "revision_path": rev_path.relative_to(work_dir).as_posix(),
+        "retreated_to_parent_plan_hash": expected_parent_hash,
+        "reason": reason,
+        "proof_limits": list(_DECLARATION_PROOF_LIMITS),
+    }
+    text = _canonical_json_text(record)
+    if hold_path.exists():
+        existing = hold_path.read_text(encoding="utf-8").splitlines()
+        if text in existing:
+            return
+    with hold_path.open("a", encoding="utf-8") as handle:
+        handle.write(text + "\n")
+
+
+def _revision_number(path: Path) -> int | None:
+    name = path.name
+    if not name.startswith(_DECLARED_PLAN_REVISION_PREFIX) or not name.endswith(
+        _DECLARED_PLAN_REVISION_SUFFIX
+    ):
+        return None
+    raw = name[len(_DECLARED_PLAN_REVISION_PREFIX) : -len(_DECLARED_PLAN_REVISION_SUFFIX)]
+    if not raw.isdigit():
+        return None
+    number = int(raw)
+    return number if number >= 1 else None
+
+
+def _next_revision_number(work_dir: Path) -> int:
+    revisions = [_revision_number(path) for path in _revision_paths(work_dir)]
+    numbers = [number for number in revisions if number is not None]
+    return (max(numbers) + 1) if numbers else 1
+
+
+def _write_exclusive_json_packet(path: Path, packet: Mapping[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + f".tmp-{os.getpid()}")
+    tmp.write_text(_canonical_json_text(packet), encoding="utf-8")
+    try:
+        os.link(tmp, path)
+    except FileExistsError as exc:
+        raise ValueError(f"{path}: declared plan revision already exists") from exc
+    finally:
+        try:
+            tmp.unlink()
+        except FileNotFoundError:
+            pass
+
+
+def _required_text(name: str, value: Any) -> str:
+    text = _optional_text_or_none(value)
+    if not text:
+        raise ValueError(f"{name} must be a non-empty string")
+    return text
+
+
+def _positive_int_mapping(name: str, value: Any) -> dict[str, int]:
+    if not isinstance(value, Mapping):
+        raise ValueError(f"{name} must be a mapping")
+    result: dict[str, int] = {}
+    for key, item in value.items():
+        if not isinstance(key, str) or not key:
+            raise ValueError(f"{name} keys must be non-empty strings")
+        if not isinstance(item, int) or item <= 0:
+            raise ValueError(f"{name}.{key} must be a positive integer")
+        result[key] = item
+    return result
+
+
+def _expansion_fragment_from_metadata(expansion_metadata: Mapping[str, Any]) -> dict[str, Any]:
+    fragment = expansion_metadata.get("expansion_fragment")
+    return _mapping_copy(fragment)
+
+
+def _mapping_list_by_ref(name: str, values: Any, ref_key: str) -> dict[str, Mapping[str, Any]]:
+    if not isinstance(values, list):
+        raise ValueError(f"{name} must be a list when present")
+    result: dict[str, Mapping[str, Any]] = {}
+    for index, item in enumerate(values):
+        if not isinstance(item, Mapping):
+            raise ValueError(f"{name}[{index}] must be a JSON object")
+        ref = _required_text(f"{name}[{index}].{ref_key}", item.get(ref_key))
+        if ref in result:
+            raise ValueError(f"{name} contains duplicate {ref_key}: {ref}")
+        result[ref] = _json_ready(item)
+    return result
+
+
+def _plan_step_refs(plan: Mapping[str, Any]) -> set[str]:
+    refs: set[str] = set()
+    for step in _plan_step_mappings(plan):
+        step_ref = _optional_text_or_none(step.get("step_ref"))
+        if step_ref:
+            refs.add(step_ref)
+    return refs
 
 
 def _unique_texts(*values: Any) -> tuple[str, ...]:

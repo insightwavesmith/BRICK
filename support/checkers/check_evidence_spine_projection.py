@@ -109,8 +109,11 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import tempfile
 from collections import Counter
+from collections.abc import Mapping
 from pathlib import Path
+from typing import Any
 
 # stdlib-only path bootstrap so the canonical command
 # `PYTHONPATH=support/import_identity python3 ...` (no repo-root on PYTHONPATH)
@@ -177,6 +180,12 @@ from brick_protocol.support.recording.spine_projection import (
     _declared_plan_steps,
     _declared_step_refs,
 )
+from support.recording.declaration_packets import (
+    _canonical_json_text,
+    _declared_building_plan_packet,
+    _declared_plan_hash,
+    write_declared_plan_revision,
+)
 
 
 PROJECT_ROOT = "project"
@@ -228,6 +237,103 @@ PER_STEP_STEP_REF_KEYED_TYPES = (
     "AgentReturn",
 )
 PER_STEP_SOURCE_REF_KEYED_TYPES = ("BrickCompared",)
+
+
+def _revision_fixture_base_plan() -> dict[str, Any]:
+    return {
+        "building_id": "rev-spine-fixture",
+        "plan_ref": "rev-spine-fixture-plan",
+        "plan_shape": "graph",
+        "expansion_budget": 1,
+        "brick_steps": [{"step_ref": "brick-a", "rows": [{"axis": "Brick", "row_ref": "brick-row:a"}]}],
+        "link_edges": [],
+        "execution_order": ["brick-a"],
+        "groups": [],
+    }
+
+
+def _revision_fixture_expanded_plan() -> dict[str, Any]:
+    plan = json.loads(json.dumps(_revision_fixture_base_plan()))
+    plan["brick_steps"].append(
+        {"step_ref": "brick-b", "rows": [{"axis": "Brick", "row_ref": "brick-row:b"}]}
+    )
+    plan["link_edges"].append(
+        {
+            "edge_ref": "edge-a-b",
+            "source_step_ref": "brick-a",
+            "target_step_ref": "brick-b",
+            "rows": [{"axis": "Link", "row_ref": "link-row:a-b"}],
+        }
+    )
+    plan["execution_order"].append("brick-b")
+    return plan
+
+
+def _revision_fixture_metadata(parent_plan: Mapping[str, Any]) -> dict[str, Any]:
+    return {
+        "extends_plan_hash": _declared_plan_hash(parent_plan),
+        "extends_plan_hash_algorithm": "sha256",
+        "extends_plan_hash_basis": (
+            "canonical sorted-key JSON of the pure declared-building-plan copy "
+            "(runtime walker state excluded)"
+        ),
+        "expansion_fragment": {
+            "brick_steps": [{"step_ref": "brick-b", "rows": [{"axis": "Brick", "row_ref": "brick-row:b"}]}],
+            "link_edges": [
+                {
+                    "edge_ref": "edge-a-b",
+                    "source_step_ref": "brick-a",
+                    "target_step_ref": "brick-b",
+                    "rows": [{"axis": "Link", "row_ref": "link-row:a-b"}],
+                }
+            ],
+            "execution_order": ["brick-b"],
+            "groups": [],
+            "expansion_node_budgets": {"brick-b": 1},
+        },
+        "expansion_node_budgets": {"brick-b": 1},
+        "hold_paused_at_ref": "hold:rev-spine-fixture",
+    }
+
+
+def _revision_reader_fixture_violations() -> list[str]:
+    """Persist a rev-bearing Building fixture and verify checker/projector parity reads it."""
+
+    violations: list[str] = []
+    with tempfile.TemporaryDirectory(prefix="spine-rev-reader-") as raw:
+        root = Path(raw) / "project" / "brick-protocol" / "buildings" / "rev-spine-fixture"
+        work = root / "work"
+        work.mkdir(parents=True, exist_ok=True)
+        base_plan = _revision_fixture_base_plan()
+        base_packet = _declared_building_plan_packet(
+            building_id="rev-spine-fixture",
+            plan_ref="rev-spine-fixture-plan",
+            plan=base_plan,
+        )
+        (work / "declared-building-plan.json").write_text(
+            _canonical_json_text(base_packet),
+            encoding="utf-8",
+        )
+        approval = {
+            "approval_evidence_ref": "approval:rev-spine-fixture",
+            "gate_ref": "link-gate:expansion-approval",
+            "hold_class": "human_or_coo_gate_pause",
+            "hold_paused_at_ref": "hold:rev-spine-fixture",
+        }
+        (work / "expansion-approvals.jsonl").write_text(json.dumps(approval) + "\n", encoding="utf-8")
+        write_declared_plan_revision(
+            root,
+            _revision_fixture_expanded_plan(),
+            _revision_fixture_metadata(base_plan),
+            "approval:rev-spine-fixture",
+        )
+        declared_step_refs = _declared_plan_step_refs(root, violations)
+        if declared_step_refs is not None and "brick-b" not in declared_step_refs:
+            violations.append(
+                "revision reader fixture did not expose rev-introduced step_ref brick-b "
+                "to the evidence-spine ORPHAN-SKIP guard"
+            )
+    return violations
 
 # req-e: the six PER-STEP LINK spine event types. Every Link spine event carries the
 # SOURCE claim_trace fact's ``fact_ref`` in its ``source_fact_ref`` field; req-e
@@ -2090,6 +2196,7 @@ def main(argv: list[str] | None = None) -> int:
             if not repo.is_dir():
                 raise FileNotFoundError(f"--repo must be a directory: {repo}")
             violations, inspected = find_violations(repo)
+        violations.extend(_revision_reader_fixture_violations())
     except OSError as exc:
         print(f"evidence spine projection rejected: {exc}", file=sys.stderr)
         print(PROOF_LIMIT, file=sys.stderr)

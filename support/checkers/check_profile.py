@@ -926,6 +926,10 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "evidence_spine_projection",
         "support.checkers.check_evidence_spine_projection",
     ),
+    "plan_revision_chain": _repo_main(
+        "plan_revision_chain",
+        "support.checkers.check_plan_revision_chain",
+    ),
     # TREASURE PORT 1 (ACTIVE-SPEC-SPINE disciplines, concept-lifted from
     # d5bc86e:support/checkers/check_doc_grounding.py). Executes the
     # pin-estate checker IN-PROCESS: (a) rejects decorative history-doc pins

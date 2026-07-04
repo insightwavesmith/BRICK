@@ -53,7 +53,10 @@ from brick_protocol.support.recording.capture import (
     graph_ready_json_object,
     graph_ready_timestamp,
 )
-from brick_protocol.support.recording.declaration_packets import _plan_snapshot
+from brick_protocol.support.recording.declaration_packets import (
+    _plan_snapshot,
+    latest_valid_declared_plan,
+)
 from brick_protocol.support.recording.walker_evidence import build_resume_observation
 from brick_protocol.support.operator.walker_hold import (
     _hold_paused_at_ref,
@@ -934,16 +937,10 @@ def _declared_graph_plan_from_birth_certificate(root: Path) -> Mapping[str, Any]
     than resume from the linearized snapshot (which would drop the fan topology).
     """
 
-    declared = root / "work" / "declared-building-plan.json"
-    if not declared.is_file():
-        return None
     try:
-        packet = json.loads(declared.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
+        declared_plan = latest_valid_declared_plan(root)
+    except ValueError:
         return None
-    if not isinstance(packet, Mapping):
-        return None
-    declared_plan = packet.get("declared_plan_copy")
     if not isinstance(declared_plan, Mapping):
         return None
     if _optional_text_from_mapping(declared_plan, "plan_shape") != "graph":

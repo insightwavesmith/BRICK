@@ -117,6 +117,7 @@ from brick_protocol.link.transition import DISPOSITION_ACTIONS
 # facts. Importing the primitive means the projector's join and the emitter's fact_ref
 # construction agree by construction.
 from brick_protocol.support.operator.primitives import _resource_slug
+from brick_protocol.support.recording.declaration_packets import latest_valid_declared_plan_packet
 
 # Packet file names + their declared ``kind`` (single-sourced from the Builder's
 # declaration_packets.py packet builders). The projector only projects a packet
@@ -1099,10 +1100,7 @@ def _executed_step_outputs(building_root: Path) -> list[dict[str, Any]]:
 
 
 def _declared_plan_steps(building_root: Path) -> list[Any]:
-    packet = _load_packet(
-        _packet_path(building_root, _DECLARED_BUILDING_PLAN_PACKET),
-        _DECLARED_BUILDING_PLAN_KIND,
-    )
+    packet = _latest_declared_plan_packet(building_root)
     declared_plan = packet.get("declared_plan_copy")
     if not isinstance(declared_plan, dict):
         raise SpineProjectionError(
@@ -1124,6 +1122,16 @@ def _declared_plan_steps(building_root: Path) -> list[Any]:
     return steps
 
 
+def _latest_declared_plan_packet(building_root: Path) -> dict[str, Any]:
+    try:
+        packet = latest_valid_declared_plan_packet(building_root)
+    except ValueError as exc:
+        raise SpineProjectionError(f"{building_root}: latest declared plan packet is invalid: {exc}") from exc
+    if not isinstance(packet, dict):
+        raise SpineProjectionError(f"{building_root}: latest declared plan packet is not a JSON object")
+    return packet
+
+
 def _declared_link_edges(building_root: Path) -> list[Any]:
     """The declared graph ``link_edges`` (``declared_plan_copy.link_edges``) or [].
 
@@ -1137,10 +1145,7 @@ def _declared_link_edges(building_root: Path) -> list[Any]:
     list link_edges (a torn declaration) — fail closed.
     """
 
-    packet = _load_packet(
-        _packet_path(building_root, _DECLARED_BUILDING_PLAN_PACKET),
-        _DECLARED_BUILDING_PLAN_KIND,
-    )
+    packet = _latest_declared_plan_packet(building_root)
     declared_plan = packet.get("declared_plan_copy")
     if not isinstance(declared_plan, dict):
         raise SpineProjectionError(
@@ -1175,10 +1180,7 @@ def _declared_execution_order(building_root: Path) -> list[str] | None:
     a torn declaration rather than silently recording the wrong sequence.
     """
 
-    packet = _load_packet(
-        _packet_path(building_root, _DECLARED_BUILDING_PLAN_PACKET),
-        _DECLARED_BUILDING_PLAN_KIND,
-    )
+    packet = _latest_declared_plan_packet(building_root)
     declared_plan = packet.get("declared_plan_copy")
     if not isinstance(declared_plan, dict):
         raise SpineProjectionError(

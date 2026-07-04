@@ -25,6 +25,7 @@ kernel_checks:
   - fan_out_sibling_evidence_independence
   - evidence_spine
   - evidence_spine_projection
+  - plan_revision_chain
 path_exists:
   - AGENTS.md
   - support/checkers/check_profile.py
@@ -51,6 +52,7 @@ path_exists:
   - support/checkers/check_fan_out_sibling_evidence_independence.py
   - support/checkers/check_evidence_spine.py
   - support/checkers/check_evidence_spine_projection.py
+  - support/checkers/check_plan_revision_chain.py
   - support/checkers/crossing_registry.yaml
   - support/checkers/module_registry.yaml
 path_absent:
