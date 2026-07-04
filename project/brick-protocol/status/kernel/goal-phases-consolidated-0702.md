@@ -160,9 +160,14 @@ ref 독 → rc=1 → 복원 green·오염 0)·격리 --all rc=0. **QA 정직 발
 텍스트 변이는 loop0 프로파일 무감(프로브 A rc=0, non-binding verification_gap) — 소비
 실증은 프로브 B(게이트 ref RED)로 성립, 텍스트 감지 재검증은 3단계 계약이 보유.
 
-**§4-2 3단계 걷는 중(0704 오전, fgh-stage3-caserunners-0704a)** — case_runners 로컬 헬퍼
-5개 전환. 계약이 loop0과 반대 방향 falsy 의미론(None-only, 빈 리스트 보존)·고정 close
-reason·adapter:local 상시 방출·_axis_row/_brick_ref_by_step 무접촉을 assert로 봉인.
+**§4-2 3단계 ✅ 랜딩(0704 오전, f5d92a0c) — 소비 전환(스펙 commit 1~3) 완주.** case_runners
+로컬 헬퍼 5개 thin alias 전환(+37/-59 단일 파일, 1라운드 완주). COO 게이트 손 재현: 등가
+프로브 11종 rc=0(None-only 빈-게이트 보존·고정 close reason·adapter:local 상시 방출·
+loop0-의미론 누출 없음 assert)·양 포커스 프로파일 green·변이-RED(driver0 rc=1→복원)·격리
+--all rc=0. **실측 확정: proof-limit 텍스트 변이는 양 소비자 어느 표면에서도 무감**(스펙
+probe-point 기대 반증) — 백로그 소형 후보 'proof-limit 텍스트 핀' 등재. 다음: §4-2 본대
+(case_runners 108 def 패밀리 분해 — splitmap 발주 후보) / 스펙 4단계(plan envelope)는
+'프로브·프로파일 후 고려' 조항 유지. Smith 큐 항목 1 전량 이행.
 
 ## 새벽 골 마감 (0704 05:0x) — Smith 기상 대기 큐
 
