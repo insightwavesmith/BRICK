@@ -10,7 +10,7 @@ from __future__ import annotations
 import copy
 import json
 from collections import Counter, defaultdict
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -216,6 +216,26 @@ class ComposedGraph:
         if self.task_statement:
             args["task_statement"] = self.task_statement
         return args
+
+
+@dataclass(frozen=True)
+class ExpandedGraphFragment:
+    expansion_fragment: Mapping[str, Any]
+    expanded_plan: Mapping[str, Any]
+    expansion_metadata: Mapping[str, Any]
+    dry_run_results: tuple[Mapping[str, Any], ...]
+    human_summary: str
+    proof_limits: tuple[str, ...]
+
+    def as_revision_candidate(self) -> Mapping[str, Any]:
+        return {
+            "expansion_fragment": copy.deepcopy(self.expansion_fragment),
+            "expanded_plan": copy.deepcopy(self.expanded_plan),
+            "expansion_metadata": copy.deepcopy(self.expansion_metadata),
+            "dry_run_results": [dict(item) for item in self.dry_run_results],
+            "human_summary": self.human_summary,
+            "proof_limits": list(self.proof_limits),
+        }
 
 
 # The ``brick()`` authoring verb moved to the BRICK axis (brick/spec.py) and the
@@ -880,6 +900,126 @@ def assemble(
     )
 
 
+def expand(
+    building_ref: str,
+    items: Sequence[Any] | GraphSpec,
+    *,
+    parent_plan: Mapping[str, Any],
+    completed_frontier: Iterable[str] = (),
+    declared_by: str,
+    authority: Authority = Authority.CALLER,
+    adapter: str = "local",
+    model: str = "default",
+    gates: Sequence[Gate | str] = (),
+    adoption: Adoption | str = Adoption.BINDING,
+    shape: str | None = None,
+    repo_root: Path | str = REPO_ROOT,
+    write_scope: Mapping[str, Any] | None = None,
+    expansion_node_budgets: Mapping[str, Any] | None = None,
+    attach_to_step_ref: str | None = None,
+) -> ExpandedGraphFragment:
+    """Author an append-only expansion fragment with the build()/fan() language.
+
+    This is a writer-side convenience over the existing graph materializer and
+    ``plan_expansion`` reader. It returns a JSON-ready revision candidate; it
+    does not persist, approve, walk, choose Movement, or judge quality/success.
+    """
+
+    from brick_protocol.support.operator.plan_expansion import (  # noqa: PLC0415
+        assemble_expanded_graph_plan,
+    )
+
+    graph = items if isinstance(items, GraphSpec) else build(items)
+    if not isinstance(parent_plan, Mapping):
+        raise TypeError("expand() parent_plan must be a mapping")
+    fragment_ref = _non_empty_text("building_ref", building_ref)
+    fragment_building_id = f"{_composition_slug(fragment_ref)}-expansion"
+    repo = Path(repo_root).resolve()
+    registry = _load_shape_registry(repo)
+    declared_by_text = _declared_by(declared_by, authority)
+    selected_adapter_ref = _prefixed_ref("adapter", adapter)
+    selected_model_ref = _prefixed_ref("model", model)
+    selected_shape_ref = _prefixed_ref("building-shape", shape) if shape else ""
+    concern_adoption = _adoption_value(adoption)
+
+    lowered_nodes, lowered_edges, lowered_groups = _lower_graph(
+        graph,
+        building_id=fragment_building_id,
+        declared_by=declared_by_text,
+        selected_adapter_ref=selected_adapter_ref,
+        repo=repo,
+        registry=registry,
+        gates=gates,
+        write_scope=write_scope,
+    )
+    graph_nodes = _unique_nodes((*graph.nodes, graph.terminal) if graph.terminal else graph.nodes)
+    _raise_task_order_preflight_violations(
+        nodes_from_assembly_specs(
+            graph_nodes,
+            repo=repo,
+            registry=registry,
+            write_scope=write_scope,
+        )
+    )
+    _validate_interim_fan_in_contract(lowered_nodes, lowered_edges, lowered_groups)
+    budgets = _expansion_node_budgets(
+        lowered_nodes,
+        expansion_node_budgets=expansion_node_budgets,
+    )
+
+    composed = compose_building(
+        lowered_nodes,
+        lowered_edges,
+        groups=lowered_groups,
+        selected_shape_ref=selected_shape_ref,
+        declared_by=declared_by_text,
+        chain_preset_ref="",
+        building_id=fragment_building_id,
+        selected_adapter_ref=selected_adapter_ref,
+        selected_model_ref=selected_model_ref,
+        transition_concern_adoption=concern_adoption,
+        expansion_node_budgets=budgets,
+        repo_root=repo,
+    )
+    frontier_tuple = tuple(str(ref) for ref in completed_frontier)
+    parent_source_step_ref = _optional_text(attach_to_step_ref)
+    if parent_source_step_ref is None and len(frontier_tuple) == 1:
+        parent_source_step_ref = frontier_tuple[0]
+    fragment = _expansion_fragment_from_plan(composed, budgets)
+    if parent_source_step_ref is not None:
+        fragment = _attach_parent_to_expansion_roots(fragment, parent_source_step_ref)
+    schema_prepared = assemble_expanded_graph_plan(parent_plan, fragment, frontier_tuple)
+    expanded_plan = schema_prepared["expanded_plan"]
+    metadata = schema_prepared["expansion_metadata"]
+    dry_run_results = (
+        {
+            "stage": "schema_fragment_compatibility",
+            "ok": True,
+            "observation": "assemble_expanded_graph_plan accepted the materialized fragment",
+        },
+        _append_only_parent_observation(parent_plan, expanded_plan, metadata),
+        _write_scope_inheritance_observation(fragment),
+        {
+            "stage": "gate_required_observation",
+            "ok": True,
+            "ungated_write_node_warnings": [
+                dict(item) for item in _ungated_write_node_warnings(lowered_nodes, lowered_edges)
+            ],
+        },
+    )
+    return ExpandedGraphFragment(
+        expansion_fragment=fragment,
+        expanded_plan=expanded_plan,
+        expansion_metadata=metadata,
+        dry_run_results=dry_run_results,
+        human_summary=_expansion_summary(fragment, dry_run_results),
+        proof_limits=(
+            "expand() is support authoring and dry-run observation only",
+            "not a walker, recorder, approval, source truth, success judgment, quality judgment, Movement authority, or route selector",
+        ),
+    )
+
+
 def fire(
     graph: GraphSpec | ComposedGraph,
     *,
@@ -981,6 +1121,188 @@ def persist_proposed_building_graph(
         encoding="utf-8",
     )
     return proposal_path
+
+
+def _expansion_node_budgets(
+    nodes: Sequence[Mapping[str, Any]],
+    *,
+    expansion_node_budgets: Mapping[str, Any] | None,
+) -> Mapping[str, int]:
+    node_ids = [str(node.get("node_id") or "").strip() for node in nodes]
+    node_ids = [node_id for node_id in node_ids if node_id]
+    if expansion_node_budgets is None:
+        return {node_id: 1 for node_id in node_ids}
+    if not isinstance(expansion_node_budgets, Mapping):
+        raise ValueError("expansion_node_budgets must be a mapping")
+    unknown = sorted(str(key) for key in expansion_node_budgets if str(key) not in set(node_ids))
+    if unknown:
+        raise ValueError("expansion_node_budgets keys must reference materialized expansion node ids: " + ", ".join(unknown))
+    budgets: dict[str, int] = {}
+    for node_id in node_ids:
+        raw = expansion_node_budgets.get(node_id, 1)
+        budgets[node_id] = require_positive_int(
+            raw,
+            f"expansion_node_budgets.{node_id}",
+            allow_decimal_text=False,
+        )
+    return budgets
+
+
+def _expansion_fragment_from_plan(
+    composed_plan: Mapping[str, Any],
+    budgets: Mapping[str, int],
+) -> Mapping[str, Any]:
+    return {
+        "brick_steps": _json_ready_list(composed_plan.get("brick_steps") or []),
+        "link_edges": _json_ready_list(composed_plan.get("link_edges") or []),
+        "execution_order": [str(ref) for ref in composed_plan.get("execution_order") or []],
+        "groups": _json_ready_list(composed_plan.get("groups") or []),
+        "expansion_node_budgets": dict(budgets),
+    }
+
+
+def _attach_parent_to_expansion_roots(
+    fragment: Mapping[str, Any],
+    parent_source_step_ref: str,
+) -> Mapping[str, Any]:
+    source_ref = _non_empty_text("attach_to_step_ref", parent_source_step_ref)
+    patched = {
+        "brick_steps": _json_ready_list(fragment.get("brick_steps") or []),
+        "link_edges": _json_ready_list(fragment.get("link_edges") or []),
+        "execution_order": [str(ref) for ref in fragment.get("execution_order") or []],
+        "groups": _json_ready_list(fragment.get("groups") or []),
+        "expansion_node_budgets": dict(fragment.get("expansion_node_budgets") or {}),
+    }
+    step_refs = {
+        str(step.get("step_ref") or "").strip()
+        for step in patched["brick_steps"]
+        if isinstance(step, Mapping) and str(step.get("step_ref") or "").strip()
+    }
+    targeted = {
+        str(edge.get("target_step_ref") or "").strip()
+        for edge in patched["link_edges"]
+        if isinstance(edge, Mapping) and str(edge.get("target_step_ref") or "").strip() in step_refs
+    }
+    roots = sorted(step_refs - targeted)
+    if not roots:
+        raise ValueError("expand() could not identify an expansion root for parent attachment")
+    brick_ref_by_step = {
+        str(step.get("step_ref") or "").strip(): _brick_instance_ref_from_step(step)
+        for step in patched["brick_steps"]
+        if isinstance(step, Mapping)
+    }
+    existing_edge_refs = {
+        str(edge.get("edge_ref") or "").strip()
+        for edge in patched["link_edges"]
+        if isinstance(edge, Mapping)
+    }
+    parent_edges: list[Mapping[str, Any]] = []
+    for root in roots:
+        edge_ref = _unique_parent_expansion_edge_ref(source_ref, root, existing_edge_refs)
+        existing_edge_refs.add(edge_ref)
+        parent_edges.append(
+            {
+                "edge_ref": edge_ref,
+                "source_step_ref": source_ref,
+                "target_step_ref": root,
+                "rows": [
+                    {
+                        "axis": "Link",
+                        "declared_gate_refs": [DEFAULT_LINK_GATE_REF],
+                        "movement": "forward",
+                        "row_ref": f"link-row:{edge_ref}",
+                        "target_ref": brick_ref_by_step[root],
+                    }
+                ],
+            }
+        )
+    patched["link_edges"] = parent_edges + patched["link_edges"]
+    return patched
+
+
+def _brick_instance_ref_from_step(step: Mapping[str, Any]) -> str:
+    for row in step.get("rows") or []:
+        if isinstance(row, Mapping) and row.get("axis") == "Brick":
+            ref = str(row.get("brick_instance_ref") or "").strip()
+            if ref:
+                return ref
+    step_ref = str(step.get("step_ref") or "").strip()
+    if not step_ref:
+        raise ValueError("expansion step missing step_ref")
+    return f"brick-{step_ref}"
+
+
+def _unique_parent_expansion_edge_ref(source_ref: str, target_ref: str, existing: set[str]) -> str:
+    base = f"edge:{source_ref}-to-{target_ref}"
+    if base not in existing:
+        return base
+    index = 2
+    while f"{base}-{index}" in existing:
+        index += 1
+    return f"{base}-{index}"
+
+
+def _append_only_parent_observation(
+    parent_plan: Mapping[str, Any],
+    expanded_plan: Mapping[str, Any],
+    metadata: Mapping[str, Any],
+) -> Mapping[str, Any]:
+    for key in ("brick_steps", "link_edges", "execution_order", "groups"):
+        parent_rows = list(parent_plan.get(key) or [])
+        expanded_rows = list(expanded_plan.get(key) or [])
+        if expanded_rows[: len(parent_rows)] != parent_rows:
+            raise ValueError(f"expand() append-only dry-run failed for {key}")
+    if "expansion_node_budgets" in expanded_plan:
+        raise ValueError("expand() expanded plan body must not carry expansion_node_budgets")
+    if not str(metadata.get("extends_plan_hash") or "").strip():
+        raise ValueError("expand() metadata missing extends_plan_hash")
+    return {
+        "stage": "parent_plan_append_only",
+        "ok": True,
+        "extends_plan_hash": metadata.get("extends_plan_hash"),
+        "observation": "expanded plan preserves parent rows as list prefixes and keeps budgets in metadata",
+    }
+
+
+def _write_scope_inheritance_observation(fragment: Mapping[str, Any]) -> Mapping[str, Any]:
+    checked = 0
+    for step in fragment.get("brick_steps") or []:
+        if not isinstance(step, Mapping):
+            continue
+        for row in step.get("rows") or []:
+            if not isinstance(row, Mapping) or row.get("axis") != "Brick":
+                continue
+            has_scope = isinstance(row.get("write_scope"), Mapping)
+            requires_scope = row.get("requires_brick_write_scope") is True
+            if has_scope != requires_scope:
+                step_ref = str(step.get("step_ref") or "<unknown>")
+                raise ValueError(f"expand() write_scope dry-run failed for {step_ref}")
+            if requires_scope:
+                checked += 1
+    return {
+        "stage": "write_scope_inheritance",
+        "ok": True,
+        "checked_write_nodes": checked,
+        "observation": "Brick rows carrying write_scope also carry requires_brick_write_scope, and read rows carry neither",
+    }
+
+
+def _expansion_summary(
+    fragment: Mapping[str, Any],
+    dry_run_results: Sequence[Mapping[str, Any]],
+) -> str:
+    stages = ", ".join(str(item.get("stage") or "") for item in dry_run_results)
+    return (
+        f"Expansion fragment: {len(fragment.get('brick_steps') or [])} brick step(s), "
+        f"{len(fragment.get('link_edges') or [])} link edge(s), "
+        f"{len(fragment.get('groups') or [])} group(s). Dry-run stages: {stages}."
+    )
+
+
+def _json_ready_list(value: Any) -> list[Any]:
+    if not isinstance(value, Sequence) or isinstance(value, (str, bytes)):
+        raise ValueError("expected a JSON-ready list")
+    return json.loads(json.dumps(list(value), ensure_ascii=False))
 
 
 def _frozen_composed_plan(
@@ -1959,6 +2281,7 @@ __all__ = [
     "BrickSpec",
     "ComposedGraph",
     "Concern",
+    "ExpandedGraphFragment",
     "Fan",
     "Gate",
     "GraphSpec",
@@ -1970,6 +2293,7 @@ __all__ = [
     "chain",
     "converge",
     "edge",
+    "expand",
     "fan",
     "fire",
     "fan_in",
