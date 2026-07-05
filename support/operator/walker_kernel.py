@@ -1630,16 +1630,6 @@ def _run_dynamic_graph_walker(
         # bump (the landing adopts naturally below). reroute carries a human-selected
         # target into the existing adoption path. forward => WALK ON past the held
         # concern/gate (treat as no actionable reroute). stop => close.
-        if resume_seed is not None and "review" in step_ref:
-            import sys as _dbg_sys
-            print(
-                f"DBG mode1-check step={step_ref!r} depth={cascade_depth} "
-                f"seed_step={resume_seed.held_source_step_ref!r} "
-                f"seed_depth={resume_seed.held_cascade_depth} "
-                f"applied={disposition_applied} "
-                f"pending={_has_pending_recorded_returns(resume_seed, step_ref, replay_consumed)}",
-                file=_dbg_sys.stderr,
-            )
         if (
             resume_seed is not None
             and not disposition_applied

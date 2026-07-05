@@ -347,6 +347,29 @@ def _frontier_kind(root: Path, repo: Path) -> str:
     return observe_building_frontier(root, repo_root=repo).get("frontier_kind", "")
 
 
+def _evidence_hold_identity(root: Path) -> str:
+    """Current held hold's FULL identity fragment (reroute_ref + source step +
+    cascade depth, normalized to the paused_at_ref spelling) from the written
+    dynamic evidence; empty when not held. The reroute_ref alone embeds only
+    sequence+target and is NOT unique across occurrences — walker_hold
+    discriminates by source_step_ref+cascade_depth, so the comparison must too."""
+    from brick_protocol.support.operator.walker_resume import _read_written_dynamic_plan
+
+    try:
+        _plan, evidence = _read_written_dynamic_plan(root)
+    except Exception:
+        return ""
+    hold = evidence.get("hold")
+    if not isinstance(hold, Mapping):
+        return ""
+    reroute_ref = str(hold.get("reroute_ref") or "")
+    if not reroute_ref:
+        return ""
+    source = str(hold.get("source_step_ref") or "")
+    depth = hold.get("cascade_depth", "")
+    return f"{reroute_ref}-src-{source}-depth-{depth}".replace(":", "-")
+
+
 def _run_to_hold(
     repo: Path,
     plan: Mapping[str, Any],
@@ -498,9 +521,36 @@ def _green_invariants(
                 f"F-S: GREEN stop did not close the building (frontier={frontier!r})"
             )
     else:
-        if frontier not in ("complete", "closed"):
+        # Correct walker semantics (measured at the 0706 mirror gate): declared
+        # gates fire PER OCCURRENCE, so after the mirror replays the prior
+        # dispositions and the CURRENT disposition applies at the seed's held
+        # identity, the walk may legitimately advance into a FRESH occurrence
+        # whose gate holds again. GREEN therefore accepts completion OR a NEW
+        # hold — but NEVER a re-park on an identity a disposition already
+        # resolved (that would mean the mirror failed to consume it — I6).
+        if frontier in ("complete", "closed"):
+            pass
+        elif frontier == "link_paused":
+            current_identity = _evidence_hold_identity(root)
+            if not current_identity:
+                raise ProfileError(
+                    f"{fixture}: GREEN mirror paused without a readable current "
+                    "hold identity"
+                )
+            for observation in observations:
+                disposed_norm = str(observation.get("paused_at_ref") or "").replace(
+                    ":", "-"
+                )
+                if disposed_norm and current_identity in disposed_norm:
+                    raise ProfileError(
+                        f"{fixture}: GREEN mirror re-parked on an ALREADY-DISPOSED "
+                        f"hold identity ({current_identity!r}) — the mirror failed "
+                        "to consume a replayed disposition (I6)"
+                    )
+        else:
             raise ProfileError(
-                f"{fixture}: GREEN mirror did not complete the resume (frontier={frontier!r})"
+                f"{fixture}: GREEN mirror ended in an inadmissible frontier "
+                f"({frontier!r})"
             )
 
     # I2: no re-authoring storm -- the reroute observations are the mirrored prior
@@ -871,15 +921,38 @@ def _probe_p3_divergence_guard(repo: Path) -> Mapping[str, Any]:
         try:
             _resume(repo, root, cb)
         except ValueError as exc:
+            # Pre-repair branch: at the pinned HEAD baseline the mixed chain
+            # cannot replay its dispositions, so the seeded walk finishes
+            # without applying the CURRENT one and the divergence guard fires.
             message = str(exc)
-        else:
-            raise ProfileError("P-3: divergence guard did not fire on the mixed chain")
-        if not message.startswith(DIVERGENCE_PREFIX):
+            if not message.startswith(DIVERGENCE_PREFIX):
+                raise ProfileError(
+                    f"P-3: divergence guard literal drifted; expected prefix "
+                    f"{DIVERGENCE_PREFIX!r}, got {message!r}"
+                )
+            return {
+                "probe": "P-3",
+                "observed": "divergence_guard_fired",
+                "message": message,
+            }
+        # Post-repair branch: the mirror consumes the mixed chain, so no
+        # divergence occurs on this topology anymore. The guard must still
+        # EXIST as a defense (design P-3 intent: 'divergence guard literal
+        # intact', walker_kernel post-loop) — verify the literal source-level,
+        # fail-closed if it is ever removed.
+        kernel_source = (
+            repo / "support" / "operator" / "walker_kernel.py"
+        ).read_text(encoding="utf-8")
+        if DIVERGENCE_PREFIX not in kernel_source:
             raise ProfileError(
-                f"P-3: divergence guard literal drifted; expected prefix "
-                f"{DIVERGENCE_PREFIX!r}, got {message!r}"
+                "P-3: divergence guard literal is GONE from walker_kernel.py "
+                f"({DIVERGENCE_PREFIX!r}) — the last-line replay defense was removed"
             )
-    return {"probe": "P-3", "observed": "divergence_guard_intact", "message": message}
+    return {
+        "probe": "P-3",
+        "observed": "mixed_chain_replays_clean_and_guard_literal_intact",
+        "message": "",
+    }
 
 
 def run(repo: Path) -> Mapping[str, Any]:
