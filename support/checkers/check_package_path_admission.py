@@ -324,6 +324,7 @@ BAR_V2_OPERATOR_TARGETS = {
     "support/operator/evidence_assembly.py",
     "support/operator/plan_graph.py",
     "support/operator/plan_validation.py",
+    "support/operator/portfolio_projection.py",
     "support/operator/primitives.py",
     "support/operator/proof_observation.py",
     "support/operator/route_materialization.py",

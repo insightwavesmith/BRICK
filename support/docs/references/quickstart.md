@@ -65,6 +65,22 @@ success judgment, not a quality judgment, and not Movement authority.
 | Where does evidence land? | Ref-less defaults land under `$BRICK_HOME/project/brick-protocol/buildings/<building_id>/`, or `~/.brick/project/brick-protocol/buildings/<building_id>/` when `BRICK_HOME` is unset. Runs that declare `project_ref: "project:brick-protocol"` land in the repo-local vessel `project/brick-protocol/buildings/<building_id>/`. Customer CLI builds use the declared output root and report `evidence_root`; `FIRST_USE.md` repeats that root for the local example. | The root contains `capture/`, `raw/`, `evidence/`, and `work/`. These are support evidence and projections, not source truth or judgments. |
 | Not proven / proof limits | A green checker or written Building root is evidence only. Provider behavior, credential readiness, customer comprehension, release/export parity, and fresh-machine install/run behavior are not proven by this page. | Close those with separate run evidence, not by wording in docs. |
 
+## Frontier disposition matrix
+
+This table is a support guide for `onboard approve` / `run_approve_entry`.
+The menu is recalculated from recorded hold evidence by
+`support/operator/walker_resume.py::hold_disposition_action_menu`; the approve
+entry refuses actions outside that menu before writing a disposition row.
+Support still does not choose the action, Movement, route target, sufficiency,
+success, or quality.
+
+| frontier_kind | hold_reason anchor | Allowed disposition actions | Refused examples |
+| --- | --- | --- | --- |
+| `agent_incomplete` or `link_paused` | `adapter_error_frontier` (`support/operator/walker_resume.py::_adapter_error_hold_without_return`) | `stop` | `forward`, `raise`, `reroute` |
+| `link_paused` | `target_node_budget_exhausted` or `budget_exhausted=True` (`support/operator/walker_resume.py::hold_disposition_action_menu`) | `raise` with positive `budget_increment`, `stop`, or explicit `reroute` | `forward` |
+| `human_review_waiting` | `fake_landing_write_scope_diff_absent` or `write_scope_forbidden_diff_present` (`support/operator/frontier_observation.py::_latest_hold_reason`) | `forward`, `stop`, or explicit `reroute` | `raise` |
+| `link_paused` | `human_or_coo_gate_pause` (`support/operator/walker_resume.py::hold_disposition_action_menu`) | `forward`, `stop`, or explicit `reroute` | `raise` |
+
 ## 가장 빠른 길: 위자드
 
 `install.sh` 가 끝났다면, 첫 빌딩까지는 이 한 줄이 전부예요:

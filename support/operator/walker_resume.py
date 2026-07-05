@@ -30,6 +30,7 @@ from pathlib import Path
 from typing import Any
 
 from brick_protocol.link.transition import (
+    DISPOSITION_ACTIONS as _DISPOSITION_ACTIONS,
     TRANSITION_LIFECYCLE_DISPOSITION_AUTHOR_PREFIXES as _HUMAN_AUTHOR_PREFIXES,
 )
 from brick_protocol.support.connection.agent_adapter import (
@@ -83,6 +84,67 @@ from brick_protocol.support.operator.walker_step_fixture import (
 class ResumeBudgetRecoveryDecision:
     node_reroute_budgets: Mapping[str, int] | None = None
     bridge_evidence: bool = False
+
+
+def hold_disposition_action_menu(
+    hold_record: Mapping[str, Any],
+    *,
+    frontier_reason: str = "",
+    public_approval: bool = True,
+) -> tuple[str, ...]:
+    """Return the caller/COO disposition actions admitted for a held frontier.
+
+    This is support guidance over recorded HOLD facts. It does not choose an
+    action, route, target, Movement, sufficiency, quality, or success.
+    """
+
+    if _adapter_error_hold_without_return(hold_record):
+        return ("stop",)
+    reason = (
+        _optional_text_value(hold_record.get("hold_reason"))
+        or _optional_text_value(frontier_reason)
+        or ""
+    )
+    if hold_record.get("budget_exhausted") or reason == "target_node_budget_exhausted":
+        if not public_approval:
+            return tuple(_DISPOSITION_ACTIONS)
+        return ("raise", "stop", "reroute")
+    if reason in {
+        "fake_landing_write_scope_diff_absent",
+        "write_scope_forbidden_diff_present",
+        "human_or_coo_gate_pause",
+    }:
+        return ("forward", "stop", "reroute")
+    return ("forward", "stop", "reroute")
+
+
+def validate_hold_disposition_action(
+    action: str,
+    hold_record: Mapping[str, Any],
+    *,
+    frontier_reason: str = "",
+    public_approval: bool = True,
+) -> tuple[str, ...]:
+    allowed = hold_disposition_action_menu(
+        hold_record,
+        frontier_reason=frontier_reason,
+        public_approval=public_approval,
+    )
+    if action not in allowed:
+        reason = (
+            _optional_text_value(hold_record.get("hold_reason"))
+            or _optional_text_value(frontier_reason)
+            or "unknown"
+        )
+        menu = ", ".join(allowed)
+        source_step = _optional_text_value(hold_record.get("source_step_ref")) or "unknown"
+        pending_target = _optional_text_value(hold_record.get("pending_target_ref")) or "unknown"
+        raise ValueError(
+            f"disposition action {action!r} is not admitted for hold_reason={reason!r}; "
+            f"allowed disposition actions: {menu}; "
+            f"held_step_ref={source_step!r}; pending_target_ref={pending_target!r}"
+        )
+    return allowed
 
 
 def _resume_dynamic_graph_walker(
@@ -166,6 +228,7 @@ def _resume_dynamic_graph_walker(
         hold_record=hold_record,
         declared_plan=declared_plan,
     )
+    validate_hold_disposition_action(action, hold_record, public_approval=False)
 
     # RE-ATTACH the Link-owned node_reroute_budgets onto the recovered declared
     # plan. The birth-certificate STRIPS runtime walker keys (incl.
