@@ -182,6 +182,7 @@ class ComposedGraph:
     edges: tuple[Mapping[str, Any], ...]
     groups: tuple[Mapping[str, Any], ...]
     composed_plan: Mapping[str, Any]
+    ungated_write_node_warnings: tuple[Mapping[str, Any], ...]
     building_id: str
     declared_by: str
     selected_adapter_ref: str
@@ -855,13 +856,20 @@ def assemble(
         expansion_node_budgets=expansion_node_budgets,
         repo_root=repo,
     )
+    warning_observations = _ungated_write_node_warnings(lowered_nodes, lowered_edges)
     frozen_plan = _frozen_composed_plan(composed_plan, task_body)
+    if warning_observations:
+        frozen_plan = dict(frozen_plan)
+        frozen_plan["ungated_write_node_warnings"] = [
+            dict(item) for item in warning_observations
+        ]
 
     return ComposedGraph(
         nodes=tuple(copy.deepcopy(lowered_nodes)),
         edges=tuple(copy.deepcopy(lowered_edges)),
         groups=tuple(copy.deepcopy(lowered_groups)),
         composed_plan=frozen_plan,
+        ungated_write_node_warnings=tuple(copy.deepcopy(warning_observations)),
         building_id=resolved_building_id,
         declared_by=declared_by_text,
         selected_adapter_ref=selected_adapter_ref,
@@ -989,6 +997,108 @@ def _frozen_composed_plan(
     plan["task_source_hash_algorithm"] = carry["task_source_hash_algorithm"]
     plan["task_source_hash_basis"] = carry["task_source_hash_basis"]
     return plan
+
+
+def _ungated_write_node_warnings(
+    nodes: Sequence[Mapping[str, Any]],
+    edges: Sequence[Mapping[str, Any]],
+) -> tuple[Mapping[str, Any], ...]:
+    """Return support observations for write-need nodes with no gate on their path."""
+
+    node_ids = {
+        str(node.get("node_id") or "").strip()
+        for node in nodes
+        if str(node.get("node_id") or "").strip()
+    }
+    incoming_by_target: dict[str, set[str]] = defaultdict(set)
+    outgoing_by_source: dict[str, set[str]] = defaultdict(set)
+    gated_edges: set[tuple[str, str]] = set()
+    for edge in edges:
+        source = str(edge.get("source") or edge.get("source_node_id") or "").strip()
+        target = str(edge.get("target") or edge.get("target_node_id") or "").strip()
+        if not source or not target:
+            continue
+        outgoing_by_source[source].add(target)
+        if target in node_ids:
+            incoming_by_target[target].add(source)
+        if _edge_has_declared_gate(edge):
+            gated_edges.add((source, target))
+
+    warnings: list[Mapping[str, Any]] = []
+    for node in nodes:
+        node_id = str(node.get("node_id") or "").strip()
+        if not node_id or node.get("requires_brick_write_scope") is not True:
+            continue
+        if _node_path_or_completion_has_gate(
+            node_id,
+            incoming_by_target=incoming_by_target,
+            outgoing_by_source=outgoing_by_source,
+            gated_edges=gated_edges,
+        ):
+            continue
+        warnings.append(
+            {
+                "node_id": node_id,
+                "warning_kind": "ungated_write_node",
+                "reason": (
+                    "requires_brick_write_scope node has no declared Link gate "
+                    "on its prior path or completion edge"
+                ),
+                "proof_limits": [
+                    "support warning observation only",
+                    "not a launch refusal",
+                    "not automatic gate insertion",
+                    "not source truth",
+                    "not success judgment",
+                    "not quality judgment",
+                    "not Movement authority",
+                ],
+            }
+        )
+    return tuple(warnings)
+
+
+def _edge_has_declared_gate(edge: Mapping[str, Any]) -> bool:
+    refs = edge.get("declared_gate_refs")
+    if isinstance(refs, Sequence) and not isinstance(refs, (str, bytes)):
+        if any(
+            str(ref).strip() and str(ref).strip() != DEFAULT_LINK_GATE_REF
+            for ref in refs
+        ):
+            return True
+    sequence = edge.get("gate_sequence_policy")
+    if isinstance(sequence, Sequence) and not isinstance(sequence, (str, bytes)):
+        return any(
+            isinstance(item, Mapping) and str(item.get("gate_ref") or "").strip()
+            for item in sequence
+        )
+    return False
+
+
+def _node_path_or_completion_has_gate(
+    node_id: str,
+    *,
+    incoming_by_target: Mapping[str, set[str]],
+    outgoing_by_source: Mapping[str, set[str]],
+    gated_edges: set[tuple[str, str]],
+) -> bool:
+    for target in outgoing_by_source.get(node_id, set()):
+        if (node_id, target) in gated_edges:
+            return True
+    frontier = list(incoming_by_target.get(node_id, set()))
+    seen: set[str] = set()
+    while frontier:
+        source = frontier.pop()
+        if source in seen:
+            continue
+        seen.add(source)
+        if (source, node_id) in gated_edges:
+            return True
+        for parent in incoming_by_target.get(source, set()):
+            if (parent, source) in gated_edges:
+                return True
+            frontier.append(parent)
+    return False
 
 
 def stamp_profile_gates(

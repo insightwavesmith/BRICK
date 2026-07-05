@@ -2830,6 +2830,9 @@ def build(
         "building_id": composed.building_id,
         "proposal_ref": str(proposal_path),
         "proposal_render": rendered,
+        "ungated_write_node_warnings": [
+            dict(item) for item in composed.ungated_write_node_warnings
+        ],
         "approval_result": approval,
     }
 
@@ -3368,6 +3371,18 @@ def _render_goal_proposal_plan(plan: Mapping[str, Any]) -> str:
         f"합류점 {len(fan_in_groups)}개",
         "",
     ]
+    warnings = [
+        item for item in plan.get("ungated_write_node_warnings", ())
+        if isinstance(item, Mapping)
+    ]
+    if warnings:
+        warning_nodes = ", ".join(
+            str(item.get("node_id") or "").strip()
+            for item in warnings
+            if str(item.get("node_id") or "").strip()
+        )
+        lines.append(f"warning ungated_write_node_warnings: {warning_nodes}")
+        lines.append("")
     for index, step in enumerate(steps, start=1):
         step_ref = str(step.get("step_ref") or "").strip()
         kind = _step_kind(step)

@@ -56,6 +56,7 @@ from brick_protocol.support.operator.composition_common import (
     ROUTE_POLICY_PROVENANCE_CONSTITUTIONAL_DEFAULT,
 )
 from brick_protocol.support.operator.composition_compose import compose_building
+from brick_protocol.support.operator.composition_intent import materialize_building_intent
 from brick_protocol.support.operator.composition_route_policy import (
     _materializer_constitutional_default_reroute_budget,
 )
@@ -2760,7 +2761,136 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
             "build green: zero-supply write graph held with fake_landing reason and durable evidence outside worktree."
         )
 
+        warning_graph = chain(
+            [
+                brick("code-attack-qa", "ungated write warning probe", write=True),
+                brick("closure", "ungated write warning closure"),
+            ]
+        )
+        warning_scope = {"allowed_paths": ["warning-probe.txt"], "forbidden_paths": []}
+        warning_build = build(
+            warning_graph,
+            goal="ungated write warning checker task",
+            declared_by=DECLARED_BY,
+            author_ref="human:smith",
+            action="stop",
+            output_root=tmp / "warning-build",
+            write_scope=warning_scope,
+            command_runner=_approval_runner(),
+            adapter_timeout_seconds=30,
+        )
+        warnings = warning_build.get("ungated_write_node_warnings")
+        if not isinstance(warnings, list) or not warnings:
+            raise AssemblyEquivalenceError("build result did not expose ungated_write_node_warnings")
+        warning_node_ids = {
+            str(item.get("node_id") or "")
+            for item in warnings
+            if isinstance(item, Mapping)
+        }
+        if not any(node_id.endswith("-code-attack-qa") for node_id in warning_node_ids):
+            raise AssemblyEquivalenceError(f"warning node ids did not name the write node: {warnings!r}")
+        if "ungated_write_node_warnings" not in str(warning_build.get("proposal_render") or ""):
+            raise AssemblyEquivalenceError("proposal render did not name ungated_write_node_warnings")
+
+        gated_graph = chain(
+            [
+                brick(
+                    "code-attack-qa",
+                    "gated write warning probe",
+                    write=True,
+                    gates=(Gate.HUMAN_REVIEW,),
+                ),
+                brick("closure", "gated write warning closure"),
+            ]
+        )
+        gated_build = build(
+            gated_graph,
+            goal="gated write warning checker task",
+            declared_by=DECLARED_BY,
+            author_ref="human:smith",
+            action="stop",
+            output_root=tmp / "gated-warning-build",
+            write_scope=warning_scope,
+            command_runner=_approval_runner(),
+            adapter_timeout_seconds=30,
+        )
+        if gated_build.get("ungated_write_node_warnings"):
+            raise AssemblyEquivalenceError(
+                f"human-gated write graph still emitted ungated warning: {gated_build!r}"
+            )
+
+        import brick_protocol.support.operator.assembly as assembly_module  # noqa: PLC0415
+
+        real_warning_detector = assembly_module._ungated_write_node_warnings
+        assembly_module._ungated_write_node_warnings = lambda _nodes, _edges: ()
+        try:
+            mutant_warning_build = build(
+                warning_graph,
+                goal="ungated write warning mutation checker task",
+                declared_by=DECLARED_BY,
+                author_ref="human:smith",
+                action="stop",
+                output_root=tmp / "warning-mutant-build",
+                write_scope=warning_scope,
+                command_runner=_approval_runner(),
+                adapter_timeout_seconds=30,
+            )
+            if mutant_warning_build.get("ungated_write_node_warnings"):
+                raise AssemblyEquivalenceError(
+                    "ungated warning mutation-RED did not sever build result warnings"
+                )
+            if "ungated_write_node_warnings" in str(mutant_warning_build.get("proposal_render") or ""):
+                raise AssemblyEquivalenceError(
+                    "ungated warning mutation-RED did not sever proposal render warning"
+                )
+        finally:
+            assembly_module._ungated_write_node_warnings = real_warning_detector
+        outputs.append(
+            "build/proposal green: ungated write nodes emit warning observations, human-gated write nodes do not, and severed warning derivation is mutation-RED."
+        )
+
     return tuple(outputs)
+
+
+def _preset_near_name_fire(repo: Path) -> tuple[str, ...]:
+    intent = {
+        "declared_by": DECLARED_BY,
+        "selected_adapter_ref": SELECTED_ADAPTER,
+        "task_statement": "preset near-name checker task",
+        "chain_preset_ref": "building-chain-preset:engine-feature-hard",
+    }
+    expected = "building-chain-preset:brick-protocol-engine-feature-hard"
+    try:
+        materialize_building_intent(intent, repo_root=repo)
+    except ValueError as exc:
+        message = str(exc)
+    else:
+        raise AssemblyEquivalenceError("unknown preset near-name probe was not rejected")
+    if expected not in message:
+        raise AssemblyEquivalenceError(
+            f"unknown preset rejection did not include near-name candidate: {message!r}"
+        )
+
+    import brick_protocol.support.operator.composition_intent as intent_module  # noqa: PLC0415
+
+    real_near = intent_module._near_chain_preset_refs
+    intent_module._near_chain_preset_refs = lambda _ref, _presets: ()
+    try:
+        try:
+            intent_module.materialize_building_intent(intent, repo_root=repo)
+        except ValueError as exc:
+            mutant_message = str(exc)
+        else:
+            raise AssemblyEquivalenceError("unknown preset mutation probe was not rejected")
+        if expected in mutant_message:
+            raise AssemblyEquivalenceError(
+                "preset suggestion mutation-RED did not remove near-name candidate"
+            )
+    finally:
+        intent_module._near_chain_preset_refs = real_near
+    return (
+        "preset rejection green: unknown preset refs include catalog-derived near-name candidates and severed suggestion logic is mutation-RED.",
+    )
 
 
 def _build_fan_graphs(fixture_name: str):
@@ -3060,6 +3190,7 @@ def run(repo: Path) -> list[str]:
     outputs.extend(_write_scope_matcher_single_source_fire(repo))
     outputs.extend(_route_default_fire(repo))
     outputs.extend(_proposal_approval_fire(repo))
+    outputs.extend(_preset_near_name_fire(repo))
     outputs.extend(_llm_alias_fire(repo))
     outputs.extend(_effort_recording_fire(repo))
     outputs.append(_tiny_work_qa_return_shape_red(repo))

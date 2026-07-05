@@ -9,6 +9,7 @@ DIRECTLY; the one back-reference (``_chain_preset_requires_graph``, which lives 
 
 from __future__ import annotations
 
+import difflib
 import hashlib
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -140,7 +141,7 @@ def materialize_building_intent(
         raise ValueError("shape registry chain_presets must be a mapping")
     preset = chain_presets.get(chain_preset_ref)
     if not isinstance(preset, Mapping):
-        raise ValueError("chain_preset_ref must be present in the Brick template catalog")
+        raise ValueError(_unknown_chain_preset_message(chain_preset_ref, chain_presets))
     source_facts = _materializer_source_facts(intent, task_source_ref)
     write_scope = _materializer_write_scope(intent)
     task_summary = _materializer_task_summary(task_body, task_source_ref)
@@ -290,7 +291,7 @@ def render_declared_step_template_plan(
         chain_presets = registry.get("chain_presets", {})
         preset = chain_presets.get(chain_preset_ref)
         if preset is None:
-            raise ValueError("chain_preset_ref must be present in the shape registry")
+            raise ValueError(_unknown_chain_preset_message(chain_preset_ref, chain_presets))
         # U5/D5: the preset<->caller selected_shape_ref match constraint was removed
         # (shape is now an optional tag, not authority). The chain_preset_ref EXISTENCE
         # check above and the graph requirement below remain enforced.
@@ -697,6 +698,40 @@ def _materializer_reject_unused_step_selection_overrides(
             "step_selection_overrides references step_template_ref not in selected "
             f"preset: {missing}"
         )
+
+
+def _unknown_chain_preset_message(
+    chain_preset_ref: str,
+    chain_presets: Mapping[str, Any],
+) -> str:
+    candidates = _near_chain_preset_refs(chain_preset_ref, chain_presets)
+    message = "chain_preset_ref must be present in the Brick template catalog"
+    if candidates:
+        message += "; did you mean: " + ", ".join(candidates)
+    return message
+
+
+def _near_chain_preset_refs(
+    chain_preset_ref: str,
+    chain_presets: Mapping[str, Any],
+) -> tuple[str, ...]:
+    refs = sorted(str(ref) for ref in chain_presets if isinstance(ref, str))
+    if not chain_preset_ref or not refs:
+        return ()
+    matches = difflib.get_close_matches(chain_preset_ref, refs, n=3, cutoff=0.72)
+    if matches:
+        return tuple(matches)
+    prefix = "building-chain-preset:"
+    if not chain_preset_ref.startswith(prefix):
+        return ()
+    tails = {ref.removeprefix(prefix): ref for ref in refs}
+    tail_matches = difflib.get_close_matches(
+        chain_preset_ref.removeprefix(prefix),
+        sorted(tails),
+        n=3,
+        cutoff=0.72,
+    )
+    return tuple(tails[tail] for tail in tail_matches)
 
 
 def _materializer_preset_step_with_selection_override(
