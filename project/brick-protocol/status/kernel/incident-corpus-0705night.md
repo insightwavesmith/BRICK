@@ -1,0 +1,35 @@
+# 0705 심야 반려·홀드·봉쇄 사건 코퍼스 (부검 원자료)
+
+Status: support evidence only — 사실 발췌. 귀속·패턴·처방은 부검 빌딩 몫. 원자료는 각
+vessel(언트래킹)의 raw/link.jsonl·adapter-error.jsonl·step-outputs — 레인 접근 불가라
+COO가 리터럴 발췌. 시각은 KST 0705 저녁~심야.
+
+## 사건 목록 (시간순)
+
+| # | 대상 | 관측 리터럴 | 결과 |
+|---|---|---|---|
+| 1 | bundle9 vessel (task-statement-c76328d20b68-node) | building_lifecycle_path_shape RED: "building root allows only work/, capture/, raw/, and evidence/" — 런처 output_root가 vessel 루트에 proposed-building-graph.json 잔류 | 잔해 회수로 해소. 런처 자동회수 단계 신설 |
+| 2 | 주차장 5기(t5-pin-diet·engine-smalls·gap2v1·wsallow-repair·t1s2v3) forward 시도 | 전건 "승인 대상 hold 상태가 아니에요" / frontier=evidence_incomplete | 상태 무변경 거부 5건 |
+| 3 | bundle10-wheel-0705a·bundle11a-0705a·gap1b-0705a | code-attack-qa 스텝 adapter-error `local_cli_nonzero` adapter:claude-local rc=1, step-output 無 — 직접 재현: "You've hit your monthly spend limit" | 3빌딩 fan-in 미충족 주차. 계정 재로그인으로 원인 해소 |
+| 4 | 위 3기 stop 시도 | 전건 "승인 대상 hold 상태가 아니에요" / evidence_incomplete | 거부 — fresh 0705b 재발주 |
+| 5 | bundle10-wheel-0705b | 4레인 전원 반환 후 hold_reason=`no_resolving_reroute_address` (pending=review). QA concern="wheel-smoke-all-red-under-uv-run"(setuptools 부재 env RED), review concern="root-build-artifact-residue"(build/·egg-info 루트 잔해) | forward 시도 → "승인 대상 hold 상태가 아니에요"/evidence_incomplete. **raw/agent-received.jsonl 파일 자체 부재, returns=4** — 0705c 재발주(concern 2건 계약 반영) |
+| 6 | t10-first-drive-0705a | design 완주 후 hold_reason=`gate_sequence_missing_required_facts:link-gate:coo` — 설계된 홀드#1 | 정상 (운전 대기) |
+| 7 | T10 단계2 dry-run | assemble_expanded_graph_plan → "gate_sequence_policy reroute target requires finite node_reroute_budget" — plan_graph.py:162 부재→{} 정규화 vs 출생 구성 검증의 None-스킵 (비대칭). 수리 후 같은 에러가 plan_validation.py:907(사본 2)에서 재발 | t10gap2(8909b968 앵커, 미머지)→t10gap2b(d52aea38 머지)로 사본 전수 통일 |
+| 8 | t10gap2 런처 1차 | brick() 캐스팅 "model must be bare text or an admitted ref" — "claude:claude-fable-5" 불량형. 2차: 셸 & 고아 발사로 cwd 오염 import 즉사(COO 실수, 규칙 위반) | 정식 ref(`model:claude:claude-fable-5`)+정식 백그라운드 재발사 |
+| 9 | t7-recovery-0705a | 4레인 반환 후 hold_reason=`runtime_handoff_address_unresolved_in_ledger:work/step-outputs/...-work-attempt-1` (pending=work). QA·review concern="D2 실물 vessel이 W1 워크트리에서 관측 불가"(언트래킹) | forward 시도 → evidence_incomplete 거부(10례째). WIP 앵커 수확 + COO 전체 게이트로 부트스트랩 예외 랜딩(18b3089a) |
+| 10 | bundle10-0705b 정정 후 처분(수리판 코드) | disposition_written=True(봉쇄 돌파) → resume이 "missing step-output source_fact body/evidence: work/step-outputs/task-statement-0371620753..." 에러 | 별개 클래스 신규 관측 — main 코드 재시도 미실시 |
+
+## COO 계약·운영 실수 (자가 기록 — 부검 대상에 포함하라)
+
+- gap2a 계약 D2가 "조립 통과"만 리터럴 명시(4단 전체 누락) → 사본 2 미포착, 후속 발주 비용.
+- t7-recovery 계약 D2가 언트래킹 vessel 실증을 레인에 배정(0702 각인 "레인-불가능 D 분리" 위반 재발).
+- 스윕 rc=1인데 push 발화 1회(체인을 스윕 rc가 아닌 cat에 걸음) — 잔해 클래스라 무해 판명.
+- 셸 & 고아 발사 1회(사건 #8).
+
+## 참조 (커밋됨 — 레인 접근 가능)
+
+goal-phases-consolidated-0702.md §자율운행 판·§월 지출 한도 사건·§T10 운전 경과 /
+t10-drive-runbook-0705.md §검수 이력·§4 / 처분 어휘 hold-disposition-vocabulary-0704.md /
+정정 선언 resume-ledger-mismatch-recovery-0704.md·wip-preservation-principle-0704.md.
+
+증거 한계: COO 발췌본 — 원자료 재확인은 각 vessel 경로. 판정·귀속 없음(부검 빌딩 몫).
