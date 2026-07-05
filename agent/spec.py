@@ -603,6 +603,8 @@ _ADMITTED_CASTING_PREFIXES: frozenset[str] = frozenset(
     f"{_casting_ref_prefix(descriptor)}:" for descriptor in CASTING_FIELDS
 ) | frozenset({"agent-object:"})
 
+_ADMITTED_CASTING_PREFIX_TEXT = ", ".join(sorted(_ADMITTED_CASTING_PREFIXES))
+
 
 # ---------------------------------------------------------------------------
 # SHARED COERCERS (E2/S1). Tiny value-shape helpers the casting authoring needs.
@@ -626,7 +628,11 @@ def _optional_bare_or_ref(label: str, value: str | None) -> str | None:
     if text is None:
         return None
     if ":" in text and not text.startswith(tuple(_ADMITTED_CASTING_PREFIXES)):
-        raise ValueError(f"{label} must be bare text or an admitted ref")
+        raise ValueError(
+            f"{label} must be bare text or an admitted ref; admitted prefixes: "
+            f"{_ADMITTED_CASTING_PREFIX_TEXT}; Claude model refs use "
+            "model:claude:<id>"
+        )
     return text
 
 

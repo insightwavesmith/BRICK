@@ -2598,14 +2598,17 @@ def build(
         expansion_budget=expansion_budget,
         expansion_node_budgets=expansion_node_budgets,
     )
-    proposal_root = _build_output_root(composed.building_id, output_root)
-    proposal_path = persist_proposed_building_graph(composed, proposal_root)
+    run_output_root = _build_output_root(composed.building_id, output_root)
+    proposal_path = persist_proposed_building_graph(
+        composed,
+        _build_proposal_root(run_output_root),
+    )
     rendered = render_proposal_for_human(proposal_path)
     approval = run_goal_approve_entry(
         proposal_path,
         action=action,
         author_ref=author_ref,
-        output_root=proposal_root,
+        output_root=run_output_root,
         repo_root=_REPO_ROOT,
         local_callables=local_callables,
         command_runner=command_runner,
@@ -3077,6 +3080,10 @@ def _build_output_root(building_id: str, output_root: Path | str | None = None) 
         return Path(output_root).expanduser().resolve()
     stamp = _utc_timestamp_slug()
     return Path.home() / ".brick" / "goal-runs" / f"{_path_slug(building_id)}-{stamp}"
+
+
+def _build_proposal_root(output_root: Path) -> Path:
+    return output_root.parent / f"{output_root.name}-proposals"
 
 
 def _utc_timestamp_slug() -> str:
