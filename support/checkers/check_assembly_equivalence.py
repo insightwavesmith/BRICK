@@ -2446,12 +2446,15 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
         stopped_plan = json.loads(stop_proposal.read_text(encoding="utf-8"))
         if "declared_expansion_node_budgets" in stopped_plan:
             raise AssemblyEquivalenceError("build omitted declared_expansion_node_budgets changed the frozen proposal")
+        if "expansion_budget" in stopped_plan:
+            raise AssemblyEquivalenceError("build omitted expansion_budget changed the frozen proposal")
         outputs.append("build green: stop approval wrote only the frozen proposal and ran nothing.")
 
         explicit_scope = {
             "allowed_paths": ["support/checkers/**"],
             "forbidden_paths": [".git/**"],
         }
+        explicit_expansion_budget = 1
         explicit_expansion_node_budgets = {"work": 2}
         explicit_graph = chain(
             [
@@ -2475,6 +2478,7 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
                 action="stop",
                 output_root=explicit_root,
                 write_scope=explicit_scope,
+                expansion_budget=explicit_expansion_budget,
                 expansion_node_budgets=explicit_expansion_node_budgets,
                 gates=(Gate.STRICT_EVIDENCE,),
                 command_runner=_approval_runner(),
@@ -2495,11 +2499,40 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
                 "build write_scope pass-through did not preserve caller declaration: "
                 f"{explicit_work_row.get('write_scope')!r}"
             )
+        if explicit_plan.get("expansion_budget") != explicit_expansion_budget:
+            raise AssemblyEquivalenceError(
+                "build expansion_budget pass-through did not preserve caller declaration: "
+                f"{explicit_plan.get('expansion_budget')!r}"
+            )
         if explicit_plan.get("declared_expansion_node_budgets") != explicit_expansion_node_budgets:
             raise AssemblyEquivalenceError(
                 "build declared_expansion_node_budgets pass-through did not preserve caller declaration: "
                 f"{explicit_plan.get('declared_expansion_node_budgets')!r}"
             )
+        for rejected_budget in (True, 0, -1):
+            try:
+                build(
+                    explicit_graph,
+                    goal=f"build rejected expansion_budget {rejected_budget!r} checker task",
+                    declared_by=DECLARED_BY,
+                    author_ref="coo:smith",
+                    action="stop",
+                    output_root=tmp / f"build-bad-expansion-budget-{rejected_budget!r}",
+                    write_scope=explicit_scope,
+                    expansion_budget=rejected_budget,
+                    gates=(Gate.STRICT_EVIDENCE,),
+                    command_runner=_approval_runner(),
+                    adapter_timeout_seconds=30,
+                )
+            except CompositionError as exc:
+                if "invalid_expansion_budget" not in str(exc):
+                    raise AssemblyEquivalenceError(
+                        f"build expansion_budget={rejected_budget!r} rejected with unexpected error: {exc}"
+                    ) from exc
+            else:
+                raise AssemblyEquivalenceError(
+                    f"build expansion_budget={rejected_budget!r} was accepted"
+                )
         from support.operator.plan_expansion import assemble_expanded_graph_plan  # noqa: PLC0415
 
         expansion_step_ref = f"{_step_for_kind(explicit_plan, 'closure')['step_ref']}-expansion"
@@ -2563,8 +2596,8 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
         if explicit_gate_refs != (DEFAULT_GATE, STRICT_GATE):
             raise AssemblyEquivalenceError(f"build gates pass-through did not preserve strict gate: {explicit_gate_refs!r}")
         outputs.append(
-            "build green: output_root/write_scope/declared_expansion_node_budgets/gates pass-through "
-            "preserved caller declarations and remained expandable."
+            "build green: output_root/write_scope/expansion_budget/declared_expansion_node_budgets/gates "
+            "pass-through preserved caller declarations, rejected invalid base budgets, and remained expandable."
         )
 
         import brick_protocol.support.operator.assembly as assembly_module  # noqa: PLC0415
@@ -2574,6 +2607,7 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
         def mutant_assemble(*args: Any, **kwargs: Any) -> Any:
             mutant_kwargs = dict(kwargs)
             mutant_kwargs.pop("write_scope", None)
+            mutant_kwargs.pop("expansion_budget", None)
             mutant_kwargs.pop("expansion_node_budgets", None)
             mutant_kwargs.pop("gates", None)
             return real_assemble(*args, **mutant_kwargs)
@@ -2589,13 +2623,15 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
                     action="stop",
                     output_root=tmp / "build-mutant-root",
                     write_scope=explicit_scope,
+                    expansion_budget=explicit_expansion_budget,
                     expansion_node_budgets=explicit_expansion_node_budgets,
                     gates=(Gate.STRICT_EVIDENCE,),
                     command_runner=_approval_runner(),
                     adapter_timeout_seconds=30,
-                )
+            )
             mutant_plan = json.loads(Path(str(mutant.get("proposal_ref", ""))).read_text(encoding="utf-8"))
             mutant_scope = _brick_row(_step_for_kind(mutant_plan, "work")).get("write_scope")
+            mutant_expansion_budget = mutant_plan.get("expansion_budget")
             mutant_expansion_node_budgets = mutant_plan.get("declared_expansion_node_budgets")
             mutant_gate_refs = _declared_gate_refs_for_edge(
                 mutant_plan,
@@ -2604,16 +2640,17 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
             )
             if (
                 mutant_scope == explicit_scope
+                or mutant_expansion_budget == explicit_expansion_budget
                 or mutant_expansion_node_budgets == explicit_expansion_node_budgets
                 or mutant_gate_refs == (DEFAULT_GATE, STRICT_GATE)
             ):
                 raise AssemblyEquivalenceError(
-                    "build mutation-RED did not discriminate severed write_scope/declared_expansion_node_budgets/gates pass-through"
+                    "build mutation-RED did not discriminate severed write_scope/expansion_budget/declared_expansion_node_budgets/gates pass-through"
                 )
         finally:
             assembly_module.assemble = real_assemble
         outputs.append(
-            "build mutation-RED observed: severed write_scope/declared_expansion_node_budgets/gates "
+            "build mutation-RED observed: severed write_scope/expansion_budget/declared_expansion_node_budgets/gates "
             "wiring changed the frozen proposal."
         )
 

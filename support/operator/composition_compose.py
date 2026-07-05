@@ -30,6 +30,7 @@ from brick_protocol.support.operator.building_operation_common import (
     _text_sequence,
 )
 from brick_protocol.support.operator.primitives import NODE_CASTING_FIELDS
+from brick_protocol.support.recording.contracts import require_positive_int
 from brick_protocol.support.operator.plan_rendering import (
     RETIRED_STEP_TEMPLATE_REFS,
     _clean_selected_adapter_ref,
@@ -85,6 +86,7 @@ def compose_building(
     selected_adapter_ref: str = "adapter:local",
     selected_model_ref: str = "model:default",
     transition_concern_adoption: str = "",
+    expansion_budget: Any | None = None,
     expansion_node_budgets: Mapping[str, Any] | None = None,
     repo_root: Path | str = REPO_ROOT,
 ) -> Mapping[str, Any]:
@@ -751,6 +753,21 @@ def compose_building(
         plan["route_policy_provenance"] = route_policy_provenance
     if transition_concern_adoption:
         plan["transition_concern_adoption"] = transition_concern_adoption
+    if expansion_budget is not None:
+        try:
+            plan["expansion_budget"] = require_positive_int(
+                expansion_budget,
+                "expansion_budget",
+                allow_decimal_text=False,
+            )
+        except ValueError as exc:
+            problems.append(
+                CompositionProblem(
+                    "invalid_expansion_budget",
+                    "__composition__",
+                    str(exc),
+                )
+            )
     if expansion_node_budgets is not None:
         if not isinstance(expansion_node_budgets, Mapping):
             problems.append(

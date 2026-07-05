@@ -796,6 +796,7 @@ def assemble(
     shape: str | None = None,
     repo_root: Path | str = REPO_ROOT,
     write_scope: Mapping[str, Any] | None = None,
+    expansion_budget: Any | None = None,
     expansion_node_budgets: Mapping[str, Any] | None = None,
 ) -> ComposedGraph:
     if not isinstance(graph, GraphSpec):
@@ -850,6 +851,7 @@ def assemble(
         selected_adapter_ref=selected_adapter_ref,
         selected_model_ref=selected_model_ref,
         transition_concern_adoption=concern_adoption,
+        expansion_budget=expansion_budget,
         expansion_node_budgets=expansion_node_budgets,
         repo_root=repo,
     )
