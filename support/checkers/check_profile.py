@@ -462,6 +462,10 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "resume_disposition_surface",
         "support.checkers.check_resume_disposition_surface",
     ),
+    "resume_replay_disposition_mirror": _repo_main(
+        "resume_replay_disposition_mirror",
+        "support.checkers.check_resume_replay_disposition_mirror",
+    ),
     "building_map_graph": run_building_map_graph,
     "graph_topology_fan_barrier": run_graph_topology_fan_barrier,
     # PROJECT-0 S1: every project/<id>/ vessel must declare its charter

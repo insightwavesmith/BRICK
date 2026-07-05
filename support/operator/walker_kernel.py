@@ -235,6 +235,24 @@ _STEP_OUTPUT_HANDOFF_PROOF_LIMITS = (
 _ADAPTER_USAGE_RAW_STREAM = "raw/adapter-usage.jsonl"
 
 
+def _require_undisposed_concern_hold(resume_seed, hold_record, step_ref):
+    """Fail loud when a resume replay re-reaches a concern-path HOLD that a
+    prior human/COO disposition already resolved. Concern-path mirroring is
+    NOT implemented in this slice — silently re-parking a previously-disposed
+    hold would hide the divergence (t7b design D1.11, invariant I6)."""
+    if resume_seed is None:
+        return
+    previous = _resume_observation_for_hold(resume_seed, hold_record)
+    if previous is not None:
+        raise ValueError(
+            "resume replay reached a previously-disposed concern-path HOLD "
+            f"for {step_ref!r} with prior disposition "
+            f"{previous.get('disposition_action')!r}; concern-path mirroring "
+            "is not implemented in this slice — use a fresh re-issue or "
+            "extend the mirror (t7b-replay-mirror-design-final-0706 D1.11)"
+        )
+
+
 def _adapter_dispatch_timing_record(
     *,
     building_id: str,
@@ -1604,6 +1622,7 @@ def _run_dynamic_graph_walker(
         if has_fan_groups:
             completed_fan_steps.add((step_ref, cascade_depth))
         human_disposition_reroute_target = ""
+        replaying_prior_reroute_mirror = False
         # RESUME disposition application at the held step occurrence. The held step
         # is the LAST recorded step (the original walk broke there); on replay this
         # is the occurrence that just exhausted its recorded returns at the held
@@ -1744,39 +1763,99 @@ def _run_dynamic_graph_walker(
                 prospective_hold,
             )
             if previous_disposition is not None:
-                if previous_disposition.get("disposition_action") != "forward":
+                prior_action = str(
+                    previous_disposition.get("disposition_action") or ""
+                )
+                if prior_action == "forward":
+                    # Mirror a prior human/COO forward: walk on exactly as the
+                    # original resume did. The prospective-hold increment above
+                    # is rolled back — the original live forward (mode-1)
+                    # consumed no adoption sequence number, so a replayed
+                    # forward must not skew later hold/reroute identities
+                    # across generations (generation parity, walker_hold
+                    # identity contract).
+                    adoption_sequence_number -= 1
+                    if has_fan_groups:
+                        frontier_driver.splice_declared_successors_after_current(
+                            source_step_ref=step_ref,
+                            cascade_depth=cascade_depth,
+                            parent_reroute_ref=item["parent_reroute_ref"],
+                            successors_by_source=fan_successors_by_source,
+                        )
+                    continue
+                if prior_action != "reroute":
                     raise ValueError(
                         "resume replay encountered an already-disposed recorded HOLD "
                         f"for {step_ref!r} with unsupported prior disposition "
-                        f"{previous_disposition.get('disposition_action')!r}"
+                        f"{prior_action!r}"
                     )
-                if has_fan_groups:
-                    frontier_driver.splice_declared_successors_after_current(
-                        source_step_ref=step_ref,
-                        cascade_depth=cascade_depth,
-                        parent_reroute_ref=item["parent_reroute_ref"],
-                        successors_by_source=fan_successors_by_source,
-                    )
-                continue
-            hold_record = prospective_hold
-            reroute_records.append(hold_record)
-            _drain_pending_outcomes_before_terminal()
-            if has_fan_groups:
-                held_fan_steps.add((step_ref, cascade_depth))
-                fan_in_wait_all_observations.extend(
-                    _fan_in_wait_all_observations_for_held_source(
-                        held_source_step_ref=step_ref,
-                        cascade_depth=cascade_depth,
-                        fan_in_sources_by_target=fan_in_sources_by_target,
-                        completed_fan_steps=completed_fan_steps,
-                        held_fan_steps=held_fan_steps,
-                    )
+                mirrored_target = str(
+                    previous_disposition.get("pending_target_ref") or ""
                 )
-            break
+                if not mirrored_target:
+                    raise ValueError(
+                        "resume replay cannot mirror a prior reroute disposition "
+                        f"for {step_ref!r}: the recorded observation carries no "
+                        "pending_target_ref"
+                    )
+                # Mirror a prior human/COO reroute through the SAME adoption
+                # machinery the live disposition uses (decision mutation ->
+                # the reroute branch below): one implementation replays splice,
+                # adoption record, and landings bookkeeping. Sequence REUSE:
+                # the prospective-hold increment above is rolled back and the
+                # adoption branch re-increments, so the mirrored adoption lands
+                # on the same adoption_sequence_number (and therefore the same
+                # reroute_ref string) the original adoption consumed.
+                adoption_sequence_number -= 1
+                replaying_prior_reroute_mirror = True
+                human_disposition_reroute_target = mirrored_target
+                gate_sequence_decision = GateSequenceDecision(
+                    action="reroute",
+                    gate_ref=gate_sequence_decision.gate_ref,
+                    target_brick_ref=mirrored_target,
+                    hold_reason=gate_sequence_decision.hold_reason,
+                    evidence_ref=(
+                        str(previous_disposition.get("paused_at_ref") or "")
+                        or gate_sequence_decision.evidence_ref
+                    ),
+                    reason_refs=gate_sequence_decision.reason_refs,
+                    gate_results=gate_sequence_decision.gate_results,
+                    gate_action_sequence=gate_sequence_decision.gate_action_sequence,
+                )
+                # No hold is persisted and no report is re-emitted for a
+                # mirrored disposition; control falls through to the reroute
+                # adoption branch below.
+            else:
+                hold_record = prospective_hold
+                reroute_records.append(hold_record)
+                _drain_pending_outcomes_before_terminal()
+                if has_fan_groups:
+                    held_fan_steps.add((step_ref, cascade_depth))
+                    fan_in_wait_all_observations.extend(
+                        _fan_in_wait_all_observations_for_held_source(
+                            held_source_step_ref=step_ref,
+                            cascade_depth=cascade_depth,
+                            fan_in_sources_by_target=fan_in_sources_by_target,
+                            completed_fan_steps=completed_fan_steps,
+                            held_fan_steps=held_fan_steps,
+                        )
+                    )
+                break
         if gate_sequence_decision.action == "reroute":
             target_brick = gate_sequence_decision.target_brick_ref
             budget = node_budget.get(target_brick)
             if budget is None or node_landings.get(target_brick, 0) >= budget:
+                if replaying_prior_reroute_mirror:
+                    # Under generation parity a mirrored adoption replays a
+                    # landing the original walk already afforded; exhaustion
+                    # here means the replayed state diverged — fail loud, never
+                    # park a silent hold on a mirror (t7b design edge case 7).
+                    raise ValueError(
+                        "resume replay mirror hit an unbudgeted/exhausted "
+                        f"target {target_brick!r} for {step_ref!r}; mirrored "
+                        "adoptions must replay within the originally afforded "
+                        "budget (generation parity violated)"
+                    )
                 adoption_sequence_number += 1
                 hold_record = _build_hold(
                     building_id=building_id,
@@ -1799,6 +1878,7 @@ def _run_dynamic_graph_walker(
                     step=step,
                     step_result=step_result,
                 )
+                _require_undisposed_concern_hold(resume_seed, hold_record, step_ref)
                 reroute_records.append(hold_record)
                 _drain_pending_outcomes_before_terminal()
                 if has_fan_groups:
@@ -2001,6 +2081,7 @@ def _run_dynamic_graph_walker(
                     step=step,
                     step_result=step_result,
                 )
+                _require_undisposed_concern_hold(resume_seed, hold_record, step_ref)
                 reroute_records.append(hold_record)
                 _drain_pending_outcomes_before_terminal()
                 if has_fan_groups:
@@ -2038,6 +2119,7 @@ def _run_dynamic_graph_walker(
                         step=step,
                         step_result=step_result,
                     )
+                    _require_undisposed_concern_hold(resume_seed, hold_record, step_ref)
                     reroute_records.append(hold_record)
                     _drain_pending_outcomes_before_terminal()
                     if has_fan_groups:
@@ -2076,6 +2158,7 @@ def _run_dynamic_graph_walker(
                         step=step,
                         step_result=step_result,
                     )
+                    _require_undisposed_concern_hold(resume_seed, hold_record, step_ref)
                     reroute_records.append(hold_record)
                     _drain_pending_outcomes_before_terminal()
                     if has_fan_groups:
@@ -2111,6 +2194,7 @@ def _run_dynamic_graph_walker(
                         step=step,
                         step_result=step_result,
                     )
+                    _require_undisposed_concern_hold(resume_seed, hold_record, step_ref)
                     reroute_records.append(hold_record)
                     _drain_pending_outcomes_before_terminal()
                     if has_fan_groups:
@@ -2167,6 +2251,7 @@ def _run_dynamic_graph_walker(
                         step=step,
                         step_result=step_result,
                     )
+                    _require_undisposed_concern_hold(resume_seed, hold_record, step_ref)
                     reroute_records.append(hold_record)
                     _drain_pending_outcomes_before_terminal()
                     if has_fan_groups:
