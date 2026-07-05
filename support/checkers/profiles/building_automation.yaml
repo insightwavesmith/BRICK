@@ -8,8 +8,10 @@ kernel_checks:
   - adapter_error_frontier_manifest_consistency
   - adapter_error_path_hardening
   - resume_disposition_surface
+  - resume_replay_disposition_mirror
 path_exists:
   - support/operator/run.py
+  - support/checkers/check_resume_replay_disposition_mirror.py
   - agent/performance.py
   - support/connection/agent_adapter.py
   - support/connection/agent_resources.py
