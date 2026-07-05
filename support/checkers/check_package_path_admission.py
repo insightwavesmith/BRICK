@@ -575,6 +575,7 @@ BUILDING_LIFECYCLE_RECORDS = {
     ("work", "building-intake.json"),
     ("work", "preset-expansion.json"),
     ("work", "declared-building-plan.json"),
+    ("work", "expansion-approvals.jsonl"),
     ("work", "link-launch-policy.json"),
     ("capture", "events.jsonl"),
     ("raw", "raw-manifest.json"),
@@ -658,6 +659,7 @@ MINIMAL_BUILDING_LIFECYCLE_RECORDS = {
     ("work", "building-intake.json"),
     ("work", "preset-expansion.json"),
     ("work", "declared-building-plan.json"),
+    ("work", "expansion-approvals.jsonl"),
     ("work", "link-launch-policy.json"),
     ("work", "proposed-building-graph.json"),
     ("capture", "events.jsonl"),
@@ -1177,6 +1179,13 @@ def package_path_admission_self_probe_violations() -> list[str]:
         "project/brick-protocol/buildings/agents-md-align-0702a/task-statement-30d7bc45e2bc-node/evidence/claim_trace/agent/returned_claims.json": True,
         "project/brick-protocol/buildings/agents-md-align-0702a/task-statement-30d7bc45e2bc-node/proposed-building-graph.json": True,
         "project/brick-protocol/buildings/agents-md-align-0702a/task-statement-30d7bc45e2bc-node/work/proposed-building-graph.json": True,
+        "project/brick-protocol/buildings/agents-md-align-0702a/task-statement-30d7bc45e2bc-node/work/declared-building-plan.rev-1.json": True,
+        "project/brick-protocol/buildings/agents-md-align-0702a/task-statement-30d7bc45e2bc-node/work/declared-building-plan.rev-2.json": True,
+        "project/brick-protocol/buildings/agents-md-align-0702a/task-statement-30d7bc45e2bc-node/work/expansion-approvals.jsonl": True,
+        "project/brick-protocol/buildings/agents-md-align-0702a/task-statement-30d7bc45e2bc-node/work/declared-building-plan.rev-0.json": False,
+        "project/brick-protocol/buildings/agents-md-align-0702a/task-statement-30d7bc45e2bc-node/work/declared-building-plan.rev-x.json": False,
+        "project/brick-protocol/buildings/agents-md-align-0702a/task-statement-30d7bc45e2bc-node/work/declared-building-plan.rev-1.jsonl": False,
+        "project/brick-protocol/buildings/agents-md-align-0702a/task-statement-30d7bc45e2bc-node/work/expansion-approvals.json": False,
         "project/brick-protocol/buildings/agents-md-align-0702a/not-a-vessel-node/capture/events.jsonl": False,
         "project/brick-protocol/buildings/agents-md-align-0702a/task-statement--node/capture/events.jsonl": False,
         "project/brick-protocol/buildings/agents-md-align-0702a/task-statement-30d7bc45e2bc-node/stray.txt": False,
@@ -1428,6 +1437,18 @@ def spine_event_filename_admitted(filename: str) -> bool:
     return False
 
 
+def building_lifecycle_work_record_admitted(tail: tuple[str, ...]) -> bool:
+    if len(tail) != 2 or tail[0] != "work":
+        return False
+    filename = tail[1]
+    prefix = "declared-building-plan.rev-"
+    suffix = ".json"
+    if not filename.startswith(prefix) or not filename.endswith(suffix):
+        return False
+    rev_text = filename[len(prefix) : -len(suffix)]
+    return rev_text.isdigit() and int(rev_text) > 0
+
+
 def is_project_building_lifecycle_path(path: str, *, is_dir: bool) -> bool:
     parts = path.split("/")
     if len(parts) < 3 or parts[0] != "project":
@@ -1493,6 +1514,8 @@ def is_project_building_lifecycle_path(path: str, *, is_dir: bool) -> bool:
             return True
         return tail in allowed_dirs
     if tail in allowed_records:
+        return True
+    if building_lifecycle_work_record_admitted(tail):
         return True
     if (
         len(tail) == 4
