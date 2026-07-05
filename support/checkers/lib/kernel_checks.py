@@ -105,6 +105,9 @@ from support.checkers.lib.building_result_summary_check import (
     _write_jsonl,
     run_building_result_summary,
 )
+from support.checkers.lib.deliverable_crosscheck_gate_check import (
+    run_deliverable_crosscheck_gate,
+)
 from support.checkers.lib.raw_evidence_stream_scrub_check import run_raw_evidence_stream_scrub
 from support.checkers.lib.agent_output_text_preservation_check import (
     run_agent_output_text_preservation,

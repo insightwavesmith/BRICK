@@ -5,6 +5,7 @@ kernel_checks:
   - building_operator_driver0
   - onboard_smoke
   - building_result_summary
+  - deliverable_crosscheck_gate
 path_exists:
   - support/operator/driver.py
   - support/checkers/check_building_operator_driver0.py

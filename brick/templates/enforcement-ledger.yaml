@@ -10,10 +10,10 @@ proof_limits:
 declarations:
   - declaration_ref: "brick/templates/bricks/closure/return.yaml:44"
     declaration_text: "future Link-side completion gate consumes this declared field"
-    gate_pending: "Link-side completion gate consumer is declared, not implemented here."
+    gate_pending: "Consumed by support/checkers/lib/deliverable_crosscheck_gate_check.py kernel check deliverable_crosscheck_gate; runtime Link completion-gate placement remains outside this non-walker slice."
   - declaration_ref: "brick/templates/bricks/closure/return.yaml:45"
     declaration_text: "gate is a later consumer"
-    gate_pending: "Link-side completion gate consumer is declared, not implemented here."
+    gate_pending: "Consumed by support/checkers/lib/deliverable_crosscheck_gate_check.py kernel check deliverable_crosscheck_gate; runtime Link completion-gate placement remains outside this non-walker slice."
   - declaration_ref: "brick/templates/reroute-defaults.yaml:7"
     declaration_text: "Link-side gate is a later consumer"
     gate_pending: "Link-side gate consumer for adopted-reroute re-dispatch text is declared, not implemented here."
