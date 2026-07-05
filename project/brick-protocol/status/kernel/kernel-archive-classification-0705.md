@@ -48,3 +48,27 @@ git status --short -- project/brick-protocol/status/kernel
   step, not an independently observed in-scope kernel document.
 - This record is an interpretation layer over moved archive documents; it does
   not rewrite the moved documents' contents.
+
+## Fourth z6 candidate verdict (T10 first-drive discovery)
+
+Status: `unresolvable-by-evidence`.
+
+The fourth archive candidate from `legacy-refgraph-census-0705.md:30-33` is
+recorded as evidence-unresolvable because the original z6 row identifying the
+specific file is no longer present in the carried evidence. No filename is
+inferred here, and no archive movement is authorized by this record.
+
+Basis: `legacy-refgraph-census-0705.md:30-33` lists four kernel archive
+candidates, names three moved records, and leaves the fourth only as "기타 z6
+판정분". The same census rows state that
+`reroute-adoption-hold-cases-0703.md` and
+`session-continuity-mechanism-0703.md` are STAY because live citations exist, so
+they are not the unresolved fourth archive candidate. The T10 first-drive record
+in `t10-drive-runbook-0705.md` section 5 records the rev-1 discovery lane result
+as: fourth z6 candidate = evidence cannot identify it; original z6 row is lost;
+do not guess.
+
+Proof limits: this section records the unresolved verdict only. It does not
+move files, select a substitute candidate, rewrite the three moved-record rows,
+rewrite the two STAY rows, judge cleanup success or quality, or choose Link
+Movement.
