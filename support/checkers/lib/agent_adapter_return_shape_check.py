@@ -2225,6 +2225,10 @@ def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
         raise ProfileError("agent adapter admitted nested raw secret text")
 
     proof_obligation_inspected = _proof_obligation_pipeline_probe(repo)
+    admission_gate_live_walk_inspected = _assert_admission_gate_live_walk(
+        importlib.import_module("brick_protocol.support.operator.run"),
+        repo,
+    )
 
     return KernelResult(
         check_id="agent_adapter_return_shape",
@@ -2232,14 +2236,15 @@ def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
         + effective_write_inspected
         + read_tier_inspected
         + artifact_grounding_inspected
-        + proof_obligation_inspected,
+        + proof_obligation_inspected
+        + admission_gate_live_walk_inspected,
         output=(
             "agent adapter return shape passed: no_changes_reason waiver "
             "extraction, Brick comparison waiver, prompt projection, runtime "
             "Agent instruction packet rendering, and AgentAdapterRequest "
             "injection plus effective_write, read-tier rendering, tier-safety, "
-            "artifact-grounding, proof-obligation, and deterministic nested list-field "
-            "normalization probes inspected."
+            "artifact-grounding, proof-obligation, admission-gate live-walk, "
+            "and deterministic nested list-field normalization probes inspected."
         ),
     )
 
@@ -2575,6 +2580,140 @@ def _gate_probe_record(value: Any) -> Mapping[str, Any] | None:
         "reason": value.reason,
         "evidence_reference": value.evidence_reference,
     }
+
+
+def _admission_gate_live_walk_plan(
+    *,
+    building_id: str,
+    declared_gate_refs: Sequence[str],
+) -> Mapping[str, Any]:
+    step_ref = f"{building_id}-work"
+    brick_ref = f"brick-{building_id}-work"
+    edge_ref = f"edge:{step_ref}-to-boundary"
+    return {
+        "plan_ref": f"building-plan:{building_id}",
+        "owner_axis": "Brick",
+        "building_id": building_id,
+        "plan_shape": "graph",
+        "selected_adapter_ref": "adapter:local",
+        "proof_limits": ["checker admission-gate live-walk fixture support evidence only"],
+        "not_proven": ["semantic correctness of checker fixture returns"],
+        "execution_order": [step_ref],
+        "brick_steps": [
+            {
+                "step_ref": step_ref,
+                "completion_edge_ref": edge_ref,
+                "rows": [
+                    {
+                        "axis": "Brick",
+                        "row_ref": f"brick-row:{step_ref}",
+                        "brick_work_ref": f"work:{step_ref}",
+                        "brick_instance_ref": brick_ref,
+                        "work_statement": "admission gate live walk probe",
+                        "required_return_shape": "observed_evidence, not_proven",
+                        "comparison_rule": "Probe declared gate evaluation on graph walk.",
+                    },
+                    {
+                        "axis": "Agent",
+                        "row_ref": f"agent-row:{step_ref}",
+                        "agent_object_ref": "agent-object:dev",
+                    },
+                ],
+            }
+        ],
+        "link_edges": [
+            {
+                "edge_ref": edge_ref,
+                "source_step_ref": step_ref,
+                "rows": [
+                    {
+                        "axis": "Link",
+                        "row_ref": f"link-row:{edge_ref}",
+                        "movement": "forward",
+                        "target_ref": f"building-boundary:{building_id}",
+                        "building_lifecycle": {
+                            "state": "closed",
+                            "reason": "admission gate live walk probe closed",
+                        },
+                        "declared_gate_refs": list(declared_gate_refs),
+                    },
+                ],
+            }
+        ],
+    }
+
+
+def _assert_admission_gate_live_walk(run_module: Any, repo: Path) -> int:
+    def _callable(_request: Any) -> Mapping[str, Any]:
+        return {
+            "observed_evidence": ["admission gate live walk fixture return"],
+            "not_proven": ["checker fixture semantic correctness"],
+        }
+
+    def _run(building_id: str, gate_refs: Sequence[str]) -> Any:
+        with tempfile.TemporaryDirectory(prefix=f"bp-{building_id}-") as tmpdir:
+            result = run_module.run_building_plan(
+                _admission_gate_live_walk_plan(
+                    building_id=building_id,
+                    declared_gate_refs=gate_refs,
+                ),
+                output_root=Path(tmpdir),
+                overwrite_existing=True,
+                local_callables={
+                    "callable:local:agent-invoke0-smoke": _callable,
+                },
+                adapter_cwd=repo,
+                adapter_timeout_seconds=30,
+            )
+        if len(result.step_results) != 1:
+            raise ProfileError(
+                f"admission gate live-walk probe {building_id}: expected one step, "
+                f"observed {len(result.step_results)}"
+            )
+        gate = result.step_results[0].completion.crossing_record.movement_gate_fact
+        if gate is None:
+            raise ProfileError(
+                f"admission gate live-walk probe {building_id}: missing movement GateFact"
+            )
+        return gate
+
+    strict_gate = _run(
+        "admission-gate-live-strict",
+        ("link-gate:default-transition", "link-gate:strict"),
+    )
+    strict_missing = tuple(strict_gate.missing_required_facts)
+    for field in (
+        "blocked_or_missing_evidence",
+        "remaining_delta",
+        "proof_limits",
+    ):
+        public_fact = f"BrickComparisonFact.comparison_evidence.returned_field.{field}"
+        if public_fact not in strict_missing:
+            raise ProfileError(
+                "admission gate live-walk probe: strict declared graph did not "
+                f"record missing public fact {public_fact}"
+            )
+    if "link-gate:strict" not in strict_gate.reason:
+        raise ProfileError(
+            "admission gate live-walk probe: strict movement GateFact reason did "
+            "not name the declared strict gate"
+        )
+
+    default_gate = _run(
+        "admission-gate-live-default",
+        ("link-gate:default-transition",),
+    )
+    default_missing = tuple(default_gate.missing_required_facts)
+    if any(item in default_missing for item in strict_missing):
+        raise ProfileError(
+            "admission gate live-walk probe: default-only graph recorded strict "
+            f"missing facts {default_missing!r}"
+        )
+    if "link-gate:strict" in default_gate.reason:
+        raise ProfileError(
+            "admission gate live-walk probe: default-only graph mentioned strict gate"
+        )
+    return 2
 
 
 def _proof_obligation_linear_plan(
