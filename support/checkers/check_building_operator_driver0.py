@@ -1515,6 +1515,8 @@ def _w1_worktree_sandbox_fire(
 ) -> None:
     from brick_protocol.support.operator.driver import (
         _WRITE_SCOPE_FORBIDDEN_DIFF_PRESENT_REASON,
+        _WRITE_SCOPE_OUTSIDE_DIFF_PRESENT_REASON,
+        _write_need_complete_with_outside_scope_diff,
         _write_need_complete_with_forbidden_diff,
         _write_need_complete_without_scoped_diff,
         run_building_intake,
@@ -1685,6 +1687,27 @@ def _w1_worktree_sandbox_fire(
             ),
             encoding="utf-8",
         )
+        source_write_plan = evidence_root / "source-write-plan.json"
+        source_write_plan.write_text(
+            json.dumps(
+                {
+                    "brick_steps": [
+                        {
+                            "step_ref": "source-write-work",
+                            "rows": [
+                                {
+                                    "axis": "Brick",
+                                    "requires_brick_write_scope": True,
+                                    "capability_class": "source_write",
+                                    "write_scope": dict(_W1_WRITE_SCOPE),
+                                }
+                            ],
+                        }
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
         probe_write_gate_fired = _write_need_complete_without_scoped_diff(
             customer,
             probe_write_plan,
@@ -1706,6 +1729,27 @@ def _w1_worktree_sandbox_fire(
         summary["w1_probe_write_forbidden_gate_fired"] = mixed_forbidden_gate_fired
         if mixed_forbidden_gate_fired:
             violations.append("w1-probe-write: probe-write plan triggered the forbidden-diff gate")
+
+        outside_probe = Path(cust_raw) / "customer-outside-probe"
+        outside_probe.mkdir(parents=True, exist_ok=True)
+        _seed_customer_repo(repo, outside_probe)
+        (outside_probe / _W1_WRITE_REL).parent.mkdir(parents=True, exist_ok=True)
+        (outside_probe / _W1_WRITE_REL).write_text("allowed fixture bytes\n", encoding="utf-8")
+        (outside_probe / "README.md").write_text("outside fixture bytes\n", encoding="utf-8")
+        outside_scope_gate_fired = _write_need_complete_with_outside_scope_diff(
+            outside_probe,
+            source_write_plan,
+        )
+        summary["w1_probe_write_outside_scope_gate_fired"] = outside_scope_gate_fired
+        if not outside_scope_gate_fired:
+            violations.append("w1-outside-scope: allowed+outside source-write diff did not fire")
+        outside_scope_probe_gate_fired = _write_need_complete_with_outside_scope_diff(
+            outside_probe,
+            probe_write_plan,
+        )
+        summary["w1_probe_write_outside_scope_probe_gate_fired"] = outside_scope_probe_gate_fired
+        if outside_scope_probe_gate_fired:
+            violations.append("w1-probe-write: probe-write plan triggered the outside-scope gate")
 
         # D1 fake-landing gate: a write-needed Building that reports a complete
         # frontier without any scoped sandbox diff is held on the existing human
@@ -1791,6 +1835,59 @@ def _w1_worktree_sandbox_fire(
                     "w1-fake-empty: frontier did not publish the fake landing hold identity"
                 )
 
+            fake_empty_link_path = (
+                Path(fake_empty_result.evidence_root) / "raw" / "link.jsonl"
+            )
+            fake_empty_link_records = list(_jsonl_records(fake_empty_link_path))
+            fake_empty_original_link_records = [
+                dict(record) for record in fake_empty_link_records
+            ]
+            for record in reversed(fake_empty_link_records):
+                if record.get("hold_reason") == "fake_landing_write_scope_diff_absent":
+                    record.pop("transition_lifecycle_paused_at_ref", None)
+                    break
+            fake_empty_link_path.write_text(
+                "\n".join(
+                    json.dumps(record, separators=(",", ":"), ensure_ascii=False)
+                    for record in fake_empty_link_records
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            try:
+                with tempfile.TemporaryDirectory(
+                    prefix="bp-w1-missing-paused-at-"
+                ) as missing_raw:
+                    missing_identity = run_approve_entry(
+                        fake_empty_result.evidence_root,
+                        action="forward",
+                        author_ref="coo:d2-checker",
+                        adapter_cwd=Path(missing_raw),
+                        adapter_timeout_seconds=30,
+                        repo_root=fake_empty,
+                    )
+            finally:
+                fake_empty_link_path.write_text(
+                    "\n".join(
+                        json.dumps(
+                            record,
+                            separators=(",", ":"),
+                            ensure_ascii=False,
+                        )
+                        for record in fake_empty_original_link_records
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+            summary["w1_fake_missing_paused_at_error"] = missing_identity.get(
+                "error_kind"
+            )
+            if missing_identity.get("error_kind") != "missing_paused_at_ref":
+                violations.append(
+                    "w1-fake-missing-paused-at-RED: missing fake-landing paused_at_ref "
+                    f"was not refused (error={missing_identity.get('error_kind')!r})"
+                )
+
             original_resume_building_plan = run_module.resume_building_plan
 
             def _resume_with_w1_runner(building_root: Path | str, **kwargs: Any):
@@ -1871,11 +1968,6 @@ def _w1_worktree_sandbox_fire(
                 "w1-fake-outside: out-of-scope-only diff did not hold "
                 f"(frontier={fake_outside_result.frontier_kind!r})"
             )
-        if fake_outside_result.frontier_reason != "fake_landing_write_scope_diff_absent":
-            violations.append(
-                "w1-fake-outside: hold did not surface fake landing frontier_reason "
-                f"(reason={fake_outside_result.frontier_reason!r})"
-            )
         if fake_outside_result.commit_sha:
             violations.append("w1-fake-outside: out-of-scope-only fake landing produced a completion commit")
         if not fake_outside_result.wip_commit_sha:
@@ -1937,57 +2029,125 @@ def _w1_worktree_sandbox_fire(
         if not fake_mixed_hold_rows:
             violations.append("w1-fake-mixed: forbidden-diff hold row was not persisted")
 
-        fake_outside_link_path = Path(fake_outside_result.evidence_root) / "raw" / "link.jsonl"
-        fake_outside_link_records = _jsonl_records(fake_outside_link_path)
-        fake_outside_original_link_records = [dict(record) for record in fake_outside_link_records]
-        for record in reversed(fake_outside_link_records):
-            if record.get("hold_reason") == "fake_landing_write_scope_diff_absent":
-                record.pop("transition_lifecycle_paused_at_ref", None)
-                break
-        fake_outside_link_path.write_text(
-            "\n".join(
-                json.dumps(record, separators=(",", ":"), ensure_ascii=False)
-                for record in fake_outside_link_records
-            )
-            + "\n",
-            encoding="utf-8",
+        fake_allowed_outside = Path(cust_raw) / "customer-fake-allowed-outside"
+        fake_allowed_outside.mkdir(parents=True, exist_ok=True)
+        _seed_customer_repo(repo, fake_allowed_outside)
+        fake_allowed_outside_result = run_customer_building_in_sandbox(
+            _w1_intent("w1-fake-allowed-outside-write-0"),
+            customer_repo_root=fake_allowed_outside,
+            output_root=evidence_root / "fake-allowed-outside",
+            overwrite_existing=True,
+            command_runner=_w1_completing_codex_runner(
+                write=True,
+                extra_write_rels=("README.md",),
+            ),
+            adapter_timeout_seconds=30,
         )
-        with tempfile.TemporaryDirectory(prefix="bp-w1-missing-paused-at-") as missing_raw:
-            missing_identity = run_approve_entry(
-                fake_outside_result.evidence_root,
-                action="forward",
-                author_ref="coo:d2-checker",
-                adapter_cwd=Path(missing_raw),
-                adapter_timeout_seconds=30,
-                repo_root=fake_outside,
-            )
-        fake_outside_link_path.write_text(
-            "\n".join(
-                json.dumps(record, separators=(",", ":"), ensure_ascii=False)
-                for record in fake_outside_original_link_records
-            )
-            + "\n",
-            encoding="utf-8",
+        fake_allowed_outside_link_records = _jsonl_records(
+            Path(fake_allowed_outside_result.evidence_root) / "raw" / "link.jsonl"
         )
-        summary["w1_fake_missing_paused_at_error"] = missing_identity.get("error_kind")
-        if missing_identity.get("error_kind") != "missing_paused_at_ref":
+        fake_allowed_outside_hold_rows = [
+            record
+            for record in fake_allowed_outside_link_records
+            if record.get("hold_reason") == _WRITE_SCOPE_OUTSIDE_DIFF_PRESENT_REASON
+        ]
+        fake_allowed_outside_support_authored_rows = [
+            record
+            for record in fake_allowed_outside_link_records
+            if record.get("transition_author_ref") == "support:operator-driver"
+        ]
+        fake_allowed_outside_gate_authored_rows = [
+            record
+            for record in fake_allowed_outside_hold_rows
+            if record.get("transition_author_ref") == "link-gate:coo"
+        ]
+        fake_allowed_outside_observation_refs = [
+            ref
+            for record in fake_allowed_outside_hold_rows
+            for ref in record.get("reason_refs", ())
+            if isinstance(ref, str)
+            and ref.startswith("observation:observed_paths_outside_declared_scope:")
+        ]
+        fake_allowed_outside_gate_consumptions = [
+            record.get("gate_consumption_evidence")
+            for record in fake_allowed_outside_hold_rows
+            if isinstance(record.get("gate_consumption_evidence"), Mapping)
+            and record["gate_consumption_evidence"].get("gate_ref") == "link-gate:coo"
+            and record["gate_consumption_evidence"].get("sufficiency")
+            == "missing_required_facts"
+            and "Link.route_decision_basis.override_refs"
+            in record["gate_consumption_evidence"].get("missing_required_facts", ())
+            and isinstance(
+                record["gate_consumption_evidence"].get("checked_public_fact"),
+                str,
+            )
+            and record["gate_consumption_evidence"]["checked_public_fact"].startswith(
+                "observation:observed_paths_outside_declared_scope:"
+            )
+            and record["gate_consumption_evidence"].get("evidence_reference")
+            == record["gate_consumption_evidence"].get("checked_public_fact")
+        ]
+        summary["w1_fake_allowed_outside_frontier"] = fake_allowed_outside_result.frontier_kind
+        summary["w1_fake_allowed_outside_reason"] = fake_allowed_outside_result.frontier_reason
+        summary["w1_fake_allowed_outside_commit"] = fake_allowed_outside_result.commit_sha
+        summary["w1_fake_allowed_outside_hold_row_count"] = len(fake_allowed_outside_hold_rows)
+        summary["w1_fake_allowed_outside_support_authored_row_count"] = len(
+            fake_allowed_outside_support_authored_rows
+        )
+        summary["w1_fake_allowed_outside_gate_authored_row_count"] = len(
+            fake_allowed_outside_gate_authored_rows
+        )
+        summary["w1_fake_allowed_outside_observation_ref_count"] = len(
+            fake_allowed_outside_observation_refs
+        )
+        summary["w1_fake_allowed_outside_gate_consumption_count"] = len(
+            fake_allowed_outside_gate_consumptions
+        )
+        if fake_allowed_outside_result.frontier_kind != "human_review_waiting":
             violations.append(
-                "w1-fake-missing-paused-at-RED: missing fake-landing paused_at_ref "
-                f"was not refused (error={missing_identity.get('error_kind')!r})"
+                "w1-fake-allowed-outside: allowed+outside diff did not hold "
+                f"(frontier={fake_allowed_outside_result.frontier_kind!r})"
+            )
+        if fake_allowed_outside_result.frontier_reason != _WRITE_SCOPE_OUTSIDE_DIFF_PRESENT_REASON:
+            violations.append(
+                "w1-fake-allowed-outside: hold did not surface outside-scope reason "
+                f"(reason={fake_allowed_outside_result.frontier_reason!r})"
+            )
+        if fake_allowed_outside_result.commit_sha:
+            violations.append(
+                "w1-fake-allowed-outside: allowed+outside diff produced a completion commit"
+            )
+        if not fake_allowed_outside_hold_rows:
+            violations.append("w1-fake-allowed-outside: outside-scope hold row was not persisted")
+        if fake_allowed_outside_support_authored_rows:
+            violations.append(
+                "w1-fake-allowed-outside: support-authored Link hold rows were persisted"
+            )
+        if not fake_allowed_outside_gate_authored_rows:
+            violations.append(
+                "w1-fake-allowed-outside: declared Link gate author evidence was not persisted"
+            )
+        if not fake_allowed_outside_observation_refs:
+            violations.append(
+                "w1-fake-allowed-outside: support outside-scope observation ref was not preserved"
+            )
+        if not fake_allowed_outside_gate_consumptions:
+            violations.append(
+                "w1-fake-allowed-outside: declared Link gate consumption evidence was not persisted"
             )
 
         with tempfile.TemporaryDirectory(prefix="bp-w1-no-diff-forward-") as no_diff_raw:
             no_diff_forward = run_approve_entry(
-                fake_outside_result.evidence_root,
+                fake_empty_result.evidence_root,
                 action="forward",
                 author_ref="coo:d2-checker",
                 adapter_cwd=Path(no_diff_raw),
                 adapter_timeout_seconds=30,
-                repo_root=fake_outside,
+                repo_root=fake_empty,
             )
         no_diff_reobserved = observe_building_frontier(
-            fake_outside_result.evidence_root,
-            repo_root=fake_outside,
+            fake_empty_result.evidence_root,
+            repo_root=fake_empty,
         )
         summary["w1_fake_no_diff_forward_frontier"] = no_diff_forward.get("frontier_kind")
         summary["w1_fake_no_diff_forward_reason"] = no_diff_forward.get("frontier_reason")
