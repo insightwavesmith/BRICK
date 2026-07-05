@@ -2154,7 +2154,9 @@ def _w1_worktree_sandbox_fire(
         summary["w1_fake_no_diff_forward_reobserved_frontier"] = no_diff_reobserved.get(
             "frontier_kind"
         )
-        no_diff_link_records = _jsonl_records(fake_outside_link_path)
+        no_diff_link_records = _jsonl_records(
+            Path(fake_empty_result.evidence_root) / "raw" / "link.jsonl"
+        )
         no_diff_basis_rows = [
             record
             for record in no_diff_link_records
