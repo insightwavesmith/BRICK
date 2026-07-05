@@ -138,6 +138,10 @@ def _repo_from_args(args: argparse.Namespace) -> Path:
     return _REPO_ROOT
 
 
+def _hermetic_verify_argv(repo: Path) -> list[str]:
+    return ["--repo", str(repo), "--profile", "core"]
+
+
 def _default_builds_root() -> Path:
     """Return the customer-visible default evidence root used by ``brick build``.
 
@@ -619,8 +623,10 @@ def _cmd_verify(args: argparse.Namespace) -> int:
         verify_argv = ["--self-test"]
     elif args.profile:
         verify_argv = ["--repo", str(repo), "--profile", args.profile]
-    else:
+    elif args.all:
         verify_argv = ["--repo", str(repo), "--all"]
+    else:
+        verify_argv = _hermetic_verify_argv(repo)
     if not args.json:
         return check_profile.main(verify_argv)
     stdout = io.StringIO()
@@ -654,8 +660,9 @@ def _cmd_init(args: argparse.Namespace) -> int:
       2 PLUGIN   -> MCP register + skills place + recording hooks
       3 SLACK    -> provision/validate ~/.brick/report.env (0600)
       4+5 ONBOARD/EXAMPLE -> preflight + connect + example build + first-use
-      6 VERIFY   -> check_profile --all ONCE (the CADENCE: per-step compileall,
-                    --all once at the end)
+      6 VERIFY   -> hermetic check_profile core profile (fresh-machine
+                    default); developers can run `brick verify --all`
+                    explicitly for the full sweep.
 
     Each plugin/slack step is a friendly advisory that never hard-stops; only a
     failed example build is fatal (preserving the prior contract). The verify
@@ -737,10 +744,10 @@ def _cmd_init(args: argparse.Namespace) -> int:
                 "error_message": example_result.get("error_message", "example build did not complete"),
             }
 
-    # 6 VERIFY: check_profile --all ONCE (CADENCE). Skipped on --skip-verify.
+    # 6 VERIFY: hermetic default verify. Skipped on --skip-verify.
     verify_packet = None
     if not getattr(args, "skip_verify", False):
-        verify_argv = ["--repo", str(repo), "--all"]
+        verify_argv = _hermetic_verify_argv(repo)
         verify_stdout = io.StringIO()
         verify_stderr = io.StringIO()
         with contextlib.redirect_stdout(verify_stdout), contextlib.redirect_stderr(verify_stderr):
@@ -788,14 +795,13 @@ def _cmd_init(args: argparse.Namespace) -> int:
             print(f"first_use_path: {first_use_packet['path']}")
         if verify_packet is not None:
             print("")
-            print(f"verify: check_profile --all green={verify_packet['green']} (exit {verify_packet['checker_exit_code']})")
+            print(f"verify: check_profile core green={verify_packet['green']} (exit {verify_packet['checker_exit_code']})")
         print("")
         print(_render_status(status_packet))
     # H3: the exit code reflects BOTH gates. The example build is the hard gate
-    # (build_error => 1); when the VERIFY step ran (--all was actually executed),
-    # a RED suite ALSO fails init -- otherwise `brick init` would pay the full
-    # --all cost and still exit 0 over a RED tree, a fake green. When verify was
-    # skipped (--skip-verify) it does not contribute (verify_packet is None).
+    # (build_error => 1); when the VERIFY step ran, a RED hermetic profile ALSO
+    # fails init. When verify was skipped (--skip-verify) it does not contribute
+    # (verify_packet is None).
     if build_error is not None:
         return 1
     if verify_packet is not None and not verify_packet["green"]:
@@ -982,7 +988,7 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     init_parser.add_argument("--skip-recording", action="store_true", help="Skip the auto-recording hook wiring.")
-    init_parser.add_argument("--skip-verify", action="store_true", help="Skip the final check_profile --all verify.")
+    init_parser.add_argument("--skip-verify", action="store_true", help="Skip the final hermetic verify.")
     init_parser.add_argument("--host", default="codex", help="Onboarding host (codex/claude/gemini/fugu/local).")
     init_parser.add_argument(
         "--slack-bot-token",
@@ -1039,7 +1045,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     verify = subparsers.add_parser("verify", aliases=["check"], help="Run check_profile over this checkout.")
     _add_common(verify)
-    verify.add_argument("--profile", default="", help="Profile name or YAML path. Defaults to --all.")
+    verify.add_argument("--profile", default="", help="Profile name or YAML path. Defaults to the hermetic core profile.")
+    verify.add_argument("--all", action="store_true", help="Run every support/checkers/profiles/*.yaml profile.")
     verify.add_argument("--self-test", action="store_true", help="Run the profile runner self-test.")
     verify.set_defaults(func=_cmd_verify)
 
