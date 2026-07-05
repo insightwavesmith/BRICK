@@ -3141,6 +3141,66 @@ def _path_slug(value: str) -> str:
     return slug.strip("-") or "proposal"
 
 
+def _approval_route_decision_basis_fields(
+    *,
+    action: str,
+    author_ref: str,
+    frontier_before: Mapping[str, Any],
+    paused_at_ref: str,
+) -> dict[str, Any]:
+    """Return raw Link-row basis fields for a human/COO forward disposition."""
+
+    if action != "forward":
+        return {}
+    frontier_reason = str(frontier_before.get("frontier_reason") or "").strip()
+    if not frontier_reason:
+        return {}
+    override_refs = [f"override:{frontier_reason}"]
+    if paused_at_ref:
+        override_refs.append(f"override:paused-at:{paused_at_ref}")
+    return {
+        "route_decision_override_refs": override_refs,
+        "route_decision_reviewer_observation_refs": [
+            f"observation:{frontier_reason}",
+        ],
+        "route_decision_proof_limits": [
+            "caller/COO authored disposition basis evidence only",
+            "support mirrored the observed hold reason onto the Link row",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+        ],
+        "route_decision_not_proven": [
+            "whether the caller/COO disposition is sufficient for any other hold",
+            "semantic correctness of the held Building work",
+            f"author identity beyond declared ref {author_ref}",
+        ],
+    }
+
+
+def _approval_route_decision_basis_recorded(
+    link_path: Path,
+    row: Mapping[str, Any],
+) -> bool:
+    expected_action = row.get("transition_lifecycle_disposition_action")
+    expected_resumed_from = row.get("transition_lifecycle_resumed_from_ref")
+    expected_pending_target = row.get("transition_lifecycle_pending_target_ref")
+    expected_overrides = row.get("route_decision_override_refs")
+    if not expected_overrides:
+        return True
+    for record in _jsonl_records(link_path):
+        if (
+            record.get("transition_lifecycle_disposition_action") == expected_action
+            and record.get("transition_lifecycle_resumed_from_ref") == expected_resumed_from
+            and record.get("transition_lifecycle_pending_target_ref")
+            == expected_pending_target
+            and record.get("route_decision_override_refs") == expected_overrides
+        ):
+            return True
+    return False
+
+
 def run_approve_entry(
     building_ref: str | Path,
     *,
@@ -3450,6 +3510,14 @@ def run_approve_entry(
     }
     if parsed_budget is not None:
         row["transition_lifecycle_budget_increment"] = parsed_budget
+    row.update(
+        _approval_route_decision_basis_fields(
+            action=action_text,
+            author_ref=author_text,
+            frontier_before=frontier_before,
+            paused_at_ref=paused_at_ref,
+        )
+    )
     # ④ RE-INSTRUCTION authoring: the human/COO may carry a corrected how-to to
     # the retried target Brick on THIS same disposition row. re_instruction is an
     # already-admitted transition_lifecycle key (link/transition.py) consumed by
@@ -3532,6 +3600,26 @@ def run_approve_entry(
                 frontier_after = dict(
                     observe_building_frontier(building_root, repo_root=repo)
                 )
+        if (
+            action_text == "forward"
+            and str(frontier_after.get("frontier_kind") or "") == "complete"
+            and not _approval_route_decision_basis_recorded(link_path, row)
+        ):
+            durable_row = dict(row)
+            durable_row["raw_ref"] = f"raw:link:disposition:{action_text}:basis"
+            durable_row["raw_refs"] = [durable_row["raw_ref"]]
+            with link_path.open("a", encoding="utf-8") as handle:
+                handle.write(
+                    json.dumps(
+                        durable_row,
+                        separators=(",", ":"),
+                        ensure_ascii=False,
+                    )
+                    + "\n"
+                )
+            frontier_after = dict(
+                observe_building_frontier(building_root, repo_root=repo)
+            )
     except Exception as exc:  # noqa: BLE001 -- disposition is already written
         result.update(
             {
