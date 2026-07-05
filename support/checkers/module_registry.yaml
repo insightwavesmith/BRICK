@@ -107,6 +107,16 @@ modules:
     decomposition_target: ""
     pinned_by: fixture-driven prompt behavior RED probe (manual LLM dispatch; support evidence only)
 
+  - module: support/checkers/probe_wheel_smoke_stale_build_red.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: stale-build masking RED probe for run_wheel_smoke (seeds a stale in-tree build/ + shrinks pyproject packages, asserts wheel_smoke RED; support evidence only)
+
   - module: support/checkers/check_axis_contract_projection.py
     layer: checkers
     role: oracle

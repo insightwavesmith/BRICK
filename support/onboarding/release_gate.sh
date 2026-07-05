@@ -55,6 +55,7 @@ main() {
     cleanup() {
         rm -rf "$wheel_dist"
         rm -rf "$wheel_venv"
+        rm -rf "$repo_root/build"
         rm -rf "${export_dir:-}"
         rm -rf "${negative_export_dir:-}"
         rm -f "${deny_probe_path:-}"
@@ -62,6 +63,18 @@ main() {
     trap cleanup EXIT HUP INT TERM
 
     printf '%s\n' "4) wheel smoke: build wheel and verify installed brick console entry"
+    # wheel hygiene (0706): this developer gate builds the wheel IN its own
+    # working tree, so a stale setuptools build/ intermediate could seed the
+    # wheel and mask a pyproject packages-list regression, and an in-tree build
+    # would otherwise leave a build/ residue in the repo. Rationale for the
+    # chosen technique (of the two allowed for a developer gate -- clear-own-tree
+    # vs isolated-copy): as a developer gate (NOT the read-only checker) this
+    # script may clear its OWN tree's build/, which is the simpler pollution-
+    # proof option here -- it removes any stale build/ before the build so the
+    # wheel reflects only the declared packages, and the trap removes the build/
+    # residue on exit so the tree stays clean.
+    printf '%s\n' "   wheel hygiene: cleared stale build/ before build; build/ residue removed on exit (developer-gate clear-own-tree technique)"
+    rm -rf "$repo_root/build"
     ( cd "$repo_root" && PYTHONPATH= uv build --wheel --out-dir "$wheel_dist" )
     PYTHONPATH= python3 -m venv "$wheel_venv"
     # Contract pin literals: pip install --no-index --no-deps; brick --help.
