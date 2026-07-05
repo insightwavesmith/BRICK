@@ -12,6 +12,7 @@ plan_expansion_case:
       expansion_node_budgets:
         step:c: 2
         step:d: 3
+      linear_validate_missing_node_reroute_budgets: true
   - path: support/checkers/fixtures/plan_expansion/cycle.json
     expect_reject: true
   - path: support/checkers/fixtures/plan_expansion/missing_fan_in_member.json

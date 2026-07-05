@@ -385,6 +385,7 @@ compose_building_rejects:
           required_return_shape: observed_evidence, not_proven
         - node_id: gate-sequence-work
           step_template_ref: building-step-template:work
+          node_reroute_budget: 1
           work_statement: Work after guarded design.
           comparison_rule: Observe support evidence only.
           required_return_shape: observed_evidence, not_proven

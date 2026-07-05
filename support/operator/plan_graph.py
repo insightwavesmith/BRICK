@@ -159,10 +159,8 @@ def _graph_link_edges_by_ref(plan: Mapping[str, Any]) -> dict[str, Mapping[str, 
         raise ValueError("graph Building Plan requires non-empty link_edges")
     brick_steps = _graph_brick_steps_by_ref(plan)
     declared_brick_refs = frozenset(_graph_step_brick_ref(step) for step in brick_steps.values())
-    raw_node_reroute_budgets = plan.get("node_reroute_budgets", {})
-    if raw_node_reroute_budgets is None:
-        raw_node_reroute_budgets = {}
-    if not isinstance(raw_node_reroute_budgets, Mapping):
+    raw_node_reroute_budgets = plan.get("node_reroute_budgets")
+    if raw_node_reroute_budgets is not None and not isinstance(raw_node_reroute_budgets, Mapping):
         raise ValueError("node_reroute_budgets must be a mapping when supplied")
     edges: dict[str, Mapping[str, Any]] = {}
     for index, value in enumerate(values):
