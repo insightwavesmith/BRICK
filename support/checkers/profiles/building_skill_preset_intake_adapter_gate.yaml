@@ -104,7 +104,7 @@ preset_building_completion_case:
         - coo:all-presets-completion-smoke
       human_review_refs:
         - human-review:all-presets-completion-smoke
-    expected_preset_count: 28
+    expected_preset_count: 29
     expected_frontier_kind: complete
     expected_portfolio_frontier_kind: complete
     expected_preset_refs:
@@ -127,6 +127,7 @@ preset_building_completion_case:
       - building-chain-preset:one-brick-do
       - building-chain-preset:portfolio-reviewed
       - building-chain-preset:portfolio-sequence
+      - building-chain-preset:postmortem
       - building-chain-preset:postmortem-fleet
       - building-chain-preset:quick-check
       - building-chain-preset:recon-fleet
