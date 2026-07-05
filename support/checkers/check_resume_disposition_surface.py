@@ -175,11 +175,51 @@ def _assert_vessel_step_output_source_fact_fallback(repo: Path) -> int:
     return 2
 
 
+def _assert_approve_missing_building_root_not_found(repo: Path) -> int:
+    from support.operator import onboard
+
+    with tempfile.TemporaryDirectory(prefix="bp-resume-surface-missing-") as tmpdir:
+        result = onboard.run_approve_entry(
+            "project/brick-protocol/buildings/definitely-missing-d1-resume-surface",
+            action="forward",
+            author_ref="human:resume-surface-checker",
+            output_root=Path(tmpdir) / "goal-runs",
+            repo_root=repo,
+        )
+    if result.get("error_kind") != "building_root_not_found":
+        raise AssertionError(
+            "missing approval Building root no longer returns building_root_not_found"
+        )
+    if result.get("ok") is not False:
+        raise AssertionError("missing approval Building root no longer fails closed")
+    return 1
+
+
+def _assert_repo_relative_building_ref_reaches_vessel(_repo: Path) -> int:
+    from support.operator import onboard
+
+    with tempfile.TemporaryDirectory(prefix="bp-resume-surface-vessel-") as tmpdir:
+        fixture_repo = Path(tmpdir) / "repo"
+        building_ref = "project/brick-protocol/buildings/d1-resume-surface-vessel"
+        building_root = fixture_repo / building_ref
+        _write_building_signature(building_root)
+        resolved, _candidates = onboard._resolve_approval_building_root(
+            building_ref,
+            output_root=None,
+            repo_root=fixture_repo,
+        )
+        if resolved != building_root.resolve():
+            raise AssertionError("repo-relative approval Building ref did not reach vessel")
+    return 1
+
+
 def run(repo: Path) -> int:
     inspected = 0
     inspected += _assert_building_ref_resolution(repo)
     inspected += _assert_adapter_cwd_auto_worktree(repo)
     inspected += _assert_vessel_step_output_source_fact_fallback(repo)
+    inspected += _assert_approve_missing_building_root_not_found(repo)
+    inspected += _assert_repo_relative_building_ref_reaches_vessel(repo)
     return inspected
 
 
