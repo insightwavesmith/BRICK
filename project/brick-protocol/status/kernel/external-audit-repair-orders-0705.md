@@ -147,6 +147,96 @@ _positive_int_mapping) = S11-RED-001·S12-WR-003. handoff 절대경로 = 묶음3
 3급: 묶음6(bool 위생) · 묶음4(홀드 명확화, Smith A/B) · 묶음7(매처) · 묶음3 ✅랜딩
 ```
 
-증거 한계: 외부 감사 1차는 클론 불가 환경(커넥터 열람), 2차·3차는 업로드 아카이브 실측 —
-조사자 교차검증이 실물 앵커를 보강했으나, 각 묶음 발주 시점에 앵커 재확인하라(코드
-계속 변경 중). 처분 확정·품질 판정은 사람 몫.
+## 0705 낮 증보 — 외부 감사 4차분(S15 문서드리프트 · S16 온보딩 여정 · S17 헌법 개정) 교차검증 + 조사자 로컬 잔여 수행
+
+4차분 아카이브에는 project/** 부재 → 지피티가 status/kernel 정본 대조 불가(S15-DOC-011).
+그 잔여 범위는 조사자가 로컬 스윕(kernel 정본 11문서, 문서별 레인 + 적대 렌즈 1, 전 레인
+sonnet)으로 직접 수행. S15 수치 계열은 조사자 실행 재측정으로 전건 재확인.
+
+### S15 교차검증 (지피티 발견 11 + 조사자 신규 2)
+
+| id | 주장 | 조사자 검증 | 처분 |
+|---|---|---|---|
+| DOC-001/002 | README expected 불일치·첫 명령이 installer 진단 우회 | ✅ README.md:45 vs install.sh:186·193 / :133-148 분기 재확인 | **기존 S8·S10 동일건 — 온보딩 몫 기이관(v2 §5-1). 재발주 금지** |
+| DOC-003~007 | checker-profile-map.md 수치 전면 stale | ✅ 실행 재측정 = 지피티 값 일치: profiles **41**·presets **29**·distinct kernel_checks **75**·module rows **212**·live ceiling **2**·walker **14**·overlap **16/13/9/8** (문서값 30/28/66/162/9/12/10). 추가: 문서 profile 표(:42)가 **삭제된 프로필**(agent_tool_hardening — diet 배치로 8분할 완료)을 현행 등재 | **묶음8 신설** |
+| DOC-008 | setup.md:227 "raises an exception" | ✅ MAJOR — run.py:592-618이 held result 반환(:513-546 `_held_result_from_adapter_frontier_signal`) | **묶음4 동승**(A안 문서 표면) |
+| DOC-009 | quickstart.md:62-63 홀드 처분 매트릭스 부재 | ✅ MAJOR — raise 가드 실물 walker_resume.py:395·:493 | **묶음4 동승** |
+| DOC-010 | 헌법 역사 anchor 미해결 | **종결 — 발견 아님**: 두 문서 로컬 실존(goal-phases-0629 kernel 루트 / brick-6-…-0630 archive/0702-doc-archive/) | — |
+| DOC-011 | project/ 스코프 누락 | **종결 — 조사자 로컬 수행**(아래 스윕). 회귀 재감사 시 아카이브에 status/kernel 포함(핸드오프 §5) | — |
+| LOC-001(조사자) | **스킬 정본 참조 깨짐**: brick-task-author SKILL.md:475(+템플릿 사본 :470) → stall-attribution-amendment-0613.md가 archive/0702-doc-archive/로 이동 | ✅ find 재확인 | 묶음8 |
+| LOC-002(조사자) | 프로필 YAML 2건 표준 위반(백틱 스칼라): building_skill_preset_agent_resource_boundary.yaml:75·gate_registry_single_source.yaml — 커스텀 `parse_yaml_subset`(check_profile.py:1096)만 통과, 표준 PyYAML 파스 실패 → 외부 도구 집계 함정 | ✅ 재현(MINOR) | 묶음8 동승 후보/백로그 |
+
+### 로컬 스윕 — status/kernel 정본 11문서 (S15 잔여분, 조사자 직접)
+
+| 문서 | 발견 | 처분 |
+|---|---|---|
+| goal-phases-consolidated-0702.md | 실질 0 (앵커갱신 3: HEAD 헤더 f4d7b58b→현행, declaration_packets :1491→1489, assembly :603 주석지점) | 갱신만 |
+| **harness-roadmap-orders-0704.md** | **문서 실효(사고 위험)** — T1·T2·T3·T4·T5·T6 전부 이미 랜딩/발사(t1-tasklint-0704a~t6-holdvocab-0704a 빌딩 + task_order_preflight.py 배선 + work/return.yaml:9 received_deliverables_echo + return_fact.py good_enough, 조사자 재확인). 문서는 전부 미착수로 서술 | **실효 스탬프 각인(이번 커밋) — 재발주 금지** |
+| harness-roadmap-orders-t7-t11-0704.md | 앵커갱신 다수(walker_kernel +24줄 패턴 등) + **오지점 앵커 2**(declaration_packets.py:403·:968 → plan_hash 실물 :1372, manifest hash :1606 — 조사자 재확인) + T11 종료선 커맨드 rc=1(lessons-ledger.yaml 최상위 dict, list assert 실패 — 조사자 재현) | T7~T11 발주 시 앵커 전면 재확인 필수 + 종료선 정정(묶음8) |
+| checker-diet-order-plan-0704.md | 정본 지칭 파일(hardening.yaml) 삭제 완료(diet-batch0~5 집행 결과) — 집행-완료 표시 부재. 배치 수치는 정합 | 집행 스탬프(묶음8) |
+| hold-disposition-vocabulary-0704.md | **출처 오귀속 1**(표 53·86행 "설계-질문 concern 재파견" 출처를 harness-roadmap §T6로 인용 — 실물은 goal-phases-consolidated-0702.md:242-244, 조사자 grep 재확인) + 수치 1(2회 vs 출처 1건) + 앵커갱신 3 | 출처 정정 1줄(묶음8) |
+| evidence-postmortem-task-template-0612.md | 스킬명 낡음 1 (brick-hold-triage → brick-task-author PHASE 3 흡수, APPLY-LIST.md:24) | 명칭 갱신(묶음8) |
+| coo-goal-loop-prompt-0702.md | 발견 0 (8건 전수 일치) | — |
+| kernel-archive-classification-0705.md | 레인 보고 "git mv 서술 vs rename 이력 모순"은 **조사자 기각(오검)** — git rename 표시는 diff 시점 유사도 추론이라 plain mv를 반증 못 함. 유효 발견 1: discipline-audit-0618.md leaked-text 의심(skill-doc-resize-audit-0702.md:45 "일괄이동 제외" 지정 미언급 채 이관, 실물 첫 줄 확인) | 백로그(재작성/삭제 검토) |
+| legacy-refgraph-census-0705.md | 후보 어조 잔존(이미 집행됨) + 4건 중 1건 이름 미특정 | 집행 스탬프(묶음8) |
+| **GOAL/00-GOAL-OF-RECORD.md·00-INDEX.md** | **골 내비게이션 실효** — 심볼릭 링크가 0627/0629 문서를 지시. closeout-goal-0630이 ACTIVE GOAL 자기선언, 실운영 골 정본은 goal-phases-consolidated-0702. 00-GOAL-OF-RECORD의 Live checkout 지시(struct-surgery-0623 워크트리, HEAD 70160fb 0630)도 현행 main과 불일치 | GOAL/ 링크 재지정 or 안내 스탬프 — 묶음8, 골 내비게이션이라 **형제/Smith 확인 후** |
+
+### 묶음4 증보 (문서 표면 확정 착지 — DOC-008/009 편입)
+- setup.md:227 교체: "public `run_building_plan`은 adapter-error frontier 기록 후 **held
+  결과를 반환**(hold_reason=adapter_error_frontier, 재개 가능 paused). 일부 하위/내부
+  표면만 typed frontier signal을 raise."
+- quickstart.md:62-63 아래 frontier_kind×hold_reason 처분 매트릭스 행 추가:
+  human_review_waiting+fake_landing→forward 가능 / link_paused+budget→raise는
+  budget_exhaustion만 / **agent_incomplete+adapter_error_frontier→generic approve 불가,
+  stop 또는 fresh 재발주**(A안 어휘와 통일).
+- 종료선 추가: 두 문서의 해당 절이 A안 어휘(stop-only)와 일치함을 grep으로 확인.
+
+### 묶음 8 (신설) — 문서 드리프트 수리 【소형·비엔진·3급】
+1. checker-profile-map.md: 고정 수치 제거(측정 명령만 유지) 또는 재측정값 갱신
+   (41/29/75/212/2/14, overlap 16/13/9/8) + profile 표에서 삭제 프로필 제거.
+2. 스킬 정본 참조 수리: brick-task-author SKILL.md:475 + 템플릿 사본 :470 →
+   archive/0702-doc-archive/ 경로로 갱신(양 사본 동기).
+3. hold-disposition-vocabulary 출처 오귀속 1줄 정정(→ goal-phases-consolidated:242-244).
+4. harness-roadmap-t7-t11: declaration_packets 오지점 앵커 2건 재지정(:1372·:1606) +
+   T11 종료선 커맨드를 dict 구조 기준으로 정정.
+5. checker-diet-order-plan·legacy-refgraph-census 집행-완료 스탬프.
+6. evidence-postmortem 템플릿 스킬명 갱신(brick-task-author PHASE 3).
+7. 동승 후보: 프로필 YAML 2건 표준화(LOC-002) · architecture-map.md 날짜/재생성 ·
+   GOAL/ 링크 재지정(형제/Smith 확인 후).
+- 종료선: 갱신 수치 = 본 증보에 박은 재측정 명령 출력과 일치 · 갱신 참조 전건
+  `test -f` green · 격리 --all green.
+
+### S16 처분 — 온보딩 몫 통보 자료 (v2 정본 대조는 조사자가 로컬 완료)
+- 지피티 제안 G01~G20 대조 결과: G01~G14 = v2 14관문과 일치 / **순신규 2건만**:
+  G16(네트워크·프록시·SSL·다운로드), G17(디스크 용량·HOME 쓰기권한) / 인벤토리 승격
+  후보 3건: G15(브라우저 device-code — v2 §3 "고객 몫 4종"에 기존재), G18(Windows —
+  v2 §7-4 하중벽로 기존재), G19(앱 도구권한 — 앱 설치 관문에 권한 승인 단계 보강) /
+  **중복 1건**: G20(지원 채널 — v2 §5-5 기존재).
+- 지피티 L2 대본 초안은 v2 §3 보안 경계(결제 대행 금지·API 키 대행 금지·curl|sh 신뢰
+  판단 금지·인증은 사람 몫)와 정합 — 온보딩 세션 입력으로 전달.
+- 무료 초록불 이중 표면(install.sh:198-200 `brick verify` vs README:66-67 check_profile
+  직접 실행): 고객 표면은 `brick verify` 단일화 권고 — 온보딩 몫.
+- 처분: 온보딩 트랙 통보(기존 S8·S10 경로와 동일). 이 트랙 발주 없음.
+
+### S17 처분 — 헌법 개정 후보: constitution-amendment-draft-0705.md 신설
+적대 검증 렌즈 반영 결과: 등재 가능 **16(무수정)·15(경미수정)·14(신조어 제거)** /
+**11은 묶음5 랜딩 후** 재작성 문안으로 상정(원안 "parent hash 바인딩"이 S12-WR-001이
+지목한 해시-only 결함을 봉인하는 꼴) / **13은 신규 아님** — AGENTS.md:404-409 기존
+원칙의 헌법 승격-이전 안건으로 재분류 / **12는 폐기 권고**(헌법 15행 동어반복 +
+Movement 2종/lifecycle 어휘 구분 훼손). 비준·배치는 Smith.
+
+### 우선순위 갱신 (0705 낮)
+```
+1급: 묶음5(구조 — T10 운전 선결) + 묶음1 잔여(base expansion_budget bool)
+2급: 묶음2(S4+S1 재배선, README 혼합 RED 포함)
+3급: 묶음6(bool 위생) · 묶음4(A안 확정 + setup/quickstart 문서 표면 동승) ·
+     묶음7(매처) · 묶음8(문서 드리프트, 신설)
+각인 대기: 헌법 개정(constitution-amendment-draft-0705.md, Smith 비준 후) +
+          T9류 문서 체커(온보딩 v2 §3 T9와 합류 — expected/command 드리프트 RED)
+경고: harness-roadmap-orders-0704.md 실효(T1~T6 기집행) — 재발주 금지 스탬프 각인됨.
+```
+
+증거 한계: 외부 감사 1차는 클론 불가 환경(커넥터 열람), 2차·3차는 업로드 아카이브 실측,
+4차는 아카이브에 project/** 부재로 조사자 로컬 스윕이 잔여를 수행 — 조사자 교차검증이
+실물 앵커를 보강했으나, 각 묶음 발주 시점에 앵커 재확인하라(코드 계속 변경 중).
+처분 확정·품질 판정은 사람 몫.

@@ -1,5 +1,14 @@
 # 하네싱 로드맵 T1~T6 — COO 발주 준비 문서 (0704)
 
+> **0705 낮 조사자 실효 스탬프 — T1~T6 전부 기집행, 이 문서 근거 재발주 금지.**
+> 실측: t1-tasklint-0704a(+t1s2 v2~v4)·t2-contractecho-0704a·t3-parityledger-0704a·
+> t4-behavior-red-0705a·t5-pin-diet-0705a/t5v2-qadelegate-0705a·t6-holdvocab-0704a 빌딩
+> 실존 + 실물 배선(task_order_preflight.py, work/return.yaml:9 received_deliverables_echo,
+> return_fact.py TOP_LEVEL_VERDICT_KEYS의 good_enough, check_declaration_enforcement_parity.py,
+> probe_prompt_behavior_red.py, coo.md 327줄 축소). 아래 본문의 "현재 실물/부재" 서술은
+> 0704 작성 시점 스냅샷(역사 기록)이다. 잔여 트랙은 harness-roadmap-orders-t7-t11-0704.md
+> — 그 문서도 발주 시 앵커 재확인 필수(external-audit-repair-orders-0705.md 0705 낮 증보).
+
 0704 하네싱 강화(87ae5df0, 정본: harness-reinforcement-brick-agent-0704.md) 후
 남은 구조 개선 6건. 각 항목은 COO 세션이 빌딩을 굴릴 수 있게 발주-준비 상태로
 기술한다. 모든 항목은 0702~0704 실측 사고에 앵커되며, "이미 반영됨" 실물 확인을
