@@ -608,6 +608,11 @@ def brick(
         raise ValueError("node_write_scope requires write=True")
     if isinstance(gates, (str, bytes)) or not isinstance(gates, Sequence):
         raise TypeError("brick() gates must be a sequence")
+    if llm is not None and casting_kwargs:
+        raise ValueError(
+            "brick() llm= cannot be combined with explicit casting keys: "
+            + ", ".join(sorted(casting_kwargs))
+        )
     casting_kwargs = _expand_llm_alias("brick()", llm, casting_kwargs)
     return BrickSpec(
         kind=clean_kind,

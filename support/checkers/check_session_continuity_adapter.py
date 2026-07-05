@@ -176,6 +176,10 @@ def _assert_continue_codex_home_and_resume(repo: Path) -> str:
         )
     if "--skip-git-repo-check" not in args:
         raise SessionContinuityAdapterError("codex resume lost non-git cwd trust args")
+    if 'approval_policy="never"' not in args:
+        raise SessionContinuityAdapterError(
+            "codex resume lost approval_policy=\"never\" argv pin"
+        )
     if "--cd" in args:
         raise SessionContinuityAdapterError(
             "codex resume pinned CLI-rejected --cd instead of process cwd"
@@ -207,6 +211,10 @@ def _assert_codex_resume_failure_falls_back(repo: Path) -> str:
         raise SessionContinuityAdapterError("codex failed resume did not retry exactly once")
     if calls[0][:4] != ("codex", "exec", "resume", "--last"):
         raise SessionContinuityAdapterError("codex fallback probe first call was not resume")
+    if 'approval_policy="never"' not in calls[0]:
+        raise SessionContinuityAdapterError(
+            "codex fallback resume lost approval_policy=\"never\" argv pin"
+        )
     if calls[1][:2] != ("codex", "exec") or "resume" in calls[1]:
         raise SessionContinuityAdapterError("codex fallback probe second call was not fresh exec")
     if 'service_tier="priority"' not in calls[1]:

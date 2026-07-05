@@ -843,6 +843,11 @@ def _invoke_local_cli(
             adapter_usage = (
                 codex_usage_from_json_stdout(completed.stdout) if json_active else None
             )
+            if adapter_usage is not None:
+                adapter_usage = {
+                    **adapter_usage,
+                    "selected_reasoning_effort_ref": request.selected_reasoning_effort_ref,
+                }
             # TEXT response ALWAYS from the --output-last-message file. When the file
             # is empty/unwritten we must NOT fall back to raw stdout under --json --
             # that stdout is JSONL events, and feeding it to the assistant-text path
