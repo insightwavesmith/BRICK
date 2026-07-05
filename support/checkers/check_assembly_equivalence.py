@@ -2057,6 +2057,26 @@ def _llm_alias_fire(repo: Path) -> tuple[str, ...]:
     def non_bare_probe() -> None:
         brick("design", "llm non-bare", llm="claude:sonnet")
 
+    def malformed_model_ref_probe() -> str:
+        try:
+            brick(
+                "design",
+                "malformed model ref guidance",
+                model="claude:claude-fable-5",
+            )
+        except ValueError as exc:
+            message = str(exc)
+            if "admitted prefixes:" not in message or "model:claude:<id>" not in message:
+                raise AssemblyEquivalenceError(
+                    "malformed casting ref error did not guide admitted prefixes and "
+                    f"model:claude:<id>: {message}"
+                ) from exc
+            return (
+                "casting RED observed: malformed claude: model ref was rejected "
+                "with admitted-prefix guidance."
+            )
+        raise AssemblyEquivalenceError("malformed claude: model ref was accepted")
+
     def unknown_probe() -> None:
         brick("design", "llm unknown", llm="gpt9")
 
@@ -2096,6 +2116,7 @@ def _llm_alias_fire(repo: Path) -> tuple[str, ...]:
     return (
         "llm alias green: brick(llm='claude') expanded through the normal selected_* casting bag.",
         _assert_raises("brick llm non-bare alias", ValueError, non_bare_probe),
+        malformed_model_ref_probe(),
         _assert_raises("brick llm unknown alias", ValueError, unknown_probe),
         _assert_raises("brick llm plus model", ValueError, mixed_model_probe),
         _assert_raises("brick llm plus adapter", ValueError, mixed_adapter_probe),
@@ -2450,6 +2471,40 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
             raise AssemblyEquivalenceError("build omitted expansion_budget changed the frozen proposal")
         outputs.append("build green: stop approval wrote only the frozen proposal and ran nothing.")
 
+        forward_root = tmp / "build-forward-vessel"
+        with _with_temp_home(tmp / "build-forward-home"):
+            forward_build = build(
+                _approval_simple_graph(),
+                goal="build forward proposal residue checker task",
+                declared_by=DECLARED_BY,
+                author_ref="coo:smith",
+                action="forward",
+                output_root=forward_root,
+                command_runner=_approval_runner(),
+                adapter_timeout_seconds=30,
+            )
+        forward_approval = forward_build.get("approval_result")
+        if not isinstance(forward_approval, Mapping):
+            raise AssemblyEquivalenceError(f"build forward returned no approval result: {forward_build!r}")
+        if not forward_approval.get("ran") or forward_approval.get("frontier_kind") != "complete":
+            raise AssemblyEquivalenceError(f"build forward did not complete: {forward_build!r}")
+        forward_building_id = str(forward_build.get("building_id") or "")
+        vessel_proposal = forward_root / forward_building_id / GOAL_PROPOSAL_FILENAME
+        if vessel_proposal.is_file():
+            raise AssemblyEquivalenceError(
+                f"build forward left proposal residue in vessel root: {vessel_proposal}"
+            )
+        forward_proposal = Path(str(forward_build.get("proposal_ref", ""))).resolve()
+        try:
+            forward_proposal.relative_to(forward_root.resolve())
+        except ValueError:
+            pass
+        else:
+            raise AssemblyEquivalenceError(
+                f"build forward proposal staging stayed inside vessel root: {forward_proposal}"
+            )
+        outputs.append("build RED guarded: completed build leaves no proposal JSON in the vessel root.")
+
         explicit_scope = {
             "allowed_paths": ["support/checkers/**"],
             "forbidden_paths": [".git/**"],
@@ -2490,8 +2545,9 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
         if explicit_approval.get("ran") is not False or not explicit_approval.get("ok"):
             raise AssemblyEquivalenceError(f"build explicit pass-through did not stop cleanly: {explicit!r}")
         explicit_proposal = Path(str(explicit.get("proposal_ref", ""))).resolve()
-        if explicit_proposal.parent.parent != explicit_root.resolve():
-            raise AssemblyEquivalenceError(f"build output_root was not used as proposal root: {explicit_proposal}")
+        expected_proposal_root = explicit_root.resolve().parent / f"{explicit_root.name}-proposals"
+        if explicit_proposal.parent.parent != expected_proposal_root:
+            raise AssemblyEquivalenceError(f"build output_root proposal staging root drifted: {explicit_proposal}")
         explicit_plan = json.loads(explicit_proposal.read_text(encoding="utf-8"))
         explicit_work_row = _brick_row(_step_for_kind(explicit_plan, "work"))
         if explicit_work_row.get("write_scope") != explicit_scope:
