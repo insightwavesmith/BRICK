@@ -1515,7 +1515,7 @@ def _positive_int_mapping(name: str, value: Any) -> dict[str, int]:
     for key, item in value.items():
         if not isinstance(key, str) or not key:
             raise ValueError(f"{name} keys must be non-empty strings")
-        if not isinstance(item, int) or item <= 0:
+        if isinstance(item, bool) or not isinstance(item, int) or item <= 0:
             raise ValueError(f"{name}.{key} must be a positive integer")
         result[key] = item
     return result
