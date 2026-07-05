@@ -30,6 +30,10 @@ packages = [
   "brick_protocol.agent",
   "brick_protocol.link",
   "brick_protocol.support",
+  "brick_protocol.support.operator",
+  "brick_protocol.support.connection",
+  "brick_protocol.support.checkers",
+  "brick_protocol.support.checkers.lib",
   "brick_protocol.support.recording",
 ]
 include-package-data = false
@@ -40,6 +44,10 @@ include-package-data = false
 "brick_protocol.agent" = "agent"
 "brick_protocol.link" = "link"
 "brick_protocol.support" = "support"
+"brick_protocol.support.operator" = "support/operator"
+"brick_protocol.support.connection" = "support/connection"
+"brick_protocol.support.checkers" = "support/checkers"
+"brick_protocol.support.checkers.lib" = "support/checkers/lib"
 "brick_protocol.support.recording" = "support/recording"
 
 [tool.ruff]
