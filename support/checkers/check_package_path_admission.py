@@ -80,6 +80,8 @@ PACKAGE_MARKERS = {
     "agent/__init__.py",
     "link/__init__.py",
     "support/__init__.py",
+    "support/checkers/__init__.py",
+    "support/checkers/lib/__init__.py",
     "support/connection/__init__.py",
     "support/operator/__init__.py",
     "support/recording/__init__.py",

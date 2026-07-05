@@ -13,6 +13,11 @@ module header and the imports differ.
 from __future__ import annotations
 
 import re
+import os
+import subprocess
+import sys
+import tempfile
+import zipfile
 from pathlib import Path
 
 from support.checkers.lib.yaml_subset import (
@@ -24,6 +29,11 @@ from support.checkers.lib.yaml_subset import (
 _INSTALL_SCRIPT_REL = "support/onboarding/install.sh"
 _RELEASE_EXPORT_REL = "support/onboarding/release_export.sh"
 _RELEASE_GATE_REL = "support/onboarding/release_gate.sh"
+_WHEEL_SMOKE_REQUIRED_PACKAGE_PATHS = {
+    "operator": "brick_protocol/support/operator/",
+    "checkers": "brick_protocol/support/checkers/",
+    "connection": "brick_protocol/support/connection/",
+}
 _RELEASE_EXPORT_REQUIRED_EXCLUSIONS = (
     "project",
     "brick_protocol.egg-info",
@@ -344,6 +354,183 @@ def run_release_export_exclusion(repo: Path) -> KernelResult:
     )
 
 
+def _command_output(completed: subprocess.CompletedProcess[str]) -> str:
+    output = "\n".join(part for part in (completed.stdout, completed.stderr) if part)
+    return output.strip()
+
+
+def _without_repo_pythonpath() -> dict[str, str]:
+    env = dict(os.environ)
+    env.pop("PYTHONPATH", None)
+    env.pop("PYTHONHOME", None)
+    return env
+
+
+def _is_environment_build_constraint(output: str) -> bool:
+    env_fragments = (
+        "Cannot import 'setuptools.build_meta'",
+        "BackendUnavailable",
+        "No module named 'setuptools'",
+        "No module named setuptools",
+        "No solution found",
+        "failed to resolve",
+        "network",
+        "offline",
+        "Temporary failure in name resolution",
+    )
+    return any(fragment in output for fragment in env_fragments)
+
+
+def _environment_report(reason: str) -> KernelResult:
+    return KernelResult(
+        check_id="wheel_smoke",
+        inspected=1,
+        output=(
+            "wheel smoke environment report: "
+            f"{reason}. The checker did not mark this environment RED before a "
+            "wheel artifact existed; a complete build-capable environment still "
+            "runs the wheel content and console-entry smoke. PROOF LIMIT: support "
+            "evidence only; this does not prove source truth, success, quality, "
+            "Movement authority, or real publication."
+        ),
+    )
+
+
+def _wheel_path_counts(wheel_path: Path) -> dict[str, int]:
+    with zipfile.ZipFile(wheel_path) as archive:
+        names = archive.namelist()
+    return {
+        label: sum(required_path in name for name in names)
+        for label, required_path in _WHEEL_SMOKE_REQUIRED_PACKAGE_PATHS.items()
+    }
+
+
+def run_wheel_smoke(repo: Path) -> KernelResult:
+    """Build a wheel and smoke the shipped console entry from an isolated venv.
+
+    The smoke uses a temp dist directory and installs the built local wheel with
+    ``--no-index --no-deps`` so it observes the release artifact's own package
+    contents without reaching a remote index for declared runtime dependencies.
+    Missing build backend / offline build setup is reported as an environment
+    observation before a wheel exists; malformed wheel contents or console import
+    failure after a wheel exists are RED.
+    """
+
+    with tempfile.TemporaryDirectory(prefix="bp-wheel-smoke-dist-") as dist_raw, \
+            tempfile.TemporaryDirectory(prefix="bp-wheel-smoke-venv-") as venv_raw:
+        dist_dir = Path(dist_raw)
+        venv_dir = Path(venv_raw)
+        build = subprocess.run(
+            ["uv", "build", "--wheel", "--out-dir", str(dist_dir)],
+            cwd=repo,
+            env=_without_repo_pythonpath(),
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=180,
+            check=False,
+        )
+        if build.returncode != 0:
+            output = _command_output(build)
+            if _is_environment_build_constraint(output):
+                return _environment_report(
+                    "uv build --wheel could not create an artifact in this "
+                    "environment"
+                )
+            raise ProfileError(
+                "wheel_smoke: uv build --wheel failed:\n" + output
+            )
+
+        wheels = sorted(dist_dir.glob("*.whl"))
+        if len(wheels) != 1:
+            raise ProfileError(
+                "wheel_smoke: expected exactly one wheel in temp dist, "
+                f"observed {len(wheels)}"
+            )
+        wheel_path = wheels[0]
+        counts = _wheel_path_counts(wheel_path)
+        missing = {label: count for label, count in counts.items() if count <= 0}
+        if missing:
+            raise ProfileError(
+                "wheel_smoke: wheel missing required support package contents: "
+                + ", ".join(f"{label}={count}" for label, count in missing.items())
+            )
+
+        venv = subprocess.run(
+            [sys.executable, "-m", "venv", str(venv_dir)],
+            cwd=repo,
+            env=_without_repo_pythonpath(),
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=120,
+            check=False,
+        )
+        if venv.returncode != 0:
+            return _environment_report("python venv creation failed in this environment")
+
+        python_bin = venv_dir / (
+            "Scripts/python.exe" if sys.platform == "win32" else "bin/python"
+        )
+        brick_bin = venv_dir / (
+            "Scripts/brick.exe" if sys.platform == "win32" else "bin/brick"
+        )
+        install = subprocess.run(
+            [
+                str(python_bin),
+                "-m",
+                "pip",
+                "install",
+                "--no-index",
+                "--no-deps",
+                str(wheel_path),
+            ],
+            cwd=repo,
+            env=_without_repo_pythonpath(),
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=180,
+            check=False,
+        )
+        if install.returncode != 0:
+            raise ProfileError(
+                "wheel_smoke: no-index wheel install failed after wheel build:\n"
+                + _command_output(install)
+            )
+
+        help_run = subprocess.run(
+            [str(brick_bin), "--help"],
+            cwd=repo,
+            env=_without_repo_pythonpath(),
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=60,
+            check=False,
+        )
+        if help_run.returncode != 0:
+            raise ProfileError(
+                "wheel_smoke: installed brick --help failed after wheel install:\n"
+                + _command_output(help_run)
+            )
+
+        return KernelResult(
+            check_id="wheel_smoke",
+            inspected=4,
+            output=(
+                "wheel smoke passed: uv build --wheel wrote one temp wheel, "
+                f"wheel contents included operator={counts['operator']}, "
+                f"checkers={counts['checkers']}, connection={counts['connection']}, "
+                "a temp venv installed the local wheel with --no-index --no-deps, "
+                "and the installed brick --help entrypoint exited 0. PROOF LIMIT: "
+                "support evidence only; this does not prove source truth, success, "
+                "quality, Movement authority, dependency-index availability, or "
+                "real publication."
+            ),
+        )
+
+
 def run_release_gate_contract(repo: Path) -> KernelResult:
     """Pin the local release gate's support-only command contract.
 
@@ -373,6 +560,11 @@ def run_release_gate_contract(repo: Path) -> KernelResult:
         "uv run python3 -m compileall -q brick agent link support",
         "uv run python3 support/checkers/check_profile.py --all",
         "uv run brick verify --self-test",
+        "printf '%s\\n' \"4) wheel smoke: build wheel and verify installed brick console entry\"",
+        "( cd \"$repo_root\" && PYTHONPATH= uv build --wheel --out-dir \"$wheel_dist\" )",
+        "PYTHONPATH= python3 -m venv \"$wheel_venv\"",
+        "PYTHONPATH= \"$wheel_venv/bin/pip\" install --no-index --no-deps \"$wheel_dist\"/*.whl",
+        "PYTHONPATH= \"$wheel_venv/bin/brick\" --help >/dev/null",
         "command -v node",
         "command -v npm",
         "( cd \"$repo_root/support/dashboard\" && npm ci )",

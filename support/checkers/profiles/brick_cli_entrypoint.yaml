@@ -98,7 +98,6 @@ text_absent:
     texts:
       - '[tool.pytest.ini_options]'
       - 'testpaths = ["support/checkers"]'
-      - 'support/checkers'
   - path: support/operator/cli.py
     texts:
       - os.system

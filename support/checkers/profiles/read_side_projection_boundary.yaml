@@ -15,6 +15,7 @@ kernel_checks:
   - install_script_lint
   - release_export_exclusion
   - release_gate_contract
+  - wheel_smoke
   - product_no_smith_residue
 path_exists:
   - support/onboarding/install.sh

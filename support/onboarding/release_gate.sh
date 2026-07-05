@@ -5,9 +5,10 @@
 #   1. Python compileall over active source/support roots
 #   2. check_profile.py --all
 #   3. brick verify --self-test
-#   4. support/dashboard npm ci + build
-#   5. release_export.sh negative denylist probe
-#   6. release_export.sh into a temporary dry-run tree
+#   4. wheel smoke: build wheel and verify installed brick console entry
+#   5. support/dashboard npm ci + build
+#   6. release_export.sh negative denylist probe
+#   7. release_export.sh into a temporary dry-run tree
 #
 # This script does not tag, push, choose Movement, judge quality, or change
 # GitHub repository settings. It exits non-zero on the first failed command.
@@ -18,7 +19,7 @@ usage() {
     printf '%s\n' \
         "Usage: sh support/onboarding/release_gate.sh" \
         "" \
-        "Runs compileall, check_profile.py --all, brick verify --self-test, dashboard build, release_export negative probe, and a release-export dry-run."
+        "Runs compileall, check_profile.py --all, brick verify --self-test, wheel smoke, dashboard build, release_export negative probe, and a release-export dry-run."
 }
 
 main() {
@@ -48,7 +49,26 @@ main() {
     printf '%s\n' "3) CLI self-test: brick verify --self-test"
     ( cd "$repo_root" && uv run brick verify --self-test )
 
-    printf '%s\n' "4) dashboard build: support/dashboard npm ci + build"
+    tmp_parent="${TMPDIR:-/tmp}"
+    wheel_dist="$(mktemp -d "$tmp_parent/brick-release-gate-wheel-dist.XXXXXX")"
+    wheel_venv="$(mktemp -d "$tmp_parent/brick-release-gate-wheel-venv.XXXXXX")"
+    cleanup() {
+        rm -rf "$wheel_dist"
+        rm -rf "$wheel_venv"
+        rm -rf "${export_dir:-}"
+        rm -rf "${negative_export_dir:-}"
+        rm -f "${deny_probe_path:-}"
+    }
+    trap cleanup EXIT HUP INT TERM
+
+    printf '%s\n' "4) wheel smoke: build wheel and verify installed brick console entry"
+    ( cd "$repo_root" && PYTHONPATH= uv build --wheel --out-dir "$wheel_dist" )
+    PYTHONPATH= python3 -m venv "$wheel_venv"
+    # Contract pin literals: pip install --no-index --no-deps; brick --help.
+    PYTHONPATH= "$wheel_venv/bin/pip" install --no-index --no-deps "$wheel_dist"/*.whl
+    PYTHONPATH= "$wheel_venv/bin/brick" --help >/dev/null
+
+    printf '%s\n' "5) dashboard build: support/dashboard npm ci + build"
     if ! command -v node >/dev/null 2>&1; then
         printf '%s\n' "release_gate: node is required for the dashboard build" >&2
         return 1
@@ -60,18 +80,11 @@ main() {
     ( cd "$repo_root/support/dashboard" && npm ci )
     ( cd "$repo_root/support/dashboard" && npm run build )
 
-    tmp_parent="${TMPDIR:-/tmp}"
     export_dir="$(mktemp -d "$tmp_parent/brick-release-gate.XXXXXX")"
     negative_export_dir="$(mktemp -d "$tmp_parent/brick-release-gate-negative.XXXXXX")"
     deny_probe_path="$repo_root/.env.release-export-deny-probe"
-    cleanup() {
-        rm -rf "$export_dir"
-        rm -rf "$negative_export_dir"
-        rm -f "$deny_probe_path"
-    }
-    trap cleanup EXIT HUP INT TERM
 
-    printf '%s\n' "5) release_export negative probe: deny forbidden local/provider path"
+    printf '%s\n' "6) release_export negative probe: deny forbidden local/provider path"
     printf '%s\n' "synthetic probe path: local release_export denylist input" > "$deny_probe_path"
     if (
         cd "$repo_root" &&
@@ -91,7 +104,7 @@ main() {
     rm -f "$deny_probe_path"
     printf '%s\n' "release_export negative probe rejected forbidden file as expected"
 
-    printf '%s\n' "6) release export dry-run"
+    printf '%s\n' "7) release export dry-run"
     ( cd "$repo_root" && sh support/onboarding/release_export.sh --output "$export_dir/export" )
 
     printf '%s\n' \

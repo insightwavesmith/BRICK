@@ -159,6 +159,7 @@ from support.checkers.lib.kernel_checks import (
     run_dashboard_productization_projection,
     run_brick_cli_entrypoint_smoke,
 )
+from support.checkers.lib.install_release_export_lint_check import run_wheel_smoke
 
 
 PROFILE_SCHEMA = "checker-profile/v1"
@@ -751,6 +752,7 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
     # commands. Includes a temp mutation that removes project/ and must RED.
     "release_export_exclusion": run_release_export_exclusion,
     "release_gate_contract": run_release_gate_contract,
+    "wheel_smoke": run_wheel_smoke,
     # ONBOARDING-LEGACY-SCRUB-0612. Scans shipped newcomer-facing surfaces
     # (README.md, support/docs/spec, agent/prompts) for Smith local residue:
     # no Smith user-home literal and no hardcoded Smith GitHub org outside
