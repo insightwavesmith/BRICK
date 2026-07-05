@@ -40,6 +40,7 @@ from support.recording.declaration_packets import (  # noqa: E402
     latest_valid_declared_plan,
     write_declared_plan_revision,
 )
+from support.operator.plan_expansion import assemble_expanded_graph_plan  # noqa: E402
 
 
 PROJECT_ROOT = "project"
@@ -130,6 +131,93 @@ def _fragment_for_step(parent: Mapping[str, Any], step_ref: str) -> dict[str, An
 
 def _fragment() -> dict[str, Any]:
     return _fragment_for_step(_base_plan(), "brick-b")
+
+
+def _valid_graph_brick_step(step_ref: str, completion_edge_ref: str) -> dict[str, Any]:
+    suffix = step_ref.removeprefix("brick-")
+    return {
+        "step_ref": step_ref,
+        "completion_edge_ref": completion_edge_ref,
+        "rows": [
+            {
+                "axis": "Brick",
+                "row_ref": f"brick-row:{suffix}",
+                "brick_instance_ref": f"brick-fixture-{suffix}",
+            },
+            {
+                "axis": "Agent",
+                "row_ref": f"agent-row:{suffix}",
+                "agent_object_ref": "agent-object:dev",
+            },
+        ],
+    }
+
+
+def _valid_graph_link_edge(
+    edge_ref: str,
+    source_step_ref: str,
+    target_step_ref: str,
+    target_brick_ref: str,
+) -> dict[str, Any]:
+    return {
+        "edge_ref": edge_ref,
+        "source_step_ref": source_step_ref,
+        "target_step_ref": target_step_ref,
+        "rows": [
+            {
+                "axis": "Link",
+                "row_ref": f"link-row:{edge_ref}",
+                "movement": "forward",
+                "target": target_brick_ref,
+            }
+        ],
+    }
+
+
+def _valid_graph_terminal_edge(edge_ref: str, source_step_ref: str) -> dict[str, Any]:
+    return {
+        "edge_ref": edge_ref,
+        "source_step_ref": source_step_ref,
+        "rows": [
+            {
+                "axis": "Link",
+                "row_ref": f"link-row:{edge_ref}",
+                "movement": "forward",
+                "target": "building-boundary:fixture",
+            }
+        ],
+    }
+
+
+def _valid_graph_base_plan() -> dict[str, Any]:
+    return {
+        "building_id": "fixture-building",
+        "plan_ref": "fixture-plan",
+        "plan_shape": "graph",
+        "expansion_budget": 1,
+        "brick_steps": [_valid_graph_brick_step("brick-a", "edge-a-boundary")],
+        "link_edges": [_valid_graph_terminal_edge("edge-a-boundary", "brick-a")],
+        "execution_order": ["brick-a"],
+        "groups": [],
+    }
+
+
+def _valid_graph_fragment(step_ref: str) -> dict[str, Any]:
+    return {
+        "brick_steps": [_valid_graph_brick_step(step_ref, f"edge-{step_ref}-boundary")],
+        "link_edges": [
+            _valid_graph_link_edge(
+                f"edge-a-{step_ref}",
+                "brick-a",
+                step_ref,
+                f"brick-fixture-{step_ref.removeprefix('brick-')}",
+            ),
+            _valid_graph_terminal_edge(f"edge-{step_ref}-boundary", step_ref),
+        ],
+        "execution_order": [step_ref],
+        "groups": [],
+        "expansion_node_budgets": {step_ref: 1},
+    }
 
 
 def _metadata(parent_plan: Mapping[str, Any] | None = None, step_ref: str = "brick-b") -> dict[str, Any]:
@@ -415,6 +503,26 @@ def run_fixture_probes() -> list[str]:
         _expect_reject(
             "expansion_budget exhausted",
             lambda: write_declared_plan_revision(root, _expanded_plan(), _metadata(base), "approval:fixture"),
+            violations,
+        )
+
+        root = _fixture_root(tmp / "bool-node-budget")
+        bool_metadata = _metadata()
+        bool_metadata["expansion_node_budgets"] = {"brick-b": True}
+        _expect_reject(
+            "bool expansion_node_budgets revision packet",
+            lambda: write_declared_plan_revision(root, _expanded_plan(), bool_metadata, "approval:fixture"),
+            violations,
+        )
+        bool_fragment = _valid_graph_fragment("brick-b")
+        bool_fragment["expansion_node_budgets"] = {"brick-b": True}
+        _expect_reject(
+            "bool expansion_node_budgets expansion fragment",
+            lambda: assemble_expanded_graph_plan(
+                _valid_graph_base_plan(),
+                bool_fragment,
+                completed_frontier=["brick-a"],
+            ),
             violations,
         )
 
