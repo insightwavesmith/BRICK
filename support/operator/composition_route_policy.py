@@ -18,6 +18,7 @@ from brick_protocol.support.operator.composition_common import (
     _ROUTE_POLICY_PROVENANCE_VALUES,
     _materializer_step_template_slug,
 )
+from brick_protocol.support.recording.contracts import require_positive_int
 
 
 REROUTE_DEFAULTS_PATH = Path("brick/templates/reroute-defaults.yaml")
@@ -49,11 +50,12 @@ def _materializer_reroute_budgets(
         key = str(raw_key).strip()
         if not key:
             raise ValueError(f"{source_label} node_reroute_budgets key must be a step_template_ref")
-        if isinstance(raw_value, bool) or not isinstance(raw_value, int) or raw_value <= 0:
+        try:
+            budgets[key] = require_positive_int(raw_value, f"{source_label} node_reroute_budgets value", allow_decimal_text=False)
+        except ValueError:
             raise ValueError(
                 f"{source_label} node_reroute_budgets value must be a positive int: " + key
             )
-        budgets[key] = raw_value
     return budgets
 
 
@@ -82,9 +84,15 @@ def _materializer_constitutional_default_reroute_budget(repo: Path) -> int:
             + ROUTE_POLICY_PROVENANCE_CONSTITUTIONAL_DEFAULT
         )
     budget = payload.get("default_node_reroute_budget")
-    if isinstance(budget, bool) or not isinstance(budget, int) or budget <= 0:
+    try:
+        return require_positive_int(
+            budget,
+            "reroute defaults default_node_reroute_budget",
+            allow_decimal_text=False,
+            error_text="must be a positive int",
+        )
+    except ValueError:
         raise ValueError("reroute defaults default_node_reroute_budget must be a positive int")
-    return budget
 
 
 def _materializer_reroute_budget_cascade(
@@ -204,10 +212,13 @@ def _composition_node_reroute_budgets(
         brick_ref = str(record.get("brick_ref", "")).strip()
         if not brick_ref:
             continue
-        if isinstance(raw_budget, int) and raw_budget > 0:
-            budgets[brick_ref] = raw_budget
-        elif isinstance(raw_budget, str) and raw_budget.strip().isdecimal() and int(raw_budget) > 0:
-            budgets[brick_ref] = int(raw_budget)
+        try:
+            budgets[brick_ref] = require_positive_int(
+                raw_budget,
+                f"composition node_reroute_budget {brick_ref}",
+            )
+        except ValueError:
+            continue
     return budgets
 
 

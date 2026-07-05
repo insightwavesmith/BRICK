@@ -65,6 +65,7 @@ from brick_protocol.support.operator.composition_route_policy import (
     _materializer_apply_constitutional_default_reroute_budget,
     _materializer_constitutional_default_reroute_budget,
 )
+from brick_protocol.support.recording.contracts import require_positive_int
 from brick_protocol.support.operator.task_order_preflight import (
     lint_nodes,
     nodes_from_assembly_specs,
@@ -374,9 +375,14 @@ class Fan:
 def back(count: int) -> _BackTarget:
     """A positional reroute target: the node ``count`` items up in the build list."""
 
-    if not isinstance(count, int) or count <= 0:
-        raise ValueError("back() count must be a finite positive integer")
-    return _BackTarget(count)
+    return _BackTarget(
+        require_positive_int(
+            count,
+            "back() count",
+            allow_decimal_text=False,
+            error_text="must be a finite positive integer",
+        )
+    )
 
 
 def _coerce_node(item: Any) -> BrickSpec:
@@ -755,8 +761,12 @@ def _resolved_sibling_independence_refs(
 def reroute(on: Concern, to: BrickSpec | _BackTarget, *, budget: int) -> RerouteMark | _SurfaceReroute:
     if not isinstance(on, Concern):
         raise TypeError("reroute() on must be a Concern")
-    if not isinstance(budget, int) or budget <= 0:
-        raise ValueError("reroute() budget must be a finite positive integer")
+    budget = require_positive_int(
+        budget,
+        "reroute() budget",
+        allow_decimal_text=False,
+        error_text="must be a finite positive integer",
+    )
     if isinstance(to, _BackTarget):
         # Surface form: the target is a positional back(N) reference resolved at
         # build() time against the linear spine. Lowers to a real RerouteMark then.
@@ -1589,7 +1599,13 @@ def _validate_interim_fan_in_contract(
             if target_ref == node_id:
                 raise ValueError(f"closure policy target_ref self-reroutes: {node_id}.{concern_kind}")
             budget = node_by_id[target_ref].get("node_reroute_budget")
-            if not isinstance(budget, int) or budget <= 0:
+            try:
+                require_positive_int(
+                    budget,
+                    f"closure policy target_ref budget {target_ref}",
+                    allow_decimal_text=False,
+                )
+            except ValueError:
                 raise ValueError(f"closure policy target_ref is not budgeted: {target_ref}")
 
 

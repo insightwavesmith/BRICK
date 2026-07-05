@@ -29,6 +29,7 @@ from brick_protocol.support.operator.walker_frontier import (
     _chat_session_park_hold_record,
     _chat_session_park_paused_lifecycle,
 )
+from brick_protocol.support.recording.contracts import require_positive_int
 from brick_protocol.support.operator.primitives import (
     _RETURN_FORBIDDEN_KEYS,
     _merge_texts,
@@ -397,8 +398,12 @@ def _chat_session_step_output_dir(
 ) -> Path:
     root = building_root
     if step_ref:
-        if attempt_index <= 0:
-            raise ValueError("attempt_index must be positive when step_ref is supplied")
+        attempt_index = require_positive_int(
+            attempt_index,
+            "attempt_index",
+            allow_decimal_text=False,
+            error_text="must be positive when step_ref is supplied",
+        )
         step_dir = root / _step_output_dir_ref(step_ref, attempt_index)
     else:
         matches = sorted((root / "work" / "step-outputs").glob("*/parked.json"))

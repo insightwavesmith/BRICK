@@ -12,6 +12,7 @@ from typing import Any
 from brick_protocol.link.spec import (
     ROUTE_REPLAY_ALLOWED_AUTHOR_PREFIXES as ALLOWED_AUTHOR_PREFIXES,
 )
+from brick_protocol.support.recording.contracts import require_positive_int
 
 
 PROOF_LIMITS = (
@@ -442,11 +443,7 @@ def _brick_ref_list(value: Any, label: str) -> list[str]:
 
 
 def _positive_int(value: Any, label: str) -> int:
-    if isinstance(value, int) and value > 0:
-        return value
-    if isinstance(value, str) and value.isdecimal() and int(value) > 0:
-        return int(value)
-    raise ValueError(f"{label} must be a positive integer")
+    return require_positive_int(value, label)
 
 
 def _dedupe_texts(values: list[str]) -> list[str]:
