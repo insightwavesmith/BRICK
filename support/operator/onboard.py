@@ -3201,6 +3201,29 @@ def _approval_route_decision_basis_recorded(
     return False
 
 
+def _invalid_disposition_menu_result(
+    *,
+    action_text: str,
+    allowed_actions: Sequence[str],
+    hold_reason: str,
+) -> dict[str, Any]:
+    allowed = [str(item) for item in allowed_actions]
+    allowed_text = ", ".join(allowed)
+    return {
+        "error_kind": "invalid_disposition_for_hold",
+        "error_message": (
+            f"action {action_text!r} is not admitted for hold_reason={hold_reason!r}; "
+            f"allowed disposition actions: {allowed_text}"
+        ),
+        "message_ko": (
+            f"이 hold에서는 {action_text} 처분을 쓸 수 없어요. "
+            f"가능한 처분: {allowed_text}"
+        ),
+        "allowed_disposition_actions": allowed,
+        "not_resumable_by": [action_text],
+    }
+
+
 def run_approve_entry(
     building_ref: str | Path,
     *,
@@ -3374,6 +3397,21 @@ def run_approve_entry(
     result["frontier_kind_before"] = frontier_kind_before
     result["frontier_kind"] = frontier_kind_before
     result["frontier_reason_before"] = str(frontier_before.get("frontier_reason") or "")
+    hold_record_w: Mapping[str, Any] = {}
+    evidence_w: Mapping[str, Any] = {}
+    adapter_error_hold_recorded = False
+    try:
+        from brick_protocol.support.operator.walker_resume import (  # noqa: PLC0415
+            _adapter_error_hold_without_return,
+            _read_written_dynamic_plan,
+        )
+
+        _plan_w, evidence_w = _read_written_dynamic_plan(building_root)
+        raw_hold_record_w = evidence_w.get("hold") or {}
+        hold_record_w = raw_hold_record_w if isinstance(raw_hold_record_w, Mapping) else {}
+        adapter_error_hold_recorded = _adapter_error_hold_without_return(hold_record_w)
+    except FileNotFoundError:
+        pass
     if frontier_kind_before == "chat_session_parked":
         result.update(
             {
@@ -3395,7 +3433,10 @@ def run_approve_entry(
             }
         )
         return result
-    if frontier_kind_before not in {"link_paused", "human_review_waiting"}:
+    if (
+        frontier_kind_before not in {"link_paused", "human_review_waiting"}
+        and not adapter_error_hold_recorded
+    ):
         result.update(
             {
                 "error_kind": "not_approval_hold",
@@ -3404,36 +3445,27 @@ def run_approve_entry(
             }
         )
         return result
-    if adapter_cwd is None:
-        result.update(
-            {
-                "error_kind": "resume_requires_isolated_adapter_cwd",
-                "error_message": (
-                    "onboard approve refuses to resume without an explicit isolated "
-                    "adapter_cwd; missing adapter_cwd would default resumed live work "
-                    "to the repo/customer tree."
-                ),
-                "message_ko": "resume adapter_cwd가 없어 라이브 작업 트리를 쓸 위험이 있어요.",
-            }
-        )
-        return result
-    adapter_cwd_refusal = _unsafe_live_repo_adapter_cwd(adapter_cwd, repo_root=repo)
-    if adapter_cwd_refusal is not None:
-        result.update(adapter_cwd_refusal)
-        return result
-
+    if adapter_error_hold_recorded and frontier_kind_before not in {
+        "link_paused",
+        "human_review_waiting",
+    }:
+        result["approval_hold_source"] = "dynamic_walker_evidence.adapter_error_frontier"
     latest_lifecycle = frontier_before.get("latest_transition_lifecycle") or {}
     if not isinstance(latest_lifecycle, dict):
         latest_lifecycle = {}
     pending_target_ref = str(
         latest_lifecycle.get("transition_lifecycle_pending_target_ref") or ""
     )
+    if not pending_target_ref and adapter_error_hold_recorded:
+        pending_target_ref = str(hold_record_w.get("pending_target_ref") or "")
     disposition_pending_target_ref = (
         reroute_target_text if action_text == "reroute" else pending_target_ref
     )
     paused_at_ref = str(
         latest_lifecycle.get("transition_lifecycle_paused_at_ref") or ""
     )
+    if not paused_at_ref and adapter_error_hold_recorded:
+        paused_at_ref = str(hold_record_w.get("paused_at_ref") or "")
     result["pending_target_ref"] = disposition_pending_target_ref
     if disposition_pending_target_ref != pending_target_ref:
         result["held_pending_target_ref"] = pending_target_ref
@@ -3458,28 +3490,87 @@ def run_approve_entry(
         )
         return result
 
+    menu_precheck_missing_error: Exception | None = None
     try:
         from brick_protocol.support.operator.walker_resume import (  # noqa: PLC0415
-            _read_written_dynamic_plan,
+            hold_disposition_action_menu,
             resume_budget_recovery_decision,
+            validate_hold_disposition_action,
         )
 
-        _plan_w, evidence_w = _read_written_dynamic_plan(building_root)
-        hold_record_w = evidence_w.get("hold") or {}
-        if not isinstance(hold_record_w, Mapping):
-            hold_record_w = {}
+        if not evidence_w:
+            from brick_protocol.support.operator.walker_resume import (  # noqa: PLC0415
+                _read_written_dynamic_plan,
+            )
+
+            _plan_w, evidence_w = _read_written_dynamic_plan(building_root)
+            raw_hold_record_w = evidence_w.get("hold") or {}
+            hold_record_w = raw_hold_record_w if isinstance(raw_hold_record_w, Mapping) else {}
+        try:
+            allowed_actions = validate_hold_disposition_action(
+                action_text,
+                hold_record_w,
+                frontier_reason=result["frontier_reason_before"],
+            )
+        except ValueError as exc:
+            hold_reason = str(
+                hold_record_w.get("hold_reason") or result["frontier_reason_before"] or "unknown"
+            )
+            menu = hold_disposition_action_menu(
+                hold_record_w,
+                frontier_reason=result["frontier_reason_before"],
+            )
+            result.update(
+                _invalid_disposition_menu_result(
+                    action_text=action_text,
+                    allowed_actions=menu,
+                    hold_reason=hold_reason,
+                )
+            )
+            result["error_message"] = str(exc)
+            return result
+        result["allowed_disposition_actions"] = list(allowed_actions)
         resume_budget_recovery_decision(
             evidence=evidence_w,
             action=action_text,
             hold_record=hold_record_w,
             pending_target=disposition_pending_target_ref,
         )
+    except FileNotFoundError as exc:
+        menu_precheck_missing_error = exc
     except ValueError as exc:
         result.update(
             {
                 "error_kind": "resume_budget_precheck_refused",
                 "error_message": str(exc),
                 "message_ko": "예산 정합성 검증에서 걸려 disposition을 쓰지 않았어요.",
+            }
+        )
+        return result
+
+    if adapter_cwd is None:
+        result.update(
+            {
+                "error_kind": "resume_requires_isolated_adapter_cwd",
+                "error_message": (
+                    "onboard approve refuses to resume without an explicit isolated "
+                    "adapter_cwd; missing adapter_cwd would default resumed live work "
+                    "to the repo/customer tree."
+                ),
+                "message_ko": "resume adapter_cwd가 없어 라이브 작업 트리를 쓸 위험이 있어요.",
+            }
+        )
+        return result
+    adapter_cwd_refusal = _unsafe_live_repo_adapter_cwd(adapter_cwd, repo_root=repo)
+    if adapter_cwd_refusal is not None:
+        result.update(adapter_cwd_refusal)
+        return result
+    if menu_precheck_missing_error is not None:
+        result.update(
+            {
+                "error_kind": type(menu_precheck_missing_error).__name__,
+                "error_message": str(menu_precheck_missing_error),
+                "message_ko": "resume evidence를 읽을 수 없어 disposition을 쓰지 않았어요.",
             }
         )
         return result
@@ -3656,6 +3747,12 @@ def _render_approve_text(result: dict[str, Any]) -> str:
         lines.append(f"pending target: {result.get('pending_target_ref', '')}")
     if result.get("paused_at_ref"):
         lines.append(f"resumed from: {result.get('paused_at_ref', '')}")
+    allowed_actions = result.get("allowed_disposition_actions")
+    if isinstance(allowed_actions, Sequence) and not isinstance(allowed_actions, (str, bytes)):
+        lines.append("allowed actions: " + ", ".join(str(item) for item in allowed_actions))
+    not_resumable_by = result.get("not_resumable_by")
+    if isinstance(not_resumable_by, Sequence) and not isinstance(not_resumable_by, (str, bytes)):
+        lines.append("not resumable by: " + ", ".join(str(item) for item in not_resumable_by))
     if result.get("evidence_root"):
         lines.append(f"evidence: {result.get('evidence_root', '')}")
     lines.append("")

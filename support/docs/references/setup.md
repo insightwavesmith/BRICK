@@ -224,7 +224,7 @@ The `result` object returned by `run_building_plan` exposes `result.building_id`
 
 - **Support records, it does not judge.** Every artifact carries proof-limit lines stating it is not source truth, not success, not quality, and not Movement authority. Reviews and checkers are likewise not source truth and not Movement authority.
 - **Read-only adapter.** A Brick row with no `write_scope` runs read-only; this is the default.
-- **Adapter failures are recorded, not hidden.** If the local CLI adapter fails before returning an AgentFact (missing CLI, timeout, non-zero exit, rejected return shape), the runner writes adapter-error frontier evidence and then raises an exception. That frontier evidence is still support evidence only.
+- **Adapter failures are recorded, not hidden.** If the local CLI adapter fails before returning an AgentFact (missing CLI, timeout, non-zero exit, rejected return shape), the runner writes adapter-error frontier evidence and then raises an exception. That held result is not resumable by `forward`, `raise`, or `reroute`; the admitted disposition menu is `stop` only, derived by `support/operator/walker_resume.py::hold_disposition_action_menu`. The frontier evidence is still support evidence only.
 - **Provider behavior and customer comprehension are not proven.** Running a
   plan or reading these docs does not prove the provider behaved correctly,
   that a customer understood the route, that the work is correct, or that the

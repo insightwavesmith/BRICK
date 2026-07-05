@@ -647,8 +647,26 @@ def check(repo: Path) -> tuple[list[str], Mapping[str, Any]]:
             budget=1,
         )
         budget_result = _run_driver(repo, budget_portfolio, out_root, projection_root, {})
+        from brick_protocol.support.operator.portfolio_projection import (
+            portfolio_projection_with_hold_guidance,
+            write_portfolio_projection_with_hold_guidance,
+        )
+
+        budget_guidance_projection = portfolio_projection_with_hold_guidance(
+            budget_result.projection
+        )
+        budget_guidance_path = write_portfolio_projection_with_hold_guidance(
+            budget_result.projection_path
+        )
+        budget_written_guidance_projection = json.loads(
+            budget_guidance_path.read_text(encoding="utf-8")
+        )
         budget_frontier = budget_result.projection["frontier"]
+        budget_guidance_frontier = budget_guidance_projection["frontier"]
+        budget_written_guidance_frontier = budget_written_guidance_projection["frontier"]
         summary["budget_frontier"] = budget_frontier
+        summary["budget_guidance_frontier"] = budget_guidance_frontier
+        summary["budget_guidance_projection_path"] = str(budget_guidance_path)
         if budget_result.frontier_kind != "link_paused":
             violations.append(f"budget: expected link_paused frontier, got {budget_result.frontier_kind}")
         lifecycle = budget_frontier.get("latest_transition_lifecycle", {})
@@ -657,6 +675,23 @@ def check(repo: Path) -> tuple[list[str], Mapping[str, Any]]:
         surface = budget_frontier.get("disposition_action_surface", {})
         if not isinstance(surface, Mapping) or surface.get("allowed_values") != ["raise", "forward", "stop", "reroute"]:
             violations.append("budget: disposition_action surface did not expose raise/forward/stop/reroute")
+        if budget_guidance_frontier.get("not_resumable_by") != ["forward"]:
+            violations.append("budget: projection guidance did not publish not_resumable_by=['forward']")
+        if budget_written_guidance_frontier.get("not_resumable_by") != ["forward"]:
+            violations.append(
+                "budget: written projection guidance did not publish not_resumable_by=['forward']"
+            )
+        reroute_guidance = budget_guidance_frontier.get("reroute_guidance")
+        if not isinstance(reroute_guidance, str) or "declared portfolio candidate set" not in reroute_guidance:
+            violations.append("budget: projection guidance did not publish declared-candidate reroute wording")
+        written_reroute_guidance = budget_written_guidance_frontier.get("reroute_guidance")
+        if (
+            not isinstance(written_reroute_guidance, str)
+            or "declared portfolio candidate set" not in written_reroute_guidance
+        ):
+            violations.append(
+                "budget: written projection guidance did not publish declared-candidate reroute wording"
+            )
 
         # Child roots independent: use MODE1, where two children closed. The
         # portfolio projection references both roots and is outside both roots.
@@ -855,6 +890,106 @@ def _resume_isolation_disposition_fire(
         violations.append(
             "resume-disposition: reroute with re_instruction did not pass to later "
             f"resume preflight ({reroute_with_instruction.get('error_kind')!r})"
+        )
+
+    def write_held_dynamic_manifest(
+        root: Path,
+        *,
+        hold_reason: str,
+        budget_exhausted: bool = False,
+    ) -> None:
+        (root / "evidence").mkdir(parents=True, exist_ok=True)
+        (root / "raw").mkdir(parents=True, exist_ok=True)
+        plan = {
+            "plan_ref": "building-plan:resume-menu-fixture",
+            "dynamic_walker_evidence": {
+                "walker_mode": "dynamic",
+                "held": True,
+                "hold": {
+                    "hold_reason": hold_reason,
+                    "budget_exhausted": budget_exhausted,
+                    "pending_target_ref": "brick-p2-held-work",
+                    "paused_at_ref": "link-transition:p2-held",
+                    "source_step_ref": "p2-source",
+                },
+            },
+        }
+        manifest = {
+            "plan_snapshot": {
+                "plan_rows_copy": json.dumps(plan, separators=(",", ":")),
+            },
+        }
+        (root / "evidence" / "evidence-manifest.json").write_text(
+            json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+
+    original_observe = onboard_module.observe_building_frontier
+    try:
+        with tempfile.TemporaryDirectory(prefix="bp-p2-resume-menu-") as tmp:
+            menu_root = Path(tmp)
+            budget_root = menu_root / "budget"
+            adapter_root = menu_root / "adapter"
+            write_held_dynamic_manifest(
+                budget_root,
+                hold_reason="target_node_budget_exhausted",
+                budget_exhausted=True,
+            )
+            write_held_dynamic_manifest(
+                adapter_root,
+                hold_reason="adapter_error_frontier",
+            )
+            onboard_module.observe_building_frontier = lambda *_args, **_kwargs: dict(held_frontier)
+            budget_forward = run_approve_entry(
+                budget_root,
+                action="forward",
+                author_ref="coo:smith",
+                repo_root=repo,
+            )
+            adapter_agent_incomplete_frontier = {
+                "frontier_kind": "agent_incomplete",
+                "frontier_reason": "adapter_error_frontier",
+            }
+            onboard_module.observe_building_frontier = (
+                lambda *_args, **_kwargs: dict(adapter_agent_incomplete_frontier)
+            )
+            adapter_raise = run_approve_entry(
+                adapter_root,
+                action="raise",
+                author_ref="coo:smith",
+                budget_increment=1,
+                repo_root=repo,
+            )
+            adapter_stop = run_approve_entry(
+                adapter_root,
+                action="stop",
+                author_ref="coo:smith",
+                repo_root=repo,
+            )
+    finally:
+        onboard_module.observe_building_frontier = original_observe
+    summary["resume_budget_forward_error"] = budget_forward.get("error_kind")
+    summary["resume_budget_forward_allowed"] = budget_forward.get("allowed_disposition_actions")
+    summary["resume_adapter_raise_error"] = adapter_raise.get("error_kind")
+    summary["resume_adapter_raise_allowed"] = adapter_raise.get("allowed_disposition_actions")
+    summary["resume_adapter_stop_error"] = adapter_stop.get("error_kind")
+    summary["resume_adapter_stop_approval_hold_source"] = adapter_stop.get("approval_hold_source")
+    if budget_forward.get("error_kind") != "invalid_disposition_for_hold":
+        violations.append("resume-menu-RED: budget-exhaustion forward was not refused")
+    if budget_forward.get("allowed_disposition_actions") != ["raise", "stop", "reroute"]:
+        violations.append("resume-menu-RED: budget-exhaustion menu did not publish raise/stop/reroute")
+    if adapter_raise.get("error_kind") != "invalid_disposition_for_hold":
+        violations.append("resume-menu-RED: adapter-error raise was not refused")
+    if adapter_raise.get("allowed_disposition_actions") != ["stop"]:
+        violations.append("resume-menu-RED: adapter-error menu did not publish stop-only")
+    if adapter_stop.get("error_kind") != "resume_requires_isolated_adapter_cwd":
+        violations.append(
+            "resume-menu: adapter-error stop did not pass to later adapter_cwd guard "
+            f"({adapter_stop.get('error_kind')!r})"
+        )
+    if adapter_stop.get("approval_hold_source") != "dynamic_walker_evidence.adapter_error_frontier":
+        violations.append(
+            "resume-menu: adapter-error agent_incomplete frontier did not use dynamic HOLD evidence"
         )
 
     direct_error = _unsafe_resume_adapter_cwd(repo, repo_root=repo)

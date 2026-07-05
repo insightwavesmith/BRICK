@@ -2203,6 +2203,16 @@ modules:
     decomposition_target: ""
     pinned_by: building_operator_driver0 kernel check (bounded portfolio driver; selection is the declared gate dial, not new authority)
 
+  - module: support/operator/portfolio_projection.py
+    layer: operator
+    role: projection
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_operator_driver0 kernel check (portfolio hold guidance projection; read-side fields only)
+
   - module: support/operator/write_observation.py
     layer: operator
     role: operator

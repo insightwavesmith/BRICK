@@ -6847,10 +6847,10 @@ def check(repo: Path) -> list[str]:
                 "fc-19-ledger-cleanliness: malformed raise did not return "
                 f"invalid_budget_increment ({malformed19.get('error_kind')})"
             )
-        if rejected19.get("error_kind") != "resume_budget_precheck_refused":
+        if rejected19.get("error_kind") != "invalid_disposition_for_hold":
             violations.append(
                 "fc-19-ledger-cleanliness: non-budget raise did not return "
-                f"resume_budget_precheck_refused ({rejected19.get('error_kind')})"
+                f"invalid_disposition_for_hold ({rejected19.get('error_kind')})"
             )
         if malformed19.get("disposition_written") is not False or rejected19.get("disposition_written") is not False:
             violations.append("fc-19-ledger-cleanliness: refused raise reported disposition_written")
