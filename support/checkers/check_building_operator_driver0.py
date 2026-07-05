@@ -1994,6 +1994,15 @@ def _w1_worktree_sandbox_fire(
         summary["w1_fake_no_diff_forward_reobserved_frontier"] = no_diff_reobserved.get(
             "frontier_kind"
         )
+        no_diff_link_records = _jsonl_records(fake_outside_link_path)
+        no_diff_basis_rows = [
+            record
+            for record in no_diff_link_records
+            if record.get("transition_lifecycle_disposition_action") == "forward"
+            and "override:fake_landing_write_scope_diff_absent"
+            in record.get("route_decision_override_refs", [])
+        ]
+        summary["w1_fake_no_diff_forward_basis_row_count"] = len(no_diff_basis_rows)
         if no_diff_forward.get("frontier_kind") != "complete":
             violations.append(
                 "w1-fake-no-diff-forward: recorded forward disposition did not suppress "
@@ -2004,6 +2013,11 @@ def _w1_worktree_sandbox_fire(
             violations.append(
                 "w1-fake-no-diff-forward: durable frontier re-observation did not stay "
                 f"complete (frontier={no_diff_reobserved.get('frontier_kind')!r})"
+            )
+        if not no_diff_basis_rows:
+            violations.append(
+                "w1-fake-no-diff-forward: durable forward disposition row did not carry "
+                "route_decision override basis for the fake-landing hold"
             )
 
         fake_variant = Path(cust_raw) / "customer-fake-variant"
