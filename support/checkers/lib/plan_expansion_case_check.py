@@ -29,6 +29,8 @@ def run_plan_expansion_case(repo: Path, profile: Mapping[str, Any]) -> int:
     if not items:
         return 0
     from support.operator.plan_expansion import assemble_expanded_graph_plan
+    from support.operator.plan_graph import _linear_plan_from_graph_plan
+    from support.operator.plan_validation import validate_declared_building_plan
 
     count = 0
     for item in items:
@@ -71,6 +73,14 @@ def run_plan_expansion_case(repo: Path, profile: Mapping[str, Any]) -> int:
             )
         if not isinstance(metadata.get("extends_plan_hash"), str) or not metadata["extends_plan_hash"]:
             raise ProfileError(f"plan_expansion_case rejected {relative}: extends_plan_hash was blank")
+        if expected.get("linear_validate_missing_node_reroute_budgets") is True:
+            _assert_missing_node_reroute_budgets_linear_validation(
+                repo,
+                expanded,
+                relative,
+                linear_plan_from_graph_plan=_linear_plan_from_graph_plan,
+                validate_declared_building_plan=validate_declared_building_plan,
+            )
         count += 1
     return count
 
@@ -92,6 +102,13 @@ def _plan_expansion_fixture(case_kind: str) -> tuple[Mapping[str, Any], Mapping[
     fragment = _plan_expansion_valid_fragment()
     completed_frontier = ("step:a", "step:b")
     if case_kind == "valid_merge":
+        guarded = dict(fragment)
+        guarded["link_edges"] = [
+            _with_gate_sequence_policy(edge) if edge.get("edge_ref") == "edge:c-to-d" else edge
+            for edge in fragment["link_edges"]
+        ]
+        return original, guarded, completed_frontier
+    if case_kind == "valid_merge_ungated":
         return original, fragment, completed_frontier
     if case_kind == "cycle":
         cyclic = dict(fragment)
@@ -158,6 +175,66 @@ def _plan_expansion_fixture(case_kind: str) -> tuple[Mapping[str, Any], Mapping[
         duplicate["expansion_node_budgets"] = {"step:b": 1}
         return original, duplicate, completed_frontier
     raise ProfileError(f"unknown plan_expansion_case case_kind: {case_kind}")
+
+
+def _with_gate_sequence_policy(edge: Mapping[str, Any]) -> Mapping[str, Any]:
+    patched = dict(edge)
+    rows = [dict(row) for row in patched.get("rows") or []]
+    if not rows:
+        raise ProfileError("plan_expansion valid_merge gate policy fixture edge had no Link row")
+    rows[0]["declared_gate_refs"] = ["link-gate:default-transition", "link-gate:coo"]
+    rows[0]["gate_sequence_policy"] = [
+        {
+            "gate_ref": "link-gate:default-transition",
+            "on_missing_required_facts": {
+                "action": "reroute",
+                "target_basis": "source_brick",
+                "required_target_budget": True,
+            },
+            "on_sufficient": {
+                "action": "next",
+                "next_gate_ref": "link-gate:coo",
+            },
+        },
+        {
+            "gate_ref": "link-gate:coo",
+            "on_missing_required_facts": {
+                "action": "HOLD",
+                "required_disposition_owner": "coo",
+                "pending_target_basis": "target_brick",
+            },
+            "on_sufficient": {"action": "forward"},
+        },
+    ]
+    patched["rows"] = rows
+    return patched
+
+
+def _assert_missing_node_reroute_budgets_linear_validation(
+    repo: Path,
+    expanded: Mapping[str, Any],
+    relative: str,
+    *,
+    linear_plan_from_graph_plan: Any,
+    validate_declared_building_plan: Any,
+) -> None:
+    if "node_reroute_budgets" in expanded:
+        raise ProfileError(f"plan_expansion_case rejected {relative}: expanded_plan carried node_reroute_budgets")
+    linear_plan, _graph_context = linear_plan_from_graph_plan(expanded)
+    validate_declared_building_plan(linear_plan, repo_root=repo)
+
+    declared_empty_map = dict(expanded)
+    declared_empty_map["node_reroute_budgets"] = {}
+    try:
+        linear_with_empty_map, _graph_context = linear_plan_from_graph_plan(declared_empty_map)
+        validate_declared_building_plan(linear_with_empty_map, repo_root=repo)
+    except ValueError as exc:
+        if "gate_sequence_policy reroute target requires finite node_reroute_budget" in str(exc):
+            return
+        raise
+    raise ProfileError(
+        f"plan_expansion_case expected declared empty node_reroute_budgets rejection but passed: {relative}"
+    )
 
 
 def _plan_expansion_original_plan() -> Mapping[str, Any]:

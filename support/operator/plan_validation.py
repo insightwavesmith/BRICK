@@ -904,23 +904,23 @@ def _validate_declared_plan_gate_sequence_policies(
     *,
     declared_brick_refs: frozenset[str],
 ) -> None:
-    raw_budgets = plan.get("node_reroute_budgets", {})
-    if raw_budgets is None:
-        raw_budgets = {}
-    if not isinstance(raw_budgets, Mapping):
+    raw_budgets = plan.get("node_reroute_budgets")
+    if raw_budgets is not None and not isinstance(raw_budgets, Mapping):
         raise ValueError("node_reroute_budgets must be a mapping when supplied")
-    node_reroute_budgets: dict[str, int] = {}
-    for raw_ref, raw_budget in raw_budgets.items():
-        brick_ref = _required_text("node_reroute_budgets key", raw_ref)
-        _validate_gate_sequence_declared_target(
-            brick_ref,
-            declared_brick_refs=declared_brick_refs,
-            field_name=f"node_reroute_budgets.{brick_ref}",
-        )
-        node_reroute_budgets[brick_ref] = _positive_int(
-            f"node_reroute_budgets.{brick_ref}",
-            raw_budget,
-        )
+    node_reroute_budgets: dict[str, int] | None = None
+    if raw_budgets is not None:
+        node_reroute_budgets = {}
+        for raw_ref, raw_budget in raw_budgets.items():
+            brick_ref = _required_text("node_reroute_budgets key", raw_ref)
+            _validate_gate_sequence_declared_target(
+                brick_ref,
+                declared_brick_refs=declared_brick_refs,
+                field_name=f"node_reroute_budgets.{brick_ref}",
+            )
+            node_reroute_budgets[brick_ref] = _positive_int(
+                f"node_reroute_budgets.{brick_ref}",
+                raw_budget,
+            )
 
     for step_index, step_value in enumerate(steps):
         step = _require_mapping_value(f"steps[{step_index}]", step_value)
