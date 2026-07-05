@@ -592,6 +592,23 @@ init 정합(RED hermetic이면 init fail 보존). COO 게이트 4관문: D1~D4 d
 **다음**: 묶음10 ∥ 묶음11A 발주 → 묶음11B 초안(Smith 게이트) → 묶음8 → G3 운전(조각
 v2 회신 후) → A+ 웨이브.
 
+### 월 지출 한도 사건 + 재발주 (0705 심야)
+
+**사건**: claude 계정 월 지출 한도 도달("You've hit your monthly spend limit" 직접 재현) —
+claude-local QA 레인 3연속 즉사(local_cli_nonzero, step-output 없이 adapter-error만).
+묶음10·11A·gap1b 3빌딩이 fan-in 미충족 홀드 주차. codex 레인 산출(design·work·review)은
+전부 정상 — 콘텐츠 무죄. Smith 계정 재로그인으로 해소(pong 재현).
+**복구 시도 실측**: stop 처분 3연발 전건 "승인 대상 hold 상태가 아니에요" 거부 —
+frontier가 hold가 아닌 `evidence_incomplete`(수취 영수증만 남고 반환 0 = 장부 꼬리).
+**주차장 5건과 동일 클래스, 이제 누적 8례** — 레인이 반환 없이 죽으면 빌딩이
+처분-불가능 상태로 떨어진다. 백로그 행 승격: 소형 조사 → **T7 계열 엔진 수리 후보
+(복구 경로 부재 — Smith 게이트)**.
+**처분**: 0702 규칙(반복 처분 실패 시 추격 금지·fresh 재발주) 적용 — 동일 계약으로
+0705b vessel 3발 재발사. 죽은 0705a vessel 3기는 기록용 잔류.
+**신규 선결 갭 발견(운전 전 실측)**: base `expansion_budget` 저작 인자 부재 — 갭1(c89f1732)은
+노드별 키(declared_expansion_node_budgets)만 랜딩, base 키는 픽스처 전용. 공식 경로 출생
+빌딩 전수 예산 0 → rev 쓰기 fail-closed 거부. **gap1b 발주로 봉합 중**(갭1 동형 4파일).
+
 ## 백로그 통합 (소형·주시·대기)
 
 | 항목 | 분류 |
