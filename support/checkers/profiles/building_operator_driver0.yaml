@@ -6,12 +6,15 @@ kernel_checks:
   - onboard_smoke
   - building_result_summary
   - deliverable_crosscheck_gate
+  - re_instruction_endline_gate
 path_exists:
   - support/operator/driver.py
   - support/checkers/check_building_operator_driver0.py
   - AGENTS.md
   # ONBOARDING-WIZARD-0 surface (pinned by the onboard_smoke kernel check).
   - support/operator/onboard.py
+  - support/checkers/lib/re_instruction_endline_gate_check.py
+  - support/checkers/profiles/re-instruction-endline-gate.yaml
   - brick/building_plans/onboarding-example-0.yaml
 text_contains:
   - path: AGENTS.md
@@ -58,6 +61,7 @@ text_contains:
       # adapter_cwd on post-HOLD resume, and provider-session-like writes marked.
       - def _resume_isolation_disposition_fire
       - resume-disposition-RED
+      - re_instruction_endline_rule_violation
       - resume-isolation-RED
       - missing_disposition_action
       - resume_requires_isolated_adapter_cwd

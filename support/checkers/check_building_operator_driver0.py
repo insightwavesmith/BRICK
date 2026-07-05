@@ -841,6 +841,22 @@ def _resume_isolation_disposition_fire(
         violations.append(
             "resume-disposition-RED: human reroute without re_instruction did not fail closed"
         )
+    invalid_re_instruction = run_approve_entry(
+        "p2-invalid-re-instruction",
+        action="reroute",
+        author_ref="human:smith",
+        reroute_target_ref="brick:p2-reroute-target",
+        re_instruction=(
+            "Retry against the explicit reroute target and prove the result with "
+            "focused checks only."
+        ),
+        repo_root=repo,
+    )
+    summary["resume_invalid_re_instruction_error"] = invalid_re_instruction.get("error_kind")
+    if invalid_re_instruction.get("error_kind") != "re_instruction_endline_rule_violation":
+        violations.append(
+            "resume-disposition-RED: invalid reroute re_instruction did not fail closed"
+        )
 
     held_frontier = {
         "frontier_kind": "link_paused",
@@ -872,7 +888,12 @@ def _resume_isolation_disposition_fire(
                 action="reroute",
                 author_ref="human:smith",
                 reroute_target_ref="brick:p2-reroute-target",
-                re_instruction="Retry against the explicit reroute target.",
+                re_instruction=(
+                    "Done endline: retry against the explicit reroute target and "
+                    "return the declared evidence before DONE. Proof must be "
+                    "executable in the receiving lane. Repairs outside the "
+                    "receiving lane's scope are COO gate items, not re-dispatch."
+                ),
                 repo_root=repo,
             )
     finally:
@@ -2392,7 +2413,12 @@ def _w1_worktree_sandbox_fire(
                 fake_undispositioned_result.evidence_root,
                 action="reroute",
                 reroute_target_ref="brick:w1-explicit-reroute-target",
-                re_instruction="Retry the held W1 fixture against the explicit target.",
+                re_instruction=(
+                    "Done endline: retry the held W1 fixture against the explicit "
+                    "target and return declared evidence before DONE. Proof must "
+                    "be executable in the receiving lane. Repairs outside the "
+                    "receiving lane's scope are COO gate items, not re-dispatch."
+                ),
                 author_ref="coo:d2-checker",
                 adapter_cwd=Path(reroute_raw),
                 adapter_timeout_seconds=30,

@@ -135,6 +135,7 @@ from support.checkers.lib.kernel_checks import (
     run_provider_preflight,
     run_building_result_summary,
     run_deliverable_crosscheck_gate,
+    run_re_instruction_endline_gate,
     run_codex_connect_stall_classification,
     run_design_ai_text_seams,
     run_gemini_local_only_adapter,
@@ -730,6 +731,7 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
     "onboard_smoke": run_onboard_smoke,
     "building_result_summary": run_building_result_summary,
     "deliverable_crosscheck_gate": run_deliverable_crosscheck_gate,
+    "re_instruction_endline_gate": run_re_instruction_endline_gate,
     # ONBOARDING-INSTALL-SCRIPT-0. Structural/safety lint of the one-line
     # installer support/onboarding/install.sh IN-PROCESS: asserts set -eu, all
     # logic in main() invoked as 'main "$@"' on the LAST non-empty line
