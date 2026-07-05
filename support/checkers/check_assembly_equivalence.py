@@ -43,6 +43,7 @@ from brick_protocol.support.operator.assembly import (
     chain,
     converge,
     edge as assembly_edge,
+    expand,
     fan,
     fan_in,
     fan_out,
@@ -2590,61 +2591,122 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
                 raise AssemblyEquivalenceError(
                     f"build expansion_budget={rejected_budget!r} was accepted"
                 )
-        from support.operator.plan_expansion import assemble_expanded_graph_plan  # noqa: PLC0415
-
-        expansion_step_ref = f"{_step_for_kind(explicit_plan, 'closure')['step_ref']}-expansion"
-        expansion_edge_ref = f"edge:{_step_for_kind(explicit_plan, 'closure')['step_ref']}-to-{expansion_step_ref}"
-        expansion_boundary_edge_ref = f"edge:{expansion_step_ref}-to-boundary-expanded"
-        expansion_step = copy.deepcopy(_step_for_kind(explicit_plan, "closure"))
-        expansion_step["step_ref"] = expansion_step_ref
-        expansion_step["completion_edge_ref"] = expansion_boundary_edge_ref
-        expansion_brick_ref = f"brick-{expansion_step_ref}"
-        for row in expansion_step.get("rows") or []:
-            if isinstance(row, Mapping) and row.get("axis") == "Brick":
-                row["brick_instance_ref"] = expansion_brick_ref
-                row["brick_work_ref"] = f"work:{expansion_step_ref}"
-                row["row_ref"] = f"brick-row:{expansion_step_ref}"
-            if isinstance(row, Mapping) and row.get("axis") == "Agent":
-                row["row_ref"] = f"agent-row:{expansion_step_ref}"
-        expansion_fragment = {
-            "brick_steps": [expansion_step],
-            "link_edges": [
-                {
-                    "edge_ref": expansion_edge_ref,
-                    "source_step_ref": _step_for_kind(explicit_plan, "closure")["step_ref"],
-                    "target_step_ref": expansion_step_ref,
-                    "rows": [
-                        {
-                            "axis": "Link",
-                            "declared_gate_refs": [DEFAULT_GATE],
-                            "movement": "forward",
-                            "row_ref": f"link-row:{expansion_edge_ref}",
-                            "target_ref": expansion_brick_ref,
-                        }
-                    ],
-                },
-                {
-                    "edge_ref": expansion_boundary_edge_ref,
-                    "source_step_ref": expansion_step_ref,
-                    "rows": [
-                        {
-                            "axis": "Link",
-                            "declared_gate_refs": [DEFAULT_GATE],
-                            "movement": "forward",
-                            "row_ref": f"link-row:{expansion_boundary_edge_ref}",
-                            "target_ref": "building-boundary:expanded",
-                        }
-                    ],
-                },
+        expansion_parent_step_ref = str(_step_for_kind(explicit_plan, "closure")["step_ref"])
+        expanded = expand(
+            "checker-expansion-rev-1",
+            [
+                ["work", "explicit build pass-through work", {"write": True}],
+                ["closure", "expand() checker closure"],
             ],
-            "execution_order": [expansion_step_ref],
-            "groups": [],
-            "expansion_node_budgets": {expansion_step_ref: 1},
+            parent_plan=explicit_plan,
+            completed_frontier=(expansion_parent_step_ref,),
+            declared_by=DECLARED_BY,
+            authority=Authority.COO,
+            adapter="codex-local",
+            write_scope=explicit_scope,
+            gates=(Gate.STRICT_EVIDENCE,),
+        ).as_revision_candidate()
+        expansion_fragment = expanded.get("expansion_fragment")
+        if not isinstance(expansion_fragment, Mapping):
+            raise AssemblyEquivalenceError("expand() did not return an expansion_fragment")
+        if len(expansion_fragment.get("brick_steps") or []) != 2:
+            raise AssemblyEquivalenceError(f"expand() did not materialize two new steps: {expansion_fragment!r}")
+        if expansion_fragment.get("execution_order") != [
+            "checker-expansion-rev-1-expansion-work",
+            "checker-expansion-rev-1-expansion-closure",
+        ]:
+            raise AssemblyEquivalenceError(f"expand() execution_order drifted: {expansion_fragment.get('execution_order')!r}")
+        attach_refs = [
+            str(edge.get("source_step_ref") or "")
+            for edge in expansion_fragment.get("link_edges") or []
+            if isinstance(edge, Mapping)
+        ]
+        if expansion_parent_step_ref not in attach_refs:
+            raise AssemblyEquivalenceError("expand() omitted the parent-to-expansion root Link edge")
+        stages = {
+            str(item.get("stage") or ""): item
+            for item in expanded.get("dry_run_results") or []
+            if isinstance(item, Mapping)
         }
-        expanded = assemble_expanded_graph_plan(explicit_plan, expansion_fragment, ())
+        if set(stages) != {
+            "schema_fragment_compatibility",
+            "parent_plan_append_only",
+            "write_scope_inheritance",
+            "gate_required_observation",
+        }:
+            raise AssemblyEquivalenceError(f"expand() dry-run stages drifted: {sorted(stages)}")
+        if stages["write_scope_inheritance"].get("checked_write_nodes") != 1:
+            raise AssemblyEquivalenceError(f"expand() did not check the write node scope: {stages['write_scope_inheritance']!r}")
+        if not stages["gate_required_observation"].get("ungated_write_node_warnings"):
+            raise AssemblyEquivalenceError("expand() did not surface ungated write node warnings")
         expanded_plan = expanded.get("expanded_plan")
         if not isinstance(expanded_plan, Mapping) or "expansion_node_budgets" in expanded_plan:
             raise AssemblyEquivalenceError("declared birth budget leaked into expanded plan body")
+        metadata = expanded.get("expansion_metadata")
+        if not isinstance(metadata, Mapping) or metadata.get("expansion_node_budgets") != {
+            "checker-expansion-rev-1-expansion-work": 1,
+            "checker-expansion-rev-1-expansion-closure": 1,
+        }:
+            raise AssemblyEquivalenceError(f"expand() expansion budgets drifted: {metadata!r}")
+
+        import brick_protocol.support.operator.assembly as assembly_module  # noqa: PLC0415
+
+        real_fragment_from_plan = assembly_module._expansion_fragment_from_plan
+        real_write_scope_observation = assembly_module._write_scope_inheritance_observation
+
+        def corrupt_fragment_from_plan(composed_plan: Mapping[str, Any], budgets: Mapping[str, int]) -> Mapping[str, Any]:
+            fragment = copy.deepcopy(real_fragment_from_plan(composed_plan, budgets))
+            for step in fragment.get("brick_steps") or []:
+                if not isinstance(step, Mapping):
+                    continue
+                for row in step.get("rows") or []:
+                    if isinstance(row, dict) and row.get("axis") == "Brick" and row.get("write_scope"):
+                        row.pop("requires_brick_write_scope", None)
+            return fragment
+
+        assembly_module._expansion_fragment_from_plan = corrupt_fragment_from_plan
+        try:
+            try:
+                expand(
+                    "checker-expansion-corrupt",
+                    [["work", "explicit build pass-through work", {"write": True}]],
+                    parent_plan=explicit_plan,
+                    completed_frontier=(expansion_parent_step_ref,),
+                    declared_by=DECLARED_BY,
+                    authority=Authority.COO,
+                    adapter="codex-local",
+                    write_scope=explicit_scope,
+                )
+            except ValueError as exc:
+                if "write_scope dry-run failed" not in str(exc):
+                    raise AssemblyEquivalenceError(f"expand() corrupt write_scope rejected with unexpected error: {exc}") from exc
+            else:
+                raise AssemblyEquivalenceError("expand() accepted a corrupt write_scope fragment")
+
+            def disabled_write_scope_observation(fragment: Mapping[str, Any]) -> Mapping[str, Any]:
+                return {"stage": "write_scope_inheritance", "ok": True, "checked_write_nodes": 0}
+
+            assembly_module._write_scope_inheritance_observation = disabled_write_scope_observation
+            disabled = assembly_module.expand(
+                "checker-expansion-disabled-stage",
+                [["work", "explicit build pass-through work", {"write": True}]],
+                parent_plan=explicit_plan,
+                completed_frontier=(expansion_parent_step_ref,),
+                declared_by=DECLARED_BY,
+                authority=Authority.COO,
+                adapter="codex-local",
+                write_scope=explicit_scope,
+            ).as_revision_candidate()
+            disabled_stages = {
+                str(item.get("stage") or ""): item
+                for item in disabled.get("dry_run_results") or []
+                if isinstance(item, Mapping)
+            }
+            if disabled_stages.get("write_scope_inheritance", {}).get("checked_write_nodes") != 0:
+                raise AssemblyEquivalenceError("expand() mutation-RED did not observe disabled write_scope dry-run stage")
+        finally:
+            assembly_module._expansion_fragment_from_plan = real_fragment_from_plan
+            assembly_module._write_scope_inheritance_observation = real_write_scope_observation
         explicit_gate_refs = _declared_gate_refs_for_edge(
             explicit_plan,
             source_kind="code-attack-qa",
@@ -2654,10 +2716,12 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
             raise AssemblyEquivalenceError(f"build gates pass-through did not preserve strict gate: {explicit_gate_refs!r}")
         outputs.append(
             "build green: output_root/write_scope/expansion_budget/declared_expansion_node_budgets/gates "
-            "pass-through preserved caller declarations, rejected invalid base budgets, and remained expandable."
+            "pass-through preserved caller declarations, rejected invalid base budgets, and expand() remained expandable."
         )
-
-        import brick_protocol.support.operator.assembly as assembly_module  # noqa: PLC0415
+        outputs.append(
+            "expand() green/RED observed: build()/fan() fragment round-trip passed plan_expansion, "
+            "write_scope corruption was rejected, and disabled dry-run mutation changed the observation."
+        )
 
         real_assemble = assembly_module.assemble
 
