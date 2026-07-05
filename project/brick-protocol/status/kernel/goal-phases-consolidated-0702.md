@@ -700,18 +700,20 @@ Smith "과업 모두 종료까지 이어간다". 이 큐가 비면 연속 운행
 - (비어 있음 — 0706 새 세션이 걷던 3빌딩 전부 랜딩: erg3 6a28ed49 · 11B v1 021c1c3e · v2b 620df663. 회수 경위는 인체공학 표 13 참조. erg3 원장도 종결: forward 처분 체인으로 building_finished 16:15:56Z — 중간 fake_landing_write_scope_diff_absent 홀드는 "산출 선-랜딩으로 인한 무-diff"를 검토자가 확인 후 승인, 가드 자체는 설계대로 작동. v2b도 building_finished. 11B v1 vessel은 reroute×2 봉쇄 이력 그대로 잔류(내용은 랜딩됨).)
 
 ### B. 즉시 착수 가능 (표면 비충돌, 저위험, walker 무접촉)
-- **C우회 집행 1 — T10 완주**: fresh 0705c 재운전, reroute 대신 단일-홀드 직접 rev 걸음(replay 회피). G3 목적은 달성됐으나 완주 스탬프 확보 = 도그푸드 완결성. **저우선**(스탬프 장식, 데이터 확보됨).
-- **인체공학 슬라이스 4**: 게이트-필수 기계화(#7 — 파괴 write 노드 앞 게이트 부재 경고) + CLI 없는 프리셋 "가까운 이름 제안"(#3 동족, 0706 오타 사건). 체커/assembly 표면. (+표 13 자동앵커 후보 — 0706 회수 실측.)
+- **T10 완주 — 재판정(0706)**: replay 수리 랜딩 후 0705b resume 실측 → **evidence_incomplete 클래스**(수취/반환 장부 꼬리 — 승인 대상 홀드 아님, error=not_approval_hold)라 미러 수리 적용 대상이 아님. 경로 = t7-recovery 정정 조사 or fresh 0705c. **저우선 유지**(미러 도그푸드 증명은 t7b 설계 vessel로 이미 완성).
+- ~~인체공학 슬라이스 4~~ → **랜딩**(a79906cf — 게이트-없는 write 경고 + 프리셋 가까운 이름 제안, 변이-RED×3).
+- **인체공학 잔여 행 후보**: 표 13(자동 WIP 앵커 — 이번 밤 2회 더 실측: resume-경유 마감 무커밋) · 표 14(스윕 관측성) · 표 16(CLI repo_root 검증) — 슬라이스 5 묶음 감.
 
 ### C. 대형·스코프 결정 (0706 위임 하 COO 프레이밍 진행)
-- **A+ W1 Contract Kernel — 프레이밍 확정(0706 위임 판단)**: ①선행 = W1-S1 read-only 좌표조사 슬라이스(묶음1·5·6·7 랜딩분+S12-WR-001~007 픽스처 기준 durable 계약별 writer/reader/검증코드 전수 인벤토리 → 축-소유 배치 맵(write_scope해석=brick/·budget/lifecycle/gate어휘=link/·recording/contracts=persistence만) + 행동-동등성 게이트 사양) ②이관 슬라이스들은 S1 맵 회신+현 웨이브(erg4·W2·wheelsmoke) 랜딩 후 — 공유 표면 충돌 회피. S1 발사 시점 = t7b 설계 레인 종료 직후(fable5 부하 시차 운영).
-- **A+ W2 (mutation-RED manifest 게이트) — 발주됨(0706)**: aplus-w2-manifest-0706a, engine-feature-hard, CLI 한 줄 발사. 7표면 허용목록 manifest + 커버리지 체커 core 편입 + 변이 프로브 3종. 근거 = erg1 실수 6호 + **0706 wheel 게이트 실측 추가**(낡은 build/ 마스킹 — 공허 클래스 신규 실례가 이 슬라이스 걷는 중에도 나왔다).
-- **expand() DSL** (인체공학 #6·7): 확장 조각 저작 표면. B7 활성화 전 필수. 소형~중형.
-- **11B 후속 슬라이스 (v2 design 수확분)**: v1 랜딩은 onboard 채택-시점 게이트만 — v2 design이 확정한 잔여 좌표 = ①공유 술어 모듈(onboard·walker_resume·checker 3소비처 단일 구현) ②walker_resume 시드 경로 fail-closed(:384 직후, B1 :368-377 동형 — onboard 우회 저작 row 차단) ③비-reroute 포함 전 re_instruction 텍스트 검사. design 산출 = bundle11b-walkeradj-0705b design step-output. walker_resume 인접 → 엄격 게이트.
-- **무마찰 발주 — 런처 파이썬 소멸 (Smith 0706 지시)**: 아래 전용 절 참조. 인체공학 웨이브의 종착점 — 판정선 = "전 발주가 CLI/선언 표면 한 줄로 나가고 파이썬 런처가 사라지는 날".
+- **A+ W1 — S1 맵 수확 완료(20bac4ae, 정본 w1s1-contract-kernel-map-0706.md)**: K1'(gate 정책-액션 어휘 link/ 재귀속 — 실측 4축 역전 1건 제거) · K2'(정규화 단일화 + positive-int 통합, 에러계약 프로브 동반) · K3(공허 텍스트-핀 체커 → 행동 프로브 + W2 manifest 등재) · S12-WR 7행 전수 매핑(5 봉인, 잔여 2 슬라이스 배정). **다음 = K1'/K2'/K3 이관 슬라이스 발주**(맵의 파일셋 순서, 각각 행동-동등성 게이트). 주의: S1 공격 QA는 일시 rc=1로 미완 — 적대 검증은 이관 게이트가 대체(문서에 명기).
+- ~~A+ W2~~ → **랜딩**(8e7e17d8 — 공허-검증 기계 차단, core 편입, 스윕 45 프로파일).
+- ~~expand() DSL~~ → **랜딩**(3c95c932 — 실수용기 왕복 검증 내장 4단 드라이런).
+- **11B 후속 슬라이스** → **발주됨**(b11b-followup-0706a, engine-feature-hard, CLI 한 줄 — 공유 술어 모듈+walker_resume 시드 fail-closed+전 텍스트 검사).
+- **concern-path 풀 미러 슬라이스(신규 — 수술 후속 선언)**: 미러 수술은 gate-sequence 경로 완전 미러 + concern-path 5사이트 loud-거부(최소 슬라이스). concern-path 채택의 정합 미러(runtime mail 재독·cohort 재검증·insert_width — 설계 D1.7)는 별도 슬라이스. 자기잠금 가족②와 픽스처 홈 공유(D5 판정).
+- **무마찰 발주 — 런처 파이썬 소멸 (Smith 0706 지시)**: 아래 전용 절 참조. 이번 밤 실측: CLI 한 줄 발주 5건 성공(erg4b·wheelsmoke-b·W2b·t7b-fixtures·11b-followup), 파이썬 런처 잔존 사유 = 커스텀 fan+per-node 캐스팅+source_facts(t7b·W1-S1 설계 슬라이스 2건, 표 15 갭 그대로).
 
 ### D. 엔진 이월 (Smith 게이트 / 불가침면)
-- ~~t7b replay 다중화~~ → **설계 완료·수확됨(0706)** — 정본 = t7b-replay-mirror-design-final-0706.md (4라운드 fable5 설계: D1 미러 면 12항목 + 무검사 홀드 사이트 5곳 신발견 / D2 = A방향 채택 / D3 = 픽스처 4쌍 리터럴 사양 / D4 = 분할 시공: 픽스처 슬라이스 t7b-fixtures-0706a 발주됨 → walker 수술은 COO-직접-언더-기계게이트(Smith 0706 위임 "ex walker") / D5 = 자기잠금 분리). **설계 vessel 자체가 reroute×4로 boundary 봉쇄 — 수리 랜딩 후 재개가 도그푸드 실증 타깃.** 격상 유지: 다단 홀드 운영의 전제 조건.
+- ~~t7b replay 다중화~~ → **수리 랜딩 + 라이브 도그푸드 완성(0706)** — 수술 머지 c59d1745(A방향 정합 미러: reroute 미러가 라이브-처분과 동일 채택 경로 재사용 + 시퀀스 재사용→세대 간 reroute_ref 문자열 패리티, forward 미러 시퀀스 롤백, 미러 예산고갈 loud, 무검사 홀드 6사이트 loud-거부). 게이트 = RED→GREEN 4쌍 플립 실증(9a65a814 기준선 red-pin → 전원 GREEN) + 변이-RED(시퀀스 재사용 제거→패리티 즉발) + 프로파일 편입(building-automation) + --all 45. **도그푸드: reroute×4로 봉쇄됐던 설계 vessel 자신이 수리된 replay로 building_finished** — 0705 봉쇄 클래스 라이브 사망 확인. 다단 홀드 운영의 전제 조건 충족.
 - ~~헌법 개정 비준~~ → **Smith 0706 비준 집행 완료** — BRICK-CONSTITUTION.md 0706 개정(3축 절·진단 5단 ⑤: "품질+성공 판정 권한은 Smith가 배분한다(기본 소재: 사람)").
 - **bundle10 wheel 패키징**: Smith Option A/B 결정 대기(64d50be6 명시 — A=source checkout 전용 선언 / B=wheel 공식 지원 설치면 선언). 산출은 WIP 앵커 2기(ce05b4de·ee4d830f)에 봉인, main 부재 — 0706 큐 재점검에서 누락 발견, 유실 방지 등재. 0706 Smith 질의 접수 — 선택지별 비용 보고됨.
 - 0702 결함가족 ②(자기잠금) · route policy concern 하위분류(A+ W1 인접) — 0706 Smith 질의 접수, 설명 보고됨. 자기잠금 규범 근거는 Rule 11(기비준), 시공 스코프는 t7b 설계 슬라이스 D5가 결합/분리를 판정.
