@@ -10,6 +10,9 @@ brick-coo-operating-rules.md 그대로: 조사자는 감사 수신·교차검증
 "0705 낮 증보" + constitution-amendment-draft-0705.md 신설 + harness-roadmap-orders-0704.md
 실효 스탬프로 반영. 발주 차단 결정 0건(헌법 비준은 각인 단계에서 Smith 대기). T10 첫 확장
 운전은 형제의 bundle5+bundle1잔여 랜딩 대기 중. 남은 것 = 형제 시공 + §5 예약 후속.
+0705 오후: 지피티 종합보고 수신 — **실행 순서 정본 = external-audit-repair-phases-0705.md**
+(페이즈 1~5, 신설 묶음9 free-green·묶음10 wheel·묶음11 gate-consumer 포함). 트랙 복원은
+이제 이 문서 + orders + phases 세 개.
 
 ## 1. 운영 루프 (불변 — 이 규율로 계속)
 

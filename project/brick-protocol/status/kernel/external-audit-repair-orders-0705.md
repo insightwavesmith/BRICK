@@ -236,7 +236,25 @@ Movement 2종/lifecycle 어휘 구분 훼손). 비준·배치는 Smith.
 경고: harness-roadmap-orders-0704.md 실효(T1~T6 기집행) — 재발주 금지 스탬프 각인됨.
 ```
 
-증거 한계: 외부 감사 1차는 클론 불가 환경(커넥터 열람), 2차·3차는 업로드 아카이브 실측,
-4차는 아카이브에 project/** 부재로 조사자 로컬 스윕이 잔여를 수행 — 조사자 교차검증이
-실물 앵커를 보강했으나, 각 묶음 발주 시점에 앵커 재확인하라(코드 계속 변경 중).
-처분 확정·품질 판정은 사람 몫.
+## 0705 오후 증보 — 지피티 종합보고(패키지 A~I) 수신·신규 발견 3건 교차검증
+
+**실행 순서 정본 신설: external-audit-repair-phases-0705.md** (페이즈 1~5 + 제외 목록 —
+종합보고의 패키지↔묶음 매핑·형제 랜딩 제외 정리는 그쪽이 정본). 여기는 발견 판정만 증보.
+
+형제 신규 랜딩 반영: **T10 gap2 v2**(df9feb6c 승인근거→처분행 + ce35122b 실빌딩 라이브
+증명) — 1급 병렬 항목 "대화형 승인 갭" 종결. 묶음2는 계속 걷는 중(driver.py:1214 저자
+잔존 확인). 종합보고의 기봉합 항목(node_budgets bool·절대경로) 재발주 금지 유지.
+
+| id | 주장(종합보고 신규) | 조사자 검증 | 처분 |
+|---|---|---|---|
+| P7 | `check_profile --all`이 hermetic 무료 초록불이 아님 — 무-provider 환경 rc=1(gemini-local CLI 부재), core rc=0 | 기전 로컬 확인: `brick verify` 무인자=--all(cli.py:623), gemini 체커 sweep 가드보다 CLI 부재 에러 선행 가능. rc 실측 자체는 지피티 환경 산출(로컬은 CLI 보유로 재현 불가) — fresh 환경 실측은 묶음9 종료선에서 | **묶음9 신설**(free-green 계층화) — **Smith 게이트**(헌법 성공판정 ③ "brick verify exit 0" 의미 변경 + 온보딩 무료 초록불 단일화와 합류) |
+| P8 | non-editable wheel 패키징 파손 — pyproject packages 수동 목록에 support.operator/checkers/connection 누락, 콘솔 스크립트는 support.operator.cli | ✅ **조사자 실행 확정**: uv build --wheel 산출물 검사 — support/operator·checkers·connection **0파일**(recording 23·brick 5만 포함) | **묶음10 신설**(packages 확장 + wheel smoke 체커, release_gate 동승) — 릴리스 경로 전용(현 pipx --editable 고객 경로 무사고) |
+| P11 | pending gate consumer가 구조 부채화 — 재배선 방향 확정 시 미구현 게이트 소비면이 커짐 | ✅ enforcement-ledger.yaml:13-22 gate_pending 4건 실물(closure 완료 게이트 ×2 · adopted-reroute 재파견 텍스트 · re_instruction 종료선) | **묶음11 신설(조건부)** — 착수 조건 = 묶음2 랜딩(관찰→게이트 소비 배선 선례 동형) |
+| P10 | raw/link 파서 규율 분열(driver skip vs resume strict) | 기존 S12-WR-008과 동일건 | 백로그 유지(신규 아님) |
+| S13-HOLD-003 재서술 | "per-node coo/human 게이트 홀드 후 route_decision_basis 주입 경로 없음"(PARTIAL) | gap2 v2 랜딩이 정확히 이 경로(승인근거→처분행)를 개통 — 기존 상충 실측의 재검 결과는 형제 gap2 산출 확인 대기 | 재검 확인 후 종결 처리 |
+| 패키지 B 증보 | require_positive_int 공용 helper + bool-boundary 정적 체커 | 방향 타당(반복 클래스 근본 봉합 — 헌법 후보 16과 정합) | **묶음6에 증보 편입** |
+
+증거 한계: 외부 감사 1차는 클론 불가 환경(커넥터 열람), 2차·3차·종합은 업로드 아카이브
+실측, 4차는 아카이브에 project/** 부재로 조사자 로컬 스윕이 잔여를 수행 — 조사자
+교차검증이 실물 앵커를 보강했으나, 각 묶음 발주 시점에 앵커 재확인하라(코드 계속 변경
+중). 처분 확정·품질 판정은 사람 몫.
