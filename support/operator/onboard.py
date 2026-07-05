@@ -2458,6 +2458,7 @@ def build(
     action: str = "forward",
     output_root: Path | str | None = None,
     write_scope: Mapping[str, Any] | None = None,
+    expansion_budget: Any | None = None,
     expansion_node_budgets: Mapping[str, Any] | None = None,
     gates: Sequence[Any] = (),
     command_runner: Any | None = None,
@@ -2484,6 +2485,7 @@ def build(
         adapter=_BUILD_SELECTED_ADAPTER,
         gates=gates,
         write_scope=write_scope,
+        expansion_budget=expansion_budget,
         expansion_node_budgets=expansion_node_budgets,
     )
     proposal_root = _build_output_root(composed.building_id, output_root)
