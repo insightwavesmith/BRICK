@@ -722,6 +722,7 @@ Smith "과업 모두 종료까지 이어간다". 이 큐가 비면 연속 운행
 - **11B v2 vessel**(bundle11b-walkeradj-0705b, link_paused/worker 진입 전 COO 처분 대기) — v1 랜딩으로 대체, design 산출은 C절 후속 슬라이스에 수확. forward 금지(중복 시공 재개됨).
 - erg3-fastfix-probe 앵커(4c35bfcb) — erg3 정식 산출(D2 상위 구현)로 대체된 부분 프로브.
 - 혼합 회수 앵커 57b4fc63(refs/brick/wip/erg3-11b-mixed-recovery-0706) — 랜딩 완료로 사료화(provenance 보존).
+- **낡은-트리 무효 vessel 3기(0706, 인체공학 표 16 사건)**: erg4-slice4-0706a(design 홀드 폐기) · wheelsmoke-hygiene-0706a(대상 파일 부재 트리에서 완주 — 산출 무효) · aplus-w2-manifest-0706a(design 홀드 폐기) — pipx CLI가 ~/BRICK(7/4 트리)을 걸었다. 전부 forward 금지. 0706b 재발주로 대체.
 
 ## 무마찰 발주 — 가중치→그래프 + 런처 파이썬 소멸 (Smith 0706 지시 등재, 회고 결론)
 
