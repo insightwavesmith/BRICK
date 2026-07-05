@@ -19,6 +19,7 @@ from typing import Any
 
 from brick_protocol.agent.return_fact import validate_transition_concern_evidence
 from brick_protocol.brick.work import parse_required_return_shape
+from brick_protocol.link.gate import GateFact, evaluate_declared_movement_gate
 from brick_protocol.link.transition import DISPOSITION_ACTIONS
 from brick_protocol.support.connection.agent_adapter import (
     AgentBrainCallable,
@@ -105,6 +106,8 @@ _CUSTOMER_GRAPH_TEMPLATE_AUTHORITY_FIELDS = frozenset(
 _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_FRONTIER = "human_review_waiting"
 _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_REASON = "fake_landing_write_scope_diff_absent"
 _WRITE_SCOPE_FORBIDDEN_DIFF_PRESENT_REASON = "write_scope_forbidden_diff_present"
+_WRITE_SCOPE_OUTSIDE_DIFF_PRESENT_REASON = "write_scope_outside_diff_present"
+_WRITE_SCOPE_OBSERVATION_GATE_REF = "link-gate:coo"
 _PRODUCT_WRITE_CAPABILITY_CLASSES = frozenset(("source_write", "artifact_write"))
 _PROBE_WRITE_CAPABILITY_CLASSES = frozenset(("probe_write", "verification_write", "read"))
 
@@ -868,6 +871,24 @@ def _run_in_worktree_sandbox(
             elif (
                 reason.startswith("worktree-create-failed:")
                 and frontier_kind == "complete"
+                and _write_need_complete_with_outside_scope_diff(
+                    sandbox_cwd,
+                    intake.plan_path,
+                )
+            ):
+                _record_write_scope_outside_diff_hold(
+                    intake.run_result.lifecycle_write.root,
+                    intake.plan_path,
+                )
+                frontier = observe_building_frontier(
+                    intake.run_result.lifecycle_write.root,
+                    repo_root=repo,
+                )
+                frontier_kind = _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_FRONTIER
+                frontier_reason = _WRITE_SCOPE_OUTSIDE_DIFF_PRESENT_REASON
+            elif (
+                reason.startswith("worktree-create-failed:")
+                and frontier_kind == "complete"
                 and _write_need_complete_without_scoped_diff(
                     sandbox_cwd,
                     intake.plan_path,
@@ -959,6 +980,20 @@ def _run_in_worktree_sandbox(
                 frontier.get("frontier_reason")
                 or _WRITE_SCOPE_FORBIDDEN_DIFF_PRESENT_REASON
             )
+        elif frontier_kind == "complete" and _write_need_complete_with_outside_scope_diff(
+            sandbox.path,
+            intake_result.plan_path,
+        ):
+            _record_write_scope_outside_diff_hold(
+                intake_result.run_result.lifecycle_write.root,
+                intake_result.plan_path,
+            )
+            frontier = observe_building_frontier(
+                intake_result.run_result.lifecycle_write.root,
+                repo_root=sandbox.path,
+            )
+            frontier_kind = _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_FRONTIER
+            frontier_reason = _WRITE_SCOPE_OUTSIDE_DIFF_PRESENT_REASON
         elif frontier_kind == "complete" and _write_need_complete_without_scoped_diff(
             sandbox.path,
             intake_result.plan_path,
@@ -1086,6 +1121,37 @@ def _write_need_complete_with_forbidden_diff_for_plan(
     )
 
 
+def _write_need_complete_with_outside_scope_diff(
+    sandbox_path: Path,
+    plan_path: Path,
+) -> bool:
+    """Observe a completed write-needed plan copy with an outside-scope diff path."""
+
+    try:
+        payload = _load_declared_plan_mapping(plan_path)
+    except (OSError, TypeError, ValueError, json.JSONDecodeError):
+        return False
+    return _write_need_complete_with_outside_scope_diff_for_plan(sandbox_path, payload)
+
+
+def _write_need_complete_with_outside_scope_diff_for_plan(
+    sandbox_path: Path,
+    plan: Mapping[str, Any],
+) -> bool:
+    """Observe a product-write plan whose sandbox diff escapes allowed_paths."""
+
+    scopes = _write_need_scopes_from_plan(plan)
+    if not scopes:
+        return False
+    changed_paths = _sandbox_changed_paths(sandbox_path)
+    if not changed_paths:
+        return False
+    return any(
+        not any(_path_allowed_by_write_scope(path, scope) for scope in scopes)
+        for path in changed_paths
+    )
+
+
 def _write_need_scopes_from_plan_path(plan_path: Path) -> tuple[Mapping[str, Any], ...]:
     try:
         payload = _load_declared_plan_mapping(plan_path)
@@ -1132,6 +1198,12 @@ def _record_write_scope_forbidden_diff_hold(evidence_root: Path, plan_path: Path
     _record_write_scope_hold(evidence_root, plan_path, _WRITE_SCOPE_FORBIDDEN_DIFF_PRESENT_REASON)
 
 
+def _record_write_scope_outside_diff_hold(evidence_root: Path, plan_path: Path) -> None:
+    """Persist an outside-scope-diff HOLD so frontier re-observation matches return."""
+
+    _record_write_scope_hold(evidence_root, plan_path, _WRITE_SCOPE_OUTSIDE_DIFF_PRESENT_REASON)
+
+
 def _record_write_scope_hold(evidence_root: Path, plan_path: Path, reason: str) -> None:
     """Persist a write-scope HOLD reason using the shared driver hold mechanics."""
 
@@ -1168,6 +1240,19 @@ def _record_write_scope_forbidden_diff_hold_for_plan(
     )
 
 
+def _record_write_scope_outside_diff_hold_for_plan(
+    evidence_root: Path,
+    plan: Mapping[str, Any],
+) -> None:
+    """Persist the outside-scope-diff HOLD for an already-loaded plan copy."""
+
+    _record_write_scope_hold_for_plan(
+        evidence_root,
+        plan,
+        reason=_WRITE_SCOPE_OUTSIDE_DIFF_PRESENT_REASON,
+    )
+
+
 def _record_write_scope_hold_for_plan(
     evidence_root: Path,
     plan: Mapping[str, Any],
@@ -1187,6 +1272,9 @@ def _record_write_scope_hold_for_plan(
     )
     source_step_ref = str(hold_record.get("source_step_ref") or "").strip()
     source_brick_ref = str(hold_record.get("source_brick_ref") or "").strip()
+    gate_ref = _write_scope_outside_gate_ref()
+    observation_ref = _write_scope_hold_observation_ref(reason, building_id)
+    gate_fact = _write_scope_observation_gate_fact(gate_ref, observation_ref)
     lifecycle_fields = _transition_lifecycle_evidence_fields(
         {
             "transition_lifecycle": {
@@ -1211,11 +1299,21 @@ def _record_write_scope_hold_for_plan(
             "target_brick_instance_ref": source_brick_ref,
             "target": source_brick_ref,
             "transition_record_created": True,
-            "transition_author_ref": "support:operator-driver",
+            "transition_author_ref": gate_ref,
             "movement_source": (
-                "support recorded write-scope hold after complete frontier "
-                f"with reason {reason}"
+                f"{gate_ref} consumed support write-scope observation after "
+                f"complete frontier with reason {reason}"
             ),
+            "reason_refs": [observation_ref],
+            "gate_consumption_evidence": {
+                "gate_ref": gate_ref,
+                "sufficiency": gate_fact.sufficiency,
+                "checked_public_fact": gate_fact.checked_public_fact,
+                "required_public_facts": list(gate_fact.required_public_facts),
+                "missing_required_facts": list(gate_fact.missing_required_facts),
+                "reason": gate_fact.reason,
+                "evidence_reference": gate_fact.evidence_reference,
+            },
         },
         building_id=building_id,
         local_id=f"raw/link.jsonl#{raw_ref.rsplit(':', maxsplit=1)[-1]}",
@@ -1224,6 +1322,40 @@ def _record_write_scope_hold_for_plan(
         subject=source_brick_ref,
     )
     _append_driver_jsonl_record(link_path, link_record)
+
+
+def _write_scope_outside_gate_ref() -> str:
+    """Return the declared Link gate ref for write-scope observation consumption."""
+
+    return _WRITE_SCOPE_OBSERVATION_GATE_REF
+
+
+def _write_scope_observation_gate_fact(gate_ref: str, observation_ref: str) -> GateFact:
+    """Record the declared gate's sufficiency fact over the support observation."""
+
+    gate_fact = evaluate_declared_movement_gate(
+        gate_refs=(gate_ref,),
+        required_return_fields=(),
+        missing_return_fields=(),
+        observed_match_kind="write_scope_observation",
+        human_review_present=False,
+        override_present=False,
+        checked_public_fact=observation_ref,
+        evidence_reference=observation_ref,
+    )
+    if gate_fact is None:
+        raise ValueError("write-scope observation gate refs must not be empty")
+    return gate_fact
+
+
+def _write_scope_hold_observation_ref(reason: str, building_id: str) -> str:
+    if reason == _WRITE_SCOPE_FORBIDDEN_DIFF_PRESENT_REASON:
+        observation = "forbidden_paths_matched"
+    elif reason == _WRITE_SCOPE_OUTSIDE_DIFF_PRESENT_REASON:
+        observation = "observed_paths_outside_declared_scope"
+    else:
+        observation = "write_scope_scoped_diff_absent"
+    return f"observation:{observation}:{building_id}"
 
 
 def _fake_landing_hold_record_for_plan(

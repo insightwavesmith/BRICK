@@ -33,6 +33,9 @@ text_contains:
       # Shared worktree-sandbox bracket the preset customer path routes through.
       - def _run_in_worktree_sandbox
       - run_dispatch=_run_preset
+      - _WRITE_SCOPE_OUTSIDE_DIFF_PRESENT_REASON
+      - def _write_need_complete_with_outside_scope_diff_for_plan
+      - evaluate_declared_movement_gate(
   - path: support/checkers/check_building_operator_driver0.py
     texts:
       - MODE2 bare-default rejected
@@ -73,6 +76,13 @@ text_contains:
       - w1_incomplete_wip_anchor_ref
       - sensitive_anchor_red_execution_log
       - mutation-RED support evidence only
+      - w1-fake-allowed-outside
+      - w1-fake-missing-paused-at-RED
+      - allowed+outside source-write diff did not fire
+      - hold did not surface outside-scope reason
+      - support-authored Link hold rows were persisted
+      - gate_consumption_evidence
+      - declared Link gate consumption evidence was not persisted
       # P3 thin fire(graph) sugar: drawn GraphSpec -> official customer graph
       # sandbox route, with no caller-authored JSON packet seam.
       - def _fire_graph_sugar_fire
