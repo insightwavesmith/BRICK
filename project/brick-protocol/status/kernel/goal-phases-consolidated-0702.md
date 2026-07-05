@@ -603,6 +603,7 @@ v2 회신 후) → A+ 웨이브.
 | **prose 제외 ⊆ forbidden_paths 체커** — 파괴적 work 노드에서 작업문이 "무접촉" 선언한 파일이 forbidden에 없으면 RED(지피티 V2-ATT-006 일반화) | 체커 후보, 소형 |
 | **미지-발견→파괴-이동 커밋 게이트 패턴** — 발견 레인이 특정한 미지 대상을 이동/삭제하는 노드는 default-transition만으로 잇지 않는다(사람/COO 커밋 게이트 또는 조각 분리) — B6/B7 블록 코퍼스·graph-sizing 각인 후보(지피티 V2-ATT-004 일반화) | 각인 후보(묶음8/블록 갱신 동승) |
 | **v2b — 4번째 z6 후보 이동+원장**(T10 운전 v3 조각이 exact path 확보 후): 좁은 exact 스코프 + prose-제외=forbidden 동기화 + 이동 원장 — 일반 소형 빌딩, T10 불요 | 발주 대기, 소형 |
+| **확장 조각 저작 DSL(가칭 expand()) 부재** — Smith 0705 밤 지적("빌딩 하나 태울 때 고생하면 애초에 의미가 없다"): 일반 발주는 build()+brick()/fan() 한 줄인데 T10 조각은 날것 엔진 스키마 수작업 — 그 수작업이 지피티 FATAL(row-외 write_scope)의 발생 지점. 사양 = brick()/fan() 재사용 → 조각 스키마 materialize(rows·edges·budgets 올바른 칸) + runbook 4단 dry-run 내장. B7(미지수 확장) 활성화 전 필수, 비-walker 순수 저작 계층. 0703 교훈("공식 경로의 표현력 한계 = 도그푸드 사각")의 재발 사례 | 발주 후보, 소형~중형 |
 | 그래프 admission-gate 라이브 배선 (Rule 8 후반) | GP0 잔여, 소형 |
 | P8 신뢰성 반복 샘플 | GP2 후속 |
 | #23 레거시 정리 (앵커 구제 선행) / claude 세션 잔존 / gemini 세션 미조사 | 틈새 |
