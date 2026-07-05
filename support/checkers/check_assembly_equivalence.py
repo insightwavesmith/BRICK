@@ -2385,12 +2385,16 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
             raise AssemblyEquivalenceError(f"build stop proposal directory missing: {stop_proposal}") from exc
         if stop_entries != [GOAL_PROPOSAL_FILENAME]:
             raise AssemblyEquivalenceError(f"build stop wrote more than the proposal snapshot: {stop_entries!r}")
+        stopped_plan = json.loads(stop_proposal.read_text(encoding="utf-8"))
+        if "declared_expansion_node_budgets" in stopped_plan:
+            raise AssemblyEquivalenceError("build omitted declared_expansion_node_budgets changed the frozen proposal")
         outputs.append("build green: stop approval wrote only the frozen proposal and ran nothing.")
 
         explicit_scope = {
             "allowed_paths": ["support/checkers/**"],
             "forbidden_paths": [".git/**"],
         }
+        explicit_expansion_node_budgets = {"work": 2}
         explicit_graph = chain(
             [
                 brick("design", "explicit build pass-through design"),
@@ -2413,6 +2417,7 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
                 action="stop",
                 output_root=explicit_root,
                 write_scope=explicit_scope,
+                expansion_node_budgets=explicit_expansion_node_budgets,
                 gates=(Gate.STRICT_EVIDENCE,),
                 command_runner=_approval_runner(),
                 adapter_timeout_seconds=30,
@@ -2432,6 +2437,66 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
                 "build write_scope pass-through did not preserve caller declaration: "
                 f"{explicit_work_row.get('write_scope')!r}"
             )
+        if explicit_plan.get("declared_expansion_node_budgets") != explicit_expansion_node_budgets:
+            raise AssemblyEquivalenceError(
+                "build declared_expansion_node_budgets pass-through did not preserve caller declaration: "
+                f"{explicit_plan.get('declared_expansion_node_budgets')!r}"
+            )
+        from support.operator.plan_expansion import assemble_expanded_graph_plan  # noqa: PLC0415
+
+        expansion_step_ref = f"{_step_for_kind(explicit_plan, 'closure')['step_ref']}-expansion"
+        expansion_edge_ref = f"edge:{_step_for_kind(explicit_plan, 'closure')['step_ref']}-to-{expansion_step_ref}"
+        expansion_boundary_edge_ref = f"edge:{expansion_step_ref}-to-boundary-expanded"
+        expansion_step = copy.deepcopy(_step_for_kind(explicit_plan, "closure"))
+        expansion_step["step_ref"] = expansion_step_ref
+        expansion_step["completion_edge_ref"] = expansion_boundary_edge_ref
+        expansion_brick_ref = f"brick-{expansion_step_ref}"
+        for row in expansion_step.get("rows") or []:
+            if isinstance(row, Mapping) and row.get("axis") == "Brick":
+                row["brick_instance_ref"] = expansion_brick_ref
+                row["brick_work_ref"] = f"work:{expansion_step_ref}"
+                row["row_ref"] = f"brick-row:{expansion_step_ref}"
+            if isinstance(row, Mapping) and row.get("axis") == "Agent":
+                row["row_ref"] = f"agent-row:{expansion_step_ref}"
+        expansion_fragment = {
+            "brick_steps": [expansion_step],
+            "link_edges": [
+                {
+                    "edge_ref": expansion_edge_ref,
+                    "source_step_ref": _step_for_kind(explicit_plan, "closure")["step_ref"],
+                    "target_step_ref": expansion_step_ref,
+                    "rows": [
+                        {
+                            "axis": "Link",
+                            "declared_gate_refs": [DEFAULT_GATE],
+                            "movement": "forward",
+                            "row_ref": f"link-row:{expansion_edge_ref}",
+                            "target_ref": expansion_brick_ref,
+                        }
+                    ],
+                },
+                {
+                    "edge_ref": expansion_boundary_edge_ref,
+                    "source_step_ref": expansion_step_ref,
+                    "rows": [
+                        {
+                            "axis": "Link",
+                            "declared_gate_refs": [DEFAULT_GATE],
+                            "movement": "forward",
+                            "row_ref": f"link-row:{expansion_boundary_edge_ref}",
+                            "target_ref": "building-boundary:expanded",
+                        }
+                    ],
+                },
+            ],
+            "execution_order": [expansion_step_ref],
+            "groups": [],
+            "expansion_node_budgets": {expansion_step_ref: 1},
+        }
+        expanded = assemble_expanded_graph_plan(explicit_plan, expansion_fragment, ())
+        expanded_plan = expanded.get("expanded_plan")
+        if not isinstance(expanded_plan, Mapping) or "expansion_node_budgets" in expanded_plan:
+            raise AssemblyEquivalenceError("declared birth budget leaked into expanded plan body")
         explicit_gate_refs = _declared_gate_refs_for_edge(
             explicit_plan,
             source_kind="code-attack-qa",
@@ -2439,7 +2504,10 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
         )
         if explicit_gate_refs != (DEFAULT_GATE, STRICT_GATE):
             raise AssemblyEquivalenceError(f"build gates pass-through did not preserve strict gate: {explicit_gate_refs!r}")
-        outputs.append("build green: output_root/write_scope/gates pass-through preserved caller declarations.")
+        outputs.append(
+            "build green: output_root/write_scope/declared_expansion_node_budgets/gates pass-through "
+            "preserved caller declarations and remained expandable."
+        )
 
         import brick_protocol.support.operator.assembly as assembly_module  # noqa: PLC0415
 
@@ -2448,6 +2516,7 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
         def mutant_assemble(*args: Any, **kwargs: Any) -> Any:
             mutant_kwargs = dict(kwargs)
             mutant_kwargs.pop("write_scope", None)
+            mutant_kwargs.pop("expansion_node_budgets", None)
             mutant_kwargs.pop("gates", None)
             return real_assemble(*args, **mutant_kwargs)
 
@@ -2462,24 +2531,33 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
                     action="stop",
                     output_root=tmp / "build-mutant-root",
                     write_scope=explicit_scope,
+                    expansion_node_budgets=explicit_expansion_node_budgets,
                     gates=(Gate.STRICT_EVIDENCE,),
                     command_runner=_approval_runner(),
                     adapter_timeout_seconds=30,
                 )
             mutant_plan = json.loads(Path(str(mutant.get("proposal_ref", ""))).read_text(encoding="utf-8"))
             mutant_scope = _brick_row(_step_for_kind(mutant_plan, "work")).get("write_scope")
+            mutant_expansion_node_budgets = mutant_plan.get("declared_expansion_node_budgets")
             mutant_gate_refs = _declared_gate_refs_for_edge(
                 mutant_plan,
                 source_kind="code-attack-qa",
                 target_kind="closure",
             )
-            if mutant_scope == explicit_scope or mutant_gate_refs == (DEFAULT_GATE, STRICT_GATE):
+            if (
+                mutant_scope == explicit_scope
+                or mutant_expansion_node_budgets == explicit_expansion_node_budgets
+                or mutant_gate_refs == (DEFAULT_GATE, STRICT_GATE)
+            ):
                 raise AssemblyEquivalenceError(
-                    "build mutation-RED did not discriminate severed write_scope/gates pass-through"
+                    "build mutation-RED did not discriminate severed write_scope/declared_expansion_node_budgets/gates pass-through"
                 )
         finally:
             assembly_module.assemble = real_assemble
-        outputs.append("build mutation-RED observed: severed write_scope/gates wiring changed the frozen proposal.")
+        outputs.append(
+            "build mutation-RED observed: severed write_scope/declared_expansion_node_budgets/gates "
+            "wiring changed the frozen proposal."
+        )
 
         zero_supply_graph = chain(
             [

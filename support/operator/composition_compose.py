@@ -85,6 +85,7 @@ def compose_building(
     selected_adapter_ref: str = "adapter:local",
     selected_model_ref: str = "model:default",
     transition_concern_adoption: str = "",
+    expansion_node_budgets: Mapping[str, Any] | None = None,
     repo_root: Path | str = REPO_ROOT,
 ) -> Mapping[str, Any]:
     """Assemble a caller/COO-declared graph Building Plan from node choices.
@@ -750,6 +751,19 @@ def compose_building(
         plan["route_policy_provenance"] = route_policy_provenance
     if transition_concern_adoption:
         plan["transition_concern_adoption"] = transition_concern_adoption
+    if expansion_node_budgets is not None:
+        if not isinstance(expansion_node_budgets, Mapping):
+            problems.append(
+                CompositionProblem(
+                    "invalid_expansion_node_budgets",
+                    "__composition__",
+                    "expansion_node_budgets must be a mapping when supplied",
+                )
+            )
+        else:
+            plan["declared_expansion_node_budgets"] = dict(expansion_node_budgets)
+    if problems:
+        raise CompositionError(problems)
 
     post_problems = _composition_validator_problems(plan, repo)
     if post_problems:
