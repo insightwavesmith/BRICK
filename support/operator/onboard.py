@@ -215,6 +215,116 @@ def _unsafe_live_repo_adapter_cwd(
     return None
 
 
+def _building_root_signature(path: Path) -> bool:
+    """True for a plausible recorded Building root, without judging its state."""
+
+    return path.is_dir() and ((path / "raw").is_dir() or (path / "work").is_dir())
+
+
+def _approval_building_root_candidates(
+    building_ref: str,
+    *,
+    output_root: Path | str | None,
+    repo_root: Path,
+) -> list[Path]:
+    building_path = Path(building_ref).expanduser()
+    if building_path.is_absolute():
+        return [building_path.resolve()]
+    candidates: list[Path] = []
+    if output_root is not None:
+        candidates.append((Path(output_root).expanduser() / building_path).resolve())
+    else:
+        candidates.append((Path.home() / ".brick" / "goal-runs" / building_path).resolve())
+    candidates.append((repo_root / building_path).resolve())
+    seen: set[str] = set()
+    unique: list[Path] = []
+    for candidate in candidates:
+        key = str(candidate)
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(candidate)
+    return unique
+
+
+def _resolve_approval_building_root(
+    building_ref: str,
+    *,
+    output_root: Path | str | None,
+    repo_root: Path,
+) -> tuple[Path | None, list[Path]]:
+    """Resolve operator-entered building refs with repo-relative recovery.
+
+    Existing goal-runs refs keep their historical precedence. Repo-relative refs
+    are admitted when they point at a real Building vessel in this checkout.
+    """
+
+    candidates = _approval_building_root_candidates(
+        building_ref,
+        output_root=output_root,
+        repo_root=repo_root,
+    )
+    for candidate in candidates:
+        if _building_root_signature(candidate):
+            return candidate, candidates
+    return None, candidates
+
+
+def _prepare_resume_adapter_cwd(
+    *,
+    repo_root: Path,
+    building_id: str,
+    adapter_cwd: Path | str | None,
+) -> tuple[Path | None, dict[str, Any] | None]:
+    if adapter_cwd is not None:
+        adapter_cwd_refusal = _unsafe_live_repo_adapter_cwd(adapter_cwd, repo_root=repo_root)
+        if adapter_cwd_refusal is not None:
+            return None, adapter_cwd_refusal
+        return Path(adapter_cwd).expanduser().resolve(), {
+            "adapter_cwd_auto_created": False,
+            "adapter_cwd_source": "caller",
+        }
+    try:
+        from brick_protocol.support.operator.worktree_sandbox import (  # noqa: PLC0415
+            WorktreeSandboxError,
+            create_worktree_sandbox,
+            probe_worktree_capable,
+        )
+
+        probe = probe_worktree_capable(repo_root)
+        if not probe.ok:
+            return None, {
+                "error_kind": "resume_requires_isolated_adapter_cwd",
+                "error_message": (
+                    "onboard approve could not auto-create an isolated adapter_cwd "
+                    f"because worktree probe failed: {probe.reason}"
+                ),
+                "message_ko": "resume adapter_cwd 자동 생성 조건을 만족하지 못했어요.",
+                "adapter_cwd_auto_create_reason": probe.reason,
+            }
+        sandbox = create_worktree_sandbox(
+            repo_root,
+            building_id=building_id,
+            base_sha=probe.base_sha,
+        )
+    except WorktreeSandboxError as exc:
+        return None, {
+            "error_kind": "resume_requires_isolated_adapter_cwd",
+            "error_message": (
+                "onboard approve could not auto-create an isolated git worktree "
+                f"for resume: {type(exc).__name__}: {exc}"
+            ),
+            "message_ko": "resume adapter_cwd 자동 worktree 생성에 실패했어요.",
+            "adapter_cwd_auto_create_reason": type(exc).__name__,
+        }
+    return sandbox.path, {
+        "adapter_cwd_auto_created": True,
+        "adapter_cwd_source": "engine_worktree",
+        "adapter_cwd_base_sha": sandbox.base_sha,
+        "worktree_path": str(sandbox.path),
+    }
+
+
 def _normalize_host(host: Any) -> str:
     return host.strip().lower() if isinstance(host, str) else ""
 
@@ -3370,16 +3480,27 @@ def run_approve_entry(
         )
         return result
 
-    building_path = Path(building_text).expanduser()
-    if building_path.is_absolute():
-        building_root = building_path.resolve()
-    else:
-        durable = (
-            Path(output_root).expanduser().resolve()
-            if output_root is not None
-            else Path.home() / ".brick" / "goal-runs"
+    building_root, building_root_candidates = _resolve_approval_building_root(
+        building_text,
+        output_root=output_root,
+        repo_root=repo,
+    )
+    if building_root is None:
+        result.update(
+            {
+                "error_kind": "building_root_not_found",
+                "error_message": (
+                    "building root not found for building_ref "
+                    f"{building_text!r}; checked: "
+                    + ", ".join(str(path) for path in building_root_candidates)
+                ),
+                "message_ko": "지정한 building root를 찾을 수 없어요.",
+                "building_root_candidates": [
+                    str(path) for path in building_root_candidates
+                ],
+            }
         )
-        building_root = (durable / building_path).resolve()
+        return result
     result["building_root"] = str(building_root)
     result["evidence_root"] = str(building_root)
 
@@ -3561,22 +3682,14 @@ def run_approve_entry(
         )
         return result
 
-    if adapter_cwd is None:
-        result.update(
-            {
-                "error_kind": "resume_requires_isolated_adapter_cwd",
-                "error_message": (
-                    "onboard approve refuses to resume without an explicit isolated "
-                    "adapter_cwd; missing adapter_cwd would default resumed live work "
-                    "to the repo/customer tree."
-                ),
-                "message_ko": "resume adapter_cwd가 없어 라이브 작업 트리를 쓸 위험이 있어요.",
-            }
-        )
-        return result
-    adapter_cwd_refusal = _unsafe_live_repo_adapter_cwd(adapter_cwd, repo_root=repo)
-    if adapter_cwd_refusal is not None:
-        result.update(adapter_cwd_refusal)
+    prepared_adapter_cwd, adapter_cwd_observation = _prepare_resume_adapter_cwd(
+        repo_root=repo,
+        building_id=building_root.name,
+        adapter_cwd=adapter_cwd,
+    )
+    if adapter_cwd_observation is not None:
+        result.update(adapter_cwd_observation)
+    if prepared_adapter_cwd is None:
         return result
     if menu_precheck_missing_error is not None:
         result.update(
@@ -3653,7 +3766,7 @@ def run_approve_entry(
     try:
         resume_building_plan(
             building_root,
-            adapter_cwd=adapter_cwd,
+            adapter_cwd=prepared_adapter_cwd,
             adapter_timeout_seconds=adapter_timeout_seconds,
         )
         frontier_after = dict(observe_building_frontier(building_root, repo_root=repo))
@@ -3685,7 +3798,7 @@ def run_approve_entry(
             if not isinstance(plan_copy, Mapping):
                 raise ValueError("plan_snapshot.plan_rows_copy must decode to a mapping")
             if _write_need_complete_with_forbidden_diff_for_plan(
-                Path(adapter_cwd),
+                prepared_adapter_cwd,
                 plan_copy,
             ) and not _fake_landing_forward_disposition_recorded(
                 building_root,
@@ -3697,7 +3810,7 @@ def run_approve_entry(
                     observe_building_frontier(building_root, repo_root=repo)
                 )
             elif _write_need_complete_without_scoped_diff_for_plan(
-                Path(adapter_cwd),
+                prepared_adapter_cwd,
                 plan_copy,
             ) and not _fake_landing_forward_disposition_recorded(
                 building_root,

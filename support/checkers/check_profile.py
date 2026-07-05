@@ -455,6 +455,10 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "building_lifecycle_path_shape",
         "support.checkers.check_building_lifecycle_path_shape",
     ),
+    "resume_disposition_surface": _repo_main(
+        "resume_disposition_surface",
+        "support.checkers.check_resume_disposition_surface",
+    ),
     "building_map_graph": run_building_map_graph,
     "graph_topology_fan_barrier": run_graph_topology_fan_barrier,
     # PROJECT-0 S1: every project/<id>/ vessel must declare its charter

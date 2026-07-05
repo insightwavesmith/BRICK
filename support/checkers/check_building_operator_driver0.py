@@ -850,10 +850,29 @@ def _resume_isolation_disposition_fire(
         },
     }
     original_observe = onboard_module.observe_building_frontier
+    original_prepare_cwd = onboard_module._prepare_resume_adapter_cwd
     onboard_module.observe_building_frontier = lambda *_args, **_kwargs: dict(held_frontier)
     try:
         with tempfile.TemporaryDirectory(prefix="bp-p2-resume-isolation-") as tmp:
             root = Path(tmp) / "building"
+            (root / "raw").mkdir(parents=True)
+            (root / "work").mkdir()
+            auto_cwd = Path(tmp) / "auto-adapter-cwd"
+            auto_cwd.mkdir()
+
+            def _fake_prepare_cwd(*, repo_root, building_id, adapter_cwd):
+                if adapter_cwd is None:
+                    return auto_cwd, {
+                        "adapter_cwd_auto_created": True,
+                        "adapter_cwd_source": "checker_fake_worktree",
+                    }
+                return original_prepare_cwd(
+                    repo_root=repo_root,
+                    building_id=building_id,
+                    adapter_cwd=adapter_cwd,
+                )
+
+            onboard_module._prepare_resume_adapter_cwd = _fake_prepare_cwd
             missing_cwd = run_approve_entry(
                 root,
                 action="forward",
@@ -877,16 +896,19 @@ def _resume_isolation_disposition_fire(
             )
     finally:
         onboard_module.observe_building_frontier = original_observe
+        onboard_module._prepare_resume_adapter_cwd = original_prepare_cwd
     summary["resume_missing_adapter_cwd_error"] = missing_cwd.get("error_kind")
     summary["resume_live_adapter_cwd_error"] = live_cwd.get("error_kind")
     summary["resume_reroute_with_instruction_error"] = reroute_with_instruction.get(
         "error_kind"
     )
-    if missing_cwd.get("error_kind") != "resume_requires_isolated_adapter_cwd":
-        violations.append("resume-isolation-RED: missing adapter_cwd was not refused")
+    if missing_cwd.get("error_kind") == "resume_requires_isolated_adapter_cwd":
+        violations.append("resume-isolation-RED: missing adapter_cwd was still refused")
+    if missing_cwd.get("adapter_cwd_auto_created") is not True:
+        violations.append("resume-isolation-RED: missing adapter_cwd did not auto-create")
     if live_cwd.get("error_kind") != "adapter_cwd_refused_live_repo":
         violations.append("resume-isolation-RED: live repo adapter_cwd was not refused")
-    if reroute_with_instruction.get("error_kind") != "resume_requires_isolated_adapter_cwd":
+    if reroute_with_instruction.get("error_kind") == "resume_requires_isolated_adapter_cwd":
         violations.append(
             "resume-disposition: reroute with re_instruction did not pass to later "
             f"resume preflight ({reroute_with_instruction.get('error_kind')!r})"

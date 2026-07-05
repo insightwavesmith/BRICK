@@ -179,6 +179,7 @@ from brick_protocol.support.recording.building_map import BuildingMapWriteResult
 from brick_protocol.support.recording.capture import (
     BuildingLifecycleWriteResult,
     DEFAULT_BUILDINGS_ROOT,
+    buildings_root_for,
     graph_ready_json_object,
     graph_ready_timestamp,
     project_ref_for_building_root,
@@ -2074,6 +2075,7 @@ def _adapter_request_from_prepared(
         "source_fact_bodies": _adapter_source_fact_bodies(
             packet,
             prepared.brick_work.source_facts,
+            building_id=prepared.building_id,
         ),
         "link_handoff_refs": (
             _mapping("link_handoff_refs", packet["link_handoff_refs"])
@@ -2164,14 +2166,23 @@ def _agent_adapter_request_from_kwargs(kwargs: Mapping[str, Any]) -> AgentAdapte
 def _adapter_source_fact_bodies(
     packet: Mapping[str, Any],
     source_facts: Iterable[str],
+    *,
+    building_id: str = "",
 ) -> Mapping[str, str]:
     source_fact_refs = tuple(source_facts)
     supplied_bodies = _supplied_source_fact_bodies(packet)
+    vessel_bodies = _vessel_step_output_source_fact_bodies(
+        packet,
+        source_fact_refs,
+        building_id=building_id,
+        supplied_bodies=supplied_bodies,
+    )
     missing_step_output_refs = [
         source_fact
         for source_fact in source_fact_refs
         if _is_step_output_source_fact_ref(source_fact)
         and source_fact not in supplied_bodies
+        and source_fact not in vessel_bodies
     ]
     if missing_step_output_refs:
         raise ValueError(
@@ -2203,7 +2214,84 @@ def _adapter_source_fact_bodies(
                 "source_fact_bodies packet carry is admitted only for step-output refs"
             )
         bodies[source_fact_ref] = safe_source_fact_body(str(body))
+    for source_fact_ref, body in vessel_bodies.items():
+        bodies.setdefault(source_fact_ref, safe_source_fact_body(str(body)))
     return bodies
+
+
+def _vessel_step_output_source_fact_bodies(
+    packet: Mapping[str, Any],
+    source_fact_refs: Iterable[str],
+    *,
+    building_id: str,
+    supplied_bodies: Mapping[str, str],
+) -> Mapping[str, str]:
+    missing_refs = [
+        ref
+        for ref in source_fact_refs
+        if _is_step_output_source_fact_ref(ref) and ref not in supplied_bodies
+    ]
+    if not missing_refs:
+        return {}
+    roots = _candidate_source_fact_building_roots(packet, building_id=building_id)
+    bodies: dict[str, str] = {}
+    for ref in missing_refs:
+        path = _vessel_step_output_path(ref, roots)
+        if path is None:
+            continue
+        try:
+            bodies[ref] = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeError):
+            continue
+    return bodies
+
+
+def _candidate_source_fact_building_roots(
+    packet: Mapping[str, Any],
+    *,
+    building_id: str,
+) -> tuple[Path, ...]:
+    roots: list[Path] = []
+    project_ref = _optional_text_from_mapping(packet, "project_ref")
+    if project_ref and building_id:
+        try:
+            roots.append((buildings_root_for(project_ref) / building_id).resolve())
+        except ValueError:
+            pass
+    if building_id:
+        roots.append((Path(DEFAULT_BUILDINGS_ROOT) / building_id).resolve())
+    seen: set[str] = {str(root) for root in roots}
+    if building_id:
+        for base in (_REPO_ROOT / "project").glob("*/buildings"):
+            candidate = (base / building_id).resolve()
+            key = str(candidate)
+            if key not in seen:
+                seen.add(key)
+                roots.append(candidate)
+    return tuple(roots)
+
+
+def _vessel_step_output_path(
+    source_fact_ref: str,
+    roots: Iterable[Path],
+) -> Path | None:
+    normalized = _required_text("source_fact", source_fact_ref).replace("\\", "/")
+    if normalized.startswith("step-output:"):
+        return None
+    marker = "work/step-outputs/"
+    index = normalized.find(marker)
+    if index < 0:
+        return None
+    relative = Path(normalized[index:])
+    for root in roots:
+        candidate = (root / relative).resolve()
+        try:
+            candidate.relative_to(root.resolve())
+        except (OSError, ValueError):
+            continue
+        if candidate.is_file():
+            return candidate
+    return None
 
 
 def _supplied_source_fact_bodies(packet: Mapping[str, Any]) -> Mapping[str, str]:
