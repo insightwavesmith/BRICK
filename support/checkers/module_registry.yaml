@@ -1024,6 +1024,16 @@ modules:
     decomposition_target: ""
     pinned_by: deliverable_crosscheck_gate kernel check (closure deliverable_crosscheck consumer; synthetic RED/GREEN fixtures and mutation probe; homes no crossing mechanics, imports no axis at module level)
 
+  - module: support/checkers/lib/re_instruction_endline_gate_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: re_instruction_endline_gate kernel check (adopted-reroute re_instruction consumer; synthetic RED/GREEN fixtures and run_approve_entry pre-write probe; homes no crossing mechanics, imports no axis at module level)
+
   - module: support/checkers/lib/raw_evidence_stream_scrub_check.py
     layer: checkers/lib
     role: checker-lib
