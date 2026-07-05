@@ -27,6 +27,7 @@ from support.checkers.lib.yaml_subset import (
     require_string_list,
     rule_items,
 )
+from support.recording.capture import project_ref_for_building_root
 
 
 def run_step_output_drain_case(repo: Path, profile: Mapping[str, Any]) -> int:
@@ -425,15 +426,24 @@ def _check_step_output_drain_expected(
             raise ProfileError(
                 f"step_output_drain_case rejected {label}: incoming step-output refs mismatch"
             )
-        expected_root = str(building_root.resolve())
+        project_ref = project_ref_for_building_root(building_root)
+        expected_root_ref = (
+            f"project/{project_ref[len('project:'):]}/buildings/{building_root.name}"
+            if project_ref
+            else None
+        )
         observed_roots = [
-            item.get("building_root_path")
+            item.get("building_root_ref")
             for item in incoming
             if isinstance(item, Mapping) and item.get("from_step_output_ref") is not None
         ]
-        if observed_roots != [expected_root for _ in expected_step_output_refs]:
+        if expected_root_ref is None:
+            expected_roots: list[str | None] = [None for _ in expected_step_output_refs]
+        else:
+            expected_roots = [expected_root_ref for _ in expected_step_output_refs]
+        if observed_roots != expected_roots:
             raise ProfileError(
-                f"step_output_drain_case rejected {label}: incoming building_root_path mismatch"
+                f"step_output_drain_case rejected {label}: incoming building_root_ref mismatch"
             )
     if expected.get("receipt_handoff_refs") is not None:
         expected_receipt_refs = require_string_list(

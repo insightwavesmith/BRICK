@@ -402,6 +402,8 @@ def _incoming_handoffs_with_completed_step_output_refs(
     handoff_refs: Mapping[str, Any],
     *,
     building_root: Path,
+    repo_root: Path,
+    building_id: str,
     step_results_snapshot: Sequence[BuildingRunSupportResult],
 ) -> Mapping[str, Any]:
     """Add support evidence addresses for completed upstream incoming steps."""
@@ -418,7 +420,11 @@ def _incoming_handoffs_with_completed_step_output_refs(
 
     changed = False
     enriched_incoming: list[Any] = []
-    building_root_path = str(building_root.resolve())
+    building_root_ref = _repo_relative_building_root_ref(
+        building_root,
+        repo_root=repo_root,
+        building_id=building_id,
+    )
     for entry in incoming:
         if not isinstance(entry, Mapping):
             enriched_incoming.append(entry)
@@ -430,7 +436,8 @@ def _incoming_handoffs_with_completed_step_output_refs(
             continue
         enriched_entry = dict(entry)
         enriched_entry["from_step_output_ref"] = output_ref
-        enriched_entry["building_root_path"] = building_root_path
+        if building_root_ref is not None:
+            enriched_entry["building_root_ref"] = building_root_ref
         enriched_entry.setdefault("proof_limits", list(_STEP_OUTPUT_HANDOFF_PROOF_LIMITS))
         enriched_incoming.append(enriched_entry)
         changed = True
@@ -440,6 +447,21 @@ def _incoming_handoffs_with_completed_step_output_refs(
     enriched_handoffs = dict(handoff_refs)
     enriched_handoffs["incoming"] = enriched_incoming
     return enriched_handoffs
+
+
+def _repo_relative_building_root_ref(
+    building_root: Path,
+    *,
+    repo_root: Path,
+    building_id: str,
+) -> str | None:
+    project_ref = project_ref_for_building_root(building_root, repo_root=repo_root)
+    if not project_ref:
+        return None
+    prefix = "project:"
+    if not project_ref.startswith(prefix):
+        return None
+    return f"project/{project_ref[len(prefix):]}/buildings/{building_id}"
 
 
 def _fan_in_source_step_refs(
@@ -616,6 +638,8 @@ def process_one_node(
     enriched_handoff_refs = _incoming_handoffs_with_completed_step_output_refs(
         current_handoff_refs,
         building_root=building_root,
+        repo_root=repo_root_path,
+        building_id=building_id,
         step_results_snapshot=step_results_snapshot,
     )
     if enriched_handoff_refs is not current_handoff_refs:
