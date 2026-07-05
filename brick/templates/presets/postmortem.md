@@ -38,7 +38,7 @@ proof_limits:
   - postmortem preset is a caller / COO selection candidate only
   - work investigation and review steps are read-only by task contract; code-attack reproduction may use only admitted disposable probe or verification writes
   - fan-in closure synthesis records evidence-backed cause attribution candidates, not success or quality judgment
-  - preset text promotes the evidence-postmortem task skeleton but does not copy or mutate the historical status template
+  - preset text promotes the evidence-postmortem task skeleton at project/brick-protocol/status/kernel/evidence-postmortem-task-template-0612.md but does not copy or mutate the historical status template
   - not automatic shape selection
   - not Building Plan authoring from task text
 anti_hint: Do not use for planned production work or when source mutation is required instead of cause analysis from evidence.

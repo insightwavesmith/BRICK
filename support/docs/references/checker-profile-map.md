@@ -8,7 +8,7 @@ re-bloat modules. The profile count is a measured checkout fact, not a
 constitutional constant. It admits no taxonomy and changes no checker, profile, or
 module code.
 
-Lane: struct-surgery-0623 worktree @ HEAD 4c1958a.
+Lane: task-statement-fe445b38f2ff-node worktree @ HEAD b066e4bc.
 Origin: lands the P9 follow-up HOLD deliverable
 (p9-checker-module-diet-followup-0625), correcting facts that prior candidate
 evidence carried but could not reproduce (see "Corrections" below).
@@ -16,10 +16,10 @@ evidence carried but could not reproduce (see "Corrections" below).
 ## 0. Reproducible measurement (this checkout)
 
 ```text
-profiles on disk (support/checkers/profiles/*.yaml) = measure with `find support/checkers/profiles -maxdepth 1 -name '*.yaml' | wc -l` (30 observed on 2026-07-01)
-presets (brick/templates/presets/*.md)              = measure with `find brick/templates/presets -maxdepth 1 -name '*.md' | wc -l` (28 observed on 2026-07-01)
-distinct kernel_checks referenced by profiles       = measure from the profile YAMLs (66 observed on 2026-07-01)
-module rows in support/checkers/module_registry.yaml = 162
+profiles on disk (support/checkers/profiles/*.yaml) = measure with `find support/checkers/profiles -maxdepth 1 -name '*.yaml' | wc -l` (43 observed on 2026-07-05)
+presets (brick/templates/presets/*.md)              = measure with `find brick/templates/presets -maxdepth 1 -name '*.md' | wc -l` (29 observed on 2026-07-05)
+distinct kernel_checks referenced by profiles       = measure from the profile YAMLs (77 observed on 2026-07-05)
+module rows in support/checkers/module_registry.yaml = 218
 rows carrying a live decomposition_target ceiling    = 2
 legacy plans in brick/building_plans/                = 4 (NOT ~16)
 ```
@@ -27,11 +27,12 @@ legacy plans in brick/building_plans/                = 4 (NOT ~16)
 Profile -> kernel_checks count (verbatim from kernel_checks: blocks):
 
 ```text
-core                                            23
+core                                            24
 read_side_projection_boundary                   14
 agent_axis_behavioral                           11
 structure_template_integrity                     6
-building_automation                              5
+building_automation                              6
+building_operator_driver0                        4
 coo_operating_chain                              4
 link_routing_behavioral                          4
 bounded_agent_proposed_routing_loop              3   (checks: package_path_admission,
@@ -43,23 +44,36 @@ building_skill_preset_agent_tool_hardening       3
 building_skill_preset_intake_adapter_gate        3
 native_dispatch_brick_backstop                   3
 brick_cli_entrypoint                             2
-building_operator_driver0                        2
+building_skill_preset_agent_packet_boundary      2
 building_skill_preset_builder_composition        2
+building_skill_preset_carry_boundary             2
+building_skill_preset_compose_boundary           2
+building_skill_preset_step_template_boundary     2
 adapter_usage_meter                              1
 agent_object_schema_single_source                1
+agent_output_text_preservation                   1
 assembly_equivalence                             1
 chained_carry_dependency                         1
 charter_injection                                1
 cli_runner_stdin_devnull                         1
+declaration_enforcement_parity                   1
 driver_public_intake_seal                        1
 gate_registry_single_source                      1
 graph_topology_fan_barrier                       1
+interactive_provider_intake                      1
 mcp_dispatch_wire                                1
+plan_expansion                                   1
+positive_int_bool_boundary                       1
+preflight_injection_survival                     1
+provider_registry_ladder                         1
 raw_evidence_stream_scrub                        1
 report_env_autoload                              1
 return_field_merge_set_parity                    1
+session_continuity_adapter                       1
+sink_registry                                    1
 step_output_evidence_field_set_parity            1
 tier_a_three_axis_conformance                    1
+operator_correction                              0  (profile has fixture/path assertions but no kernel_checks block)
 ```
 
 ## 1. Six-family checker/profile map
@@ -77,6 +91,9 @@ core (partial: package_path_admission, declared_verifier_exists,
 brick_cli_entrypoint        (brick_cli_entrypoint_smoke, first_use_wizard)
 driver_public_intake_seal
 charter_injection
+plan_expansion              (plan expansion fixture admission)
+provider_registry_ladder    (provider registry resolution fixture)
+interactive_provider_intake (provider/model intake fixture)
 ```
 
 ### F2 boundary / single-source (axis purity, no support judgment, no drift)
@@ -91,6 +108,16 @@ agent_object_schema_single_source
 gate_registry_single_source
 return_field_merge_set_parity
 assembly_equivalence
+building_skill_preset_agent_packet_boundary
+building_skill_preset_agent_resource_boundary
+building_skill_preset_builder_composition
+building_skill_preset_carry_boundary
+building_skill_preset_compose_boundary
+building_skill_preset_intake_adapter_gate
+building_skill_preset_step_template_boundary
+declaration_enforcement_parity
+positive_int_bool_boundary
+preflight_injection_survival
 ```
 
 ### F3 deterministic fixture behavioral (graph/lifecycle/route over fixtures)
@@ -108,6 +135,7 @@ bounded_agent_proposed_routing_loop
 link_routing_behavioral
 chained_carry_dependency
 native_dispatch_brick_backstop
+building_operator_driver0      (building result summary)
 ```
 
 ### F4 runtime smoke (deterministic/mocked; no live credentials)
@@ -119,6 +147,10 @@ mcp_dispatch_wire
 report_env_autoload
 adapter_usage_meter
 building_operator_driver0      (onboard_smoke)
+agent_output_text_preservation
+session_continuity_adapter
+provider_registry_ladder       (fixture-only registry)
+interactive_provider_intake    (fixture-only prompt runner)
 ```
 
 ### F5 customer / tier-A conformance proof
@@ -140,6 +172,8 @@ read_side_projection_boundary  (HOSTS reporter_notification_projection,
                                 mcp_stdio_smoke)
 coo_operating_chain            (closure read projection)
 report_env_autoload            (sink env, also F4)
+sink_registry                  (fixture-only sink registry and reachability)
+operator_correction            (zero-kernel profile; evidence correction path)
 ```
 
 ## 2. Overlap finding (the real diet target)
@@ -148,15 +182,15 @@ Four kernel checks are duplicated across many profiles. This is the largest
 concrete diet signal -- not god-modules.
 
 ```text
-package_path_admission        in 12 profiles
-axis_contract_projection      in 10 profiles
+package_path_admission        in 17 profiles
+axis_contract_projection      in 13 profiles
 building_lifecycle_path_shape in 9 profiles
 building_map_graph            in 8 profiles
 ```
-(re-measured 2026-07-01: `package_path_admission` and `axis_contract_projection`
-moved up from the prior 9/7 counts as newer profiles adopted the baseline
-preamble; `building_lifecycle_path_shape` moved 8 -> 9; `building_map_graph`
-is unchanged at 8.)
+(re-measured 2026-07-05: `package_path_admission` and `axis_contract_projection`
+moved up from the prior 12/10 counts as newer profiles adopted the baseline
+preamble; `building_lifecycle_path_shape` and `building_map_graph` are
+unchanged at 9 and 8.)
 
 These four are effectively a shared "every behavioral profile re-asserts the
 admission + graph baseline" preamble. A diet move (deferred, needs admission)
@@ -184,7 +218,7 @@ vessel    project vessel declaration + creation verb:
 ```
 
 The authoritative module census stays support/checkers/module_registry.yaml
-(162 module rows). This map is shared vocabulary only.
+(218 module rows observed on 2026-07-05). This map is shared vocabulary only.
 
 ### 3a. God-module status -- CORRECTED
 
@@ -279,10 +313,10 @@ or sufficiency. Caller/COO declares any of them as actual Buildings.
 - reporter_notification_projection   -> NOT a standalone profile; it is a kernel
                                         check HOSTED in read_side_projection_boundary.yaml.
 - "~16 legacy building_plans"        -> 4 fixture/example files only.
-- profile count                      -> measured checkout fact, not a fixed doc constant; 30 observed on 2026-07-01 (this doc previously said 29; 6 profiles had been added since the last measurement, e.g. building_skill_preset_agent_resource_boundary, building_skill_preset_builder_composition, building_skill_preset_intake_adapter_gate, graph_topology_fan_barrier, raw_evidence_stream_scrub, step_output_evidence_field_set_parity).
-- preset count                       -> measured checkout fact, not a fixed doc constant; 28 observed on 2026-07-01 (unchanged).
-- distinct kernel_checks in profiles -> measured checkout fact; 66 observed on 2026-07-01 (this doc previously said 64; recount of section 0's table also fixed several individual profile counts that undercounted checks listed after inline `#` comments, e.g. agent_axis_behavioral 5 -> 11, bounded_agent_proposed_routing_loop 1 -> 3).
-- module rows in module_registry.yaml -> measured checkout fact; 162 observed on 2026-07-01 (this doc previously said 140).
+- profile count                      -> measured checkout fact, not a fixed doc constant; 43 observed on 2026-07-05 (this doc previously said 30).
+- preset count                       -> measured checkout fact, not a fixed doc constant; 29 observed on 2026-07-05 (this doc previously said 28).
+- distinct kernel_checks in profiles -> measured checkout fact; 77 observed on 2026-07-05 (this doc previously said 66; the count is distinct declared kernel_check names across profile YAMLs, not a coverage claim).
+- module rows in module_registry.yaml -> measured checkout fact; 218 observed on 2026-07-05 (this doc previously said 162).
 - bounded_agent_proposed_routing_loop coverage -> the live profile
   (support/checkers/profiles/bounded_agent_proposed_routing_loop.yaml)
   declares THREE kernel_checks -- package_path_admission,
