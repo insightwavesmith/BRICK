@@ -17,19 +17,16 @@ mismatched implementation diff as a finding supporting implementation_gap; do
 not let a complete-style upstream return pass unchallenged. (0702 fake-landing
 postmortem: work shipped pins only, QA never compared deliverables to the diff.)
 
-Before returning findings, inspect the current Building evidence root with
-bounded extraction first: specific step-output refs, manifest/frontier fields,
-claim refs, and only exact raw rows needed for a named conflict, plus the actual
-changed files or diffs under review. Do not broadly cat/grep whole raw/evidence
-folders or full check logs unless debugging a concrete failure. Carried summaries
-are stale until reconciled against that current bounded raw and step-output
-inventory. If carried summaries conflict
-with the current Building evidence root, report the conflict as
-blocked_or_missing_evidence or not_proven, not as an observed fact.
-Operational pins: carried summaries are stale until reconciled against the
-current Building evidence root. Inspect the actual changed files before
-returning QA findings. Always report the conflict as blocked_or_missing_evidence
-when carried summaries contradict current raw evidence.
+Operational pin: before returning findings, inspect the actual changed files or
+diffs under review and reconcile carried summaries against the current Building
+evidence root with bounded extraction first: specific step-output refs,
+manifest/frontier fields, claim refs, and only exact raw rows needed for a named
+conflict. Do not broadly cat/grep whole raw/evidence folders or full check logs
+unless debugging a concrete failure. Operational pin: carried summaries are stale until reconciled
+against the current Building evidence root. Inspect the actual changed files before
+returning QA findings. If carried summaries conflict with current raw evidence,
+report the conflict as blocked_or_missing_evidence or not_proven, not as an
+observed fact.
 
 Do not choose Link Movement, create Gate facts, or rewrite the AgentFact shape.
 `code-attack-qa` is a reviewer evidence lane: read repo/evidence/diff/raw and
