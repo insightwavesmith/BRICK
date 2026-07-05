@@ -33,3 +33,18 @@ t10-drive-runbook-0705.md §검수 이력·§4 / 처분 어휘 hold-disposition-
 정정 선언 resume-ledger-mismatch-recovery-0704.md·wip-preservation-principle-0704.md.
 
 증거 한계: COO 발췌본 — 원자료 재확인은 각 vessel 경로. 판정·귀속 없음(부검 빌딩 몫).
+
+
+## ⚠ 사후 정정 (0705 심야 3차 — 부검 착수 후 발견, 산출 해석 시 필독)
+
+**사건 2·4·5(forward/stop 거부)·9(forward 거부)의 "evidence_incomplete 봉쇄"는 상당수 유령이었다.**
+COO 처분 스크립트가 building_ref를 **상대 경로**로 넘겼고, run_approve_entry는 이를 repo가
+아니라 기본 출력 루트(~/.brick/goal-runs)로 해석 — **존재하지 않는 유령 경로를 관찰**해
+"required evidence files are missing"→evidence_incomplete→거부가 나온 것(실물 반환:
+building_root가 goal-runs 하위로 찍힘). 절대 경로를 쓴 호출(t7-recovery D2 실증)만 통했다.
+- 실재 확인된 진짜 꼬리: bundle10-0705b(직접 observe로 evidence_incomplete 재현 — 수취
+  파일 부재+resume 영수증 꼬리). t7-recovery 수리는 이 실재 클래스에 유효(3면 fail-closed 실증).
+- 미재검: 주차장 5기·0705a 3기 — 절대 경로 재시도 전까지 봉쇄 여부 미확정.
+- 신규 결함 후보: run_approve_entry가 부재 루트를 "building not found"가 아니라
+  evidence_incomplete로 분류(유령-해석이 오진 기계가 됨) — 소형 수리 후보.
+- COO 실수 5호로 등재: 처분 building_ref는 항상 절대 경로(evidence_root 원문)로.
