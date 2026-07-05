@@ -48,3 +48,7 @@ building_root가 goal-runs 하위로 찍힘). 절대 경로를 쓴 호출(t7-rec
 - 신규 결함 후보: run_approve_entry가 부재 루트를 "building not found"가 아니라
   evidence_incomplete로 분류(유령-해석이 오진 기계가 됨) — 소형 수리 후보.
 - COO 실수 5호로 등재: 처분 building_ref는 항상 절대 경로(evidence_root 원문)로.
+
+## 추가 사건 (심야 4차)
+
+| 11 | t10-first-drive-0705a 재파견 replay | disposition_written=True 후 "resume replay encountered an already-disposed recorded HOLD for '...-design' with unsupported prior disposition" — 같은 빌딩에 순차 처분 2회(reroute→reroute)를 replay 체인이 미지원 | 0702 결함 가족 ②의 신 구성원(다중-처분 replay 한계). fresh 재운전(0705b)으로 우회 — T7 계열 백로그 보강 |
