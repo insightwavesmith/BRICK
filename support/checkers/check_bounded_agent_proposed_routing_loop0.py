@@ -7325,6 +7325,21 @@ def check(repo: Path) -> list[str]:
 
         return captures, _callable
 
+    handoff_absolute_path_markers = ("/Users", "/home", "scratchpad", "/private/tmp")
+
+    def _assert_no_absolute_path_handoff_markers(
+        label: str,
+        captures: Sequence[Mapping[str, Any]],
+    ) -> None:
+        for i, capture in enumerate(captures):
+            payload = json.dumps(capture.get("link_handoff_refs", {}), default=str)
+            leaked = [marker for marker in handoff_absolute_path_markers if marker in payload]
+            if leaked:
+                violations.append(
+                    f"{label}: agent input [{i}] link_handoff_refs leaked "
+                    f"absolute/session-local path markers {leaked}"
+                )
+
     # mail-1: runtime marker arrival + provenance + addresses-only + receipt.
     plan_m1, refs_m1 = _mail_plan()
     captures_m1, callable_m1 = _mail_capture_callable(
@@ -7552,6 +7567,7 @@ def check(repo: Path) -> list[str]:
             for entry in observed_mailbox.get("incoming", []):
                 if isinstance(entry, dict):
                     entry.pop("building_root_path", None)
+                    entry.pop("building_root_ref", None)
                     entry.pop("from_step_output_ref", None)
                     entry.pop("proof_limits", None)
             if json.dumps(observed_mailbox, sort_keys=True) != json.dumps(
@@ -7565,6 +7581,23 @@ def check(repo: Path) -> list[str]:
                 violations.append(
                     f"mail-3: declared-only mailbox [{i}] grew a runtime_handoffs key"
                 )
+
+    # mail-3a (absolute-path-0): completed upstream step-output addresses may
+    # ride to the next Agent input, but session-local building roots must not.
+    # The scratchpad temp prefix would leak through the old building_root_path
+    # stamp; the repaired support stamp omits temp roots entirely.
+    plan_m3a, _refs_m3a = _mail_plan()
+    captures_m3a, callable_m3a = _mail_capture_callable("brick-none", [])
+    with tempfile.TemporaryDirectory(prefix="scratchpad-bp-bapr-mail-3a-") as tmp:
+        run_building_plan(
+            plan_m3a,
+            output_root=Path(tmp),
+            overwrite_existing=True,
+            local_callables={"callable:local:agent-invoke0-smoke": callable_m3a},
+            adapter_cwd=repo,
+            adapter_timeout_seconds=30,
+        )
+    _assert_no_absolute_path_handoff_markers("mail-3a", captures_m3a)
 
     # mail-4 (B3 lane 2): a raise-resume's human/COO disposition row reason_refs
     # ride to the re-adopted redo landing, stamped as a resume_disposition entry
