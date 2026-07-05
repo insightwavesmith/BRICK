@@ -159,6 +159,7 @@ from support.checkers.lib.kernel_checks import (
     run_dashboard_productization_projection,
     run_brick_cli_entrypoint_smoke,
 )
+from support.checkers.lib.mutation_red_manifest_check import run_mutation_red_manifest
 from support.checkers.lib.install_release_export_lint_check import run_wheel_smoke
 
 
@@ -946,6 +947,9 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "plan_revision_chain",
         "support.checkers.check_plan_revision_chain",
     ),
+    # A+ W2 mutation-RED manifest gate. Fails closed when an allowlisted surface
+    # row disappears or points at a non-existent fixture/probe literal.
+    "mutation_red_manifest": run_mutation_red_manifest,
     # TREASURE PORT 1 (ACTIVE-SPEC-SPINE disciplines, concept-lifted from
     # d5bc86e:support/checkers/check_doc_grounding.py). Executes the
     # pin-estate checker IN-PROCESS: (a) rejects decorative history-doc pins

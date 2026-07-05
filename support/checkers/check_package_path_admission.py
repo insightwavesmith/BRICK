@@ -61,6 +61,9 @@ CROSSING_ELEGANCE_REGISTRY_FILES = {
     # consumed by check_support_no_axis_judgment.py. Same governance shape as the
     # registries: append-only support record directly under support/checkers.
     "support/checkers/judgment_home.yaml",
+    # A+ W2 mutation-RED manifest: allowlist-first support record connecting
+    # newly admitted surfaces to existing RED fixture/probe literals.
+    "support/checkers/mutation_red_manifest.yaml",
 }
 
 ROOT_FILES = {
