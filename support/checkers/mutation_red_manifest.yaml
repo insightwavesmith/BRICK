@@ -1,0 +1,57 @@
+schema: mutation-red-manifest/v1
+description: Allowlist-first mutation-RED manifest for A+ W2 admitted surfaces.
+surfaces:
+  - surface: declared_plan_revision
+    fixture_path: support/checkers/check_plan_revision_chain.py
+    fixture_identifier: RED forged valid-hash reader probe did not reject changed existing node
+    incident_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md W2 declared_plan_revision
+  - surface: plan_expansion
+    fixture_path: support/checkers/fixtures/plan_expansion/duplicate_step_ref.json
+    fixture_identifier: duplicate_step_ref
+    incident_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md W2 plan_expansion
+  - surface: route_materialization
+    fixture_path: support/checkers/lib/route_materialization_check.py
+    fixture_identifier: route_materialization_case rejected
+    incident_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md W2 route_materialization
+  - surface: step_output
+    fixture_path: support/checkers/lib/step_output_drain_check.py
+    fixture_identifier: step_output_source_fact_disk_fallback_rejected
+    incident_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md W2 step_output
+  - surface: gate_sequence_decision
+    fixture_path: support/checkers/check_plan_revision_chain.py
+    fixture_identifier: gate sequence replay record sideways top-level action
+    incident_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md W2 gate_sequence_decision
+  - surface: write_scope_commit_gate
+    fixture_path: support/checkers/check_assembly_equivalence.py
+    fixture_identifier: build mutation-RED observed: severed write_scope/expansion_budget/declared_expansion_node_budgets/gates
+    incident_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md W2 write_scope_commit_gate
+  - surface: hold_lifecycle
+    fixture_path: support/checkers/check_building_operator_driver0.py
+    fixture_identifier: w1-fake-missing-paused-at-RED
+    incident_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md W2 hold_lifecycle
+audit_mutants:
+  - mutant_id: S11-declared-plan-revision-forged-hash
+    surface: declared_plan_revision
+    fixture_path: support/checkers/check_plan_revision_chain.py
+    fixture_identifier: RED forged valid-hash reader probe did not reject changed existing node
+    audit_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md S11 mutant 5종 pending external CSV; local observed substitute
+  - mutant_id: S11-plan-expansion-duplicate-step
+    surface: plan_expansion
+    fixture_path: support/checkers/fixtures/plan_expansion/duplicate_step_ref.json
+    fixture_identifier: duplicate_step_ref
+    audit_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md S11 mutant 5종 pending external CSV; local observed substitute
+  - mutant_id: S11-route-materialization-mismatch
+    surface: route_materialization
+    fixture_path: support/checkers/lib/route_materialization_check.py
+    fixture_identifier: route_materialization_case rejected
+    audit_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md S11 mutant 5종 pending external CSV; local observed substitute
+  - mutant_id: S11-step-output-disk-fallback
+    surface: step_output
+    fixture_path: support/checkers/lib/step_output_drain_check.py
+    fixture_identifier: step_output_source_fact_disk_fallback_rejected
+    audit_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md S11 mutant 5종 pending external CSV; local observed substitute
+  - mutant_id: S11-gate-sequence-sideways-action
+    surface: gate_sequence_decision
+    fixture_path: support/checkers/check_plan_revision_chain.py
+    fixture_identifier: gate sequence replay record sideways top-level action
+    audit_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md S11 mutant 5종 pending external CSV; local observed substitute

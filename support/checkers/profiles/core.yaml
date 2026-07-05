@@ -26,6 +26,7 @@ kernel_checks:
   - evidence_spine
   - evidence_spine_projection
   - plan_revision_chain
+  - mutation_red_manifest
 path_exists:
   - AGENTS.md
   - support/checkers/check_profile.py
@@ -53,6 +54,8 @@ path_exists:
   - support/checkers/check_evidence_spine.py
   - support/checkers/check_evidence_spine_projection.py
   - support/checkers/check_plan_revision_chain.py
+  - support/checkers/mutation_red_manifest.yaml
+  - support/checkers/lib/mutation_red_manifest_check.py
   - support/checkers/crossing_registry.yaml
   - support/checkers/module_registry.yaml
 path_absent:
@@ -94,6 +97,7 @@ path_allowlist:
       - support/checkers/profiles/interactive_provider_intake.yaml
       - support/checkers/profiles/link_routing_behavioral.yaml
       - support/checkers/profiles/mcp_dispatch_wire.yaml
+      - support/checkers/profiles/mutation_red_manifest.yaml
       - support/checkers/profiles/native_dispatch_brick_backstop.yaml
       - support/checkers/profiles/operator_correction.yaml
       - support/checkers/profiles/plan_expansion.yaml
