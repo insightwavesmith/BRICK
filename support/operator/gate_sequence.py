@@ -326,7 +326,7 @@ def gate_sequence_decision_from_record(
 
     if not isinstance(record, Mapping):
         raise TypeError("gate_sequence_decision_record must be a mapping")
-    action = _record_text(record, "action", required=True)
+    action = _record_policy_action(record, "action", required=True)
     # FAIL-CLOSED on a PARTIAL record: gate_sequence_decision_to_record ALWAYS emits
     # gate_results + gate_action_sequence (possibly empty lists) for a non-"none"
     # decision. A record with only the action header but missing either list is
@@ -364,7 +364,7 @@ def gate_sequence_decision_from_record(
         action_sequence.append(
             GatePolicyActionStep(
                 gate_ref=_record_text(raw, "gate_ref"),
-                action=_record_text(raw, "action", required=True),
+                action=_record_policy_action(raw, "action", required=True),
                 evidence_ref=_record_text(raw, "evidence_ref"),
                 reason_refs=_record_text_tuple(raw, "reason_refs"),
                 hold_reason=_record_text(raw, "hold_reason"),
@@ -397,6 +397,20 @@ def _record_text(record: Mapping[str, Any], key: str, *, required: bool = False)
     if required and not value.strip():
         raise ValueError(f"gate_sequence_decision_record[{key!r}] must not be blank")
     return value
+
+
+def _record_policy_action(
+    record: Mapping[str, Any],
+    key: str,
+    *,
+    required: bool = False,
+) -> str:
+    action = _record_text(record, key, required=required)
+    if action and action not in _ADMITTED_ACTIONS:
+        raise ValueError(
+            f"gate_sequence_decision_record[{key!r}] action {action!r} is not admitted"
+        )
+    return action
 
 
 def _record_list(record: Mapping[str, Any], key: str) -> list[Any]:
