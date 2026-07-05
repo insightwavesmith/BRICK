@@ -3566,11 +3566,16 @@ def check(repo: Path) -> list[str]:
         onboard_module.observe_building_frontier = lambda *_args, **_kwargs: dict(frontier)
         try:
             with tempfile.TemporaryDirectory(prefix="bp-onboard-approve-red-") as tmp_red:
+                building_root_red = Path(tmp_red) / "building"
+                (building_root_red / "raw").mkdir(parents=True)
+                (building_root_red / "work").mkdir()
+                adapter_cwd_red = Path(tmp_red) / "adapter-cwd"
+                adapter_cwd_red.mkdir()
                 return run_approve_entry(
-                    Path(tmp_red) / "building",
+                    building_root_red,
                     action="forward",
                     author_ref="coo:smith",
-                    adapter_cwd=Path(tmp_red) / "adapter-cwd",
+                    adapter_cwd=adapter_cwd_red,
                     repo_root=repo,
                 )
         finally:
