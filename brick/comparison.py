@@ -37,6 +37,9 @@ def _path_matches_scope(path: str, pattern: str) -> bool:
     return fnmatch.fnmatch(path, clean_pattern) or path == clean_pattern.rstrip("/")
 
 
+path_matches_scope = _path_matches_scope
+
+
 def compare_changed_paths_to_write_scope(
     changed_files: Iterable[str],
     write_scope: Mapping[str, Any],
@@ -519,4 +522,5 @@ __all__ = [
     "compare_changed_paths_to_write_scope",
     "compare_proof_runs_to_declared_obligations",
     "compare_return_claims_to_observed_facts",
+    "path_matches_scope",
 ]

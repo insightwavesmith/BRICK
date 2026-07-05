@@ -38,6 +38,7 @@ from brick_protocol.brick.spec import (  # noqa: F401  (re-exported for callers)
     brick,
     derived_worktree_write_scope,
 )
+from brick_protocol.brick.comparison import path_matches_scope
 from brick_protocol.support.operator.building_operation_common import (
     DEFAULT_LINK_GATE_REF,
     REPO_ROOT,
@@ -1711,14 +1712,7 @@ def _validate_node_write_scope_subset(
 def _write_path_covered_by(path: str, allowed: str) -> bool:
     clean_path = _normalized_write_path(path)
     clean_allowed = _normalized_write_path(allowed)
-    if clean_allowed in {".", "**", "./**"}:
-        return True
-    if clean_path == clean_allowed:
-        return True
-    if clean_allowed.endswith("/**"):
-        prefix = clean_allowed[:-3].rstrip("/")
-        return clean_path == prefix or clean_path.startswith(prefix + "/")
-    return False
+    return path_matches_scope(clean_path, "**" if clean_allowed == "." else clean_allowed)
 
 
 def _normalized_write_path(path: str) -> str:
