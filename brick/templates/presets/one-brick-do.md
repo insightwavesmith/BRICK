@@ -16,6 +16,9 @@ proof_limits:
   - not automatic shape selection
   - not Building Plan authoring from task text
   - the work step carries write need, so the caller must declare write_scope
+anti_hint: Do not use when QA, design, portfolio shaping, human review, or multi-file risk needs a separate Brick boundary.
+blocks:
+  - B5
 ---
 
 # one-brick-do

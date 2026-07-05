@@ -28,6 +28,10 @@ proof_limits:
   - reroute target and budget are declared inputs; the engine, not the preset, executes the bounded replay
   - not automatic shape selection
   - not Building Plan authoring from task text
+anti_hint: Do not use when the replay target is not declared up front or when repair attempts must be unbounded.
+blocks:
+  - B5
+  - B2
 ---
 
 # repair-loop

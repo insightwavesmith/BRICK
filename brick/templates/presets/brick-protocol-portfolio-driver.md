@@ -21,6 +21,10 @@ proof_limits:
   - portfolio driver walks declared Building refs only
   - portfolio driver does not invent Buildings, choose Movement, judge success, or rewrite child evidence
   - bare default-transition must not select among multiple candidates
+anti_hint: Do not use when child Building refs or portfolio policy are not already declared by caller or COO.
+blocks:
+  - B5
+  - B6
 ---
 
 # brick-protocol-portfolio-driver

@@ -15,6 +15,9 @@ proof_limits:
   - not automatic shape selection
   - not Building Plan authoring from task text
   - no write-need step exists on this route, so no caller write_scope is required
+anti_hint: Do not use when the target is broad, requires source mutation, or needs more than one read-only assessment lens.
+blocks:
+  - B5
 ---
 
 # quick-check

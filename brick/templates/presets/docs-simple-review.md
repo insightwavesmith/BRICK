@@ -21,6 +21,10 @@ proof_limits:
   - chain preset is a caller / COO selection candidate only
   - not automatic shape selection
   - not Building Plan authoring from task text
+anti_hint: Do not use for constitutional, contract, customer-facing, or multi-area documentation that needs a human gate or fan review.
+blocks:
+  - B5
+  - B2
 ---
 
 # docs-simple-review

@@ -101,6 +101,9 @@ proof_limits:
   - fan-in closure synthesis is support evidence, not success or quality judgment
   - provider/model selection remains declared routing data, not provider availability proof
   - preset is not runtime parallel execution
+anti_hint: Do not use as a normal preset when a single graph fan-in closure is enough; it exists for explicit multi-convergence parity.
+blocks:
+  - B2
 ---
 
 # two-fan-in-graph

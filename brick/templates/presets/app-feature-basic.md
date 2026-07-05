@@ -24,6 +24,10 @@ proof_limits:
   - chain preset is a caller / COO selection candidate only
   - not automatic shape selection
   - not Building Plan authoring from task text
+anti_hint: Do not use when the app change is a one-file cosmetic fix with no design decision or QA-relevant behavior change.
+blocks:
+  - B3
+  - B5
 ---
 
 # app-feature-basic

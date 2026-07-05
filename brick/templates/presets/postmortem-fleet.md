@@ -46,6 +46,11 @@ proof_limits:
   - fan-in closure synthesis is support evidence, not success or quality judgment
   - Codex code attack plus Gemini axis/evidence attack casting is declared routing data, not provider availability proof
   - preset is not runtime parallel execution
+anti_hint: Do not use for active implementation or when the incident evidence is too small for multiple postmortem lenses.
+blocks:
+  - B2
+  - B4
+  - B8
 ---
 
 # postmortem-fleet

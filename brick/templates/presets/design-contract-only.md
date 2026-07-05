@@ -18,6 +18,9 @@ proof_limits:
   - not automatic shape selection
   - not Building Plan authoring from task text
   - design output stays a proposal; nothing is implemented or admitted from this route
+anti_hint: Do not use when source mutation is required in the same Building or when the design question is already settled.
+blocks:
+  - B3
 ---
 
 # design-contract-only

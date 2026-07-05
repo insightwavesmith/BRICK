@@ -38,6 +38,10 @@ proof_limits:
   - two-lens fan-in closure synthesis is support evidence, not success or quality judgment
   - per-step provider/model selection is a swappable launch knob, not a provider availability proof
   - preset is not runtime parallel execution
+anti_hint: Do not use when evidence integrity is a separate risk or when more than two read-only attack surfaces exist.
+blocks:
+  - B1
+  - B2
 ---
 
 # recon-fleet-light

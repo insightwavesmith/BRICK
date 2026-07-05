@@ -21,6 +21,10 @@ proof_limits:
   - chain preset is a caller / COO selection candidate only
   - not automatic shape selection
   - not Building Plan authoring from task text
+anti_hint: Do not use when the task needs design, portfolio splitting, admission work, security review, or unknown-size exploration.
+blocks:
+  - B5
+  - B2
 ---
 
 # fast-fix

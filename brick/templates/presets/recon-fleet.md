@@ -41,6 +41,11 @@ proof_limits:
   - fan-in closure synthesis is support evidence, not success or quality judgment
   - provider/model selection remains declared data, not provider availability proof
   - preset is not runtime parallel execution
+anti_hint: Do not use when the read boundary is a single narrow target or when sibling zone boundaries cannot be declared.
+blocks:
+  - B1
+  - B2
+  - B4
 ---
 
 # recon-fleet

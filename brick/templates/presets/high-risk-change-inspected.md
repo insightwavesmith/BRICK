@@ -41,6 +41,12 @@ proof_limits:
   - negative probes and frontier visibility must be proven by the declared Building Plan
   - checker green is support evidence only
   - preset is not runtime automation
+anti_hint: Do not use for narrow high-trust work with a small blast radius and no shared contract, security, data, or automation impact.
+blocks:
+  - B3
+  - B2
+  - B4
+  - B6
 ---
 
 # high-risk-change-inspected

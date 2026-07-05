@@ -18,6 +18,9 @@ proof_limits:
   - not automatic shape selection
   - not Building Plan authoring from task text
   - no write-need step exists on this route, so no caller write_scope is required
+anti_hint: Do not use when disk mutation is expected or when the research question lacks a bounded evidence target.
+blocks:
+  - B4
 ---
 
 # research-report

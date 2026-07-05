@@ -41,6 +41,10 @@ proof_limits:
   - preset text promotes the evidence-postmortem task skeleton but does not copy or mutate the historical status template
   - not automatic shape selection
   - not Building Plan authoring from task text
+anti_hint: Do not use for planned production work or when source mutation is required instead of cause analysis from evidence.
+blocks:
+  - B4
+  - B8
 ---
 
 # postmortem

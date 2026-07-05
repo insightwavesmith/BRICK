@@ -66,6 +66,11 @@ proof_limits:
   - this is a Brick Protocol dogfood variant over common templates
   - checker green is support evidence only
   - preset is not runtime automation
+anti_hint: Do not use for docs-only or isolated template changes that do not alter runner, checker, gate, adapter, or automation behavior.
+blocks:
+  - B3
+  - B2
+  - B6
 ---
 
 # brick-protocol-engine-feature-hard

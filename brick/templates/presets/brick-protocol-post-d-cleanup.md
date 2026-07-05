@@ -34,6 +34,13 @@ proof_limits:
   - this is a Brick Protocol dogfood variant over common templates
   - cleanup classification is not deletion authorization
   - no new feature or runtime opens from this preset
+anti_hint: Do not use for a bounded single-surface cleanup where the file set and final graph are already known.
+blocks:
+  - B1
+  - B2
+  - B4
+  - B7
+  - B8
 ---
 
 # brick-protocol-post-d-cleanup

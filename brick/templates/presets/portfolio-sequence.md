@@ -19,6 +19,9 @@ proof_limits:
   - portfolio walker consumes declared Building refs only
   - portfolio walker does not invent Buildings, choose Movement, judge success, or rewrite child evidence
   - bare default-transition must not select among multiple candidates
+anti_hint: Do not use when finite child Building refs or portfolio policy are absent, or when child discovery is still required.
+blocks:
+  - B5
 ---
 
 # portfolio-sequence

@@ -37,6 +37,10 @@ proof_limits:
   - parallel/fan-in semantics require an explicit Building Plan graph
   - preset does not create fan-out or target selection by itself
   - model review is support evidence only
+anti_hint: Do not use when implementation can proceed without design or when parallel review would write-conflict on the same files.
+blocks:
+  - B3
+  - B2
 ---
 
 # design-build-parallel

@@ -27,6 +27,11 @@ proof_limits:
   - human-review remains exceptional and explicitly declared when needed
   - change wording is not active until admitted by the governing Building
   - no support surface becomes authority
+anti_hint: Do not use for low-impact source edits that do not change instructions, public contracts, permissions, or authority boundaries.
+blocks:
+  - B3
+  - B2
+  - B6
 ---
 
 # governed-change-review

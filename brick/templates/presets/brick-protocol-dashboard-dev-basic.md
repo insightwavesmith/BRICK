@@ -25,6 +25,10 @@ proof_limits:
   - this is a Brick Protocol dogfood variant over common templates
   - not automatic shape selection
   - not Building Plan authoring from task text
+anti_hint: Do not use when the dashboard request is a narrow copy or style repair that needs no design lane or implementation sequence.
+blocks:
+  - B3
+  - B5
 ---
 
 # brick-protocol-dashboard-dev-basic

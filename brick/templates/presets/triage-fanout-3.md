@@ -73,6 +73,10 @@ proof_limits:
   - fan-in closure synthesis is support evidence, not success or quality judgment
   - provider/model selection remains declared routing data, not provider availability proof
   - preset is not runtime parallel execution
+anti_hint: Do not use when only two review lanes are needed or when the fan branches cannot converge on one closure target.
+blocks:
+  - B1
+  - B2
 ---
 
 # triage-fanout-3
