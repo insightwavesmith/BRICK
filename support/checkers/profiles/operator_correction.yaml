@@ -1,0 +1,33 @@
+schema: checker-profile/v1
+profile_id: operator-correction
+description: Operator correction observation path over evidence_incomplete tails.
+path_exists:
+  - support/recording/operator_correction.py
+  - support/checkers/lib/operator_correction_check.py
+operator_correction_case:
+  - scenario: returnless-death
+  - scenario: receipts-file-absent
+  - scenario: refusals
+text_contains:
+  - path: support/recording/operator_correction.py
+    texts:
+      - groundless_correction
+      - return_forging_correction
+      - raw/operator-correction.jsonl
+      - not Movement authority
+  - path: support/operator/frontier_observation.py
+    texts:
+      - correction_observation_refs
+      - frontier_kind_uncorrected
+      - correction_applied
+proof_limits:
+  - support checker evidence only
+  - temp fixture roots only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic correctness of correction grounds
+  - whether caller or COO should approve a disposition
+  - future Building outcome

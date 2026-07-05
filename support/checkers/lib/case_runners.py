@@ -959,6 +959,7 @@ def run_link_route_evidence_case(repo: Path, profile: Mapping[str, Any]) -> int:
 from support.checkers.lib.route_materialization_check import run_route_materialization_case
 from support.checkers.lib.building_intake_seam_check import run_building_intake_seam_case
 from support.checkers.lib.onboard_seam_check import run_onboard_seam_case
+from support.checkers.lib.operator_correction_check import run_operator_correction_case
 # Native-dispatch POS-A shape fold relocated intact to native_dispatch_close_check.py:
 # _assert_native_dispatch_pos_a_shape, _POS_A_JSON_REQUIRED, _POS_A_TEXT_CONTAINS,
 # _POS_A_TEXT_ABSENT, agent_bindings[].agent_performer_ref,
