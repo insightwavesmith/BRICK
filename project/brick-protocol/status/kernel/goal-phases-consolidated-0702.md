@@ -598,6 +598,11 @@ v2 회신 후) → A+ 웨이브.
 |---|---|
 | **route policy concern 하위분류 부재** — 형식/설계질문 concern에도 재파견 채택(0704 실측 4빌딩: t6·batch0·t8sb·t1s2 공전 원인) → 수리가능/형식/설계 구분 후 형식은 COO 게이트 직행 | 엔진 개선, 소형 |
 | **evidence_incomplete frontier가 approve-from-hold를 막음** — 주차 5 vessel(t5v1·engine-smalls·gap2v1·wsallow-repair·t1s2v3) 전건서 "승인 대상 hold 상태가 아니에요" 합법-거부 실측(0705 밤, 상태 무변경). 수취/반환 장부 꼬리 클래스(0704 관측)와 동일 기전 추정 — 종이-종결 경로 또는 장부 꼬리 정정 경로 조사 후보 | 엔진 관찰, 소형 |
+| **raw graph fragment의 step top-level write 필드 미운반**(지피티 V2-ATT-001, COO 실물 확정) — plan_graph 투영이 brick_steps[].write_scope를 Brick row로 안 옮기고 조용히 버림 → 검증·어댑터 요청에 미도달. 근본수리 = top-level write 필드 거부(validator, 권장안 A) 또는 운반. T10 조각 저작 규율은 runbook 단계2 4단으로 방어 중 | 엔진 개선, 소형 |
+| **write_scope 글롭 세그먼트 비인지**(지피티 V2-ATT-002) — fnmatch `*`가 슬래시를 뚫어 `dir/*.md`가 하위 재귀 매칭. 기존 "fnmatch 함정" 각인의 정식 수리 = 세그먼트-인지 matcher(`*`=단일 세그먼트, `**`=재귀) — **A+ W1 matcher 단일소스 계약에 합류** | A+ W1 합류 |
+| **prose 제외 ⊆ forbidden_paths 체커** — 파괴적 work 노드에서 작업문이 "무접촉" 선언한 파일이 forbidden에 없으면 RED(지피티 V2-ATT-006 일반화) | 체커 후보, 소형 |
+| **미지-발견→파괴-이동 커밋 게이트 패턴** — 발견 레인이 특정한 미지 대상을 이동/삭제하는 노드는 default-transition만으로 잇지 않는다(사람/COO 커밋 게이트 또는 조각 분리) — B6/B7 블록 코퍼스·graph-sizing 각인 후보(지피티 V2-ATT-004 일반화) | 각인 후보(묶음8/블록 갱신 동승) |
+| **v2b — 4번째 z6 후보 이동+원장**(T10 운전 v3 조각이 exact path 확보 후): 좁은 exact 스코프 + prose-제외=forbidden 동기화 + 이동 원장 — 일반 소형 빌딩, T10 불요 | 발주 대기, 소형 |
 | 그래프 admission-gate 라이브 배선 (Rule 8 후반) | GP0 잔여, 소형 |
 | P8 신뢰성 반복 샘플 | GP2 후속 |
 | #23 레거시 정리 (앵커 구제 선행) / claude 세션 잔존 / gemini 세션 미조사 | 틈새 |
