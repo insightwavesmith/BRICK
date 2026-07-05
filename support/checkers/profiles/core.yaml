@@ -95,6 +95,7 @@ path_allowlist:
       - support/checkers/profiles/link_routing_behavioral.yaml
       - support/checkers/profiles/mcp_dispatch_wire.yaml
       - support/checkers/profiles/native_dispatch_brick_backstop.yaml
+      - support/checkers/profiles/operator_correction.yaml
       - support/checkers/profiles/plan_expansion.yaml
       - support/checkers/profiles/positive_int_bool_boundary.yaml
       - support/checkers/profiles/preflight_injection_survival.yaml

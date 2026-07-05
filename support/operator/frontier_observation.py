@@ -26,6 +26,10 @@ from brick_protocol.support.operator.building_operation_common import (
     _repo_path,
 )
 from brick_protocol.support.operator.evidence_status import evidence_status
+from brick_protocol.support.recording.operator_correction import (
+    CORRECTION_STREAM,
+    measure_correction_tail,
+)
 
 
 # SINGLE SOURCE of the frontier_kind vocabulary. Each literal is written ONCE
@@ -119,7 +123,30 @@ def observe_building_frontier(
         latest_building_lifecycle_state=_latest_building_lifecycle_state(link_records),
         closed_boundary_observed=_closed_boundary_observed(link_records, building_map),
     )
+    correction = _covering_correction(root, repo=repo)
+    uncorrected_verdict = None
     verdict = frontier_sufficiency_verdict(facts, _FRONTIER_SUFFICIENCY_VOCAB)
+    if correction and verdict.frontier_kind in {
+        _FRONTIER_EVIDENCE_INCOMPLETE,
+        _FRONTIER_AGENT_INCOMPLETE,
+    }:
+        uncorrected_verdict = verdict
+        corrected_facts = _corrected_frontier_facts(
+            facts,
+            correction_tail=correction.get("measured_tail") or {},
+            current_missing_files=status.missing_files,
+        )
+        corrected_verdict = frontier_sufficiency_verdict(
+            corrected_facts,
+            _FRONTIER_SUFFICIENCY_VOCAB,
+        )
+        if corrected_verdict.frontier_kind in {
+            _FRONTIER_LINK_PAUSED,
+            _FRONTIER_HUMAN_REVIEW_WAITING,
+            _FRONTIER_CHAT_SESSION_PARKED,
+            _FRONTIER_AGENT_INCOMPLETE,
+        }:
+            verdict = corrected_verdict
     frontier_kind = verdict.frontier_kind
     frontier_reason = verdict.frontier_reason
     if (
@@ -133,7 +160,7 @@ def observe_building_frontier(
         frontier_kind = _FRONTIER_HUMAN_REVIEW_WAITING
         frontier_reason = _latest_hold_reason(link_records)
 
-    return {
+    observation = {
         "kind": "building_frontier_observation",
         "schema_version": "frontier-observation-0",
         "building_root": _rel(repo, root),
@@ -169,6 +196,88 @@ def observe_building_frontier(
             "future Building outcome",
         ],
     }
+    if correction:
+        observation["frontier_kind_uncorrected"] = (
+            uncorrected_verdict.frontier_kind if uncorrected_verdict else frontier_kind
+        )
+        observation["correction_observation_refs"] = [
+            str(correction.get("correction_ref") or correction.get("raw_ref") or "")
+        ]
+        observation["correction_applied"] = uncorrected_verdict is not None and (
+            frontier_kind != uncorrected_verdict.frontier_kind
+            or frontier_reason != uncorrected_verdict.frontier_reason
+        )
+        if not observation["correction_applied"]:
+            observation["correction_ineffective"] = True
+    return observation
+
+
+def _covering_correction(
+    root: Path,
+    *,
+    repo: Path,
+) -> Mapping[str, Any]:
+    current_tail = measure_correction_tail(root, repo_root=repo)
+    rows = _jsonl_records(root / CORRECTION_STREAM)
+    for row in reversed(rows):
+        if _tail_snapshot(row.get("measured_tail") or {}) == _tail_snapshot(current_tail):
+            return row
+    return {}
+
+
+def _tail_snapshot(tail: Mapping[str, Any]) -> Mapping[str, Any]:
+    return {
+        "missing_files": sorted(str(item) for item in tail.get("missing_files") or []),
+        "agent_received_count": int(tail.get("agent_received_count") or 0),
+        "agent_return_count": int(tail.get("agent_return_count") or 0),
+        "agent_received_counts_by_step": {
+            str(key): int(value)
+            for key, value in dict(tail.get("agent_received_counts_by_step") or {}).items()
+        },
+        "agent_return_counts_by_step": {
+            str(key): int(value)
+            for key, value in dict(tail.get("agent_return_counts_by_step") or {}).items()
+        },
+    }
+
+
+def _corrected_frontier_facts(
+    facts: FrontierSufficiencyFacts,
+    *,
+    correction_tail: Mapping[str, Any],
+    current_missing_files: Sequence[str],
+) -> FrontierSufficiencyFacts:
+    missing_snapshot = {
+        str(item) for item in correction_tail.get("missing_files") or []
+    }
+    current_missing = {str(item) for item in current_missing_files}
+    has_missing_files = facts.has_missing_files
+    if current_missing and current_missing.issubset(missing_snapshot):
+        has_missing_files = False
+
+    received = facts.agent_received_count
+    returned = facts.agent_return_count
+    try:
+        corrected_gap = int(correction_tail.get("agent_received_count") or 0) - int(
+            correction_tail.get("agent_return_count") or 0
+        )
+    except (TypeError, ValueError):
+        corrected_gap = -1
+    if corrected_gap > 0 and received - returned == corrected_gap:
+        received = returned
+
+    return FrontierSufficiencyFacts(
+        has_missing_files=has_missing_files,
+        agent_return_count=returned,
+        agent_received_count=received,
+        has_chat_session_park=facts.has_chat_session_park,
+        has_parked_step_output=facts.has_parked_step_output,
+        has_adapter_error=facts.has_adapter_error,
+        closed_boundary_after_latest_pause=facts.closed_boundary_after_latest_pause,
+        latest_transition_lifecycle_state=facts.latest_transition_lifecycle_state,
+        latest_building_lifecycle_state=facts.latest_building_lifecycle_state,
+        closed_boundary_observed=facts.closed_boundary_observed,
+    )
 
 
 def _latest_transition_lifecycle_record(records: Sequence[Mapping[str, Any]]) -> Mapping[str, Any]:

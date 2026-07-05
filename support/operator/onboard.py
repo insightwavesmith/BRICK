@@ -3399,6 +3399,17 @@ def run_approve_entry(
     result["frontier_kind_before"] = frontier_kind_before
     result["frontier_kind"] = frontier_kind_before
     result["frontier_reason_before"] = str(frontier_before.get("frontier_reason") or "")
+    correction_refs = frontier_before.get("correction_observation_refs")
+    if isinstance(correction_refs, Sequence) and not isinstance(
+        correction_refs, (str, bytes)
+    ):
+        result["correction_observation_refs"] = [
+            str(ref) for ref in correction_refs if str(ref).strip()
+        ]
+    if frontier_before.get("frontier_kind_uncorrected"):
+        result["frontier_kind_uncorrected"] = str(
+            frontier_before.get("frontier_kind_uncorrected") or ""
+        )
     hold_record_w: Mapping[str, Any] = {}
     evidence_w: Mapping[str, Any] = {}
     adapter_error_hold_recorded = False
@@ -3601,6 +3612,10 @@ def run_approve_entry(
         "transition_lifecycle_disposition_action": action_text,
         "transition_author_ref": author_text,
     }
+    if result.get("correction_observation_refs"):
+        row["correction_observation_refs"] = list(result["correction_observation_refs"])
+    if result.get("frontier_kind_uncorrected"):
+        row["frontier_kind_uncorrected"] = result["frontier_kind_uncorrected"]
     if parsed_budget is not None:
         row["transition_lifecycle_budget_increment"] = parsed_budget
     row.update(

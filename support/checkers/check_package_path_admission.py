@@ -498,6 +498,10 @@ PRH_B_RECORDER_TARGETS = {
     # rows, frontier observation). A support recording shape module only: NESTED
     # evidence, no BAL fact class, no fourth axis.
     "support/recording/operator_evidence.py",
+    # T7 recovery correction path: append-only human/COO correction observations
+    # over measured evidence tails. Support recording shape only: NESTED evidence,
+    # no BAL fact class, no fourth axis, no Movement authority.
+    "support/recording/operator_correction.py",
     # ELEGANT-REFACTOR P3b (engine blueprint 0531 §5 / detail-design §D-2 Opt B):
     # the evidence_assembly god-module's per-crossing-family emitters were lifted
     # here as single-concern recording collaborators behind the writer facade in
