@@ -29,6 +29,36 @@ proof_limits:
 not_proven:
   - semantic completeness of future compose Building cases
   - checker profile pass as complete coverage
+gate_sequence_policy_case:
+  - label: c1-gate-sequence-coo-first-is-admitted
+    document:
+      source_brick_ref: brick-design
+      target_brick_ref: brick-work
+      declared_brick_refs:
+        - brick-design
+        - brick-work
+      node_reroute_budgets:
+        brick-design: 1
+      link_row:
+        declared_gate_refs:
+          - link-gate:default-transition
+          - link-gate:coo
+        gate_sequence_policy:
+          - gate_ref: link-gate:coo
+            on_missing_required_facts:
+              action: HOLD
+              required_disposition_owner: coo
+              pending_target_basis: target_brick
+            on_sufficient:
+              action: next
+              next_gate_ref: link-gate:default-transition
+          - gate_ref: link-gate:default-transition
+            on_missing_required_facts:
+              action: reroute
+              target_basis: source_brick
+              required_target_budget: true
+            on_sufficient:
+              action: forward
 compose_building_case:
   - label: c1-compose-graph-preset-engine-feature-hard
     document:
