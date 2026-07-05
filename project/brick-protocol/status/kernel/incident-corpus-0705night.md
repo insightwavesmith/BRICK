@@ -54,3 +54,5 @@ building_root가 goal-runs 하위로 찍힘). 절대 경로를 쓴 호출(t7-rec
 | 11 | t10-first-drive-0705a 재파견 replay | disposition_written=True 후 "resume replay encountered an already-disposed recorded HOLD for '...-design' with unsupported prior disposition" — 같은 빌딩에 순차 처분 2회(reroute→reroute)를 replay 체인이 미지원 | 0702 결함 가족 ②의 신 구성원(다중-처분 replay 한계). fresh 재운전(0705b)으로 우회 — T7 계열 백로그 보강 |
 
 | 12 | erg1 게이트(COO 자가) | 커밋 메시지에 "refusal-literal mutation RED" 허위 기재 — D1 변이가 실은 rc=0(무발화)인데 로그 오독하고 머지. 체커가 D1(부재-루트 거부·상대경로)을 커버 안 함(공허 프로브). D2/D3는 진짜(D3 변이 rc=1 확인). 코드는 라이브 실증됨 | COO 실수 6호. 정정 커밋 + erg1b(D1 RED 픽스처) 1순위. 0704 mutation_red 승격 백로그의 산 사례 |
+
+| 13 | 부검 fleet v2 axis-lens(gemini) | read-only 계약인데 격리 워크트리에서 check_building_operator_driver0.py 수정 — closure QA가 정직 적발, 메인 트리 무유출(COO 확인). 부검 자체가 read-only 위반을 잡음(자기 검증) | 관측 등재. QA 산출 신뢰도 무영향(closure not_proven 분리). 렌즈 write 권한 축소 후보 |
