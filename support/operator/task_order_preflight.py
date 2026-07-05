@@ -17,6 +17,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+_IMPORT_IDENTITY_ROOT = _REPO_ROOT / "support" / "import_identity"
+for _path in (str(_REPO_ROOT), str(_IMPORT_IDENTITY_ROOT)):
+    if _path not in sys.path:
+        sys.path.insert(0, _path)
+
+from brick_protocol.brick.comparison import path_matches_scope
+
 
 WORK_KINDS = {"work", "development"}
 DONE_MARKER_RE = re.compile(
@@ -387,14 +395,8 @@ def _covered(path: str, patterns: Iterable[str]) -> bool:
     clean_path = _normalized_write_path(path)
     for pattern in patterns:
         clean_pattern = _normalized_write_path(pattern)
-        if clean_pattern in {".", "**", "./**"}:
+        if path_matches_scope(clean_path, "**" if clean_pattern == "." else clean_pattern):
             return True
-        if clean_path == clean_pattern:
-            return True
-        if clean_pattern.endswith("/**"):
-            directory = clean_pattern[:-3].rstrip("/")
-            if clean_path == directory or clean_path.startswith(directory + "/"):
-                return True
     return False
 
 
@@ -445,7 +447,7 @@ def lint_nodes(nodes: Iterable[TaskNode]) -> tuple[list[str], list[str]]:
                         warnings.append(f"{label}: L4 write_scope {scope} is directory-form; prefer explicit glob")
                         continue
                     if not any(ch in scope for ch in "*?[]"):
-                        if not any(path == scope or path.startswith(scope.rstrip("/") + "/") for path in deliverable_paths):
+                        if not any(_covered(path, (scope,)) for path in deliverable_paths):
                             warnings.append(f"{label}: L4 write_scope {scope} has no literal Deliverables path")
                     elif deliverable_paths and not any(_covered(path, (scope,)) for path in deliverable_paths):
                         warnings.append(f"{label}: L4 write_scope {scope} covers no literal Deliverables path")
@@ -610,9 +612,9 @@ def _self_test(repo: Path) -> tuple[int, tuple[str, ...]]:
                 ),
             },
         )
-        dirty_scope_star = _write_fixture(
+        clean_scope_star = _write_fixture(
             root,
-            "unsupported-glob-star.json",
+            "clean-canonical-glob-star.json",
             {
                 **base,
                 "write_scope": {"allowed_paths": ["support/operator/*.py"]},
@@ -622,9 +624,9 @@ def _self_test(repo: Path) -> tuple[int, tuple[str, ...]]:
                 ),
             },
         )
-        dirty_scope_question = _write_fixture(
+        clean_scope_question = _write_fixture(
             root,
-            "unsupported-glob-question.json",
+            "clean-canonical-glob-question.json",
             {
                 **base,
                 "write_scope": {"allowed_paths": ["support/operator/a?c.py"]},
@@ -634,9 +636,9 @@ def _self_test(repo: Path) -> tuple[int, tuple[str, ...]]:
                 ),
             },
         )
-        dirty_scope_char_class = _write_fixture(
+        clean_scope_char_class = _write_fixture(
             root,
-            "unsupported-glob-char-class.json",
+            "clean-canonical-glob-char-class.json",
             {
                 **base,
                 "write_scope": {"allowed_paths": ["support/operator/[ab]bc.py"]},
@@ -820,9 +822,6 @@ def _self_test(repo: Path) -> tuple[int, tuple[str, ...]]:
             dirty_file_line_only,
             dirty_scope_mismatch,
             dirty_scope_prefix,
-            dirty_scope_star,
-            dirty_scope_question,
-            dirty_scope_char_class,
             dirty_scope_absolute,
             dirty_scope_escape,
         ):
@@ -834,6 +833,11 @@ def _self_test(repo: Path) -> tuple[int, tuple[str, ...]]:
         if violations:
             raise ValueError(f"self-test clean fixture rejected: {violations}")
         results.append("clean.json: passed")
+        for path in (clean_scope_star, clean_scope_question, clean_scope_char_class):
+            violations, _warnings, _count = lint_file(path, repo=repo)
+            if violations:
+                raise ValueError(f"self-test canonical glob fixture rejected {path.name}: {violations}")
+            results.append(f"{path.name}: passed")
         violations, _warnings, _count = lint_file(clean_observed_evidence_guidance, repo=repo)
         if violations:
             raise ValueError(f"self-test clean observed-evidence guidance rejected: {violations}")
@@ -878,7 +882,7 @@ def _self_test(repo: Path) -> tuple[int, tuple[str, ...]]:
         if violations:
             raise ValueError(f"self-test clean Korean mala-juseyo guidance rejected: {violations}")
         results.append("clean-korean-mala-juseyo-guidance.json: passed")
-    return 17, tuple(results)
+    return 14, tuple(results)
 
 
 def main(argv: list[str] | None = None) -> int:

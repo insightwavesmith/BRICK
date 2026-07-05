@@ -12,6 +12,7 @@ semantic correctness of a Building.
 from __future__ import annotations
 
 import argparse
+import ast
 import copy
 import json
 import os
@@ -91,6 +92,10 @@ PROOF_LIMIT = (
     "authority, live Building execution, provider behavior, or closure policy "
     "semantic validity beyond structural discrimination."
 )
+WRITE_SCOPE_MATCHER_CONSUMERS = (
+    ("support/operator/assembly.py", "_write_path_covered_by"),
+    ("support/operator/task_order_preflight.py", "_covered"),
+)
 
 
 class AssemblyEquivalenceError(ValueError):
@@ -130,6 +135,59 @@ def _write_scope() -> Mapping[str, Any]:
             "support/operator/**",
         ],
     }
+
+
+def _module_imports_path_matcher(tree: ast.Module) -> bool:
+    for node in tree.body:
+        if not isinstance(node, ast.ImportFrom):
+            continue
+        if node.module != "brick_protocol.brick.comparison":
+            continue
+        if any(alias.name == "path_matches_scope" for alias in node.names):
+            return True
+    return False
+
+
+def _single_function(tree: ast.Module, name: str) -> ast.FunctionDef:
+    matches = [node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == name]
+    if len(matches) != 1:
+        raise AssemblyEquivalenceError(f"{name} must be present exactly once")
+    return matches[0]
+
+
+def _call_name(node: ast.Call) -> str:
+    if isinstance(node.func, ast.Name):
+        return node.func.id
+    if isinstance(node.func, ast.Attribute):
+        return node.func.attr
+    return ""
+
+
+def _write_scope_matcher_single_source_fire(repo: Path) -> tuple[str, ...]:
+    outputs: list[str] = []
+    forbidden_calls = {
+        "endswith",
+        "fnmatch",
+        "fullmatch",
+        "match",
+        "startswith",
+    }
+    for relative_path, function_name in WRITE_SCOPE_MATCHER_CONSUMERS:
+        source_path = repo / relative_path
+        tree = ast.parse(source_path.read_text(encoding="utf-8"), filename=relative_path)
+        if not _module_imports_path_matcher(tree):
+            raise AssemblyEquivalenceError(f"{relative_path} must import Brick path_matches_scope")
+        function_node = _single_function(tree, function_name)
+        call_names = {_call_name(node) for node in ast.walk(function_node) if isinstance(node, ast.Call)}
+        if "path_matches_scope" not in call_names:
+            raise AssemblyEquivalenceError(f"{relative_path}:{function_name} must call Brick path_matches_scope")
+        local_matchers = sorted(forbidden_calls.intersection(call_names))
+        if local_matchers:
+            raise AssemblyEquivalenceError(
+                f"{relative_path}:{function_name} reintroduced local path matching calls: {local_matchers}"
+            )
+        outputs.append(f"write_scope matcher single-source green: {relative_path}:{function_name}.")
+    return tuple(outputs)
 
 
 def _node(node_id: str, kind: str, **extra: Any) -> Mapping[str, Any]:
@@ -2906,6 +2964,7 @@ def run(repo: Path) -> list[str]:
     outputs.extend(_node_gates_fire(repo))
     outputs.extend(_write_scope_derivation_fire(repo))
     outputs.extend(_graph_write_scope_default_fire(repo))
+    outputs.extend(_write_scope_matcher_single_source_fire(repo))
     outputs.extend(_route_default_fire(repo))
     outputs.extend(_proposal_approval_fire(repo))
     outputs.extend(_llm_alias_fire(repo))

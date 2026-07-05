@@ -157,6 +157,7 @@ crossings:
       # imports this and records the buckets; behavior moved OUT of
       # support/operator/write_observation per the architecture map.
       - compare_changed_paths_to_write_scope
+      - path_matches_scope
     defined_at: brick/comparison.py
     projection_yaml: brick/comparison.yaml
     pinned_by: check_axis_contract_projection (check_brick_comparison) + SEQ-0
