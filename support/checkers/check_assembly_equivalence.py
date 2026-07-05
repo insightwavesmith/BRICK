@@ -366,6 +366,14 @@ def _effective_step_model(plan: Mapping[str, Any], step: Mapping[str, Any]) -> s
     return str(step.get("selected_model_ref") or plan.get("selected_model_ref") or "").strip()
 
 
+def _effective_step_reasoning_effort(plan: Mapping[str, Any], step: Mapping[str, Any]) -> str:
+    return str(
+        step.get("selected_reasoning_effort_ref")
+        or plan.get("selected_reasoning_effort_ref")
+        or ""
+    ).strip()
+
+
 def _effective_step_ref(
     plan: Mapping[str, Any],
     step: Mapping[str, Any],
@@ -1994,6 +2002,22 @@ def _llm_alias_fire(repo: Path) -> tuple[str, ...]:
     def unknown_probe() -> None:
         brick("design", "llm unknown", llm="gpt9")
 
+    def mixed_model_probe() -> None:
+        brick(
+            "design",
+            "llm conflicts with model",
+            llm="claude",
+            model="model:codex:default",
+        )
+
+    def mixed_adapter_probe() -> None:
+        brick(
+            "design",
+            "llm conflicts with adapter",
+            llm="claude",
+            adapter="codex-local",
+        )
+
     declaration_name = "LLM" + "_ALIAS_DECLARATIONS"
     declaration_hits: list[str] = []
     for root_name in ("brick", "agent", "support"):
@@ -2015,7 +2039,48 @@ def _llm_alias_fire(repo: Path) -> tuple[str, ...]:
         "llm alias green: brick(llm='claude') expanded through the normal selected_* casting bag.",
         _assert_raises("brick llm non-bare alias", ValueError, non_bare_probe),
         _assert_raises("brick llm unknown alias", ValueError, unknown_probe),
+        _assert_raises("brick llm plus model", ValueError, mixed_model_probe),
+        _assert_raises("brick llm plus adapter", ValueError, mixed_adapter_probe),
         "llm alias green: LLM_ALIAS_DECLARATIONS declaration body is support/operator/provider_registry.py only.",
+    )
+
+
+def _effort_recording_fire(repo: Path) -> tuple[str, ...]:
+    explicit = assemble(
+        chain([brick("work", "reasoning effort row records canonical dial", reasoning_effort="high")]),
+        declared_by=DECLARED_BY,
+        authority=Authority.COO,
+        task="reasoning effort row probe",
+        building_id="heart-phase0-reasoning-effort-row",
+        repo_root=repo,
+    )
+    explicit_step = _step_for_kind(explicit.composed_plan, "work")
+    explicit_effort = _effective_step_reasoning_effort(explicit.composed_plan, explicit_step)
+    if explicit_effort != "effort:high":
+        raise AssemblyEquivalenceError(
+            "brick(reasoning_effort='high') did not record selected_reasoning_effort_ref "
+            f"in the Brick row: {explicit_effort!r}"
+        )
+
+    surface = assemble(
+        build([["work", "effort row records compact alias", {"effort": "high"}]]),
+        declared_by=DECLARED_BY,
+        authority=Authority.COO,
+        task="compact effort row probe",
+        building_id="heart-phase0-effort-alias-row",
+        repo_root=repo,
+    )
+    surface_step = _step_for_kind(surface.composed_plan, "work")
+    surface_effort = _effective_step_reasoning_effort(surface.composed_plan, surface_step)
+    if surface_effort != "effort:high":
+        raise AssemblyEquivalenceError(
+            "build(... effort='high') did not record selected_reasoning_effort_ref "
+            f"in the Brick row: {surface_effort!r}"
+        )
+
+    return (
+        "effort row green: brick(reasoning_effort='high') records selected_reasoning_effort_ref=effort:high.",
+        "effort row green: compact build() effort='high' alias records selected_reasoning_effort_ref=effort:high.",
     )
 
 
@@ -2766,6 +2831,7 @@ def run(repo: Path) -> list[str]:
     outputs.extend(_route_default_fire(repo))
     outputs.extend(_proposal_approval_fire(repo))
     outputs.extend(_llm_alias_fire(repo))
+    outputs.extend(_effort_recording_fire(repo))
     outputs.append(_tiny_work_qa_return_shape_red(repo))
     outputs.append(PROOF_LIMIT)
     return outputs
