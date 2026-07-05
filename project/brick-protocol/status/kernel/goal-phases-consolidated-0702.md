@@ -701,10 +701,10 @@ Smith "과업 모두 종료까지 이어간다". 이 큐가 비면 연속 운행
 - **11B 후속 슬라이스 (v2 design 수확분)**: v1 랜딩은 onboard 채택-시점 게이트만 — v2 design이 확정한 잔여 좌표 = ①공유 술어 모듈(onboard·walker_resume·checker 3소비처 단일 구현) ②walker_resume 시드 경로 fail-closed(:384 직후, B1 :368-377 동형 — onboard 우회 저작 row 차단) ③비-reroute 포함 전 re_instruction 텍스트 검사. design 산출 = bundle11b-walkeradj-0705b design step-output. walker_resume 인접 → 엄격 게이트.
 
 ### D. 엔진 이월 (Smith 게이트 / 불가침면)
-- **t7b replay 다중화** (walker_kernel:1749): A/B방향 전용 설계 슬라이스. C우회로 오늘 밤 무피해.
-- **헌법 개정 비준**: 판정권한 배분 문구 (0705 후보 등재).
-- **bundle10 wheel 패키징**: Smith Option A/B 결정 대기(64d50be6 명시). 산출은 WIP 앵커 2기(ce05b4de·ee4d830f)에 봉인, main 부재 — 0706 큐 재점검에서 누락 발견, 유실 방지 등재.
-- 0702 결함가족 ②(자기잠금) · route policy 하위분류(A+ W1 인접).
+- ~~t7b replay 다중화~~ → **Smith 0706 승인(D1)** — 전용 설계 슬라이스 발주됨(t7b-replaydesign-0706a, read-only: 정합 미러링 지점 전수 판독 + A/B 확정 + RED→GREEN 게이트 사양 + 시공계획 판정. design·공격렌즈=fable5 xhigh 위험-비례 승격, 시공 자체는 여전히 Smith 게이트 밖).
+- ~~헌법 개정 비준~~ → **Smith 0706 비준 집행 완료** — BRICK-CONSTITUTION.md 0706 개정(3축 절·진단 5단 ⑤: "품질+성공 판정 권한은 Smith가 배분한다(기본 소재: 사람)").
+- **bundle10 wheel 패키징**: Smith Option A/B 결정 대기(64d50be6 명시 — A=source checkout 전용 선언 / B=wheel 공식 지원 설치면 선언). 산출은 WIP 앵커 2기(ce05b4de·ee4d830f)에 봉인, main 부재 — 0706 큐 재점검에서 누락 발견, 유실 방지 등재. 0706 Smith 질의 접수 — 선택지별 비용 보고됨.
+- 0702 결함가족 ②(자기잠금) · route policy concern 하위분류(A+ W1 인접) — 0706 Smith 질의 접수, 설명 보고됨. 자기잠금 규범 근거는 Rule 11(기비준), 시공 스코프는 t7b 설계 슬라이스 D5가 결합/분리를 판정.
 
 ### E. 무해 잔류 (조치 불요)
 - 주차 3기(t1s2v3·wsallow·engine-smalls) — 대체·수확 완료. fresh 불요.
