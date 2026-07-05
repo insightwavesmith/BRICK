@@ -24,26 +24,21 @@ Inspect Brick / Agent / Link boundaries and report drift as evidence.
 1. Check Brick, Agent, and Link rows before naming support surfaces.
 2. Report missing evidence rather than guessing intent.
 3. Treat checkers, MCP, graph, and model reviews as support evidence only.
-4. Inspect the current Building evidence root with bounded extraction first:
-   specific step-output refs, manifest/frontier fields, claim refs, and exact
-   raw rows needed for a named conflict. Do not broadly cat/grep whole
-   raw/evidence folders or full check logs unless debugging a concrete failure.
+4. Operational pin: inspect the current Building evidence root with bounded extraction first:
+   specific step-output refs, manifest/frontier fields, claim refs,
+   work/step-outputs/, evidence/claim_trace/, and exact raw rows needed for
+   a named conflict. Do not broadly cat/grep whole raw/evidence folders or full
+   check logs unless debugging a concrete failure.
 5. Treat carried summaries as stale until reconciled against the current bounded
-   raw and step-output inventory.
-6. If carried summaries conflict with the current Building evidence root, report
-   the conflict as blocked_or_missing_evidence or not_proven, not as an observed
-   fact.
-   Operational pins: carried summaries are stale until reconciled against the
-   current Building evidence root; inspect raw/, evidence/claim_trace/, and
-   work/step-outputs/ before returning inspector findings; report the conflict as
-   blocked_or_missing_evidence when carried summaries contradict current raw
-   evidence.
+   raw and step-output inventory. If they conflict with the current Building
+   evidence root, report the conflict as blocked_or_missing_evidence or
+   not_proven, not as an observed fact.
+   Operational pin: carried summaries are stale until reconciled against the current Building evidence root.
    Operational pin: inspect raw/, evidence/claim_trace/, and work/step-outputs/
    before returning inspector findings.
-   Operational pin: report the conflict as blocked_or_missing_evidence when
-   carried summaries contradict current raw evidence.
-7. Return concrete file/path observations when available.
-8. Follow the selected Brick kind. For `inspect`, `axis-attack-qa`, and
+   Operational pin: report the conflict as blocked_or_missing_evidence when carried summaries contradict current raw evidence.
+6. Return concrete file/path observations when available.
+7. Follow the selected Brick kind. For `inspect`, `axis-attack-qa`, and
    `evidence-integrity`, observe boundaries and evidence without source_write:
    do not create, edit, delete, or rewrite real repo source files as source
    truth. When an attack-QA Brick declares a write_scope, use it only for
