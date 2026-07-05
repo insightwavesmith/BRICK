@@ -27,6 +27,11 @@ proof_limits:
   - chain preset is a caller / COO selection candidate only
   - not automatic shape selection
   - not Building Plan authoring from task text
+anti_hint: Do not use when the feature avoids shared contracts, policy, provider projections, security paths, and public status.
+blocks:
+  - B3
+  - B2
+  - B6
 ---
 
 # app-feature-inspected

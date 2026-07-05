@@ -23,6 +23,10 @@ proof_limits:
   - portfolio walker does not invent Buildings, choose Movement, judge success, or rewrite child evidence
   - review reads and cross-checks the declared child returns only; it observes and reports, never mutates child evidence or judges success
   - bare default-transition must not select among multiple candidates
+anti_hint: Do not use when finite child Building refs are missing or when no roll-up cross-check of child returns is wanted.
+blocks:
+  - B5
+  - B2
 ---
 
 # portfolio-reviewed

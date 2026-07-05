@@ -28,6 +28,11 @@ proof_limits:
   - this is a Brick Protocol dogfood variant over common templates
   - human-review remains exceptional and explicitly declared when needed
   - no support surface becomes authority
+anti_hint: Do not use for ordinary implementation or docs edits that do not mutate active constitutional or packet authority wording.
+blocks:
+  - B3
+  - B2
+  - B6
 ---
 
 # brick-protocol-constitution-change

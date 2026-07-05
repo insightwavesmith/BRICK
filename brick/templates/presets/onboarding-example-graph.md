@@ -21,6 +21,9 @@ proof_limits:
   - not Building Plan authoring from task text
   - design output stays a proposal; nothing is implemented or admitted from this route
   - onboarding-only graph variant of design-contract-only; the shared design-contract-only preset is unchanged
+anti_hint: Do not use for real customer work or non-onboarding runs; it is only the adapter:local example graph.
+blocks:
+  - B5
 ---
 
 # onboarding-example-graph

@@ -86,6 +86,9 @@ proof_limits:
   - provider/model selection remains declared routing data, not provider availability proof
   - live Codex/Gemini execution and runtime parallel fan-out are not proven
   - preset is not runtime parallel execution
+anti_hint: Do not use outside the declared Brick Protocol dogfood case or when an explicit graph topology is not needed.
+blocks:
+  - B2
 ---
 
 # four-llm-standard-graph

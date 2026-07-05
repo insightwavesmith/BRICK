@@ -28,6 +28,11 @@ proof_limits:
   - this is a Brick Protocol dogfood variant over common templates
   - not automatic shape selection
   - not Building Plan authoring from task text
+anti_hint: Do not use when dashboard work does not touch protocol surfaces, evidence, Link gates, projections, or public status.
+blocks:
+  - B3
+  - B2
+  - B6
 ---
 
 # brick-protocol-dashboard-dev-inspected

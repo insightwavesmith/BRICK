@@ -909,10 +909,15 @@ def is_support_connector_resource0_path(path: str, *, is_dir: bool) -> bool:
 
 
 def is_template0_brick_template_path(path: str, is_dir: bool) -> bool:
+    parts = path.split("/")
     if is_dir:
+        if parts == ["brick", "templates", "blocks"]:
+            # PRESET-RESTRUCTURE-S1 (0705) checker companion: admit exactly the
+            # blocks/ corpus directory under the existing Brick template family.
+            # The file branch below keeps the contents closed to slugged .md docs.
+            return True
         if path in TEMPLATE0_BRICK_TEMPLATE_DIRS:
             return True
-        parts = path.split("/")
         if (
             len(parts) == 4
             and parts[:3] == ["brick", "templates", "bricks"]
@@ -969,6 +974,17 @@ def is_template0_brick_template_path(path: str, is_dir: bool) -> bool:
         # U3 re-home: a chain preset is a "Building route 설명서" authored as a
         # free-form .md (frontmatter = structure + `## Route` prose). Like tasks/
         # and bricks/, presets/ admits .md (not .yaml).
+        return (
+            len(parts) == 4
+            and not is_dir
+            and parts[3].endswith(".md")
+            and slug_part(parts[3].removesuffix(".md"))
+        )
+    if parts[:3] == ["brick", "templates", "blocks"]:
+        # PRESET-RESTRUCTURE-S1 (0705) checker companion: reusable stage blocks
+        # are documentation corpus entries only, admitted as Brick template docs.
+        # They may carry front matter and a DSL snippet for human/COO authoring
+        # vocabulary, but no operator/CLI/materializer reads this directory.
         return (
             len(parts) == 4
             and not is_dir

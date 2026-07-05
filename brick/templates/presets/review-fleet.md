@@ -44,6 +44,10 @@ proof_limits:
   - review synthesis is support evidence, not success or quality judgment
   - declared review lenses use Codex and Gemini defaults; Claude may be restored by launch-time override when available
   - preset is not runtime parallel execution
+anti_hint: Do not use before a completed design or implementation exists, or when one read-only review lens is enough.
+blocks:
+  - B2
+  - B4
 ---
 
 # review-fleet
