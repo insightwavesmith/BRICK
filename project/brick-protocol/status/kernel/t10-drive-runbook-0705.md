@@ -24,10 +24,16 @@ G3(A+ 착수 게이트 마지막 항목 = T10 첫 실전 확장 운전 1회)의 
   이전 출생) — _verify_expansion_budget_available가 fail-closed 거부. 출생 선언 없는
   판에 소급 부여 경로는 없음(의도된 설계).
 - **채택: 신규 목적 빌딩** — 출생 시 `expansion_budget=1` 선언(갭1 kwarg), 소형
-  design(리허설 조각 전제 재확인) → coo 게이트 홀드 → 그 hold identity로 확장 승인 →
-  리허설 조각(cleanup-wave-a design 산출물의 t10_expansion_fragment_draft, 4노드:
-  design×2·work·qa fan-in) 이식 → resume 완주. 조각의 실작업 = 커널 아카이브 이동
-  (#23 레거시 인접) — 운전이 곧 실가치 작업.
+  design(전제 재확인) → coo 게이트 홀드 → 그 hold identity로 확장 승인 → 조각 이식 →
+  resume 완주.
+- **조각 v1 폐기(0705 밤)**: 리허설 초안(cleanup-wave-a design 산출)의 커널 아카이브
+  이동 3건은 cleanup-wave-b(73673bf9)가 이미 집행 — 지피티 감사 세션의 정합성 발견을
+  COO 로컬 재검증으로 확정. 부수 발견 2건: 초안은 엔진 스키마(Brick+Agent rows) 불일치
+  + QA 완료 edge 누락 — 그대로 운전했으면 단계 2 거부. **조각 v2** = 잔여 실작업 재단:
+  ①census '기타 z6 판정분' 4번째 후보 확정+이동 원장(미확정 경로도 원장 행 diff 강제 —
+  fake-landing 가드 정합) ②buildings-residue 분류(제안-전용). 4노드(design×2·work·qa
+  fan-in), assemble_expanded_graph_plan dry-run PASS. **교훈: 조각/발주문의 앵커 재확인은
+  스키마 dry-run만이 아니라 작업 실존(이미 랜딩됐는가)까지.**
 - 운전 직전 확장 조각 지피티 공격 예약(외부감사 핸드오프 §5) — 조각은 미커밋 증거,
   COO가 추출·전달.
 
