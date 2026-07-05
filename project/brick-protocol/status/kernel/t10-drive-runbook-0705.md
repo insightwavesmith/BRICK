@@ -23,9 +23,17 @@ G3(A+ 착수 게이트 마지막 항목 = T10 첫 실전 확장 운전 1회)의 
 - **cleanup-wave-a-0705 부적격**: base plan `expansion_budget: None`(갭1 c89f1732 랜딩
   이전 출생) — _verify_expansion_budget_available가 fail-closed 거부. 출생 선언 없는
   판에 소급 부여 경로는 없음(의도된 설계).
-- **채택: 신규 목적 빌딩** — 출생 시 `expansion_budget=1` 선언(갭1 kwarg), 소형
-  design(전제 재확인) → coo 게이트 홀드 → 그 hold identity로 확장 승인 → 조각 이식 →
-  resume 완주.
+- **채택: 신규 목적 빌딩 + 2-개정 구조(Smith 0705 심야 지시 — "design(fable)→홀드→
+  병렬개발 N→각 QA" 구조화를 T10으로 실증)**: 출생 `expansion_budget=2` +
+  design(fable5, 전제 재확인·계획) —[coo 게이트]→ **홀드#1** → rev-1 = 발견 조각 v3.2
+  (design×2 fable5 → QA fable5 fan-in, QA 경계 edge에 coo 게이트) → **홀드#2** →
+  rev-2 = 발견이 확정한 exact 경로별 **병렬 dev×N + 각 QA + fan-in closure** → 완주.
+  홀드#2가 곧 발견→파괴시공 커밋 게이트(지피티 ATT-004의 유기적 해소 — 지피티 자신도
+  "T10 second revision pattern 정식화" 권고). 홀드#1·#2 = 상이한 hold identity →
+  동일-홀드 재사용 가드 실전 검증 동반. rev-2 write 노드는 Brick row-내 write_scope
+  (ATT-001 규율) + 발견-확정 exact allowlist(ATT-002 해소). **선결: gap1b 랜딩**
+  (base expansion_budget 저작 인자). 전제 조각(v3.2) 캐스팅: QA=fable5 xhigh 승격
+  (고비용 일회성 트리거), design 레인은 design-lead 개정 선호(fable5 xhigh) 자동.
 - **조각 v1 폐기(0705 밤)**: 리허설 초안(cleanup-wave-a design 산출)의 커널 아카이브
   이동 3건은 cleanup-wave-b(73673bf9)가 이미 집행 — 지피티 감사 세션의 정합성 발견을
   COO 로컬 재검증으로 확정. 부수 발견 2건: 초안은 엔진 스키마(Brick+Agent rows) 불일치
