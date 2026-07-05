@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import inspect
 import importlib
 import io
 import json
@@ -628,6 +629,106 @@ def _brick_cli_work_brick_rows(plan: Mapping[str, Any]) -> list[Mapping[str, Any
     return rows
 
 
+def _captured_verify_argv(cli: Any, args: argparse.Namespace) -> list[str]:
+    captured: list[list[str]] = []
+    original_main = cli.check_profile.main
+
+    def fake_main(argv: Sequence[str] | None = None) -> int:
+        captured.append(list(argv or []))
+        return 0
+
+    cli.check_profile.main = fake_main
+    try:
+        exit_code = cli._cmd_verify(args)
+    finally:
+        cli.check_profile.main = original_main
+    if exit_code != 0 or len(captured) != 1:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: verify argv observation did not run "
+            f"exactly once, exit={exit_code}, captured={captured!r}"
+        )
+    return captured[0]
+
+
+def _assert_verify_argv(
+    label: str,
+    actual: Sequence[str],
+    expected: Sequence[str],
+) -> None:
+    if list(actual) != list(expected):
+        raise ProfileError(
+            f"brick_cli_entrypoint_smoke: {label} verify argv drifted; "
+            f"expected {list(expected)!r}, got {list(actual)!r}"
+        )
+
+
+def _assert_brick_cli_verify_layering(cli: Any, repo: Path) -> int:
+    parser = cli.build_parser()
+    expected_default = ["--repo", str(repo), "--profile", "core"]
+    expected_all = ["--repo", str(repo), "--all"]
+
+    default_args = parser.parse_args(["verify", "--repo", str(repo)])
+    _assert_verify_argv(
+        "plain brick verify",
+        _captured_verify_argv(cli, default_args),
+        expected_default,
+    )
+
+    alias_args = parser.parse_args(["check", "--repo", str(repo)])
+    _assert_verify_argv(
+        "brick check alias",
+        _captured_verify_argv(cli, alias_args),
+        expected_default,
+    )
+
+    all_args = parser.parse_args(["verify", "--repo", str(repo), "--all"])
+    _assert_verify_argv(
+        "explicit brick verify --all",
+        _captured_verify_argv(cli, all_args),
+        expected_all,
+    )
+
+    profile_args = parser.parse_args(["verify", "--repo", str(repo), "--profile", "core"])
+    _assert_verify_argv(
+        "explicit brick verify --profile",
+        _captured_verify_argv(cli, profile_args),
+        expected_default,
+    )
+
+    json_args = parser.parse_args(["verify", "--repo", str(repo), "--json"])
+    json_stdout = io.StringIO()
+    with contextlib.redirect_stdout(json_stdout):
+        json_argv = _captured_verify_argv(cli, json_args)
+    _assert_verify_argv("brick verify --json", json_argv, expected_default)
+    try:
+        json_packet = json.loads(json_stdout.getvalue())
+    except json.JSONDecodeError as exc:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: brick verify --json did not emit JSON "
+            f"while observing hermetic argv: {json_stdout.getvalue()!r}"
+        ) from exc
+    if json_packet.get("checker_argv") != expected_default:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: brick verify --json packet did not "
+            f"carry hermetic checker_argv: {json_packet!r}"
+        )
+
+    helper = getattr(cli, "_hermetic_verify_argv", None)
+    if not callable(helper) or helper(repo) != expected_default:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: _hermetic_verify_argv is missing or "
+            f"not single-sourcing the default argv: {helper!r}"
+        )
+    init_source = inspect.getsource(cli._cmd_init)
+    if "verify_argv = _hermetic_verify_argv(repo)" not in init_source:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: _cmd_init VERIFY step is not using "
+            "the shared hermetic verify argv helper"
+        )
+
+    return 6
+
+
 def run_brick_cli_entrypoint_smoke(repo: Path) -> KernelResult:
     """Bare-entrypoint smoke for the customer-facing ``brick`` CLI.
 
@@ -687,7 +788,11 @@ raise SystemExit(cli.main(["status", "--json", "--repo", str(repo)]))
 
     _ensure_import_identity(repo)
     cli = importlib.import_module("brick_protocol.support.operator.cli")
-    inspected = 2 + _assert_brick_cli_customer_task_intent(cli, repo)
+    inspected = (
+        2
+        + _assert_brick_cli_customer_task_intent(cli, repo)
+        + _assert_brick_cli_verify_layering(cli, repo)
+    )
 
     return KernelResult(
         check_id="brick_cli_entrypoint_smoke",
@@ -697,7 +802,9 @@ raise SystemExit(cli.main(["status", "--json", "--repo", str(repo)]))
             "console-script simulation ran from outside the repo with PYTHONPATH "
             "unset and emitted status JSON without ModuleNotFoundError; customer "
             "task intent defaults keep local runs read-only while --real-provider "
-            "tasks materialize fast-fix with worktree-bounded Brick write_scope"
+            "tasks materialize fast-fix with worktree-bounded Brick write_scope; "
+            "plain verify/check and verify --json use the provider-free core "
+            "profile while explicit --all preserves the full profile sweep"
         ),
     )
 
@@ -717,6 +824,54 @@ def _run_brick_cli_entrypoint_profile(repo: Path) -> subprocess.CompletedProcess
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         check=False,
+    )
+
+
+def _probe_verify_default_mutation_red(repo: Path) -> str:
+    source = repo / "support" / "operator" / "cli.py"
+    original = source.read_text(encoding="utf-8")
+    needle = "verify_argv = _hermetic_verify_argv(repo)"
+    poisoned = 'verify_argv = ["--repo", str(repo), "--all"]'
+    if needle not in original:
+        raise ProfileError(
+            "brick_cli_entrypoint verify layering mutation probe could not find "
+            "the hermetic verify default"
+        )
+
+    backup = tempfile.NamedTemporaryFile(
+        prefix=".brick-cli-verify-layering.",
+        suffix=".bak",
+        dir=source.parent,
+        delete=False,
+    )
+    backup_path = Path(backup.name)
+    backup.close()
+    shutil.copyfile(source, backup_path)
+    try:
+        source.write_text(original.replace(needle, poisoned, 1), encoding="utf-8")
+        red = _run_brick_cli_entrypoint_profile(repo)
+        if red.returncode == 0:
+            raise ProfileError(
+                "brick_cli_entrypoint verify layering mutation probe did not "
+                "turn brick_cli_entrypoint profile RED after restoring the old "
+                "--all default"
+            )
+    finally:
+        shutil.copyfile(backup_path, source)
+        backup_path.unlink(missing_ok=True)
+
+    green = _run_brick_cli_entrypoint_profile(repo)
+    if green.returncode != 0:
+        excerpt = "\n".join(green.stdout.splitlines()[-20:])
+        raise ProfileError(
+            "brick_cli_entrypoint verify layering mutation probe restored "
+            f"source but brick_cli_entrypoint remained RED:\n{excerpt}"
+        )
+    return (
+        "brick CLI verify layering mutation RED probe passed: reintroducing "
+        "the old plain-verify --all default made check_profile.py --profile "
+        "brick_cli_entrypoint exit non-zero, then restoring the temp-backed "
+        "CLI file returned brick_cli_entrypoint to exit 0."
     )
 
 
@@ -763,7 +918,8 @@ def probe_mutation_red(repo: Path) -> list[str]:
         "brick CLI entrypoint mutation RED probe passed: disabling the moved "
         "run_brick_cli_entrypoint_smoke entrypoint made check_profile.py "
         "--profile brick_cli_entrypoint exit non-zero, then restoring the "
-        "temp-backed self file returned brick_cli_entrypoint to exit 0."
+        "temp-backed self file returned brick_cli_entrypoint to exit 0.",
+        _probe_verify_default_mutation_red(repo),
     ]
 
 
