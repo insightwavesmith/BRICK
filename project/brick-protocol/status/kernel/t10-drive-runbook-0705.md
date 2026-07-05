@@ -81,3 +81,18 @@ v3 확장 dry-run 4단 전부 PASS(투영 5스텝·linear 검증·신규 row wri
 
 증거 한계: 이 문서는 support evidence이며 성공 판정 아님. 검증은 0705 밤 HEAD 기준 —
 운전 시점에 단계 1~2로 재확인. 처분·품질 판정은 사람 몫.
+
+
+## 5. 첫 실전 운전 기록 (0705 심야 — t10-first-drive-0705b)
+
+**기계 전 체인 실증 완료**: 출생 expansion_budget=2(gap1b) → 홀드#1(coo 게이트) →
+승인#1+rev-1(발견 조각 v3.2, 4단 dry-run) → strict green → reroute-편입 →
+**확장 노드 3개 실걸음**(z6-발견·잔재-분류 design fable5 + QA fable5, fan-in wait-all) →
+홀드#2(커밋 게이트, 상이한 hold identity) → 승인#2+rev-2(원장-기록, row-내 write_scope
+정확-경로) → strict green(개정 2장 체인 라이브 성립, 동일-홀드 재사용 가드 통과).
+**발견 산출**: 4번째 z6 후보 = "증거상 특정 불가"가 정직한 답(원본 z6 행 소실 — 추측 금지
+준수, 근거 file:line 전수 반환). **완주 잔여 1건**: rev-2 걸음이 replay 다중화 한계
+(이전 처분 이력 있는 빌딩의 재개 replay 거부 — 인체공학 행 11, T7 계열)에 차단.
+수리 랜딩 후 이 vessel 그대로 재개 가능. **엔진 발견 4건**: 예산 의미론 사본 2점(수리
+랜딩 d52aea38)·유령-경로 오진·빈-방 cwd·replay 다중화. G3 개방 판정 = Smith 도장 대기
+((a) 이 기록으로 개방 / (b) replay 수리 후 완주까지). 0705a vessel은 사건 11 기록체.
