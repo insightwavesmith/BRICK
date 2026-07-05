@@ -38,6 +38,7 @@ from brick_protocol.support.recording.claims_link import (
     _carry_fact_claim_body,
     _link_absence_claim_fact,
 )
+from brick_protocol.support.recording.contracts import require_positive_int
 
 _CARRY_BUDGET_TRACE_PATH = "evidence/claim_trace/link/carry_trace.json"
 _CARRY_BUDGET_PROOF_LIMITS: tuple[str, ...] = (
@@ -375,13 +376,7 @@ def _integer_mapping(
 
 
 def _positive_int_value(label: str, value: Any) -> int:
-    if isinstance(value, bool):
-        raise ValueError(label + " must be a positive integer")
-    if isinstance(value, int) and value > 0:
-        return value
-    if isinstance(value, str) and value.strip().isdecimal() and int(value) > 0:
-        return int(value)
-    raise ValueError(label + " must be a positive integer")
+    return require_positive_int(value, label)
 
 
 def _ordered_texts(*groups: Iterable[str | None]) -> list[str]:

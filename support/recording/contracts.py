@@ -11,6 +11,26 @@ from dataclasses import dataclass, field
 from typing import Any
 
 
+def require_positive_int(
+    value: Any,
+    label: str,
+    *,
+    allow_decimal_text: bool = True,
+    error_text: str = "must be a positive integer",
+) -> int:
+    """Return a positive int while rejecting bool explicitly."""
+
+    if isinstance(value, bool):
+        raise ValueError(f"{label} {error_text}; bool is not admitted")
+    if isinstance(value, int) and value > 0:
+        return value
+    if allow_decimal_text and isinstance(value, str) and value.strip().isdecimal():
+        parsed = int(value.strip())
+        if parsed > 0:
+            return parsed
+    raise ValueError(f"{label} {error_text}")
+
+
 @dataclass(frozen=True)
 class StepOutputObservation:
     building_id: str

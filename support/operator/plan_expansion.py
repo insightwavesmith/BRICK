@@ -40,6 +40,7 @@ from brick_protocol.support.operator.plan_graph import (
     _graph_link_edges_by_ref,
     _validate_graph_plan_topology,
 )
+from brick_protocol.support.recording.contracts import require_positive_int
 from support.recording.declaration_packets import _pure_declared_plan_copy
 
 _EXPANSION_FRAGMENT_KEYS = frozenset(
@@ -193,11 +194,13 @@ def _validate_expansion_node_budgets(
     unknown = sorted(str(key) for key in budgets if str(key) not in new_step_refs)
     if unknown:
         raise ValueError("expansion_node_budgets keys must reference new step_ref values: " + ", ".join(unknown))
-    bad_values = sorted(
-        str(key)
-        for key, value in budgets.items()
-        if isinstance(value, bool) or not isinstance(value, int) or value <= 0
-    )
+    bad_values = []
+    for key, value in budgets.items():
+        try:
+            require_positive_int(value, f"expansion_node_budgets.{key}", allow_decimal_text=False)
+        except ValueError:
+            bad_values.append(str(key))
+    bad_values = sorted(bad_values)
     if bad_values:
         raise ValueError("expansion_node_budgets values must be positive integers: " + ", ".join(bad_values))
 

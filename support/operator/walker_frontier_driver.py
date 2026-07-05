@@ -11,6 +11,7 @@ from brick_protocol.support.operator.walker_fan_in import (
     _fan_in_wait_all_state,
     _splice_declared_successors,
 )
+from brick_protocol.support.recording.contracts import require_positive_int
 
 @dataclasses.dataclass(frozen=True)
 class _ReadyItemsResult:
@@ -154,17 +155,7 @@ def _fanout_dispatch_pool_size(plan: Mapping[str, Any]) -> int:
     )
     if raw_value is None or raw_value == "":
         return 1
-    if isinstance(raw_value, bool):
-        raise ValueError("fanout_dispatch_pool_size must be a positive integer")
-    if isinstance(raw_value, int):
-        value = raw_value
-    elif isinstance(raw_value, str) and raw_value.strip().isdecimal():
-        value = int(raw_value.strip())
-    else:
-        raise ValueError("fanout_dispatch_pool_size must be a positive integer")
-    if value < 1:
-        raise ValueError("fanout_dispatch_pool_size must be a positive integer")
-    return value
+    return require_positive_int(raw_value, "fanout_dispatch_pool_size")
 
 
 # AUTO-PARALLEL default: a drawn fan() IS the parallel declaration. When the plan has fan
@@ -184,4 +175,3 @@ def _has_explicit_fanout_pool_override(plan: Mapping[str, Any]) -> bool:
     if env not in (None, ""):
         return True
     return "fanout_dispatch_pool_size" in plan
-

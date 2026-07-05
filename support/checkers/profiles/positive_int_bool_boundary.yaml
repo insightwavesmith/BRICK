@@ -1,0 +1,37 @@
+schema: checker-profile/v1
+profile_id: positive-int-bool-boundary
+description: Static Rule 12 guard that keeps budget/count positive-int surfaces from accepting bool.
+kernel_checks:
+  - package_path_admission
+path_exists:
+  - support/checkers/check_positive_int_bool_boundary.py
+  - support/checkers/profiles/positive_int_bool_boundary.yaml
+  - support/recording/contracts.py
+text_contains:
+  - path: support/recording/contracts.py
+    texts:
+      - def require_positive_int(
+      - "bool is not admitted"
+  - path: support/checkers/check_positive_int_bool_boundary.py
+    texts:
+      - SURFACE_EXPECTATIONS
+      - MUTATION_PROBES
+      - mutation fixture did not produce rc!=0
+      - support/operator/assembly.py
+      - support/operator/route_materialization.py
+      - support/operator/auto_repair_replay.py
+      - support/operator/plan_expansion.py
+      - support/operator/composition_route_policy.py
+      - support/operator/walker_frontier_driver.py
+      - support/recording/step_outputs.py
+      - support/recording/claims_carry_budget.py
+proof_limits:
+  - checker profile support evidence only
+  - standalone checker must be run directly because check_profile.py is outside this Brick write scope
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - future positive-int surfaces outside the static expectation list
+  - semantic correctness of every future budget consumer

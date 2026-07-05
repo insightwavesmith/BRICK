@@ -16,6 +16,7 @@ from support.operator.plan_graph import _linear_plan_from_graph_plan
 from support.operator.plan_validation import validate_declared_building_plan
 from support.operator.route_materialization import materialize_route_transition
 from support.operator.run import run_building_plan
+from support.recording.contracts import require_positive_int
 
 
 PROOF_LIMITS = (
@@ -397,11 +398,7 @@ def _public_plan_step(entry: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def _positive_int(value: Any, label: str) -> int:
-    if isinstance(value, int) and value > 0:
-        return value
-    if isinstance(value, str) and value.isdecimal() and int(value) > 0:
-        return int(value)
-    raise ValueError(f"{label} must be a positive integer")
+    return require_positive_int(value, label)
 
 
 def _string_list(value: Any, label: str) -> list[str]:

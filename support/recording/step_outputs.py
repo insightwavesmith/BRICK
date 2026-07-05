@@ -21,6 +21,7 @@ from brick_protocol.support.recording.contracts import (
 )
 
 from brick_protocol.support.connection.secret_text import contains_raw_secret_text
+from brick_protocol.support.recording.contracts import require_positive_int
 
 
 EVIDENCE_SHAPE_FIELDS = frozenset({"evidence_refs", "proof_limits", "not_proven"})
@@ -66,8 +67,7 @@ def write_step_output(
     existing_policy: str = "replace",
     written: list[Path] | None = None,
 ) -> tuple[Path, ...]:
-    if attempt_index <= 0:
-        raise ValueError("attempt_index must be positive")
+    attempt_index = require_positive_int(attempt_index, "attempt_index", allow_decimal_text=False)
     target_written: list[Path] = written if written is not None else []
     _validate_existing_policy(existing_policy)
     step_ref = observation.step_ref

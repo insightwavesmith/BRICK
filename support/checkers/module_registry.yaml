@@ -586,6 +586,16 @@ modules:
     decomposition_target: ""
     pinned_by: assembly_equivalence kernel check (HEART-PHASE0 structural projection + discrimination probes)
 
+  - module: support/checkers/check_positive_int_bool_boundary.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: positive_int_bool_boundary profile path/text pins + direct checker mutation probes
+
   # ELEGANT-REFACTOR P3a (engine blueprint 0531 §5 / detail-design §D-4 Opt B):
   # the check_profile god-checker's kernel-check bodies, declarative rule runners,
   # behavioral case runners, and the YAML-subset parser were lifted here. Each is
