@@ -1,0 +1,218 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:task-statement-70600589359b-node::work/step-outputs/task-statement-70600589359b-node-code-attack-qa-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:qa",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-task-statement-70600589359b-node-code-attack-qa",
+  "building_id": "task-statement-70600589359b-node",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-07-04T23:49:16.218575Z",
+  "id": "urn:bp:building:task-statement-70600589359b-node::work/step-outputs/task-statement-70600589359b-node-code-attack-qa-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:task-statement-70600589359b-node-code-attack-qa",
+  "recorded_at": "2026-07-04T23:49:16.218575Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:qa",
+    "attacked_work": "Attacked the upstream investigation Brick's (task-statement-70600589359b-node-work, agent-object:dev) three deliverables: D1 (code coordinates for the write-scope enforcement asymmetry), D2 (isolated /tmp reproduction rc/disposition), D3 (repair candidates). All three deliverables were cross-checked against the live driver.py/comparison.py/gate_sequence.py source, independently re-derived via a fresh isolated reproduction (not reusing the dev's own /tmp script), and further corroborated against two REAL production Buildings referenced in the task's 좌표 section, including one commit (706b5922) that actually landed the exact scenario the investigation described.",
+    "boundary_violations": [],
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "changed_files": [],
+    "checked_sources": [
+      "support/operator/driver.py:920-1023 (worktree run + post-completion hold dispatch)",
+      "support/operator/driver.py:1025-1096 (_write_need_complete_without_scoped_diff / _write_need_complete_with_forbidden_diff and their *_for_plan helpers)",
+      "support/operator/driver.py:1442-1497 (_sandbox_changed_paths, _path_allowed_by_write_scope, _path_forbidden_by_write_scope)",
+      "brick/comparison.py:44-95 (build_write_scope_comparison_facts)",
+      "support/operator/walker_kernel.py:860-910 (gate_sequence_decision dispatch, declared-policy branch)",
+      "support/operator/gate_sequence.py:1-140 (run_gate_sequence_policy opt-in mechanism)",
+      "support/checkers/lib/write_scope_default_exclude_check.py, support/checkers/lib/adapter_capability_checks.py, brick/spec.py (consumers of observed_paths_outside_declared_scope -- all checker-style, none gate-integration)",
+      "project/brick-protocol/buildings/t1s2v3-shapefilter-0704a/task-statement-97a9a1253128-node/work/step-outputs/*/step-output.json and work/declared-building-plan.json",
+      "project/brick-protocol/buildings/t1s2v4-bothgates-0704a/task-statement-b0eac2272663-node/work/step-outputs/*/step-output.json, work/declared-building-plan.json, work/building-map.json, and all four code-attack-qa attempts' transition-concern.json",
+      "git show --stat 706b5922 and git show 706b5922 -- support/checkers/check_profile.py (main repo, /Users/smith/projects/BRICK)",
+      "work/step-outputs/task-statement-70600589359b-node-work-attempt-1/step-output.json (the upstream investigation's own returned evidence)"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:claude-local:task-statement-70600589359b-node",
+    "cli_version_text": "2.1.199 (Claude Code)",
+    "evidence_refs": [
+      "support-packet:task-statement-70600589359b-node:agent-object:qa:output"
+    ],
+    "evidence_used": [
+      "support/operator/driver.py:945,962,979,1025-1054,1057-1086,1442-1478,1481-1496",
+      "brick/comparison.py:44-95",
+      "support/operator/walker_kernel.py:895-910",
+      "support/operator/gate_sequence.py:66-97",
+      "support/checkers/lib/write_scope_default_exclude_check.py, support/checkers/lib/adapter_capability_checks.py, brick/spec.py:305 (observed_paths_outside_declared_scope consumers)",
+      "/Users/smith/projects/BRICK/project/brick-protocol/buildings/t1s2v3-shapefilter-0704a/task-statement-97a9a1253128-node/work/step-outputs/*/step-output.json",
+      "/Users/smith/projects/BRICK/project/brick-protocol/buildings/t1s2v4-bothgates-0704a/task-statement-b0eac2272663-node/work/step-outputs/*/step-output.json, work/declared-building-plan.json, work/building-map.json",
+      "git show --stat 706b5922 ; git show 706b5922 -- support/checkers/check_profile.py (in /Users/smith/projects/BRICK)",
+      "git log --all --oneline --grep=task-statement-97a9a1253128-node ; --grep=task-statement-b0eac2272663-node",
+      "isolated /tmp git fixtures qa_repro_0705 (A_plus_B) and qa_repro_0705b (B_only), removed after use",
+      "work/step-outputs/task-statement-70600589359b-node-work-attempt-1/step-output.json (upstream dev's returned evidence)"
+    ],
+    "failing_or_missing_probes": [
+      "Did not run driver.py's full end-to-end pipeline (run_customer_sandboxed_building / the whole worktree-sandbox-commit bracket) for the A_plus_B case; probed the two exported gate predicate functions directly instead. The isolated-function call is a faithful reproduction of the exact logic the driver invokes (same functions, same call signature), but a full pipeline run through git-worktree creation and commit_sandbox_output was not independently re-executed by this QA pass -- covered instead by the real production commit 706b5922, which is stronger evidence than a synthetic full-pipeline run would have been.",
+      "Did not run `check_profile.py --all` for this investigation-only Brick because D1-D3 required no source change and the task explicitly forbids source_write / repair here; no checker profile pin is applicable evidence for a no-diff investigation Brick."
+    ],
+    "negative_probe_observations": [
+      "A_plus_B (allowed diff present + non-forbidden outside diff present): _write_need_complete_without_scoped_diff_for_plan=False, _write_need_complete_with_forbidden_diff_for_plan=False -> HOLD FIRED: False (silent pass) -- reproduced in isolated /tmp fixture.",
+      "B_only (outside diff only, no allowed diff present): _write_need_complete_without_scoped_diff_for_plan=True -> HOLD FIRED: True (fake-landing hold correctly raised) -- reproduced as the control case in a second isolated /tmp fixture, confirming the driver's gate is NOT broadly disabled, only bypassed in the specific mixed-diff shape.",
+      "Production replay: task-statement-b0eac2272663-node's landed commit 706b5922 contains a real A_plus_B-shaped diff (support/checkers/check_profile.py outside scope, plus in-scope files) with frontier_kind=complete and no forbidden/fake-landing hold record anywhere in that Building's evidence tree -- the negative probe is not only synthetically reproducible but already occurred for real."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "filesystem-enforced source_write/probe_write separation",
+      "Whether the write-scope mixed-diff pass-path is an intentional design trade or an unreviewed side effect.",
+      "Full end-to-end driver pipeline replay (worktree creation through commit) for the A_plus_B case in this QA session specifically -- substituted with direct predicate-function calls plus a real production commit as evidence.",
+      "Whether any other Building beyond the two named has landed a similar mixed-scope diff.",
+      "future Building run correctness",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority"
+    ],
+    "observed_evidence": [
+      "{\"symptom_reproduction\":\"Independently reproduced the claimed write-scope pass-path by calling the ACTUAL production predicates (not the upstream dev's own fixtures) from an isolated /tmp git repo: support/operator/driver.py:_write_need_complete_without_scoped_diff_for_plan and _write_need_complete_with_forbidden_diff_for_plan against a plan with write_scope={allowed_paths:['allowed_dir/**'], forbidden_paths:['forbidden_dir/**']}. Scenario A_plus_B (one allowed-dir change + one outside-but-non-forbidden change) returned False/False -> no hold fires. Control scenario B_only (outside-only change, no allowed change) returned True/False -> fake-landing hold correctly fires. This matches D1/D2 of the upstream investigation exactly.\"}",
+      "{\"own_probes\":\"Built two disposable /tmp git fixtures (qa_repro_0705, qa_repro_0705b; both removed after use, no repo mutation) distinct from the upstream dev's own /tmp reproduction script referenced in its commands_run. Drove driver.py's real internal gate functions directly (not a re-implementation) via PYTHONPATH=support/import_identity python3, for both the A_plus_B and B_only cases.\"}",
+      "{\"real_entry_surface\":\"Went beyond synthetic repro: read the two REAL production Buildings named in the work_statement (t1s2v3-shapefilter-0704a, t1s2v4-bothgates-0704a) directly from /Users/smith/projects/BRICK (outside this W1 worktree, read-only). Found the vulnerability actually fired in production TWICE: (1) task-statement-97a9a1253128-node work-attempt-2 changed_files included support/checkers/check_profile.py, which is outside its declared allowed_paths (only check_preflight_injection_survival.py is allowed under support/checkers/) and outside forbidden_paths -- but that Building's final state is only a WIP anchor commit (78390b9c), not a completed landing. (2) task-statement-b0eac2272663-node reached frontier=complete and was ACTUALLY COMMITTED as commit 706b5922 ('BRICK building output: task-statement-b0eac2272663-node'); `git show --stat 706b5922` shows support/checkers/check_profile.py changed (+4/-0) even though it is absent from that Building's declared allowed_paths=['support/operator/assembly.py','support/operator/task_order_preflight.py','support/checkers/check_preflight_injection_survival.py','support/checkers/module_registry.yaml','support/checkers/profiles/**'] and absent from forbidden_paths. No write_scope_forbidden_diff_present or fake_landing hold record exists anywhere in that Building's evidence tree. `git show 706b5922 -- support/checkers/check_profile.py` shows the 4-line diff is a benign checker-registry entry -- confirming the upstream claim that 'the content is legitimate, the problem is that it passed uninspected.'\"}",
+      "support/operator/driver.py:945-987 -- post-completion branch: checks _write_need_complete_with_forbidden_diff first (forbidden-diff hold), elif _write_need_complete_without_scoped_diff (fake-landing hold when NO changed path is allowed at all); there is no third branch for 'some changed path is allowed AND some other changed path is neither allowed nor forbidden.'",
+      "support/operator/driver.py:1038-1054 _write_need_complete_without_scoped_diff_for_plan: returns True only when changed_paths is empty or NONE of them match any allowed_paths pattern -- a single allowed-path match makes this False regardless of other unscoped paths.",
+      "support/operator/driver.py:1070-1086 _write_need_complete_with_forbidden_diff_for_plan: returns True only when a changed path matches forbidden_paths -- paths that are simply outside allowed_paths but not in forbidden_paths never trigger this.",
+      "support/operator/driver.py:1449-1496 _path_allowed_by_write_scope / _path_forbidden_by_write_scope: per-path boolean checks with no aggregate 'coverage' notion -- confirms the driver never asks whether EVERY changed path is allowed, only whether ANY is allowed or ANY is forbidden.",
+      "brick/comparison.py:81-95 build_write_scope_comparison_facts DOES compute observed_paths_outside_declared_scope (line 91-94) for every changed path not covered by allowed_paths, but grep across the repo (support/checkers/lib/write_scope_default_exclude_check.py, support/checkers/lib/adapter_capability_checks.py, brick/spec.py) shows this fact is consumed ONLY by unit-style checkers that assert the fact is correctly RECORDED -- none of them assert the driver's post-completion HOLD logic actually consumes it.",
+      "support/operator/gate_sequence.py:66-97 run_gate_sequence_policy is a SEPARATE, Link-row opt-in mechanism (returns a no-op GateSequenceDecision() immediately if the Link row has no declared non-empty gate_sequence_policy list); it is not automatically wired to observed_paths_outside_declared_scope for every Building, so it does not close the gap by default.",
+      "No test file in the repo (searched for test_*driver*, *driver*test*, and direct references to _write_need_complete_without_scoped_diff / _write_need_complete_with_forbidden_diff) exercises the driver's write-scope post-completion gate at all; only support/checkers/check_building_operator_driver0.py exists and is unrelated (naming/diet checker), confirming this pass-path has zero regression-test coverage.",
+      "git log --all --oneline --grep for both building ids confirms: task-statement-97a9a1253128-node has only a WIP-anchor commit (never landed complete); task-statement-b0eac2272663-node has an actual 'BRICK building output' commit 706b5922 with frontier=complete."
+    ],
+    "output_excerpt": "```json { \"observed_evidence\": [ { \"symptom_reproduction\": \"Independently reproduced the claimed write-scope pass-path by calling the ACTUAL production predicates (not the upstream dev's own fixtures) from an isolated /tmp git repo: support/operator/driver.py:_write_need_complete_without_scoped_diff_for_plan and _write_need_complete_with_forbidden_diff_for_plan against a plan with write_scope={allowed_paths:['allowed_dir/**'], forbidden_paths:['forbidden_dir/**']}. Scenario A_plus_B (one allowed-dir change + one outside-but-non-forbidden change) returned False/False -> no hold fires. Contro...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "Agent hook:reviewer-no-mutation blocks source_write while allowing declared work-area probe_write",
+      "source_write vs probe_write is prompt/evidence disciplined here, not a filesystem-enforced provider distinction"
+    ],
+    "regression_risks": [
+      "The confirmed gap means any future Building whose declared write_scope has a NON-EMPTY allowed_paths list can silently land a diff touching files outside both allowed_paths and forbidden_paths, as long as at least one allowed-path change also exists in the same diff -- observed to actually happen and commit in production (706b5922).",
+      "Zero regression-test coverage exists for the driver's write-scope post-completion gate (no test file references the two predicate functions), so any future refactor of driver.py's hold dispatch could change this behavior in either direction without any test signal.",
+      "The Link-row opt-in gate_sequence_policy mechanism (gate_sequence.py) that DOES read BrickComparisonFact is not automatically wired for every Building; relying on it as an implicit safety net would be a false assumption unless a Building's Link row explicitly declares the policy."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:sonnet",
+    "transition_concern_evidence": {
+      "binding": false,
+      "concern_kind": "design_gap",
+      "concern_ref": "transition-concern:wsallow-write-scope-mixed-diff-silent-pass-0705",
+      "not_proven": [
+        "Whether Smith/COO intends this as an acceptable interim tradeoff (avoiding false-HOLD on legitimate incidental touches) or a defect requiring a structural fix.",
+        "Full census of every write_scope-declaring Building historically affected beyond the two named (t1s2v3, t1s2v4).",
+        "Whether closure/Link will adopt this concern or route a separate repair Brick."
+      ],
+      "proof_limits": [
+        "reproduced against this repo's working tree plus two named production Buildings' recorded evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "reason_refs": [
+        "work/step-outputs/task-statement-70600589359b-node-work-attempt-1/step-output.json",
+        "observation:qa-repro-a-plus-b-silent-pass-vs-b-only-hold-0705",
+        "observation:qa-verified-production-landed-commit-706b5922-check-profile-outside-scope-0705"
+      ],
+      "related_boundary_refs": [
+        "brick-task-statement-70600589359b-node-work"
+      ]
+    },
+    "worktree_observation": {
+      "after_git_refs": {
+        "branch": "HEAD",
+        "head": "c466446baff9ade534c9c9e764932eb769e6b220"
+      },
+      "after_git_status_paths": [],
+      "after_path_count": 4913,
+      "before_git_refs": {
+        "branch": "HEAD",
+        "head": "c466446baff9ade534c9c9e764932eb769e6b220"
+      },
+      "before_git_status_paths": [],
+      "before_path_count": 4913,
+      "git_refs_moved": {},
+      "not_proven": [
+        "semantic correctness of file edits",
+        "complete diff attribution for pre-existing dirty paths"
+      ],
+      "observed_changed_files": [],
+      "proof_limits": [
+        "changed files are support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "write_scope": {
+        "allowed_paths": [
+          "."
+        ],
+        "forbidden_paths": [
+          ".git/**"
+        ]
+      }
+    }
+  },
+  "returned_fact_ref": "agent-fact:02:task-statement-70600589359b-node-code-attack-qa",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:task-statement-70600589359b-node",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:task-statement-70600589359b-node-code-attack-qa:attempt-1",
+  "step_ref": "task-statement-70600589359b-node-code-attack-qa",
+  "subject": "task-statement-70600589359b-node-code-attack-qa",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-07-04T23:49:16.218575Z",
+  "transition_concern_ref": "work/step-outputs/task-statement-70600589359b-node-code-attack-qa-attempt-1/transition-concern.json",
+  "type": "bp.step_output"
+}

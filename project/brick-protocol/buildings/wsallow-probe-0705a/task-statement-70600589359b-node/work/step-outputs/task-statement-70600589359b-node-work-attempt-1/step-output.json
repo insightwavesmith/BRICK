@@ -1,0 +1,174 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:task-statement-70600589359b-node::work/step-outputs/task-statement-70600589359b-node-work-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:dev",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-task-statement-70600589359b-node-work",
+  "building_id": "task-statement-70600589359b-node",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-07-04T23:43:33.016234Z",
+  "id": "urn:bp:building:task-statement-70600589359b-node::work/step-outputs/task-statement-70600589359b-node-work-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:task-statement-70600589359b-node-work",
+  "recorded_at": "2026-07-04T23:43:33.016234Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:dev",
+    "blocked_or_missing_evidence": [
+      "The named evidence directory project/brick-protocol/buildings/t1s2v4-bothgates-0704a is absent in this checkout, so I could not re-read its actual plan/diff.",
+      "The isolated reproduction rejected the narrow B-only hypothesis: B-only triggers fake_landing_write_scope_diff_absent. The reproduced pass path is A_plus_B: at least one allowed diff plus one non-forbidden outside diff."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "changed_files": [],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:task-statement-70600589359b-node",
+    "cli_version_text": "codex-cli 0.142.5",
+    "commands_run": [
+      "git status --short",
+      "sed -n '1,220p' BRICK-CONSTITUTION.md",
+      "sed -n '1,220p' agent/skills/scoped-implementation/SKILL.md",
+      "sed -n '1,220p' agent/skills/protocol-boundary-watch/SKILL.md",
+      "rg -n 'write_scope|allowed_paths|forbidden_paths|processed|diff|forbidden_diff|allowed' support/operator/walker_kernel.py support/operator/write_observation.py support/operator/run.py support/operator/building_operation.py support/operator/contracts.py support/operator/plan_validation.py",
+      "rg -n 'forbidden_paths_matched|observed_paths_outside_declared_scope|write_scope_forbidden_diff_present|outside_declared|scope' support brick -g '*.py' -g '*.yaml' -g '*.yml'",
+      "nl -ba support/operator/driver.py | sed -n '820,890p;1020,1090p;1128,1188p;1440,1495p;1530,1575p'",
+      "PYTHONPATH=support/import_identity python3 - <<'PY' ... isolated /tmp git reproduction for B_only, A_plus_B, A_plus_Z ... PY",
+      "git status --short"
+    ],
+    "evidence_refs": [
+      "support-packet:task-statement-70600589359b-node:agent-object:dev:output"
+    ],
+    "handoff_refs": [],
+    "made_changes": false,
+    "no_changes_reason": "Investigation-only Brick; repo source and project evidence were not modified.",
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "filesystem-enforced source_write/probe_write separation",
+      "Not proven that t1s2v4 had an allowed-path diff alongside support/checkers/check_profile.py, because its evidence root is absent here.",
+      "Repair candidate 1: add a driver post-completion predicate for any changed path outside allowed_paths, independent of whether an allowed path also changed; surface risk is new HOLD behavior for mixed allowed/outside diffs.",
+      "Repair candidate 2: route observed_paths_outside_declared_scope from worktree_observation into an explicit declared gate/comparison-required fact; surface risk is broader gate-contract change and checker/profile updates.",
+      "No source repair was implemented."
+    ],
+    "observed_evidence": [
+      "support/operator/write_observation.py:83 observes changed_files from before/after snapshots.",
+      "support/operator/write_observation.py:96 calls Brick comparison for write-scope buckets.",
+      "support/operator/write_observation.py:145 records comparison buckets into worktree_observation; it does not halt.",
+      "brick/comparison.py:81 defines both forbidden_paths_matched and observed_paths_outside_declared_scope.",
+      "brick/comparison.py:89 records forbidden path matches.",
+      "brick/comparison.py:91 records paths outside allowed_paths.",
+      "support/operator/walker_kernel.py:902 computes declared gate_sequence_policy from BrickComparisonFact; no default gate is created for outside-scope worktree_observation buckets.",
+      "support/operator/driver.py:945 post-completion driver checks forbidden diff first.",
+      "support/operator/driver.py:962 post-completion driver checks only no scoped diff after forbidden diff misses.",
+      "support/operator/driver.py:1050 returns fake-landing hold only when no changed path is allowed by any write_scope.",
+      "support/operator/driver.py:1082 returns forbidden hold when any changed path matches forbidden_paths.",
+      "support/operator/driver.py:1442 obtains processed sandbox diff via git status porcelain.",
+      "support/operator/driver.py:1449 treats forbidden matches as not allowed, then checks allowed_paths.",
+      "support/operator/driver.py:1481 checks forbidden_paths only.",
+      "Requested evidence root project/brick-protocol/buildings/t1s2v4-bothgates-0704a was not present in this worktree; rg found no t1s2v3/t1s2v4/bothgates paths."
+    ],
+    "output_excerpt": "{ \"received_work_ref\": \"support-packet:task-statement-70600589359b-node:agent-object:dev:input\", \"received_deliverables_echo\": [ \"D1: identify code coordinates for the write-scope enforcement asymmetry and explain the pass path.\", \"D2: run an isolated /tmp reproduction and report rc/disposition literally.\", \"D3: provide 1-2 repair candidates without implementing them.\" ], \"made_changes\": false, \"no_changes_reason\": \"Investigation-only Brick; repo source and project evidence were not modified.\", \"changed_files\": [], \"observed_evidence\": [ \"support/operator/write_observation.py:83 observes ch...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "workspace write is limited by Brick-declared write_scope"
+    ],
+    "received_deliverables_echo": [
+      "D1: identify code coordinates for the write-scope enforcement asymmetry and explain the pass path.",
+      "D2: run an isolated /tmp reproduction and report rc/disposition literally.",
+      "D3: provide 1-2 repair candidates without implementing them."
+    ],
+    "received_work_ref": "support-packet:task-statement-70600589359b-node:agent-object:dev:input",
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:codex-local",
+    "selected_model_ref": "model:codex:default",
+    "worktree_observation": {
+      "after_git_refs": {
+        "branch": "HEAD",
+        "head": "c466446baff9ade534c9c9e764932eb769e6b220"
+      },
+      "after_git_status_paths": [],
+      "after_path_count": 4913,
+      "before_git_refs": {
+        "branch": "HEAD",
+        "head": "c466446baff9ade534c9c9e764932eb769e6b220"
+      },
+      "before_git_status_paths": [],
+      "before_path_count": 4913,
+      "git_refs_moved": {},
+      "not_proven": [
+        "semantic correctness of file edits",
+        "complete diff attribution for pre-existing dirty paths"
+      ],
+      "observed_changed_files": [],
+      "proof_limits": [
+        "changed files are support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "write_scope": {
+        "allowed_paths": [
+          "."
+        ],
+        "forbidden_paths": [
+          ".git/**"
+        ]
+      }
+    }
+  },
+  "returned_fact_ref": "agent-fact:01:task-statement-70600589359b-node-work",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:task-statement-70600589359b-node",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:task-statement-70600589359b-node-work:attempt-1",
+  "step_ref": "task-statement-70600589359b-node-work",
+  "subject": "task-statement-70600589359b-node-work",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-07-04T23:43:33.016234Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

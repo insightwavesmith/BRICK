@@ -1,0 +1,12 @@
+# Movement · seq 37 · ["Link"]
+- adopted_transition_concern_refs: []
+- axis_scope: ["Link"]
+- declared_movement: "forward"
+- event_type: "Movement"
+- gate_review_event_ref: "sufficiency-fact-movement:04:task-statement-70600589359b-node-closure"
+- not_adopted_transition_concern_refs: []
+- run_segment: 1
+- sequence_index: 37
+- source_fact_ref: "movement-fact:04:task-statement-70600589359b-node-closure"
+- spine_schema_version: "spine-v1"
+- target_boundary_ref: "brick:building-boundary:closed"

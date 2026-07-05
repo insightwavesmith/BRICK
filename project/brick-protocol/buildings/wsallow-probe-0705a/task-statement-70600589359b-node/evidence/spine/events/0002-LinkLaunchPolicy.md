@@ -1,0 +1,14 @@
+# LinkLaunchPolicy · seq 2 · ["Link"]
+- axis_scope: ["Link"]
+- building_id: "task-statement-70600589359b-node"
+- declared_gate_refs: ["link-gate:default-transition"]
+- event_type: "LinkLaunchPolicy"
+- launch_rows: [{"declared_gate_refs":["link-gate:default-transition"],"declared_movement":"forward","edge_ref":"edge:task-statement-70600589359b-node-work-to-task-statement-70600589359b-node-code-attack-qa","route_replay_plan":{},"step_ref":"task-statement-70600589359b-node-work","target_boundary_ref":"brick-task-statement-70600589359b-node-code-attack-qa"},{"declared_gate_refs":["link-gate:default-transition"],"declared_movement":"forward","edge_ref":"edge:task-statement-70600589359b-node-work-to-task-statement-70600589359b-node-review","route_replay_plan":{},"step_ref":"task-statement-70600589359b-node-work","target_boundary_ref":"brick-task-statement-70600589359b-node-review"},{"declared_gate_refs":["link-gate:default-transition"],"declared_movement":"forward","edge_ref":"edge:task-statement-70600589359b-node-code-attack-qa-to-task-statement-70600589359b-node-closure","route_replay_plan":{},"step_ref":"task-statement-70600589359b-node-code-attack-qa","target_boundary_ref":"brick-task-statement-70600589359b-node-closure"},{"declared_gate_refs":["link-gate:default-transition"],"declared_movement":"forward","edge_ref":"edge:task-statement-70600589359b-node-review-to-task-statement-70600589359b-node-closure","route_replay_plan":{},"step_ref":"task-statement-70600589359b-node-review","target_boundary_ref":"brick-task-statement-70600589359b-node-closure"},{"declared_gate_refs":["link-gate:default-transition"],"declared_movement":"forward","edge_ref":"edge:task-statement-70600589359b-node-closure-to-boundary-closed","route_replay_plan":{},"step_ref":"task-statement-70600589359b-node-closure","target_boundary_ref":"building-boundary:closed"}]
+- max_attempts_by_boundary: {}
+- node_reroute_budgets: {"brick-task-statement-70600589359b-node-closure":5,"brick-task-statement-70600589359b-node-code-attack-qa":5,"brick-task-statement-70600589359b-node-review":5,"brick-task-statement-70600589359b-node-work":5}
+- plan_ref: "building-plan:composed-graph"
+- plan_shape: "graph"
+- run_segment: 1
+- selected_shape_ref: ""
+- sequence_index: 2
+- spine_schema_version: "spine-v1"

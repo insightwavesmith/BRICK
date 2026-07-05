@@ -1,0 +1,183 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:task-statement-70600589359b-node::work/step-outputs/task-statement-70600589359b-node-closure-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-task-statement-70600589359b-node-closure",
+  "building_id": "task-statement-70600589359b-node",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:04",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-07-04T23:49:50.041721Z",
+  "id": "urn:bp:building:task-statement-70600589359b-node::work/step-outputs/task-statement-70600589359b-node-closure-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:04:task-statement-70600589359b-node-closure",
+  "recorded_at": "2026-07-04T23:49:50.041721Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:coo",
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:codex-local:task-statement-70600589359b-node",
+    "cli_version_text": "codex-cli 0.142.5",
+    "deferred_smith_review_queue": [
+      "Choose whether the next declared work should be repair, rc-literal reproduction, broader audit, or no further work.",
+      "If repair is declared, choose preferred enforcement surface candidate: driver post-completion predicate or explicit Link gate policy wiring."
+    ],
+    "deliverable_crosscheck": [
+      {
+        "deliverable_ref": "D1",
+        "diff_artifact_refs": [],
+        "evidence_refs": [
+          "work/step-outputs/task-statement-70600589359b-node-review-attempt-1/step-output.json",
+          "work/step-outputs/task-statement-70600589359b-node-code-attack-qa-attempt-1/step-output.json",
+          "support/operator/driver.py",
+          "brick/comparison.py",
+          "support/operator/write_observation.py"
+        ],
+        "implementation_status": "not_applicable_read_only"
+      },
+      {
+        "deliverable_ref": "D2",
+        "diff_artifact_refs": [],
+        "evidence_refs": [
+          "work/step-outputs/task-statement-70600589359b-node-code-attack-qa-attempt-1/step-output.json",
+          "observation:A_plus_B_no_hold",
+          "observation:B_only_fake_landing_hold"
+        ],
+        "implementation_status": "not_applicable_read_only"
+      },
+      {
+        "deliverable_ref": "D3",
+        "diff_artifact_refs": [],
+        "evidence_refs": [
+          "work/step-outputs/task-statement-70600589359b-node-review-attempt-1/step-output.json",
+          "work/step-outputs/task-statement-70600589359b-node-code-attack-qa-attempt-1/step-output.json"
+        ],
+        "implementation_status": "not_applicable_read_only"
+      }
+    ],
+    "evidence_refs": [
+      "support-packet:task-statement-70600589359b-node:agent-object:coo:output"
+    ],
+    "narrowly_proven": [
+      "D1 is carried by two QA lanes: the enforcement asymmetry is located in support/operator/driver.py predicate/branch logic and in brick/comparison.py/write_observation.py recording-only comparison facts. A mixed diff containing at least one allowed path and at least one outside-allowed non-forbidden path is not caught by either current post-completion hold predicate.",
+      "D2 is carried at disposition level: the isolated A_plus_B reproduction did not trigger the hold predicates, while the B_only control did trigger the fake-landing hold predicate. The literal shell/process rc values are not present in the curated carried summaries.",
+      "D3 is carried: two repair candidates were named by the investigation and accepted by QA as in-scope investigation output: add a driver post-completion predicate for any path outside allowed_paths, or route observed_paths_outside_declared_scope into an explicit gate. No repair implementation was in scope.",
+      "The carried evidence supports investigation closure only: source mutation, project residue, and git commit were not part of the declared task and no source diff is claimed by this closure."
+    ],
+    "next_target_candidates": [
+      "repair-building:write-scope-outside-allowed-enforcement",
+      "verification-building:isolated-rc-literal-reproduction",
+      "audit-building:mixed-scope-landed-diff-search"
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Literal reproduction process return-code numbers for D2 are not present in the carried curated summaries; the disposition booleans and hold/no-hold outcomes are carried instead.",
+      "Whether the proposed repair candidates would close the gray zone without regressions is not proven because implementation and checker changes were outside this Building scope.",
+      "Whether other Buildings beyond the named evidence have landed similar mixed-scope diffs is not proven.",
+      "Provider behavior, credential validity, hook execution, future Building correctness, source truth, success judgment, quality judgment, and Movement authority are not proven."
+    ],
+    "observed_evidence": [
+      "Carried QA evidence from work/step-outputs/task-statement-70600589359b-node-review-attempt-1/step-output.json: QA-lead checked prior investigation against D1-D3, inspected brick/comparison.py, support/operator/write_observation.py, support/operator/driver.py, and found the mixed allowed+outside-non-forbidden pass path grounded in current code.",
+      "Carried attack-QA evidence from work/step-outputs/task-statement-70600589359b-node-code-attack-qa-attempt-1/step-output.json: QA independently re-derived the driver predicate behavior, built fresh isolated /tmp fixtures, and checked production Building evidence including t1s2v4-bothgates-0704a and commit 706b5922.",
+      "Code-coordinate evidence carried by both QA lanes: support/operator/driver.py post-completion gates check forbidden diff first and fake-landing/no-scoped-diff second; _write_need_complete_without_scoped_diff_for_plan returns true only when no changed path matches allowed_paths; _write_need_complete_with_forbidden_diff_for_plan returns true only for forbidden_paths matches.",
+      "Comparison evidence carried by both QA lanes: brick/comparison.py computes observed_paths_outside_declared_scope, and support/operator/write_observation.py records the bucket, but carried grep observations found no support/operator consumer that turns that bucket into a post-completion hold.",
+      "Reproduction evidence carried by attack-QA: A_plus_B fixture, with one allowed path plus one outside-allowed and non-forbidden path, produced _write_need_complete_without_scoped_diff_for_plan=False and _write_need_complete_with_forbidden_diff_for_plan=False, so no hold fired; B_only control produced fake-landing hold behavior.",
+      "Production evidence carried by attack-QA: commit 706b5922 for task-statement-b0eac2272663-node includes support/checkers/check_profile.py outside that Building's declared allowed_paths and outside forbidden_paths, with no forbidden/fake-landing hold record reported in the Building evidence tree."
+    ],
+    "output_excerpt": "{\"observed_evidence\":[\"Carried QA evidence from work/step-outputs/task-statement-70600589359b-node-review-attempt-1/step-output.json: QA-lead checked prior investigation against D1-D3, inspected brick/comparison.py, support/operator/write_observation.py, support/operator/driver.py, and found the mixed allowed+outside-non-forbidden pass path grounded in current code.\",\"Carried attack-QA evidence from work/step-outputs/task-statement-70600589359b-node-code-attack-qa-attempt-1/step-output.json: QA independently re-derived the driver predicate behavior, built fresh isolated /tmp fixtures, and c...",
+    "parent_goal_delta_status": {
+      "closed_delta_refs": [
+        "Investigation-only closure scope: D1 code coordinates and pass-path explanation carried.",
+        "Investigation-only closure scope: D2 reproduced/no-hold disposition carried, with rc-number limitation recorded under not_proven.",
+        "Investigation-only closure scope: D3 repair candidates carried."
+      ],
+      "evidence_refs": [
+        "work/step-outputs/task-statement-70600589359b-node-review-attempt-1/step-output.json",
+        "work/step-outputs/task-statement-70600589359b-node-code-attack-qa-attempt-1/step-output.json"
+      ],
+      "matched_delta_refs": [
+        "D1 matched by carried review and attack-QA evidence over support/operator/driver.py, brick/comparison.py, and support/operator/write_observation.py.",
+        "D2 matched for reproduced disposition by carried attack-QA isolated fixture observations and B_only control.",
+        "D3 matched by carried investigation/QA acceptance of two repair candidates with no implementation."
+      ],
+      "missing_delta_refs": [
+        "Literal process rc values for the isolated reproduction are not present in the carried curated summaries."
+      ],
+      "open_delta_refs": [
+        "Repair implementation remains undeclared future work.",
+        "Checker/profile mutation for any repair remains undeclared future work."
+      ],
+      "unknown_delta_refs": [
+        "Whether the gray-zone pass behavior was an intentional design trade or unintended side effect remains unknown from carried evidence.",
+        "Whether additional Buildings beyond the named examples contain similar landed diffs remains unknown."
+      ]
+    },
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "remaining_delta": [
+      "If Smith/COO declares a repair Building, candidate work is to decide whether enforcement belongs in driver post-completion logic or a declared Link gate sequence, then add the companion checker/probe required by the write-scope invariant.",
+      "If literal rc values are required as evidence rather than disposition observations, a new bounded reproduction Brick can rerun the isolated fixture and return explicit rc fields.",
+      "If production blast-radius evidence is needed, a separate read-only audit Brick can search additional Building evidence for mixed allowed/outside-scope landed diffs."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:codex-local",
+    "selected_model_ref": "model:codex:default",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:04:task-statement-70600589359b-node-closure",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:task-statement-70600589359b-node",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:task-statement-70600589359b-node-closure:attempt-1",
+  "step_ref": "task-statement-70600589359b-node-closure",
+  "subject": "task-statement-70600589359b-node-closure",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-07-04T23:49:50.041721Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

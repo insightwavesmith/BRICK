@@ -1,0 +1,12 @@
+# Movement · seq 28 · ["Link"]
+- adopted_transition_concern_refs: []
+- axis_scope: ["Link"]
+- declared_movement: "forward"
+- event_type: "Movement"
+- gate_review_event_ref: "sufficiency-fact-movement:03:task-statement-70600589359b-node-review"
+- not_adopted_transition_concern_refs: []
+- run_segment: 1
+- sequence_index: 28
+- source_fact_ref: "movement-fact:03:task-statement-70600589359b-node-review"
+- spine_schema_version: "spine-v1"
+- target_boundary_ref: "brick:brick-task-statement-70600589359b-node-closure"

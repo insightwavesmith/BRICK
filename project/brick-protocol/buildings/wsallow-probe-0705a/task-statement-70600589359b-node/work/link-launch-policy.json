@@ -1,0 +1,91 @@
+{
+  "building_id": "task-statement-70600589359b-node",
+  "declared_gate_refs": [
+    "link-gate:default-transition"
+  ],
+  "kind": "link_launch_policy_provenance",
+  "launch_rows": [
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:task-statement-70600589359b-node-work-to-task-statement-70600589359b-node-code-attack-qa",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "task-statement-70600589359b-node-work",
+      "target_ref": "brick-task-statement-70600589359b-node-code-attack-qa"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:task-statement-70600589359b-node-work-to-task-statement-70600589359b-node-review",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "task-statement-70600589359b-node-work",
+      "target_ref": "brick-task-statement-70600589359b-node-review"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:task-statement-70600589359b-node-code-attack-qa-to-task-statement-70600589359b-node-closure",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "task-statement-70600589359b-node-code-attack-qa",
+      "target_ref": "brick-task-statement-70600589359b-node-closure"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:task-statement-70600589359b-node-review-to-task-statement-70600589359b-node-closure",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "task-statement-70600589359b-node-review",
+      "target_ref": "brick-task-statement-70600589359b-node-closure"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:task-statement-70600589359b-node-closure-to-boundary-closed",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "task-statement-70600589359b-node-closure",
+      "target_ref": "building-boundary:closed"
+    }
+  ],
+  "max_attempts_by_boundary": {},
+  "node_reroute_budgets": {
+    "brick-task-statement-70600589359b-node-closure": 5,
+    "brick-task-statement-70600589359b-node-code-attack-qa": 5,
+    "brick-task-statement-70600589359b-node-review": 5,
+    "brick-task-statement-70600589359b-node-work": 5
+  },
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "plan_ref": "building-plan:composed-graph",
+  "plan_shape": "graph",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "support evidence only",
+    "P3 records launch parameters only; P4 owns Carry budget evidence"
+  ],
+  "selected_shape_ref": ""
+}

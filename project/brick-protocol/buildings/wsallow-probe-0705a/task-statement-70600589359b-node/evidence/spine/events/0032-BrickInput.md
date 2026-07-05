@@ -1,0 +1,11 @@
+# BrickInput · seq 32 · ["Brick"]
+- axis_scope: ["Brick"]
+- brick_instance_ref: "brick-task-statement-70600589359b-node-closure"
+- comparison_rule: "Closure Brick records evidence, narrowly_proven, not_proven, remaining_delta, and next candidate movement."
+- event_type: "BrickInput"
+- required_return_shape: "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence,deliverable_crosscheck"
+- run_segment: 1
+- sequence_index: 32
+- spine_schema_version: "spine-v1"
+- step_ref: "task-statement-70600589359b-node-closure"
+- work_statement: "deliverable_crosscheck D1~D3 전수. 기각도 DONE. 종료선 밖 다듬기 금지. concern 저작 시 related_boundary_refs는 bare `brick-...` 형식만(구형 `brick:` 금지). reason_refs는 스텝 주소나 `observation:...` 토큰만. # 조사 — write_scope allowed_paths 소극 집행 재현·좌표 특정 (무수정 조사)\n\n**실측 2회(0705): t1s2v3·t1s2v4 빌딩 모두 allowed_paths에 없는 support/checkers/check_profile.py diff가 walker를 통과해 랜딩됐다(내용은 정당한 등재 4줄 — 문제는 통과 자체). forbidden_paths 위반은 write_scope_forbidden_diff_present 홀드로 잡는 걸 실측해왔으나, allowed 밖-forbidden 밖 회색지대는 안 잡는 것으로 보인다. 이 조사 = 그 가설의 코드 좌표 확정 + 격리 재현. **소스 무수정 — 조사만.**\n\n## 좌표\n- 증거: project/brick-protocol/buildings/t1s2v4-bothgates-0704a (allowed 5경로에 check_profile.py 부재, diff엔 존재 — merge-base 대조로 재확인 가능).\n- 코드: walker의 write-scope 집행부(support/operator/walker_kernel.py 근방 — 정독으로 특정)와 processed diff 검사 경로. forbidden 검사와 allowed 검사의 비대칭을 file:line으로.\n- 격리 재현: /tmp 사본 픽스처에서 allowed=[A]인 발주가 B(비-forbidden)를 쓰면 어떤 처분이 나는지 실행 리터럴로(붙잡히면 가설 기각 — 그것도 정직 보고).\n\n## Deliverables (번호)\nD1: 집행 비대칭의 코드 좌표(file:line) + 통과 경로 설명.\nD2: 격리 재현 리터럴(rc·처분) — 재현 또는 기각.\nD3: 수리 후보 1~2안(표면·위험 — 시공은 범위 밖).\n\n종료선: D1~D3 전수면 DONE — 수리 시공 금지(조사만).\n\n## Hard constraints (law)\n리포 소스 무수정(실험은 /tmp 사본) / project/ 잔해 금지 / git commit 시도 금지. concern 저작 시 related_boundary_refs는 bare `brick-...` 형식만(구형 `brick:` 금지). reason_refs는 스텝 주소나 `observation:...` 토큰만."

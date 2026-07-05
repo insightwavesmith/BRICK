@@ -1,0 +1,12 @@
+# AgentBinding · seq 33 · ["Agent"]
+- agent_object_ref: "agent-object:coo"
+- agent_performer_ref: "agent-performer:agent-object:coo"
+- axis_scope: ["Agent"]
+- binding_role: "primary"
+- brick_instance_ref: "brick-task-statement-70600589359b-node-closure"
+- event_type: "AgentBinding"
+- run_segment: 1
+- sequence_index: 33
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/task-statement-70600589359b-node-closure-attempt-1/step-output.json"
+- step_ref: "task-statement-70600589359b-node-closure"

@@ -1,0 +1,13 @@
+# AgentReturn · seq 35 · ["Agent"]
+- agent_object_ref: "agent-object:coo"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-task-statement-70600589359b-node-closure"
+- event_type: "AgentReturn"
+- observed_fields: ["received_work","returned"]
+- returned_fact_ref: "agent-fact:04:task-statement-70600589359b-node-closure"
+- route_request_ref: ""
+- run_segment: 1
+- sequence_index: 35
+- spine_schema_version: "spine-v1"
+- step_output_ref: "step-output:task-statement-70600589359b-node-closure:attempt-1"
+- step_ref: "task-statement-70600589359b-node-closure"
