@@ -41,6 +41,7 @@ from support.recording.declaration_packets import (  # noqa: E402
     write_declared_plan_revision,
 )
 from support.operator.plan_expansion import assemble_expanded_graph_plan  # noqa: E402
+from support.operator.gate_sequence import gate_sequence_decision_from_record  # noqa: E402
 
 
 PROJECT_ROOT = "project"
@@ -249,11 +250,12 @@ def _write_base(root: Path, plan: Mapping[str, Any] | None = None) -> None:
 def _write_approval(
     root: Path,
     *,
+    approval_evidence_ref: str = "approval:fixture",
     hold_class: str = "human_or_coo_gate_pause",
     hold_paused_at_ref: str = "hold:fixture",
 ) -> None:
     row = {
-        "approval_evidence_ref": "approval:fixture",
+        "approval_evidence_ref": approval_evidence_ref,
         "gate_ref": "link-gate:expansion-approval",
         "hold_class": hold_class,
         "hold_paused_at_ref": hold_paused_at_ref,
@@ -282,6 +284,46 @@ def _write_corrupt_revision(root: Path, number: int, packet: Mapping[str, Any]) 
     body["extends_plan_hash"] = hashlib.sha256(b"broken-latest").hexdigest()
     path.write_text(_canonical_json_text(body), encoding="utf-8")
     return path
+
+
+def _write_revision_packet(root: Path, number: int, packet: Mapping[str, Any]) -> Path:
+    path = root / "work" / f"declared-building-plan.rev-{number}.json"
+    path.write_text(_canonical_json_text(packet), encoding="utf-8")
+    return path
+
+
+def _revision_packet(
+    *,
+    building_id: str,
+    plan_ref: str,
+    plan: Mapping[str, Any],
+    extends_plan_hash: str,
+    expansion_node_budgets: Mapping[str, int] | None = None,
+    approval_evidence_ref: str = "approval:fixture",
+    approval_hold_ref: str = "hold:fixture",
+) -> dict[str, Any]:
+    return {
+        "kind": "declared_building_plan_provenance",
+        "building_id": building_id,
+        "plan_ref": plan_ref,
+        "plan_hash": _declared_plan_hash(plan),
+        "plan_hash_algorithm": "sha256",
+        "plan_hash_basis": (
+            "canonical sorted-key JSON of the pure declared-building-plan copy "
+            "(runtime walker state excluded)"
+        ),
+        "declared_plan_copy": dict(plan),
+        "extends_plan_hash": extends_plan_hash,
+        "extends_plan_hash_algorithm": "sha256",
+        "extends_plan_hash_basis": (
+            "canonical sorted-key JSON of the pure declared-building-plan copy "
+            "(runtime walker state excluded)"
+        ),
+        "expansion_fragment": {},
+        "expansion_node_budgets": dict(expansion_node_budgets or {}),
+        "approval_evidence_ref": approval_evidence_ref,
+        "approval_hold_ref": approval_hold_ref,
+    }
 
 
 def _exclusive_write_durability_probes(tmp: Path) -> list[str]:
@@ -411,6 +453,26 @@ def run_fixture_probes() -> list[str]:
         if not _strict_revision_chain_errors(root):
             violations.append("RED broken-latest probe was not visible to strict checker validation")
 
+        root = _fixture_root(tmp / "forged-valid-hash-changed-existing-node")
+        changed = _expanded_plan()
+        changed["brick_steps"][0]["rows"][0]["row_ref"] = "brick-row:forged"
+        _write_revision_packet(
+            root,
+            1,
+            _revision_packet(
+                building_id="fixture-building",
+                plan_ref="fixture-plan",
+                plan=changed,
+                extends_plan_hash=_declared_plan_hash(_base_plan()),
+                expansion_node_budgets={"brick-b": 1},
+            ),
+        )
+        forged_latest = latest_valid_declared_plan(root)
+        if forged_latest.get("brick_steps", [])[-1].get("step_ref") != "brick-a":
+            violations.append(
+                "RED forged valid-hash reader probe did not reject changed existing node"
+            )
+
         root = _fixture_root(tmp / "torn-litter-budget")
         _write_corrupt_revision(
             root,
@@ -496,12 +558,45 @@ def run_fixture_probes() -> list[str]:
             violations,
         )
 
+        root = _fixture_root(tmp / "same-hold-new-approval-reuse")
+        base_with_budget = _base_plan_with_budget(2)
+        _write_base(root, base_with_budget)
+        first_expansion = _expanded_plan_with_next_step(base_with_budget, "brick-b")
+        write_declared_plan_revision(
+            root,
+            first_expansion,
+            _metadata(base_with_budget, step_ref="brick-b"),
+            "approval:fixture",
+        )
+        _write_approval(root, approval_evidence_ref="approval:second")
+        second_expansion = _expanded_plan_with_next_step(first_expansion, "brick-c")
+        _expect_reject(
+            "same hold identity reuse with a new approval evidence ref",
+            lambda: write_declared_plan_revision(
+                root,
+                second_expansion,
+                _metadata(first_expansion, step_ref="brick-c"),
+                "approval:second",
+            ),
+            violations,
+        )
+
         root = _fixture_root(tmp / "budget-exhausted")
         base = _base_plan()
         base["expansion_budget"] = 0
         _write_base(root, base)
         _expect_reject(
             "expansion_budget exhausted",
+            lambda: write_declared_plan_revision(root, _expanded_plan(), _metadata(base), "approval:fixture"),
+            violations,
+        )
+
+        root = _fixture_root(tmp / "bool-base-budget")
+        base = _base_plan()
+        base["expansion_budget"] = True
+        _write_base(root, base)
+        _expect_reject(
+            "bool base expansion_budget",
             lambda: write_declared_plan_revision(root, _expanded_plan(), _metadata(base), "approval:fixture"),
             violations,
         )
@@ -540,6 +635,34 @@ def run_fixture_probes() -> list[str]:
         _expect_reject(
             "hold class whitelist",
             lambda: write_declared_plan_revision(root, _expanded_plan(), _metadata(), "approval:fixture"),
+            violations,
+        )
+
+        _expect_reject(
+            "gate sequence replay record sideways top-level action",
+            lambda: gate_sequence_decision_from_record(
+                {
+                    "action": "sideways",
+                    "gate_results": [],
+                    "gate_action_sequence": [],
+                }
+            ),
+            violations,
+        )
+        _expect_reject(
+            "gate sequence replay record sideways sequence action",
+            lambda: gate_sequence_decision_from_record(
+                {
+                    "action": "hold",
+                    "gate_results": [],
+                    "gate_action_sequence": [
+                        {
+                            "gate_ref": "link-gate:strict",
+                            "action": "sideways",
+                        }
+                    ],
+                }
+            ),
             violations,
         )
 

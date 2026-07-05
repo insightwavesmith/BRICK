@@ -349,6 +349,7 @@ def write_declared_plan_revision(
         "expansion_fragment": expansion_fragment,
         "expansion_node_budgets": expansion_node_budgets,
         "approval_evidence_ref": approval_evidence_ref,
+        "approval_hold_ref": _approval_hold_identity(expansion_metadata),
         "proof_limits": list(_DECLARATION_PROOF_LIMITS),
         "not_proven": [
             "declared plan semantic correctness",
@@ -378,23 +379,32 @@ def latest_valid_declared_plan_packet(root: Path | str) -> Mapping[str, Any]:
     work_dir = Path(root) / "work"
     base_packet = _load_declared_plan_packet(work_dir / "declared-building-plan.json")
     packets = [base_packet]
+    base_plan = _declared_plan_from_packet(base_packet)
     expected_parent_hash = str(base_packet.get("plan_hash") or "")
+    previous_plan = base_plan
     for rev_path in _revision_paths(work_dir):
         try:
             packet = _load_declared_plan_packet(rev_path)
         except ValueError as exc:
             _record_declared_plan_revision_hold(work_dir, rev_path, expected_parent_hash, str(exc))
             continue
-        observed_parent_hash = str(packet.get("extends_plan_hash") or "")
-        if observed_parent_hash != expected_parent_hash:
+        try:
+            revision_plan = _verify_revision_packet_against_parent(
+                packet=packet,
+                base_plan=base_plan,
+                previous_plan=previous_plan,
+                expected_parent_hash=expected_parent_hash,
+            )
+        except ValueError as exc:
             _record_declared_plan_revision_hold(
                 work_dir,
                 rev_path,
                 expected_parent_hash,
-                "extends_plan_hash does not match the previous valid plan_hash",
+                str(exc),
             )
             continue
         packets.append(packet)
+        previous_plan = revision_plan
         expected_parent_hash = str(packet.get("plan_hash") or "")
     return packets[-1]
 
@@ -719,17 +729,27 @@ def _verify_approval_record(
                 f"{approval_path}:{index}: approval row hold identity must echo "
                 "expansion_metadata.hold_paused_at_ref"
             )
-        _verify_approval_not_consumed(building_root, ref)
+        _verify_approval_not_consumed(building_root, ref, expected_hold_ref)
         return
     raise ValueError(f"approval_evidence_ref {ref!r} was not found in work/expansion-approvals.jsonl")
 
 
-def _verify_approval_not_consumed(building_root: Path, approval_evidence_ref: str) -> None:
+def _verify_approval_not_consumed(
+    building_root: Path,
+    approval_evidence_ref: str,
+    approval_hold_ref: str | None = None,
+) -> None:
     for packet in _valid_revision_chain_packets(building_root)[1:]:
         prior_ref = _optional_text_or_none(packet.get("approval_evidence_ref"))
         if prior_ref == approval_evidence_ref:
             raise ValueError(
                 f"approval_evidence_ref {approval_evidence_ref!r} already authorized "
+                "a declared plan revision"
+            )
+        prior_hold_ref = _optional_text_or_none(packet.get("approval_hold_ref"))
+        if approval_hold_ref and prior_hold_ref == approval_hold_ref:
+            raise ValueError(
+                f"approval_hold_ref {approval_hold_ref!r} already authorized "
                 "a declared plan revision"
             )
 
@@ -753,7 +773,7 @@ def _approval_row_hold_identity(row: Mapping[str, Any]) -> str | None:
 
 def _verify_expansion_budget_available(base_plan: Mapping[str, Any], building_root: Path) -> None:
     budget = base_plan.get("expansion_budget", 0)
-    if not isinstance(budget, int) or budget <= 0:
+    if isinstance(budget, bool) or not isinstance(budget, int) or budget <= 0:
         raise ValueError("base declared plan expansion_budget must be a positive integer")
     used = max(0, len(_valid_revision_chain_packets(building_root)) - 1)
     if used >= budget:
@@ -1429,17 +1449,54 @@ def _valid_revision_chain_packets(root: Path | str) -> tuple[Mapping[str, Any], 
     work_dir = Path(root) / "work"
     base_packet = _load_declared_plan_packet(work_dir / "declared-building-plan.json")
     packets: list[Mapping[str, Any]] = [base_packet]
+    base_plan = _declared_plan_from_packet(base_packet)
     expected_parent_hash = str(base_packet.get("plan_hash") or "")
+    previous_plan = base_plan
     for rev_path in _revision_paths(work_dir):
         try:
             packet = _load_declared_plan_packet(rev_path)
         except ValueError:
             continue
-        if str(packet.get("extends_plan_hash") or "") != expected_parent_hash:
+        try:
+            previous_plan = _verify_revision_packet_against_parent(
+                packet=packet,
+                base_plan=base_plan,
+                previous_plan=previous_plan,
+                expected_parent_hash=expected_parent_hash,
+            )
+        except ValueError:
             continue
         packets.append(packet)
         expected_parent_hash = str(packet.get("plan_hash") or "")
     return tuple(packets)
+
+
+def _verify_revision_packet_against_parent(
+    *,
+    packet: Mapping[str, Any],
+    base_plan: Mapping[str, Any],
+    previous_plan: Mapping[str, Any],
+    expected_parent_hash: str,
+) -> Mapping[str, Any]:
+    observed_parent_hash = str(packet.get("extends_plan_hash") or "")
+    if observed_parent_hash != expected_parent_hash:
+        raise ValueError("extends_plan_hash does not match the previous valid plan_hash")
+    plan = packet.get("declared_plan_copy")
+    if not isinstance(plan, Mapping):
+        raise ValueError("declared_plan_copy is not a JSON object")
+    revision_plan = _json_ready(plan)
+    expansion_node_budgets = _positive_int_mapping(
+        "expansion_node_budgets",
+        packet.get("expansion_node_budgets"),
+    )
+    _verify_add_only_revision(previous_plan, revision_plan)
+    _verify_immutable_budget_fields(base_plan, previous_plan, revision_plan)
+    _verify_expansion_node_budgets(
+        previous_plan,
+        revision_plan,
+        expansion_node_budgets=expansion_node_budgets,
+    )
+    return revision_plan
 
 
 def _record_declared_plan_revision_hold(
