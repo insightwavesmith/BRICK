@@ -247,7 +247,7 @@ Movement 2종/lifecycle 어휘 구분 훼손). 비준·배치는 Smith.
 
 | id | 주장(종합보고 신규) | 조사자 검증 | 처분 |
 |---|---|---|---|
-| P7 | `check_profile --all`이 hermetic 무료 초록불이 아님 — 무-provider 환경 rc=1(gemini-local CLI 부재), core rc=0 | 기전 로컬 확인: `brick verify` 무인자=--all(cli.py:623), gemini 체커 sweep 가드보다 CLI 부재 에러 선행 가능. rc 실측 자체는 지피티 환경 산출(로컬은 CLI 보유로 재현 불가) — fresh 환경 실측은 묶음9 종료선에서 | **묶음9 신설**(free-green 계층화) — **Smith 게이트**(헌법 성공판정 ③ "brick verify exit 0" 의미 변경 + 온보딩 무료 초록불 단일화와 합류) |
+| P7 | `check_profile --all`이 hermetic 무료 초록불이 아님 — 무-provider 환경 rc=1(gemini-local CLI 부재), core rc=0 | 기전 로컬 확인: `brick verify` 무인자=--all(cli.py:623), gemini 체커 sweep 가드보다 CLI 부재 에러 선행 가능. rc 실측 자체는 지피티 환경 산출(로컬은 CLI 보유로 재현 불가) — fresh 환경 실측은 묶음9 종료선에서 | **묶음9 신설**(free-green 계층화) — Smith 게이트였으나 **0705 오후 승인 완료(발주 가능)**; 헌법 성공판정 ③도 같은 날 계층화 기준으로 개정됨 |
 | P8 | non-editable wheel 패키징 파손 — pyproject packages 수동 목록에 support.operator/checkers/connection 누락, 콘솔 스크립트는 support.operator.cli | ✅ **조사자 실행 확정**: uv build --wheel 산출물 검사 — support/operator·checkers·connection **0파일**(recording 23·brick 5만 포함) | **묶음10 신설**(packages 확장 + wheel smoke 체커, release_gate 동승) — 릴리스 경로 전용(현 pipx --editable 고객 경로 무사고) |
 | P11 | pending gate consumer가 구조 부채화 — 재배선 방향 확정 시 미구현 게이트 소비면이 커짐 | ✅ enforcement-ledger.yaml:13-22 gate_pending 4건 실물(closure 완료 게이트 ×2 · adopted-reroute 재파견 텍스트 · re_instruction 종료선) | **묶음11 신설(조건부)** — 착수 조건 = 묶음2 랜딩(관찰→게이트 소비 배선 선례 동형) |
 | P10 | raw/link 파서 규율 분열(driver skip vs resume strict) | 기존 S12-WR-008과 동일건 | 백로그 유지(신규 아님) |

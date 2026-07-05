@@ -1,11 +1,10 @@
-# BRICK 헌법 (0702 Smith 비준)
+# BRICK 헌법 (0702 Smith 비준 · 0705 개정)
 
 한 화면 상설법이자 **법의 단일 출처**. 원칙(비준 조건): **변화하지 않는 규칙만 담는다** —
 상태·절차·임시규칙은 스킬과 상태문서 몫이다. 개정은 날짜와 함께 이 파일에서만.
-원 출처(법 조문은 이제 역사 기록): Global Operating Rules =
-`brick-6-surface-audit-repair-goal-0630.md`, 3축·판정 = `customer-ready-goal-phases-0629.md`.
-비준 확인(Smith 0702): compose_building=엔진 / assemble·build·fan=운영자 포장 구도 맞음,
---graph 제거 맞음.
+개정 기록(0705 Smith 비준): Rules 11–13 추가(외부 감사 S17 — 근거·문안 심사는
+`constitution-amendment-draft-0705.md`), 구 원출처·0702 비준확인 역사 문단 삭제(역사는
+상태문서/archive 몫), 성공판정 ③을 verify 계층화 기준으로 갱신.
 
 ## 3축
 
@@ -15,7 +14,7 @@
 - **support는 사실만 기록하고 아무것도 판단하지 않는다.** 충분성+Movement 판단 = Link 게이트.
   품질+성공 판단 = 사람.
 
-## 운영 법 (Rules 1–10, 현행 상태)
+## 운영 법 (Rules 1–13, 현행 상태)
 
 1. COO 토큰은 운영·판단·그래프 선언·3축 귀속·HOLD/reroute 후보 추론·증거 종합에 쓴다.
 2. 구현은 선언된 빌딩이 공식 `build()` / `brick build` 경로로만 한다 (골/페이즈 문서 작성 제외).
@@ -29,8 +28,14 @@
    런타임 발견은 실패다). 배선 진행 상태는 법이 아니므로 여기 없다 — 상태문서(GP) 참조.
 9. `compose_building()`이 엔진이며 **영구 정본**이다 (0701 확정 — 2차 생산자 금지의 적용례).
 10. 공식 authoring/launch interface는 `assemble()`/`build()`/`fan()` DSL이다.
-    손-작성 `graph_packet` JSON CLI(`--graph`)는 **retired 완결** (0702 — sibling_independence·
-    node_write_scope 두 blocker 해소 후 플래그 제거).
+    손-작성 `graph_packet` JSON CLI(`--graph`)는 **retired 완결**(0702).
+11. 같은 durable contract를 쓰는 writer와 읽는 reader는 **같은 검증 규칙을 공유**해야 한다.
+    reader가 더 엄격하게 거부할 값은 writer가 persistence 전에 먼저 거부해야 한다. (0705)
+12. Movement, graph expansion, route replay, evidence attempt index 등 **유한 예산·횟수 값은
+    명시적 positive integer**여야 한다. boolean은 어떤 경우에도 budget integer가 아니다. (0705)
+13. durable evidence와 Agent prompt는 stable repo-relative/evidence-relative ref로 충분한
+    경우 **absolute local path, username-bearing path, 세션 임시 식별자**(영구 evidence ref가
+    아닌 것)를 싣지 않는다. (0705)
 
 ## 뭔가 잘못됐을 때 — 진단 5단 (축 우선, 모듈 아님)
 
@@ -44,8 +49,9 @@
 
 성공은 **측정되는 것이지 주장되는 것이 아니다.** 전부 충족 시에만 PASS:
 ① `check_profile.py --all` GREEN, REAL HOME ② PASS 기준 end-to-end 충족(슬라이스 주장 불인정)
-③ 빌딩은 `frontier_kind=complete` 또는 `brick verify` exit 0 — `brick build` 종료코드는
-판정이 아니다 ④ COO가 적대적 자가검증 후 forward 처분. 기록/감사 커밋은 증명이 아니다.
+③ 빌딩은 `frontier_kind=complete` 또는 개발자 전체 스윕 `brick verify` green(계층화 랜딩
+후에는 `--all`) — 고객용 축약 verify green과 `brick build` 종료코드는 판정이 아니다
+④ COO가 적대적 자가검증 후 forward 처분. 기록/감사 커밋은 증명이 아니다.
 
 ## 검증 신조
 

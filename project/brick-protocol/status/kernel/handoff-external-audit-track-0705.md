@@ -12,7 +12,9 @@ brick-coo-operating-rules.md 그대로: 조사자는 감사 수신·교차검증
 운전은 형제의 bundle5+bundle1잔여 랜딩 대기 중. 남은 것 = 형제 시공 + §5 예약 후속.
 0705 오후: 지피티 종합보고 수신 — **실행 순서 정본 = external-audit-repair-phases-0705.md**
 (페이즈 1~5, 신설 묶음9 free-green·묶음10 wheel·묶음11 gate-consumer 포함). 트랙 복원은
-이제 이 문서 + orders + phases 세 개.
+이제 이 문서 + orders + phases 세 개(+2차 웨이브는 aplus-wave-plan-0705.md).
+0705 오후 Smith 결정 3건 처리: 헌법 Rules 11~13 비준·개정 반영(+역사 문단 삭제) /
+묶음9 verify 계층화 승인 / A+ 2차 웨이브 채택(착수 게이트 = Phase 1·묶음2 랜딩 + T10 운전).
 
 ## 1. 운영 루프 (불변 — 이 규율로 계속)
 
