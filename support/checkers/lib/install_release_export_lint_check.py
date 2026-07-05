@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import re
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -405,24 +406,79 @@ def _wheel_path_counts(wheel_path: Path) -> dict[str, int]:
     }
 
 
+# Directory / file names the wheel build must never seed from or write into.
+# The smoke builds from an ISOLATED copy of the source tree (not the repo
+# working tree itself) for two reasons:
+#   (1) a stale in-tree setuptools ``build/`` intermediate (or ``*.egg-info``)
+#       left by a previous build would otherwise be reused and leak files into
+#       the wheel, MASKING a pyproject packages-list regression (0706: removing
+#       "brick_protocol.support.operator" from packages still shipped 68
+#       operator files while a stale build/lib was present);
+#   (2) building in-tree writes a ``build/`` residue into the repo, and this
+#       checker must stay read-only over the repo working tree.
+# The skipped names are VCS / build / cache / env artifacts plus ``project``
+# (the local evidence vessel already excluded from release_export); none is a
+# declared wheel package source, so excluding them cannot change the declared
+# wheel contents -- it only removes stale/irrelevant trees before the build.
+_WHEEL_SMOKE_COPY_IGNORE_NAMES = frozenset(
+    {
+        ".git",
+        "build",
+        "dist",
+        "__pycache__",
+        ".venv",
+        "node_modules",
+        ".pytest_cache",
+        ".ruff_cache",
+        ".mypy_cache",
+        "project",
+        ".DS_Store",
+    }
+)
+
+
+def _wheel_smoke_copy_ignore(_directory: str, names: list[str]) -> list[str]:
+    return [
+        name
+        for name in names
+        if name in _WHEEL_SMOKE_COPY_IGNORE_NAMES
+        or name.endswith(".egg-info")
+        or name.endswith(".pyc")
+    ]
+
+
 def run_wheel_smoke(repo: Path) -> KernelResult:
     """Build a wheel and smoke the shipped console entry from an isolated venv.
 
-    The smoke uses a temp dist directory and installs the built local wheel with
-    ``--no-index --no-deps`` so it observes the release artifact's own package
-    contents without reaching a remote index for declared runtime dependencies.
-    Missing build backend / offline build setup is reported as an environment
-    observation before a wheel exists; malformed wheel contents or console import
-    failure after a wheel exists are RED.
+    The wheel is built from an ISOLATED copy of the source tree (see
+    ``_WHEEL_SMOKE_COPY_IGNORE_NAMES``): the copy omits any stale in-tree
+    ``build/`` intermediate, so a leftover setuptools build cannot seed the
+    wheel and mask a pyproject packages-list regression, and the build writes no
+    ``build/`` residue into the repo working tree. The smoke then installs the
+    built local wheel into a temp venv with ``--no-index --no-deps`` so it
+    observes the release artifact's own package contents without reaching a
+    remote index for declared runtime dependencies. Missing build backend /
+    offline build setup is reported as an environment observation before a wheel
+    exists; malformed wheel contents or console import failure after a wheel
+    exists are RED.
     """
 
-    with tempfile.TemporaryDirectory(prefix="bp-wheel-smoke-dist-") as dist_raw, \
+    with tempfile.TemporaryDirectory(prefix="bp-wheel-smoke-src-") as src_raw, \
+            tempfile.TemporaryDirectory(prefix="bp-wheel-smoke-dist-") as dist_raw, \
             tempfile.TemporaryDirectory(prefix="bp-wheel-smoke-venv-") as venv_raw:
+        build_root = Path(src_raw) / "tree"
+        shutil.copytree(
+            repo,
+            build_root,
+            ignore=_wheel_smoke_copy_ignore,
+            symlinks=False,
+            ignore_dangling_symlinks=True,
+        )
         dist_dir = Path(dist_raw)
         venv_dir = Path(venv_raw)
         build = subprocess.run(
             ["uv", "build", "--wheel", "--out-dir", str(dist_dir)],
-            cwd=repo,
+            cwd=build_root,
             env=_without_repo_pythonpath(),
             text=True,
             stdout=subprocess.PIPE,
@@ -519,7 +575,9 @@ def run_wheel_smoke(repo: Path) -> KernelResult:
             check_id="wheel_smoke",
             inspected=4,
             output=(
-                "wheel smoke passed: uv build --wheel wrote one temp wheel, "
+                "wheel smoke passed: uv build --wheel built from an isolated "
+                "source copy (no stale in-tree build/ seed, no repo build/ "
+                "residue) and wrote one temp wheel, "
                 f"wheel contents included operator={counts['operator']}, "
                 f"checkers={counts['checkers']}, connection={counts['connection']}, "
                 "a temp venv installed the local wheel with --no-index --no-deps, "
@@ -561,6 +619,7 @@ def run_release_gate_contract(repo: Path) -> KernelResult:
         "uv run python3 support/checkers/check_profile.py --all",
         "uv run brick verify --self-test",
         "printf '%s\\n' \"4) wheel smoke: build wheel and verify installed brick console entry\"",
+        "rm -rf \"$repo_root/build\"",
         "( cd \"$repo_root\" && PYTHONPATH= uv build --wheel --out-dir \"$wheel_dist\" )",
         "PYTHONPATH= python3 -m venv \"$wheel_venv\"",
         "PYTHONPATH= \"$wheel_venv/bin/pip\" install --no-index --no-deps \"$wheel_dist\"/*.whl",
