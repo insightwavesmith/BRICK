@@ -49,6 +49,26 @@ def write_raw_and_claim_trace(
         ),
         written,
     )
+    # receipt-writer-join 0707 (rootfix 2): the NORMAL-completion Agent receipt
+    # ledger. Recorded in the SAME transaction as the returned rows (same
+    # recorded_at, same _write_jsonl scrub / session-id masking) so a completed
+    # walk carries raw/agent-received.jsonl the way the adapter-error / park
+    # frontier writers already do (:181-191). The frontier observer requires
+    # this file; without it a normal completion fails evidence_incomplete
+    # (T10). Guarded like agent-output-text so hand-built packets that leave the
+    # field at its default () are unchanged.
+    if packet.agent_received_raw_records:
+        _write_jsonl(
+            raw_dir / "agent-received.jsonl",
+            _graph_ready_records(
+                packet.agent_received_raw_records,
+                building_id=building_id,
+                local_prefix="raw/agent-received.jsonl",
+                recorded_at=recorded_at,
+                event_type="bp.raw.agent_received",
+            ),
+            written,
+        )
     if packet.agent_output_text_raw_records:
         _write_jsonl(
             raw_dir / "agent-output-text.jsonl",

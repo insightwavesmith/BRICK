@@ -106,6 +106,7 @@ def _accumulated_lifecycle_packet(
         "raw_manifest_ref": "raw/raw-manifest.json",
         "raw_stream_refs": [
             "raw/brick-work.jsonl",
+            "raw/agent-received.jsonl",
             "raw/agent-return.jsonl",
             "raw/link.jsonl",
         ],
@@ -185,6 +186,12 @@ def _accumulated_raw_manifest(
         for index, result in enumerate(step_results, start=1)
         if result.adapter_result.adapter_output_text
     ]
+    # receipt-writer-join 0707 (rootfix 2): one receipt row per completed step,
+    # matching the raw/agent-received.jsonl the forward writer now emits.
+    received_raw_refs = [
+        _raw_ref("agent-received", index)
+        for index in range(1, len(step_results) + 1)
+    ]
     output_text_entries = []
     if output_text_raw_refs:
         output_text_entries.append(
@@ -198,6 +205,19 @@ def _accumulated_raw_manifest(
                 "raw_refs": output_text_raw_refs,
             }
         )
+    received_entries = []
+    if received_raw_refs:
+        received_entries.append(
+            {
+                "path": "raw/agent-received.jsonl",
+                "source": "support/operator/run.py Agent receipt observations for completed steps",
+                "content_shape": "jsonl Agent receipt rows",
+                "proof_limit": "support evidence only",
+                "axis_owner": "Agent",
+                "record_role": "primary",
+                "raw_refs": received_raw_refs,
+            }
+        )
     return {
         "building_id": building_id,
         "raw_refs": [
@@ -205,6 +225,7 @@ def _accumulated_raw_manifest(
             for index in range(1, len(step_results) + 1)
             for ref in (_raw_ref("brick", index), _raw_ref("agent", index), _raw_ref("link", index))
         ]
+        + received_raw_refs
         + output_text_raw_refs
         + dynamic_reroute_raw_refs
         + graph_raw_refs,
@@ -227,6 +248,7 @@ def _accumulated_raw_manifest(
                 "record_role": "primary",
                 "raw_refs": [_raw_ref("agent", index) for index in range(1, len(step_results) + 1)],
             },
+            *received_entries,
             *output_text_entries,
             {
                 "path": "raw/link.jsonl",

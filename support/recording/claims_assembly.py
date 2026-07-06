@@ -22,6 +22,7 @@ from brick_protocol.support.recording.claims_agent import (
     _agent_claim_facts,
     _agent_output_text_raw_records,
     _agent_raw_records,
+    _agent_received_raw_records,
 )
 from brick_protocol.support.recording.claims_brick import (
     _brick_claim_facts,
@@ -85,4 +86,5 @@ def _raw_claim_trace_packet(
             _link_policy_action_claim_facts(step_results, proof_limits=proof_limits)
         ),
         agent_output_text_raw_records=_agent_output_text_raw_records(building_id, step_results),
+        agent_received_raw_records=_agent_received_raw_records(building_id, step_results),
     )
