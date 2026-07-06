@@ -48,6 +48,7 @@ import shutil
 import tempfile
 import tomllib
 from collections.abc import Iterable, Mapping, Sequence
+from dataclasses import replace
 from pathlib import Path
 from typing import Any, TYPE_CHECKING
 
@@ -70,6 +71,7 @@ from .adapter_model_casting import (
     _casting_cli_args,
     _model_cli_arg,
     _node_casting_fields_ordered,
+    project_model_ref_to_cli_arg,
 )
 from .adapter_subprocess import (
     codex_assistant_text_from_json_stdout,
@@ -159,6 +161,34 @@ _CODEX_CREDENTIAL_FILE_NAMES: tuple[str, ...] = ("auth.json", ".env")
 _BUILD_ISOLATION_ENV = "BRICK_BUILD_ISOLATION"
 _CODEX_CONTINUITY_HOME_ROOT_NAME = "brick-protocol-codex-homes"
 _CLAUDE_CONTINUITY_SESSION_IDS: dict[str, str] = {}
+
+
+def _model_alias_projected_request(
+    request: AgentAdapterRequest,
+    spec: LocalCliSpec,
+) -> AgentAdapterRequest:
+    """Return a request whose model ref is expanded for CLI projection."""
+
+    from brick_protocol.support.operator.provider_registry import resolve_model_alias_ref
+
+    selected_model_ref = request.selected_model_ref or spec.default_model_ref
+    projected_model_ref = resolve_model_alias_ref(spec.adapter_ref, selected_model_ref)
+    if projected_model_ref == selected_model_ref:
+        return request
+    casting = dict(request.casting)
+    casting["selected_model_ref"] = projected_model_ref
+    return replace(request, casting=casting)
+
+
+def _dispatched_model_label(request: AgentAdapterRequest, spec: LocalCliSpec) -> str:
+    projected_request = _model_alias_projected_request(request, spec)
+    return (
+        project_model_ref_to_cli_arg(
+            spec.adapter_ref,
+            projected_request.selected_model_ref or spec.default_model_ref,
+        )
+        or "declared-default"
+    )
 
 
 def _build_isolation_enabled() -> bool:
@@ -755,7 +785,9 @@ def _invoke_local_cli(
             # E2/S6 (mirror M6): the codex ``-m`` model flag is now DATA on the
             # casting model dial's cli_emit; the spawn path loops CASTING_FIELDS.
             # Byte-identical to the deleted inline ``("-m", model_arg)`` literal.
-            args_list.extend(_casting_cli_args(request, spec))
+            args_list.extend(
+                _casting_cli_args(_model_alias_projected_request(request, spec), spec)
+            )
             # Ephemeral by DEFAULT: a non-ephemeral `codex exec` persists its
             # session to the shared ~/.codex SQLite state (state/logs/goals/
             # memories), which is single-writer locked. Two concurrent codex
@@ -823,7 +855,9 @@ def _invoke_local_cli(
                     fresh_args_list.append("--dangerously-bypass-hook-trust")
                 for _override_flag, _override_value in spec.extra_config_overrides:
                     fresh_args_list.extend((_override_flag, _override_value))
-                fresh_args_list.extend(_casting_cli_args(request, spec))
+                fresh_args_list.extend(
+                    _casting_cli_args(_model_alias_projected_request(request, spec), spec)
+                )
                 if os.environ.get("BRICK_CODEX_SERVICE_TIER") != "0":
                     fresh_args_list.extend(("-c", 'service_tier="priority"'))
                 json_args = tuple((*fresh_args_list, "--json", *tail_args))
@@ -846,6 +880,7 @@ def _invoke_local_cli(
             if adapter_usage is not None:
                 adapter_usage = {
                     **adapter_usage,
+                    "dispatched_model": _dispatched_model_label(request, spec),
                     "selected_reasoning_effort_ref": request.selected_reasoning_effort_ref,
                 }
             # TEXT response ALWAYS from the --output-last-message file. When the file
@@ -938,7 +973,9 @@ def _invoke_local_cli(
         # E2/S6 (mirror M6): the claude ``--model`` model flag is now DATA on the
         # casting model dial's cli_emit; the spawn path loops CASTING_FIELDS.
         # Byte-identical to the deleted inline ``("--model", model_arg)`` literal.
-        args_list.extend(_casting_cli_args(request, spec))
+        args_list.extend(
+            _casting_cli_args(_model_alias_projected_request(request, spec), spec)
+        )
         if claude_resume_id:
             args_list.extend(["--resume", claude_resume_id])
         if request.session_continuity_mode == "none":

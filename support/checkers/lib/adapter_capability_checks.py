@@ -65,6 +65,7 @@ def run_adapter_model_selection_case(repo: Path, profile: Mapping[str, Any]) -> 
     if not items:
         return 0
     from brick_protocol.support.connection.adapter_model_casting import project_model_ref_to_cli_arg
+    from brick_protocol.support.operator.provider_registry import resolve_model_alias_ref
 
     count = 0
     for item in items:
@@ -78,7 +79,10 @@ def run_adapter_model_selection_case(repo: Path, profile: Mapping[str, Any]) -> 
         if not isinstance(expected_raw, str):
             raise ProfileError("adapter_model_selection_case.expected_cli_arg must be a string")
         expected_cli_arg = expected_raw
-        observed_cli_arg = project_model_ref_to_cli_arg(adapter_ref, selected_model_ref)
+        observed_cli_arg = project_model_ref_to_cli_arg(
+            adapter_ref,
+            resolve_model_alias_ref(adapter_ref, selected_model_ref),
+        )
         if observed_cli_arg != expected_cli_arg:
             raise ProfileError(
                 "adapter_model_selection_case rejected "
@@ -94,6 +98,7 @@ def run_adapter_model_selection_rejects(repo: Path, profile: Mapping[str, Any]) 
     if not items:
         return 0
     from brick_protocol.support.connection.adapter_model_casting import project_model_ref_to_cli_arg
+    from brick_protocol.support.operator.provider_registry import resolve_model_alias_ref
 
     count = 0
     for item in items:
@@ -104,7 +109,10 @@ def run_adapter_model_selection_rejects(repo: Path, profile: Mapping[str, Any]) 
             "adapter_model_selection_rejects.selected_model_ref",
         )
         try:
-            project_model_ref_to_cli_arg(adapter_ref, selected_model_ref)
+            project_model_ref_to_cli_arg(
+                adapter_ref,
+                resolve_model_alias_ref(adapter_ref, selected_model_ref),
+            )
         except (TypeError, ValueError):
             count += 1
             continue
