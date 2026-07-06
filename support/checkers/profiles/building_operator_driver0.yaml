@@ -87,9 +87,12 @@ text_contains:
       # deadline, emit raw dispatch_child_timeout evidence, and surface a COO-owned
       # loud HOLD.
       - def _fan_dispatch_child_timeout_fire
+      - def _fan_dispatch_slow_normal_child_no_false_hold_fire
       - fan_dispatch_child_unresponsive
       - dispatch-child-timeout
       - fan_dispatch_child_timeout_mutation_red_execution_log
+      - fan_dispatch_slow_normal_margin_removal_mutation_red_execution_log
+      - fan_dispatch_slow_normal_branch_hits
       - w1-fake-allowed-outside
       - w1-fake-missing-paused-at-RED
       - allowed+outside source-write diff did not fire
@@ -147,6 +150,8 @@ text_contains:
       - resume_building_plan refuses
   - path: support/operator/walker_kernel.py
     texts:
+      - _ADAPTER_TIMEOUT_JOIN_MARGIN_FLOOR_SECONDS
+      - _adapter_timeout_join_seconds
       - _DISPATCH_CHILD_TIMEOUT_RAW_STREAM
       - _DispatchChildTimeout
       - fan_dispatch_child_unresponsive
