@@ -68,10 +68,12 @@ FABLE5 = {
     "model_ref": "model:claude:claude-fable-5",
     "reasoning_effort_ref": "effort:xhigh",
 }
-CLAUDE_INHERIT_XHIGH = {
+OPUS48_QA = {
     "adapter_ref": "adapter:claude-local",
+    "model_ref": "model:claude:claude-opus-4-8",
     "reasoning_effort_ref": "effort:xhigh",
 }
+# G1 (walk-results-adopted-0707 §G1): 엔진쪽/매우 중요 QA = fable5, 그 외 QA = opus-4-8.
 CODEX = {"adapter_ref": "adapter:codex-local"}
 GEMINI_REVIEW = {"adapter_ref": "adapter:gemini-local"}
 
@@ -150,6 +152,31 @@ _REORDER_RE = re.compile(r"재발주|reorder|re-?order|재시도|reissue", re.IG
 # H2 marker comment — mutation M3 deletes this line; probe P4 fires.
 _RULE4_FAN_CONVERGENCE = "RULE4-FAN-CONVERGENCE"
 
+# D1/D2 — 9th sizing answer (width_signals) + parallel-fan casting ladder and
+# statements. width_signals is a SEPARATE optional key: it is NOT appended to
+# SIZING_QUESTION_IDS (the required-8 contract stays exactly 8) and NOT added to
+# SIZING_ANSWER_ENUMS. Absent → 0 → width 1 (safe default). (§A1.2/§A2/§E.)
+WIDTH_SIGNALS_KEY = "width_signals"
+_DESIGN_FAN_LADDER: tuple[Mapping[str, str], ...] = (FABLE5, FUGU, CODEX)
+_DESIGN_FAN_CONCERN_TAILS: tuple[str, ...] = (
+    "design-fable5",
+    "design-fugu",
+    "design-codex",
+)
+PARALLEL_DESIGN_STMT = (
+    "병렬 독립 설계(상호 열람 금지): 형제 설계 가지의 증거를 읽지 마라. 담당 관점에서 "
+    "설계·partition_plan을 반환하라. 판정 금지 — 수렴은 closure, 2단은 새 선언."
+)
+WORK_PARTITION_STMT = (
+    "파티션 시공(형제 write 구역 침범 금지): 자기 write_scope 안에서만 시공하라. 판정 금지."
+)
+PARTITION_MERGE_STMT = (
+    "파티션 병합(수렴): 형제 파티션의 반환을 하나로 통합 관찰하고 잔여·충돌을 기록하라. 판정 금지."
+)
+# D2② residual-owner default for a ceiling-truncated width decision (§A2
+# residual_owner semantics, RED-5 연계). Support evidence only — not a verdict.
+RESIDUAL_PARTITION_OWNER = "coo"
+
 # ---------------------------------------------------------------------------
 # Work-statement scaffold fragments (rule ⑦ L1/L4, rule ⑧, rule ㉑ termination).
 # ---------------------------------------------------------------------------
@@ -225,6 +252,32 @@ def _normalize_answers(answers: Mapping[str, Any]) -> dict[str, str]:
             )
         normalized[qid] = text
     return normalized
+
+
+def _normalize_width_signals(answers: Mapping[str, Any]) -> int:
+    """9th answer (D1): 폭 신호 사다리. 부재 → 0(폭 1). 기형 값은 fail-closed 거부.
+
+    ``width_signals`` is an OPTIONAL key kept OUTSIDE the required-8 sizing
+    contract: a missing key is the safe default (0 → width 1). A malformed value
+    (bool, negative, float, non-digit text, or any non-int/non-digit-string) is
+    rejected with ``ValueError`` rather than silently coerced — guessing the
+    width would mis-cast fan risk. Values above the ceiling are accepted here and
+    clamped later by ``_fan_width`` (keeps the min-3 ceiling load-bearing).
+    """
+    if not isinstance(answers, Mapping) or WIDTH_SIGNALS_KEY not in answers:
+        return 0
+    raw = answers[WIDTH_SIGNALS_KEY]
+    if isinstance(raw, bool):
+        raise ValueError(f"width_signals={raw!r} must be a non-negative integer (0=폭 1)")
+    if isinstance(raw, int):
+        value = raw
+    elif isinstance(raw, str) and raw.strip().isdigit():
+        value = int(raw.strip())
+    else:
+        raise ValueError(f"width_signals={raw!r} must be a non-negative integer (0=폭 1)")
+    if value < 0:
+        raise ValueError(f"width_signals={value} must be >= 0")
+    return value
 
 
 def _contract_vocab(answers: Mapping[str, Any], task_text: str, explicit: Any) -> bool:
@@ -412,6 +465,84 @@ def _scaffold_work_statement(
 
 
 # ---------------------------------------------------------------------------
+# H3 — width computation (D2): fan width N = min(신호 사다리, 비충돌 파티션 수, 3).
+# The disjoint-scope grouping is a union-find over the SAME conservative
+# _entries_overlap used by the RED-2 write-set scan, so a work fan drafted here is
+# pairwise-disjoint by construction. Support evidence only — no launch, no verdict.
+# ---------------------------------------------------------------------------
+def _disjoint_scope_groups(allowed_paths: Sequence[str]) -> list[list[str]]:
+    """Union-find over ``_entries_overlap``: 비충돌 파티션 수 = ``len(groups)``."""
+    groups: list[list[str]] = []
+    for entry in [str(p).strip() for p in allowed_paths if str(p).strip()]:
+        hits = [g for g in groups if any(_entries_overlap(entry, e) for e in g)]
+        merged = [entry]
+        for g in hits:
+            merged.extend(g)
+            groups.remove(g)
+        groups.append(merged)
+    return groups
+
+
+def _fan_width(width_signals: int, *, partition_count: int | None = None) -> int:
+    """폭 = min(신호 사다리, [비충돌 파티션 수], 상한 3), 최소 1. (§A1.2 폭 공식.)"""
+    ladder = width_signals if partition_count is None else min(width_signals, partition_count)
+    return max(1, min(ladder, FAN_WIDTH_CEILING))  # RULE-WIDTH-CEILING
+
+
+# ---------------------------------------------------------------------------
+# H3b — the STANDARD QA fan (D2①: a width-fan does NOT downgrade QA to a single
+# gemini review). Shared by the spine shape and the partition (work/design) fan
+# shapes so an escalated split still gets the full attack-QA fan (code-attack-qa
+# + evidence-integrity, + axis-attack-qa on a costly contract surface) at the
+# G1 casting tier. Support evidence only — no launch, no verdict.
+# ---------------------------------------------------------------------------
+def _qa_fan_branches(
+    answers: Mapping[str, str],
+    escalated: bool,
+    rows: list[dict[str, str]],
+    *,
+    contract_vocab: bool,
+) -> list[dict[str, Any]]:
+    branches: list[dict[str, Any]] = [
+        {
+            "kind": "code-attack-qa",
+            "concern_key": "code-attack-qa",
+            "objective": CODE_QA_STMT,
+            "work_statement": CODE_QA_STMT,
+            **(FABLE5 if escalated else OPUS48_QA),
+        },
+        {
+            "kind": "evidence-integrity",
+            "concern_key": "evidence-integrity",
+            "objective": EVIDENCE_QA_STMT,
+            "work_statement": EVIDENCE_QA_STMT,
+            **OPUS48_QA,
+        },
+    ]
+    if answers["failure_cost"] == "high" and contract_vocab:
+        branches.append(
+            {
+                "kind": "axis-attack-qa",
+                "concern_key": "axis-attack-qa",
+                "objective": AXIS_QA_STMT,
+                "work_statement": AXIS_QA_STMT,
+                **OPUS48_QA,
+            }
+        )
+    # Rule ⑨ — fable5 QA 동시 버스트 회피: at most one fable5 fan sibling; the
+    # other lenses run opus-4-8 (G1: 그 외 QA = Opus 4.8 xhigh).
+    if escalated:
+        rows.append(
+            {
+                "rule_id": "rule9-fable5-burst",
+                "decision": "at most one fable5 fan sibling; others opus-4-8",
+                "basis": "fable5 QA 동시 버스트 회피 (그 외 렌즈 = opus-4-8 xhigh, §G1)",
+            }
+        )
+    return branches
+
+
+# ---------------------------------------------------------------------------
 # H2 — node emission (fan 3법칙 by construction: fan only after a source node;
 # every fan block followed by exactly one convergence node — closure; one
 # fan-in per source cohort). Rule ②③④⑨.
@@ -424,9 +555,132 @@ def _shape_nodes(
     rows: list[dict[str, str]],
     *,
     contract_vocab: bool,
+    width_signals: int = 0,
 ) -> list[dict[str, Any]]:
     deep = escalated or answers["difficulty"] in _HARD_DIFFICULTIES
     nodes: list[dict[str, Any]] = []
+
+    # ------------------------------------------------------------------
+    # D2 — width computation + fan auto-proposal (감지-후-방치 소멸: the old
+    # note-split-candidate detect row is absorbed into rule-width-decision).
+    # The proposal is a CANDIDATE only: no action key, no launch — the assemble
+    # default (stop) governs (Rule 3). RED-1~6 stay load-bearing: a proposal that
+    # violated a rule would be self-rejected at the precheck seam before assemble.
+    # ------------------------------------------------------------------
+    proposal_on = (
+        answers["splittable"] == "yes"
+        and answers["file_conflict"] == "no"
+        and width_signals > 0
+    )
+    groups = _disjoint_scope_groups(write_scope.get("allowed_paths", ()))
+    fan_n = (
+        (_fan_width(width_signals) if deep else _fan_width(width_signals, partition_count=len(groups)))
+        if proposal_on
+        else 1
+    )
+    if answers["splittable"] == "yes":
+        rows.append(
+            {
+                "rule_id": "rule-width-decision",
+                "decision": (
+                    f"N={fan_n} (신호={width_signals}, 비충돌 파티션={len(groups)}, "
+                    f"상한={FAN_WIDTH_CEILING})"
+                ),
+                "basis": (
+                    "폭=min(신호 사다리, 비충돌 파티션 수, 3) — walk-results-adopted-0707 §A "
+                    "(감지→제안; note-split-candidate 흡수)"
+                ),
+            }
+        )
+    if proposal_on and fan_n >= 2:  # RULE-WIDTH-FAN-PROPOSAL
+        if deep:
+            branches = [
+                {
+                    "kind": "design",
+                    "concern_key": tail,
+                    "objective": PARALLEL_DESIGN_STMT,
+                    "work_statement": PARALLEL_DESIGN_STMT,
+                    **cast,
+                }
+                for cast, tail in zip(
+                    _DESIGN_FAN_LADDER[:fan_n],
+                    _DESIGN_FAN_CONCERN_TAILS[:fan_n],
+                )
+            ]
+            rows.append(
+                {
+                    "rule_id": "rule-fan-proposal",
+                    "decision": f"design fan ×{fan_n} → closure (상호 열람 금지)",
+                    "basis": "2단 표준형: 1단=설계 수렴 홀드, 2단=새 선언 (§A1.3, §E)",
+                }
+            )
+            return [
+                {"fan": {"branches": branches}},
+                {"kind": "closure", "work_statement": CLOSURE_STMT, **CODEX},  # RULE4-FAN-CONVERGENCE (design-fan arm)
+            ]
+        branches = [
+            {
+                "kind": "work",
+                "concern_key": f"work-partition-{i + 1}",
+                "objective": WORK_PARTITION_STMT + " 구역: " + ", ".join(group),
+                "work_statement": work_stmt + "\n\n" + WORK_PARTITION_STMT + " 구역: " + ", ".join(group),
+                **CODEX,
+                "write_scope": {
+                    "allowed_paths": list(group),
+                    "forbidden_paths": list(write_scope.get("forbidden_paths", ())),
+                },
+            }
+            for i, group in enumerate(groups[:fan_n])
+        ]
+        rows.append(
+            {
+                "rule_id": "rule-fan-proposal",
+                "decision": f"work fan ×{fan_n} → merge → QA fan → closure (write 구역 서로소)",
+                "basis": f"비충돌 파티션 {len(groups)}개 실측 — RED-2 서로소 by construction",
+            }
+        )
+        # D2② residual-partition record: when the width ceiling (3) or the signal
+        # ladder truncates the disjoint partition set, the leftover partitions are
+        # NOT dropped silently — they are named on a residual row (owner = coo) so
+        # a stage-2 partition_plan can carry them under done_line/residual_owner
+        # (§A2, RED-5 연계). Support evidence only — not a verdict, not a launch.
+        residual_groups = groups[fan_n:]
+        if residual_groups:
+            residual_paths = [p for group in residual_groups for p in group]
+            rows.append(
+                {
+                    "rule_id": "rule-residual-partition",
+                    "decision": (
+                        f"잔여 파티션 {len(residual_groups)}개 → residual_owner="
+                        f"{RESIDUAL_PARTITION_OWNER}: " + "; ".join(", ".join(g) for g in residual_groups)
+                    ),
+                    "basis": (
+                        "폭 상한/신호 절단으로 남은 파티션은 done_line/residual_owner 증거로 보존 "
+                        "— walk-results-adopted-0707 §A2 (RED-5 연계)"
+                    ),
+                }
+            )
+        # D2① — a width-fan does NOT downgrade QA to a single gemini review: the
+        # partitions merge into ONE convergence work node (its own write_scope is
+        # the full declared scope), then the STANDARD attack-QA fan runs before
+        # closure — identical QA depth to the non-split spine (§A2 qa_plan).
+        merge_stmt = work_stmt + "\n\n" + PARTITION_MERGE_STMT
+        if residual_groups:
+            merge_stmt += "\n\n잔여 파티션(후속 발주 후보): " + "; ".join(
+                ", ".join(g) for g in residual_groups
+            )
+        qa_branches = _qa_fan_branches(answers, escalated, rows, contract_vocab=contract_vocab)
+        return [
+            {"fan": {"branches": branches}},
+            {
+                "kind": "work",
+                "work_statement": merge_stmt,
+                **CODEX,
+                "write_scope": dict(write_scope),
+            },  # RULE4-FAN-CONVERGENCE (work-fan merge convergence)
+            {"fan": {"branches": qa_branches}},
+            {"kind": "closure", "work_statement": CLOSURE_STMT, **CODEX},  # RULE4-FAN-CONVERGENCE (work-fan QA arm)
+        ]
 
     if deep:
         # Rule ③ — 어려움+싼 work 조합이면 deep-design 자동 제안. We always prepend
@@ -468,42 +722,9 @@ def _shape_nodes(
             }
         )
     else:
-        branches: list[dict[str, Any]] = [
-            {
-                "kind": "code-attack-qa",
-                "concern_key": "code-attack-qa",
-                "objective": CODE_QA_STMT,
-                "work_statement": CODE_QA_STMT,
-                **(FABLE5 if escalated else CLAUDE_INHERIT_XHIGH),
-            },
-            {
-                "kind": "evidence-integrity",
-                "concern_key": "evidence-integrity",
-                "objective": EVIDENCE_QA_STMT,
-                "work_statement": EVIDENCE_QA_STMT,
-                **CLAUDE_INHERIT_XHIGH,
-            },
-        ]
-        if answers["failure_cost"] == "high" and contract_vocab:
-            branches.append(
-                {
-                    "kind": "axis-attack-qa",
-                    "concern_key": "axis-attack-qa",
-                    "objective": AXIS_QA_STMT,
-                    "work_statement": AXIS_QA_STMT,
-                    **CLAUDE_INHERIT_XHIGH,
-                }
-            )
-        # Rule ⑨ — fable5 QA 동시 버스트 회피: at most one fable5 fan sibling;
-        # the other lenses inherit (model omitted).
-        if escalated:
-            rows.append(
-                {
-                    "rule_id": "rule9-fable5-burst",
-                    "decision": "at most one fable5 fan sibling; others inherit",
-                    "basis": "fable5 QA 동시 버스트 회피 (evidence-integrity model 생략)",
-                }
-            )
+        # D2① — the STANDARD attack-QA fan (shared with the width-fan shape via
+        # _qa_fan_branches: identical casting so a split never degrades QA depth).
+        branches = _qa_fan_branches(answers, escalated, rows, contract_vocab=contract_vocab)
         nodes.append({"fan": {"branches": branches}})
         rows.append(
             {
@@ -974,6 +1195,8 @@ def draft_graph_declaration(
 
     repo = Path(repo_root).resolve()
     norm = _normalize_answers(answers)
+    # D1 — 9th answer, fail-closed BEFORE any shaping (a malformed width raises).
+    width_signals = _normalize_width_signals(answers)
     rows: list[dict[str, str]] = []
 
     cv = _contract_vocab(norm, task_statement, contract_vocab)
@@ -997,14 +1220,37 @@ def draft_graph_declaration(
         termination_shape=norm["termination_shape"],
     )
     nodes = _shape_nodes(
-        norm, work_stmt, write_scope, escalated, rows, contract_vocab=cv
+        norm,
+        work_stmt,
+        write_scope,
+        escalated,
+        rows,
+        contract_vocab=cv,
+        width_signals=width_signals,
     )
     if verified_facts:
-        # attach verified source facts to the work node (the write lane node).
+        # D1 — source_facts 전파: attach the verified sources to EVERY fan branch,
+        # not just the first write/design petal. The spine shape carries a single
+        # top-level work node; a width-fan carries the work/design lanes INSIDE a
+        # fan block (work-partition branches, or design-fan branches) plus a merge
+        # convergence work node and then the standard attack-QA fan. Attaching to
+        # only the first petal silently drops rule ⑥ output for sibling lanes (the
+        # 1st-pass QA observation: a drafted work fan received no source_facts).
+        # Read-only QA/review fan branches are still branches of the proposal
+        # evidence surface, so they inherit the same verified source_facts. The
+        # closure node is not a branch/write-design lane and remains untouched.
+        _WRITE_OR_DESIGN_KINDS = {"work", "design", "deep-design"}
         for node in nodes:
-            if node.get("kind") == "work":
+            if not isinstance(node, Mapping):
+                continue
+            if "fan" in node:
+                fan_block = node.get("fan")
+                branches = fan_block.get("branches", ()) if isinstance(fan_block, Mapping) else ()
+                for branch in branches or ():
+                    if isinstance(branch, dict):
+                        branch["source_facts"] = list(verified_facts)
+            elif node.get("kind") in _WRITE_OR_DESIGN_KINDS:
                 node["source_facts"] = list(verified_facts)
-                break
 
     bid = (building_id or "").strip() or _default_building_id()
     declaration: dict[str, Any] = {
@@ -1039,15 +1285,10 @@ def draft_graph_declaration(
             }
         )
 
-    # decision_ledger #20 — split/file-conflict never change graph shape.
-    if norm["splittable"] == "yes" and norm["size"] == "large":
-        rows.append(
-            {
-                "rule_id": "note-split-candidate",
-                "decision": "graph shape unchanged (single work node)",
-                "basis": "분할 후보: 별도 빌딩 발주 검토 — operator Movement-adjacent",
-            }
-        )
+    # decision_ledger #20 — file-conflict never changes graph shape. The old
+    # note-split-candidate detect row is ABSORBED into the rule-width-decision row
+    # emitted in _shape_nodes (감지-후-방치 소멸, D2); note-file-conflict stays a
+    # separate no-parallel law and is also a fan-trigger blocker.
     if norm["file_conflict"] == "yes":
         rows.append(
             {
@@ -1081,7 +1322,7 @@ def draft_graph_declaration(
     return GraphDraftResult(
         declaration=declaration,
         rationale_rows=tuple(rows),
-        sizing_answers=dict(norm),
+        sizing_answers={**norm, WIDTH_SIGNALS_KEY: str(width_signals)},
         precheck=precheck,
     )
 
@@ -1096,6 +1337,7 @@ def _rationale_markdown(result: GraphDraftResult) -> str:
     ]
     for qid in SIZING_QUESTION_IDS:
         lines.append(f"- {qid}: {result.sizing_answers.get(qid, '')}")
+    lines.append(f"- {WIDTH_SIGNALS_KEY}: {result.sizing_answers.get(WIDTH_SIGNALS_KEY, '0')}")
     lines.append("")
     lines.append("## rationale rows")
     lines.append("")

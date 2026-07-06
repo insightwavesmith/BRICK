@@ -32,6 +32,18 @@ Probes:
   P21 RED-3  a case-variant deep-tier model ref still trips the timeout gate (fail-open #3)
   P22 WARN-2 file_conflict==yes + low-tier work is reachable through the drafter (fail-open #4)
   P23 mark   a rejected draft is persisted with a draft_rejected marker (fail-open #5)
+  P24 D2     splittable+deep answers draft a parallel design fan (width proposal)
+  P25 D2     width_signals>3 clamps to exactly 3 branches (RULE-WIDTH-CEILING)
+  P26 D2     splittable non-deep + disjoint scopes draft a work fan over the partitions
+  P27 D1     a malformed width_signals value is rejected fail-closed (ValueError)
+  P28 D2     width_signals=0 falls through to the single-work spine (note-split absorbed)
+  P29 D2     an overlapping single-group scope collapses the work fan to width 1
+  P30 D2     file_conflict==yes blocks the fan trigger (work 병렬화 금지)
+  P31 G1     the escalated QA fan casts code-attack-qa=fable5, evidence-integrity=opus-4-8
+  P32 G1     a non-escalated QA fan casts code-attack-qa=opus-4-8 (the else arm fires)
+  P33 D1     source_facts propagate to every work-fan write lane (branches + merge)
+  P34 D1     source_facts propagate to every design-fan branch
+  P35 D2     ceiling-truncated partitions are recorded on a residual_owner row
 
 P4 runs before P3 so mutation M3 (deleting the convergence emission) hits the
 P4 literal first.
@@ -162,6 +174,48 @@ WARN2_REACHABLE_ANSWERS: Mapping[str, str] = {
     "termination_shape": "doc",
     "difficulty": "medium",
 }
+
+# D2 width-proposal fixtures. SPLIT_DEEP is a §E mirror (splittable large entangled
+# → deep tier → a parallel DESIGN fan). SPLIT_WORK is a non-deep splittable task
+# → a parallel WORK fan over disjoint write scopes. width_signals is the optional
+# 9th key (never a member of the required-8 contract).
+SPLIT_DEEP_ANSWERS: Mapping[str, Any] = {
+    **WALKER_COMPLEX_ANSWERS,
+    "size": "large",
+    "splittable": "yes",
+    "termination_shape": "doc",
+    "difficulty": "entangled",
+    "width_signals": 3,
+}
+SPLIT_WORK_ANSWERS: Mapping[str, Any] = {
+    "walker_adjacent": "no",
+    "size": "medium",
+    "splittable": "yes",
+    "file_conflict": "no",
+    "failure_cost": "low",
+    "human_approval": "no",
+    "termination_shape": "checker-pinned",
+    "difficulty": "medium",
+    "width_signals": 2,
+}
+
+# P32 fixture — a NON-escalated QA fan: walker_adjacent no, failure_cost low, no
+# contract vocab, medium difficulty → the ``else OPUS48_QA`` casting arm. (The
+# escalated WALKER_COMPLEX fixture only ever exercised the fable5 arm.)
+NONESC_QA_ANSWERS: Mapping[str, str] = {
+    "walker_adjacent": "no",
+    "size": "medium",
+    "splittable": "no",
+    "file_conflict": "no",
+    "failure_cost": "low",
+    "human_approval": "no",
+    "termination_shape": "doc",
+    "difficulty": "medium",
+}
+
+# P33/P34 — a real repo-tracked file used as a source_fact probe (rule ⑥ verifies
+# test -f + git ls-files, so it must exist and be tracked).
+_SOURCE_FACT_PROBE = "support/operator/graph_draft.py"
 
 # Rule 3 launch-seam tokens that must NOT appear in the draft surfaces.
 _LAUNCH_SEAM_TOKENS = (
@@ -527,6 +581,314 @@ def _violations(repo: Path) -> list[str]:
                 "graph-draft RED: green draft was wrongly stamped with a draft_rejected marker (fail-open #5 over-mark)"
             )
 
+    # --- D2 width-proposal probes (P24-P31) ------------------------------
+    # P24 — design fan: splittable+deep answers draft [fan(design×3 ladder)]→closure
+    # at 10800s, COMPOSED OK, a width-decision row present, and NO surviving
+    # note-split-candidate detect row (absorption).
+    split_deep = draft_graph_declaration(
+        "분할 가능 심층 표본", SPLIT_DEEP_ANSWERS, repo_root=repo, allowed_paths=("support",)
+    )
+    sd_nodes = _nodes(split_deep)
+    fan0 = sd_nodes[0].get("fan", {}).get("branches", []) if sd_nodes and "fan" in sd_nodes[0] else []
+    if (
+        len(sd_nodes) != 2
+        or len(fan0) != 3
+        or [b.get("adapter_ref") for b in fan0]
+        != ["adapter:claude-local", "adapter:codex-fugu-local", "adapter:codex-local"]
+        or any(b.get("kind") != "design" or not str(b.get("concern_key") or "").strip() for b in fan0)
+        or sd_nodes[1].get("kind") != "closure"
+        or split_deep.declaration.get("adapter_timeout_seconds") != 10800
+        or not str(split_deep.precheck.get("literal", "")).startswith("COMPOSED OK")
+    ):
+        out.append(
+            "graph-draft RED: splittable deep answers did not draft a parallel design fan (width proposal absent)"
+        )
+    sd_row_ids = [r.get("rule_id") for r in split_deep.rationale_rows]
+    if "rule-width-decision" not in sd_row_ids:
+        out.append(
+            "graph-draft RED: width decision rationale row absent for a splittable draft"
+        )
+    if "note-split-candidate" in sd_row_ids:
+        out.append(
+            "graph-draft RED: note-split-candidate row survived absorption (detect-only path not removed)"
+        )
+
+    # P25 — ceiling: width_signals=5 over FOUR disjoint work scopes must clamp to
+    # exactly 3 work branches (RULE-WIDTH-CEILING). A work fan exercises the min
+    # ceiling (the design ladder is naturally length-capped at 3, so it could not
+    # prove the clamp). Removing the min-clamp emits 4 branches (probe RED) AND
+    # trips RED-1 → composed_ok False — either path is caught here.
+    wide_work = draft_graph_declaration(
+        "분할 가능 표본",
+        {**SPLIT_WORK_ANSWERS, "width_signals": 5},
+        repo_root=repo,
+        allowed_paths=("support/operator/**", "support/checkers/**", "brick/**", "link/**"),
+    )
+    ww_nodes = _nodes(wide_work)
+    ww_fan = ww_nodes[0].get("fan", {}).get("branches", []) if ww_nodes and "fan" in ww_nodes[0] else []
+    if len(ww_fan) != 3 or not str(wide_work.precheck.get("literal", "")).startswith("COMPOSED OK"):
+        out.append(
+            "graph-draft RED: drafted fan width exceeded the ceiling of 3 (min ceiling absent)"
+        )
+
+    # P26 — work fan: a non-deep splittable draft over two disjoint write scopes
+    # drafts [fan(work×2 with disjoint write_scope), work(merge convergence),
+    # fan(standard attack-QA), closure] and composes. D2①: a width-fan does NOT
+    # downgrade QA to a single gemini review — the standard attack-QA fan
+    # (code-attack-qa + evidence-integrity) is retained after the merge.
+    split_work = draft_graph_declaration(
+        "분할 가능 표본",
+        SPLIT_WORK_ANSWERS,
+        repo_root=repo,
+        allowed_paths=("support/operator/**", "support/checkers/**"),
+    )
+    sw_nodes = _nodes(split_work)
+    sw_fan = sw_nodes[0].get("fan", {}).get("branches", []) if sw_nodes and "fan" in sw_nodes[0] else []
+    sw_allowed = sorted(
+        tuple(b.get("write_scope", {}).get("allowed_paths", ())) for b in sw_fan
+    )
+    sw_qa_fan = (
+        sw_nodes[2].get("fan", {}).get("branches", [])
+        if len(sw_nodes) > 2 and "fan" in sw_nodes[2]
+        else []
+    )
+    sw_qa_kinds = {b.get("kind") for b in sw_qa_fan}
+    if (
+        len(sw_nodes) != 4
+        or len(sw_fan) != 2
+        or any(b.get("kind") != "work" for b in sw_fan)
+        or sw_nodes[1].get("kind") != "work"
+        or {"code-attack-qa", "evidence-integrity"} - sw_qa_kinds
+        or sw_nodes[3].get("kind") != "closure"
+        or sw_allowed != [("support/checkers/**",), ("support/operator/**",)]
+        or not str(split_work.precheck.get("literal", "")).startswith("COMPOSED OK")
+    ):
+        out.append(
+            "graph-draft RED: splittable non-deep answers with disjoint scopes did not draft a work fan"
+        )
+
+    # P26b D2① — the work-fan QA lens must NOT be degraded to a single gemini
+    # review node: no top-level review(gemini) node may replace the attack-QA fan
+    # on a width-fan draft (the exact 1st-pass QA observation: 폭-팬이 QA 팬을
+    # gemini 단일 review로 강등).
+    if any(
+        "fan" not in n and n.get("kind") == "review" and n.get("adapter_ref") == "adapter:gemini-local"
+        for n in sw_nodes
+    ):
+        out.append(
+            "graph-draft RED: work-fan QA was downgraded to a single gemini review (QA fan retention absent)"
+        )
+
+    # P27 — fail-closed: a malformed width_signals value is rejected with
+    # ValueError before any shaping (bool/negative/non-digit text all rejected).
+    for bad in ("lots", -1, True):
+        try:
+            draft_graph_declaration(
+                "분할 가능 표본",
+                {**SPLIT_WORK_ANSWERS, "width_signals": bad},
+                repo_root=repo,
+                allowed_paths=("support",),
+            )
+            out.append(
+                "graph-draft RED: malformed width_signals was not rejected fail-closed"
+            )
+            break
+        except ValueError:
+            pass
+
+    # P28 — absorption: width_signals=0 (safe default) on a splittable deep draft
+    # falls through to the single-work spine, still emits the width-decision row at
+    # N=1, and carries NO note-split-candidate row.
+    absorb = draft_graph_declaration(
+        "분할 가능 심층 표본",
+        {**SPLIT_DEEP_ANSWERS, "width_signals": 0},
+        repo_root=repo,
+        allowed_paths=("support",),
+    )
+    ab_nodes = _nodes(absorb)
+    ab_rows = [r.get("rule_id") for r in absorb.rationale_rows]
+    ab_partition_fan = any(
+        "fan" in n
+        and any(b.get("kind") in {"design", "work"} for b in n.get("fan", {}).get("branches", []))
+        for n in ab_nodes
+    )
+    if (
+        not _has_kind(ab_nodes, "work")
+        or ab_partition_fan
+        or "rule-width-decision" not in ab_rows
+        or "note-split-candidate" in ab_rows
+    ):
+        out.append(
+            "graph-draft RED: note-split-candidate row survived absorption (detect-only path not removed)"
+        )
+
+    # P29 — collapse: a splittable draft whose whole write scope is one overlapping
+    # group (partition_count==1) collapses to width 1 — no fan.
+    collapse = draft_graph_declaration(
+        "분할 가능 표본",
+        SPLIT_WORK_ANSWERS,
+        repo_root=repo,
+        allowed_paths=("support/**",),
+    )
+    if any(
+        "fan" in n
+        and any(b.get("kind") in {"design", "work"} for b in n.get("fan", {}).get("branches", []))
+        for n in _nodes(collapse)
+    ):
+        out.append(
+            "graph-draft RED: work fan without disjoint scope partitions was not collapsed to width 1"
+        )
+
+    # P30 — file_conflict: file_conflict==yes ("work 병렬화 금지") blocks the fan
+    # trigger even on a splittable deep draft.
+    fileconflict = draft_graph_declaration(
+        "분할 가능 심층 표본",
+        {**SPLIT_DEEP_ANSWERS, "file_conflict": "yes"},
+        repo_root=repo,
+        allowed_paths=("support",),
+    )
+    fc_nodes = _nodes(fileconflict)
+    if any(
+        "fan" in n
+        and any(b.get("kind") in {"design", "work"} for b in n.get("fan", {}).get("branches", []))
+        for n in fc_nodes
+    ):
+        out.append(
+            "graph-draft RED: file_conflict answers drafted a parallel fan (work 병렬화 금지)"
+        )
+
+    # P31 — G1 casting rider: in the escalated QA fan the code-attack-qa lens stays
+    # fable5 and the evidence-integrity lens is opus-4-8 (그 외 QA = Opus 4.8 xhigh).
+    g1 = draft_graph_declaration(
+        "walker 인접 엔진 작업 — 심층 구현.",
+        WALKER_COMPLEX_ANSWERS,
+        repo_root=repo,
+        allowed_paths=("support",),
+    )
+    g1_fan: list[Mapping[str, Any]] = []
+    for node in _nodes(g1):
+        if "fan" in node:
+            g1_fan = list(node.get("fan", {}).get("branches", []))
+            break
+    g1_by_kind = {b.get("kind"): b for b in g1_fan}
+    code_qa = g1_by_kind.get("code-attack-qa")
+    ei = g1_by_kind.get("evidence-integrity")
+    if (
+        code_qa is None
+        or code_qa.get("model_ref") != "model:claude:claude-fable-5"
+        or ei is None
+        or ei.get("model_ref") != "model:claude:claude-opus-4-8"
+    ):
+        out.append(
+            "graph-draft RED: non-escalated QA lens casting is not opus-4-8 tier (G1)"
+        )
+
+    # P32 — G1 non-escalated arm live-fire: a NON-escalated QA fan casts the
+    # code-attack-qa lens as opus-4-8 (the ``else OPUS48_QA`` arm). WALKER_COMPLEX
+    # is escalated, so it only exercised the fable5 arm; this fixture drives the
+    # previously-unfired opus-4-8 arm (1st-pass QA obs: OPUS48_QA arm 미구동).
+    nonesc = draft_graph_declaration(
+        "간단 정리 작업 — 표준 medium.",
+        NONESC_QA_ANSWERS,
+        repo_root=repo,
+        allowed_paths=("support",),
+    )
+    nonesc_fan: list[Mapping[str, Any]] = []
+    for node in _nodes(nonesc):
+        if "fan" in node:
+            nonesc_fan = list(node.get("fan", {}).get("branches", []))
+            break
+    nonesc_by_kind = {b.get("kind"): b for b in nonesc_fan}
+    ne_code_qa = nonesc_by_kind.get("code-attack-qa")
+    ne_ei = nonesc_by_kind.get("evidence-integrity")
+    if (
+        ne_code_qa is None
+        or ne_code_qa.get("model_ref") != "model:claude:claude-opus-4-8"
+        or ne_code_qa.get("adapter_ref") != "adapter:claude-local"
+        or ne_ei is None
+        or ne_ei.get("model_ref") != "model:claude:claude-opus-4-8"
+    ):
+        out.append(
+            "graph-draft RED: non-escalated code-attack-qa arm did not fire opus-4-8 casting (G1 else arm)"
+        )
+
+    # P33 — D1 source_facts 전파: a width-fan draft carrying verified source_facts
+    # must attach them to EVERY fan branch (work-partition branches AND the
+    # retained attack-QA branches) plus the merge convergence work node, never
+    # just the first. Reverting to a first-petal-only attach (the mutation) drops
+    # sibling branches and this probe fires (1st-pass QA obs: work-fan source_facts
+    # drop).
+    sf_work = draft_graph_declaration(
+        "분할 가능 표본",
+        SPLIT_WORK_ANSWERS,
+        repo_root=repo,
+        allowed_paths=("support/operator/**", "support/checkers/**"),
+        source_facts=(_SOURCE_FACT_PROBE,),
+    )
+    sf_nodes = _nodes(sf_work)
+    sf_fan = sf_nodes[0].get("fan", {}).get("branches", []) if sf_nodes and "fan" in sf_nodes[0] else []
+    sf_work_petals = [b for b in sf_fan if b.get("kind") == "work"]
+    sf_merge = sf_nodes[1] if len(sf_nodes) > 1 else {}
+    sf_qa_fan = (
+        sf_nodes[2].get("fan", {}).get("branches", [])
+        if len(sf_nodes) > 2 and "fan" in sf_nodes[2]
+        else []
+    )
+    if (
+        len(sf_work_petals) != 2
+        or any(b.get("source_facts") != [_SOURCE_FACT_PROBE] for b in sf_work_petals)
+        or sf_merge.get("kind") != "work"
+        or sf_merge.get("source_facts") != [_SOURCE_FACT_PROBE]
+        or len(sf_qa_fan) < 2
+        or any(b.get("source_facts") != [_SOURCE_FACT_PROBE] for b in sf_qa_fan)
+    ):
+        out.append(
+            "graph-draft RED: verified source_facts were not propagated to every work-fan branch/merge lane (D1)"
+        )
+
+    # P34 — D1 design-fan 전파: a splittable-deep width-fan attaches the verified
+    # source_facts to EVERY design branch (the design fan carries no top-level
+    # work node — a first-petal-only attach would leave siblings starved).
+    sf_deep = draft_graph_declaration(
+        "분할 가능 심층 표본",
+        SPLIT_DEEP_ANSWERS,
+        repo_root=repo,
+        allowed_paths=("support",),
+        source_facts=(_SOURCE_FACT_PROBE,),
+    )
+    sf_deep_fan: list[Mapping[str, Any]] = []
+    for node in _nodes(sf_deep):
+        if "fan" in node:
+            sf_deep_fan = list(node.get("fan", {}).get("branches", []))
+            break
+    sf_design_petals = [b for b in sf_deep_fan if b.get("kind") == "design"]
+    if len(sf_design_petals) != 3 or any(
+        b.get("source_facts") != [_SOURCE_FACT_PROBE] for b in sf_design_petals
+    ):
+        out.append(
+            "graph-draft RED: verified source_facts were not propagated to every design-fan branch (D1)"
+        )
+
+    # P35 — D2② residual-partition record: when the width ceiling truncates the
+    # disjoint partition set, the leftover partitions are recorded on a
+    # rule-residual-partition row (owner named) rather than dropped silently.
+    residual = draft_graph_declaration(
+        "분할 가능 표본",
+        {**SPLIT_WORK_ANSWERS, "width_signals": 5},
+        repo_root=repo,
+        allowed_paths=(
+            "support/operator/**",
+            "support/checkers/**",
+            "brick/**",
+            "link/**",
+        ),
+    )
+    residual_rows = [r for r in residual.rationale_rows if r.get("rule_id") == "rule-residual-partition"]
+    if not residual_rows or "residual_owner" not in str(residual_rows[0].get("decision", "")):
+        out.append(
+            "graph-draft RED: ceiling-truncated partitions were not recorded on a residual_owner row (D2②)"
+        )
+
     for nodes in (hard_nodes, simple_nodes):
         for index, node in enumerate(nodes):
             if "fan" in node:
@@ -614,7 +976,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(f"- {line}", file=sys.stderr)
         print(PROOF_LIMIT, file=sys.stderr)
         return 1
-    print("graph_draft_rules passed: 23 probe(s)")
+    print("graph_draft_rules passed: 35 probe(s)")
     print(PROOF_LIMIT)
     return 0
 
