@@ -1,5 +1,0 @@
-building_id brick-draft-20260706T223424Z-9787f7c8
-adapter_timeout_seconds 10800
-composed_nodes 2
-node 0 fan [('design', 'adapter:claude-local', ['README.md']), ('design', 'adapter:codex-fugu-local', ['README.md']), ('design', 'adapter:codex-local', ['README.md'])]
-node 1 closure None

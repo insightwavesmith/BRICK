@@ -1,6 +1,0 @@
-building_id brick-draft-20260706T223417Z-e549cef5
-composed_nodes 4
-node 0 fan [('work', ['README.md']), ('work', ['README.md'])]
-node 1 work ['README.md']
-node 2 fan [('code-attack-qa', ['README.md']), ('evidence-integrity', ['README.md'])]
-node 3 closure None
