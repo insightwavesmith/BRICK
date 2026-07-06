@@ -693,7 +693,8 @@ Smith "과업 모두 종료까지 이어간다". 이 큐가 비면 연속 운행
 |---|---|---|
 | **P0 게이트 판독** | (0706 저녁 전량 랜딩·봉인) R3 ccb73b44 · R5R8 e4cf700d · R1 6ae9f3f4 · r3margin 2eb79b40 · firehunk b94a77b3 · fugu451obit d25b89ce, 핸드오프 문서까지 origin=298bfc2e | 완료 |
 | **P1 야간 웨이브 — 전량 랜딩 완료** | r9 db3a17a7 · cpath⑤+fugupacket 7bacb772 · **graphdecl-fix 612abed3**(5라운드 종료선 절단 — 표17 격자 일반해는 #12로 명시 이관, 변이 2종 RED, 스윕 50) · fugu-fieldprobe 성공(푸구 실사용 개방 확정) · checker-audit complete(은퇴 0·고아 0·재설계 1) | 완료 |
-| **P3 줄이기 웨이브 — 걷는 중(0706 야간 발사)** | **friction-bundle-0706n**(표13 자동 WIP 앵커·표14 스윕 관측성·시간-픽스처 재설계) ∥ **build-unify-0706n**(#12 — build(preset=)·해석 수렴·--real-provider 축소·표16/17/18 흡수). 두 빌딩 다 design(fable5)→work(**푸구**)→공격QA(fable5)+증거QA→closure — 난이도-비례 캐스팅 독트린(Smith 0706 야간) 1호 적용 | 걷는 중 |
+| **P3 줄이기 웨이브 — 랜딩 완료** | **build-unify(#12) 랜딩 1fd22290**(게이트에서 배선 갭 적발·핀 추가·변이 RED 재확인, deep-design KIND 동승) · **friction-bundle 랜딩**(표13·14+시간픽스처, 변이 RED — 앵커콜 중화→FIRE). 둘 다 푸구 시공을 타임아웃 사망 후 앵커에서 COO 직접 게이트(Smith 'QA만 붙여라' 지시 — 재시공 0) | 완료 |
+| **P-막판 5기 병렬(Smith '5개 걷자', 0706 심야 발사 — HEAD=df0ea719 검증)** | resume-decl(이어가기 선언 표면 — **deep-design 1호 + codex work A/B 측정 칸**) ∥ R2 carry(공용 이사 헬퍼, design+푸구) ∥ graph-draft #15(초안기, deep-design+푸구) ∥ selflock 가족②(validate-before-persist, design+푸구, walker_kernel 무접촉으로 R2와 비충돌) ∥ t10rev1(z6 발견+원장 마감, sonnet 경량) | 걷는 중 — 이게 마스터 큐의 마지막 시공 대열 |
 | **P2 walker 직렬(랜딩 순서만 직렬)** | ~~cpath~~(랜딩됨) → R2(carry 공용헬퍼) → 자기잠금 가족② | R2가 다음 |
 | **P3 줄이기 웨이브(Smith 0706 야간 채택 — 회고 4제안 COO 판정안대로)** | 마찰청산 묶음(표 13·14·16, walker 무접촉) ∥ **#12 build() 단일 진입은 graphdecl-fix 랜딩 직후 발주**(assembly.py write_scope 겹침 해소 대기) · 규칙 만료태그 관례 즉시 발효(임시규율 vs 헌장 태그, 착지 시 대응 규칙 폐기 — 첫 폐기 예정: graphdecl-fix 랜딩 시 "output-root는 반드시 ~/.brick" 우회 규칙) · 인체공학 표 신규 행에 "제거되는 사람-판단" 컬럼 관례 | 4기 랜딩 직후 발주 |
 | **P4 대형** | #15 가중치→그래프 초안기 — #12 랜딩 후(통일 입구 전제) · Case 8 정찰(읽기전용, 슬롯 나는 대로) | #12 뒤 |
