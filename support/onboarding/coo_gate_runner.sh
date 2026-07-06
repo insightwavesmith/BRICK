@@ -19,9 +19,19 @@ PY="$REPO/.venv/bin/python"
 if [ "${1:-}" = "--land" ]; then
   SHA="$2"; MSGF="$3"
   say() { printf '%s\n' "$*"; }
-  say "== COO LAND: merge $SHA"
-  git -C "$REPO" merge --no-ff "$SHA" -F "$MSGF" || { say "LAND: MERGE FAILED"; exit 1; }
-  say "merged: $(git -C "$REPO" log -1 --format=%h)"
+  # SHA accepts a comma-separated list: each merged in order (msgfile may hold
+  # multiple messages separated by lines of exactly '---'), ONE sweep+push tail.
+  IFS=',' read -r -a SHAS <<< "$SHA"
+  i=0
+  for ONE in "${SHAS[@]}"; do
+    i=$((i+1))
+    MSG_PART="/tmp/coo-land-msg-$i.txt"
+    awk -v n="$i" 'BEGIN{c=1} /^---$/{c++; next} c==n{print}' "$MSGF" > "$MSG_PART"
+    [ -s "$MSG_PART" ] || cp "$MSGF" "$MSG_PART"
+    say "== COO LAND: merge $ONE"
+    git -C "$REPO" merge --no-ff "$ONE" -F "$MSG_PART" || { say "LAND: MERGE FAILED at $ONE"; exit 1; }
+    say "merged: $(git -C "$REPO" log -1 --format=%h)"
+  done
   ( cd "$REPO" && PYTHONPATH="$REPO/support/import_identity" python3 support/checkers/check_profile.py --all ) > /tmp/coo-land-sweep.log 2>&1
   RC=$?
   CNT=$(grep -c '^profile passed' /tmp/coo-land-sweep.log)
