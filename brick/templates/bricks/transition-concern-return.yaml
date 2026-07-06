@@ -42,6 +42,9 @@ returned_shape:
     proof_limits:
       - Agent concern only
       - not Movement authority
+    # Absence claims in not_proven/proof_limits must name the searched domain
+    # in the claim text using path glob, tool, or scope labels. Avoid open-ended
+    # claims such as "not found anywhere" without the searched domain.
 forbidden_transition_concern_fields:
   - movement
   - target

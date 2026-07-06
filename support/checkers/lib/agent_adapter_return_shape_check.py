@@ -2080,6 +2080,37 @@ def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
         raise ProfileError(
             "Brick comparison did not waive absent transition_concern_evidence as no concern"
         )
+    return_fact = importlib.import_module("brick_protocol.agent.return_fact")
+    labeled_absence_claim = {
+        "concern_ref": "transition-concern:absence-domain-labeled",
+        "concern_kind": "verification_gap",
+        "binding": False,
+        "reason_refs": ["observation:absence-domain-labeled"],
+        "related_boundary_refs": [],
+        "not_proven": [
+            "5aeaeea not found; domain: path glob project/brick-protocol/status/**/*.md; tool: rg"
+        ],
+    }
+    try:
+        return_fact.validate_transition_concern_evidence(labeled_absence_claim)
+    except (TypeError, ValueError) as exc:
+        raise ProfileError(
+            "transition_concern_evidence rejected a domain-labeled absence claim"
+        ) from exc
+    unlabeled_absence_claim = dict(labeled_absence_claim)
+    unlabeled_absence_claim["concern_ref"] = "transition-concern:absence-domain-unlabeled"
+    unlabeled_absence_claim["not_proven"] = ["5aeaeea not found anywhere"]
+    try:
+        return_fact.validate_transition_concern_evidence(unlabeled_absence_claim)
+    except ValueError as exc:
+        if "absence claims" not in str(exc):
+            raise ProfileError(
+                "unlabeled absence claim rejected for the wrong reason"
+            ) from exc
+    else:
+        raise ProfileError(
+            "transition_concern_evidence admitted an absence claim without a searched domain"
+        )
     effective_write_inspected = _agent_effective_write_probe(repo, adapter, instruction_packet)
     read_tier_inspected = _agent_read_tier_probe(repo, adapter)
     artifact_grounding_inspected = _artifact_grounding_probe(repo)
@@ -2091,7 +2122,6 @@ def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
     # recursive secret keys live in agent/return_fact.py and are re-exported into
     # the adapter. An absent guard fires nothing, so verify the constants directly
     # instead of leaving the vocabulary text-pinned in one retiring profile.
-    return_fact = importlib.import_module("brick_protocol.agent.return_fact")
     _EXPECTED_RETURN_LABEL_FIELDS = (
         "blocked_or_missing_evidence",
         "made_changes",
@@ -2232,7 +2262,7 @@ def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
 
     return KernelResult(
         check_id="agent_adapter_return_shape",
-        inspected=10
+        inspected=12
         + effective_write_inspected
         + read_tier_inspected
         + artifact_grounding_inspected
@@ -2244,7 +2274,8 @@ def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
             "Agent instruction packet rendering, and AgentAdapterRequest "
             "injection plus effective_write, read-tier rendering, tier-safety, "
             "artifact-grounding, proof-obligation, admission-gate live-walk, "
-            "and deterministic nested list-field normalization probes inspected."
+            "absence-claim domain labeling, and deterministic nested list-field "
+            "normalization probes inspected."
         ),
     )
 

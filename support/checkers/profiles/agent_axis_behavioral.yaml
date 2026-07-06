@@ -130,6 +130,11 @@ text_contains:
       - native_grant
       - exfiltration_not_enforced
       - web exfiltration is NOT enforced by this policy
+  - path: agent/disciplines/closed-agentfact.md
+    texts:
+      - Absence-claim domain labels
+      - path glob, tool, or scope label
+      - not found anywhere
   - path: support/connection/adapter_constants.py
     texts:
       - ADAPTER_BOUNDARY_PROOF_LIMITS

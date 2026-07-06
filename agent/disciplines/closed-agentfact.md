@@ -21,3 +21,10 @@ When authoring `transition_concern_evidence`:
   `brick-boundary:` prefixes, file paths, `file:line` citations, and prose are
   rejected at Agent-return intake (0703 measured: a review lens authored a
   `brick:` ref and parked the whole walk).
+
+## Absence-claim domain labels
+
+When making an absence claim in `transition_concern_evidence.not_proven` or
+`transition_concern_evidence.proof_limits`, name the searched domain in the
+claim text using a path glob, tool, or scope label. Do not write open-ended
+claims such as "not found anywhere" without the searched domain.

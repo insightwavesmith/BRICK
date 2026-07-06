@@ -46,6 +46,24 @@ TRANSITION_CONCERN_RELATED_BOUNDARY_REF_RULE = (
     "or building-boundary: refs only; file paths, #fragments, bare file:line citations, "
     "whitespace prose, brick:, brick-instance:, and brick-boundary: refs are not admitted"
 )
+ABSENCE_CLAIM_DOMAIN_RULE = (
+    "absence claims in transition_concern_evidence.not_proven/proof_limits must name "
+    "the searched domain using path glob, tool, or scope labels"
+)
+_ABSENCE_CLAIM_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"\bnot\s+found\b", re.IGNORECASE),
+    re.compile(r"\bnot\s+present\b", re.IGNORECASE),
+    re.compile(r"\bno\s+(?:matching\s+)?(?:record|records|file|files|hit|hits|match|matches)\b", re.IGNORECASE),
+    re.compile(r"\bmissing\b", re.IGNORECASE),
+    re.compile(r"\babsen(?:t|ce)\b", re.IGNORECASE),
+    re.compile(r"\bnowhere\b", re.IGNORECASE),
+    re.compile(r"(?:미발견|부재|없음)"),
+)
+_ABSENCE_DOMAIN_LABEL_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"\b(?:searched[_ -]?domain|search[_ -]?domain|domain)\s*[:=]", re.IGNORECASE),
+    re.compile(r"\b(?:path[_ -]?glob|glob|path|tool|scope)\s*[:=]", re.IGNORECASE),
+    re.compile(r"(?:경로\s*글롭|경로|글롭|도구|범위)\s*[:=]"),
+)
 TOP_LEVEL_VERDICT_KEYS: frozenset[str] = frozenset(
     {
         "approved",
@@ -186,6 +204,41 @@ def _validate_transition_concern_related_boundary_ref(ref: str) -> None:
         )
 
 
+def _iter_text_values(value: Any) -> tuple[str, ...]:
+    if value is None:
+        return ()
+    if isinstance(value, str):
+        return (value,)
+    if isinstance(value, Mapping):
+        texts: list[str] = []
+        for child in value.values():
+            texts.extend(_iter_text_values(child))
+        return tuple(texts)
+    if isinstance(value, (list, tuple)):
+        texts = []
+        for child in value:
+            texts.extend(_iter_text_values(child))
+        return tuple(texts)
+    return ()
+
+
+def _looks_like_absence_claim(text: str) -> bool:
+    return any(pattern.search(text) for pattern in _ABSENCE_CLAIM_PATTERNS)
+
+
+def _names_absence_search_domain(text: str) -> bool:
+    return any(pattern.search(text) for pattern in _ABSENCE_DOMAIN_LABEL_PATTERNS)
+
+
+def _validate_absence_claim_domain_labels(concern: Mapping[str, Any]) -> None:
+    for field_name in ("not_proven", "proof_limits"):
+        for text in _iter_text_values(concern.get(field_name)):
+            if _looks_like_absence_claim(text) and not _names_absence_search_domain(text):
+                raise ValueError(
+                    f"{ABSENCE_CLAIM_DOMAIN_RULE}; {field_name} item lacks searched domain: {text!r}"
+                )
+
+
 def validate_transition_concern_evidence(concern: "Mapping[str, Any]") -> dict:
     for key in concern:
         if not isinstance(key, str) or key not in TRANSITION_CONCERN_ALLOWED_KEYS:
@@ -215,6 +268,7 @@ def validate_transition_concern_evidence(concern: "Mapping[str, Any]") -> dict:
             raise ValueError(
                 "transition_concern_evidence.verification_gap must not name a reroute-capable Brick boundary"
             )
+    _validate_absence_claim_domain_labels(concern)
     return dict(concern)
 
 
@@ -258,6 +312,7 @@ __all__ = (
     "REROUTE_ELIGIBLE_CONCERN_KINDS",
     "TRANSITION_CONCERN_REROUTE_REF_PREFIXES",
     "TRANSITION_CONCERN_ALLOWED_KEYS",
+    "ABSENCE_CLAIM_DOMAIN_RULE",
     "TOP_LEVEL_VERDICT_KEYS",
     "ALWAYS_SECRET_KEYS",
     "RETURNED_FORBIDDEN_KEYS",
