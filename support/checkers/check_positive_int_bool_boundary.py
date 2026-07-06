@@ -15,7 +15,7 @@ for import_root in (REPO / "support" / "import_identity", REPO):
 
 DRIVER_CONSOLIDATION_ERROR_CONTRACT = (
     "driver.py current bool error: TypeError('must be a finite positive integer'); "
-    "post-consolidation expected bool error: ValueError('must be a finite positive "
+    "post-consolidation MEASURED bool error: ValueError('must be a positive "
     "integer; bool is not admitted')"
 )
 
@@ -72,9 +72,9 @@ SURFACE_EXPECTATIONS: dict[str, tuple[str, ...]] = {
         "a node budget must be a positive integer",
     ),
     "support/operator/driver.py": (
+        "from brick_protocol.support.recording.contracts import require_positive_int",
         "def _positive_int(value: Any, label: str) -> int:",
-        "raise TypeError(f\"{label} must be a finite positive integer\")",
-        "raise ValueError(f\"{label} must be a finite positive integer\")",
+        "return require_positive_int(value, label)",
     ),
     "support/recording/claims_carry_budget.py": (
         "from brick_protocol.support.recording.contracts import require_positive_int",
@@ -128,8 +128,8 @@ MUTATION_PROBES: dict[str, tuple[str, str]] = {
         "KEEP-UNPINNED",
     ),
     "support/operator/driver.py": (
-        "raise TypeError(f\"{label} must be a finite positive integer\")",
-        "raise ValueError(f\"{label} must be a finite positive integer; bool is not admitted\")",
+        "return require_positive_int(value, label)",
+        "return int(value)",
     ),
     "support/recording/claims_carry_budget.py": (
         "return require_positive_int(value, label)",
