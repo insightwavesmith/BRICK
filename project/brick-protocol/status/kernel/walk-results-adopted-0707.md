@@ -64,6 +64,11 @@ draft-time 하드 RED: RED-1 폭>3 · RED-2 branch write-set 교차 · RED-3 dee
 
 부수 대상(같은 가족, 설계 판단에 포함): 증명-예산 HOLD 경로의 WIP 앵커 부재 갭, fake_landing_write_scope_diff_absent의 다회 forward 인체공학.
 
+## G. 0707 추가 판정 2건 (Smith)
+
+1. **claude-측 QA 캐스팅 2티어**: QA 렌즈에 claude 투입 시 — 엔진쪽/매우 중요 = **fable5 xhigh**, 그 외 QA = **Opus 4.8 xhigh**(`model:claude:claude-opus-4-8`) 기본. 종전 sonnet-기본을 대체. 부수: fable5 동시 버스트 압력 완화. 적용 = 신규 발주의 QA branch model_ref 명시(즉시) + 초안기 캐스팅 상수 갱신은 #15 규칙표 증분(P8)에 동승 + model-lane 규율 문서 티어 행(기존 소형 묶음 행에 합류).
+2. **온보딩 스플래시**: 무료 초기 배포 전제로 이즈쿠 블록아트 스플래시 채택(Smith — "팔 게 아니면 괜찮다" 리스크 수용 판정). 가드레일 2종 동반: ①에셋은 repo 트리 밖(install이 로컬 배치·출력, git 이력 영구 잔존 회피) ②만료태그 `[임시: 만료=판매/공개 배포 전 오리지널 마스코트 교체]` 등재. 집행 = D(onboard-s0-repair) 랜딩 후속으로 편입(P11).
+
 ## E. 초안기 제안측 부재 — 실측 (0707, #15 규칙표 증분 후속 발주의 갭 증거)
 
 resume-rootfix-design-0707a 발주에서 `brick draft`에 준 8답과 초안기 반응 실측 원문:
