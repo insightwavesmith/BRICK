@@ -153,6 +153,7 @@ from support.checkers.lib.agent_session_id_redaction_check import run_agent_sess
 from support.checkers.lib.dashboard_productization_projection_check import (
     run_dashboard_productization_projection,
 )
+from support.checkers.lib.sakana_wire_packet_check import run_sakana_wire_packet
 
 # chat_session_park_seam facade pins retained for unchanged profiles after pure relocation:
 # _chat_session_mutate_envelope_uuid / _chat_session_mutate_park_as_adapter_error /

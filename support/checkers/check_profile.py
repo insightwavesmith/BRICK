@@ -160,6 +160,7 @@ from support.checkers.lib.kernel_checks import (
     run_agent_session_id_redaction,
     run_dashboard_productization_projection,
     run_brick_cli_entrypoint_smoke,
+    run_sakana_wire_packet,
 )
 from support.checkers.lib.mutation_red_manifest_check import run_mutation_red_manifest
 from support.checkers.lib.install_release_export_lint_check import run_wheel_smoke
@@ -735,6 +736,12 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
     # re-flatten _adapter_error_kind (stall -> local_cli_timeout) or restore the
     # ~20-min default threshold -> RED.
     "codex_connect_stall_classification": run_codex_connect_stall_classification,
+    # FUGU-PACKET-0706: fixture-only prompt rendering proves sakana/codex-fugu-local
+    # removes Agent resource path labels from the provider wire packet while
+    # keeping the local evidence packet's ref->path mapping and preserving
+    # codex-local resource path labels. Mutation-RED: re-expose a path on a sakana
+    # resource row -> RED. No live provider CLI.
+    "sakana_wire_packet": run_sakana_wire_packet,
     # CR.P1.GEMINI_LOCAL_ONLY. Executes in-process adapter admission probes:
     # adapter:gemini-local remains the only active Gemini customer adapter and
     # stays a local Gemini CLI + API-key env path; adapter:gemini-api is retired

@@ -561,6 +561,7 @@ class LocalCliSpec:
     # (model_provider + model catalog). Each pair is concatenated as-is by
     # adapter_local_cli -- support routes the data, it makes no provider decision.
     extra_config_overrides: tuple[tuple[str, str], ...] = ()
+    opaque_resource_paths_on_wire: bool = False
     proof_limits: tuple[str, ...] = field(default_factory=lambda: _DEFAULT_PROOF_LIMITS)
     not_proven: tuple[str, ...] = field(default_factory=lambda: _DEFAULT_NOT_PROVEN)
 
@@ -671,6 +672,7 @@ _LOCAL_CLI_SPECS: Mapping[str, LocalCliSpec] = {
         invocation_args_kind="codex-exec-readonly",
         default_model_ref=MODEL_REF_SAKANA_FUGU_ULTRA,
         extra_config_overrides=_sakana_fugu_config_overrides(),
+        opaque_resource_paths_on_wire=True,
     ),
     ADAPTER_CLAUDE_LOCAL: LocalCliSpec(
         adapter_ref=ADAPTER_CLAUDE_LOCAL,
