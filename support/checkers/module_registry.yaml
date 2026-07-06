@@ -646,6 +646,16 @@ modules:
     decomposition_target: ""
     pinned_by: assembly_equivalence kernel check (HEART-PHASE0 structural projection + discrimination probes)
 
+  - module: support/checkers/check_graph_draft_rules.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: graph_draft_rules kernel check (graph-draft profile; rule-embedding + no-autolaunch probes)
+
   - module: support/checkers/check_positive_int_bool_boundary.py
     layer: checkers
     role: checker
@@ -1669,6 +1679,16 @@ modules:
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
     pinned_by: brick_cli_entrypoint profile (repo-outside/PYTHONPATH-unset entrypoint smoke)
+
+  - module: support/operator/graph_draft.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: graph-draft profile (graph_draft_rules kernel check + no-autolaunch text_absent pins)
 
   - module: support/operator/first_use.py
     layer: operator

@@ -70,6 +70,10 @@ from brick_protocol.support.operator.driver import (
     run_customer_building_in_sandbox,
 )
 from brick_protocol.support.operator.onboard import run_goal_approve_entry
+from brick_protocol.support.operator.graph_draft import (
+    draft_graph_declaration,
+    write_draft_declaration,
+)
 from brick_protocol.support.recording.capture import default_buildings_root
 
 
@@ -805,6 +809,127 @@ def _cmd_build(args: argparse.Namespace) -> int:
     return 0
 
 
+def _default_drafts_root() -> Path:
+    """Return the ``<brick_home>/drafts`` root for drafted graph-decls.
+
+    Drafts NEVER default inside the repo tree (0706 path-shape defect): the
+    build evidence root is ``<brick_home>/project/brick-protocol/buildings``, so
+    ``parents[2]`` climbs back to ``<brick_home>`` and lands drafts beside it.
+    """
+
+    return _default_builds_root().parents[2] / "drafts"
+
+
+def _draft_task_text(args: argparse.Namespace) -> str:
+    task = getattr(args, "task", "") or ""
+    task_file = getattr(args, "task_file", "") or ""
+    if task and task_file:
+        raise ValueError("draft accepts only one of --task or --task-file")
+    if task_file:
+        return Path(task_file).expanduser().resolve().read_text(encoding="utf-8")
+    if not task:
+        raise ValueError("draft requires --task or --task-file")
+    return task
+
+
+def _draft_answers(args: argparse.Namespace) -> dict[str, Any]:
+    raw = getattr(args, "answers", "") or ""
+    answers_file = getattr(args, "answers_file", "") or ""
+    if raw and answers_file:
+        raise ValueError("draft accepts only one of --answers or --answers-file")
+    if answers_file:
+        raw = Path(answers_file).expanduser().resolve().read_text(encoding="utf-8")
+    if not raw:
+        raise ValueError("draft requires --answers or --answers-file (JSON object)")
+    loaded = json.loads(raw)
+    if not isinstance(loaded, dict):
+        raise ValueError("draft --answers must be a JSON object of the 8 sizing answers")
+    return loaded
+
+
+def _run_draft(args: argparse.Namespace) -> dict[str, Any]:
+    # No launch seam is reachable from this path: it calls ONLY graph_draft
+    # functions (draft_graph_declaration / write_draft_declaration). It never
+    # references the sandbox-run or goal-approve launch entrypoints, and never
+    # reuses the build launch helpers (Rule 3: 자동발사 금지).
+    repo = _repo_from_args(args)
+    task = _draft_task_text(args)
+    answers = _draft_answers(args)
+    result = draft_graph_declaration(
+        task,
+        answers,
+        repo_root=repo,
+        building_id=(getattr(args, "building_id", "") or None),
+        allowed_paths=tuple(getattr(args, "allowed_path", []) or []),
+        forbidden_paths=tuple(getattr(args, "forbidden_path", []) or []) or (".git/**",),
+        source_facts=tuple(getattr(args, "source_fact", []) or []),
+        declared_by=getattr(args, "declared_by", DEFAULT_DECLARED_BY),
+    )
+    building_id = result.declaration["building_id"]
+    out = (
+        Path(args.out).expanduser().resolve()
+        if getattr(args, "out", "")
+        else _default_drafts_root() / f"{building_id}-decl.json"
+    )
+    draft_path = write_draft_declaration(result, out)
+    rationale_path = draft_path.with_name(draft_path.stem + "-rationale.md")
+    launch_guidance = (
+        "발사는 운영자 몫: 초안을 검토한 뒤 직접 실행하세요 → "
+        f"brick build --graph-decl {draft_path} "
+        "(선언 action 기본값 stop; 이 표면에는 자동발사 경로가 없습니다)"
+    )
+    packet: dict[str, Any] = {
+        "command": "draft",
+        "draft_path": str(draft_path),
+        "rationale_path": str(rationale_path),
+        "building_id": building_id,
+        "composed_ok": bool(result.precheck.get("composed_ok")),
+        "composed_literal": result.precheck.get("literal", ""),
+        "precheck": dict(result.precheck),
+        "rationale_rows": [dict(row) for row in result.rationale_rows],
+        "sizing_answers": dict(result.sizing_answers),
+        "launch_guidance": launch_guidance,
+        "proof_limits": list(result.proof_limits),
+        "not_proven": list(result.not_proven),
+    }
+    return packet
+
+
+def _render_draft(packet: dict[str, Any]) -> str:
+    lines = [
+        "Brick draft support evidence",
+        f"building_id: {packet['building_id']}",
+        f"draft_path: {packet['draft_path']}",
+        f"rationale_path: {packet['rationale_path']}",
+        "composed_ok: " + ("yes" if packet.get("composed_ok") else "no"),
+        f"composed_literal: {packet.get('composed_literal', '')}",
+    ]
+    if packet.get("precheck", {}).get("reject_evidence"):
+        lines.append(f"reject_evidence: {packet['precheck']['reject_evidence']}")
+    lines.append("rationale_rows:")
+    for row in packet.get("rationale_rows", []):
+        lines.append(
+            f"- {row.get('rule_id', '')}: {row.get('decision', '')} "
+            f"({row.get('basis', '')})"
+        )
+    lines.append(f"launch_guidance: {packet['launch_guidance']}")
+    lines.append("proof_limits: " + "; ".join(packet["proof_limits"]))
+    lines.append("not_proven: " + "; ".join(packet["not_proven"]))
+    return "\n".join(lines)
+
+
+def _cmd_draft(args: argparse.Namespace) -> int:
+    # Non-interactive by construction (no input() anywhere on this path) and no
+    # launch seam reachable. Exit nonzero when the in-memory precheck fails so
+    # the operator sees the failing draft on disk and fixes it.
+    packet = _run_draft(args)
+    if args.json:
+        print(_json_dump(packet))
+    else:
+        print(_render_draft(packet))
+    return 0 if packet["composed_ok"] else 1
+
+
 def _cmd_verify(args: argparse.Namespace) -> int:
     repo = _repo_from_args(args)
     if args.self_test:
@@ -1253,6 +1378,40 @@ def build_parser() -> argparse.ArgumentParser:
     )
     build.add_argument("--timeout", type=int, default=120, help="Adapter timeout seconds.")
     build.set_defaults(func=_cmd_build)
+
+    draft = subparsers.add_parser(
+        "draft",
+        help=(
+            "Draft a graph-decl candidate from a task + 8 sizing answers. "
+            "Non-interactive; never launches (초안은 후보, 발사는 운영자 몫)."
+        ),
+        allow_abbrev=False,
+    )
+    _add_common(draft)
+    draft.add_argument("--task", default="", help="Inline task statement.")
+    draft.add_argument("--task-file", default="", help="Task statement file (xor --task).")
+    draft.add_argument(
+        "--answers",
+        default="",
+        help="JSON object with the 8 sizing answers (walker_adjacent/size/...).",
+    )
+    draft.add_argument("--answers-file", default="", help="Answers JSON file (xor --answers).")
+    draft.add_argument("--building-id", default="", help="Optional explicit Building id.")
+    draft.add_argument(
+        "--out",
+        default="",
+        help="Draft decl path. Defaults under <brick_home>/drafts/ (never inside the repo).",
+    )
+    draft.add_argument("--allowed-path", action="append", default=[], help="write_scope allowed path (repeatable).")
+    draft.add_argument(
+        "--forbidden-path",
+        action="append",
+        default=[],
+        help="write_scope forbidden path (repeatable; default ['.git/**']).",
+    )
+    draft.add_argument("--source-fact", action="append", default=[], help="Verified source fact path (repeatable).")
+    draft.add_argument("--declared-by", default=DEFAULT_DECLARED_BY, help="Caller/COO declaration ref.")
+    draft.set_defaults(func=_cmd_draft)
 
     verify = subparsers.add_parser(
         "verify",

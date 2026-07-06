@@ -1,0 +1,54 @@
+schema: checker-profile/v1
+profile_id: graph-draft
+description: Focused graph-draft drafter rule-embedding, no-autolaunch, and CLI wiring support checks.
+kernel_checks:
+  - graph_draft_rules
+path_exists:
+  - support/operator/graph_draft.py
+  - support/checkers/check_graph_draft_rules.py
+  - support/checkers/profiles/graph_draft.yaml
+  - support/operator/cli.py
+text_contains:
+  - path: support/operator/graph_draft.py
+    texts:
+      - "COMPOSED OK"
+      - "adapter:codex-fugu-local"
+      - "model:claude:claude-fable-5"
+      - "10800"
+      - "격리 --all"
+      - "## Deliverables"
+      - "종료선"
+      - "RULE4-FAN-CONVERGENCE"
+  - path: support/operator/cli.py
+    texts:
+      - "_cmd_draft"
+      - "발사는 운영자 몫"
+      - "brick build --graph-decl"
+      - "Draft a graph-decl candidate"
+  - path: support/checkers/check_graph_draft_rules.py
+    texts:
+      - "graph-draft RED: walker-adjacent answers drafted a codex-solo work node (rule 1/2/8 violated)"
+      - "graph-draft RED: simple-doc answers escalated casting without a declared risk basis"
+      - "graph-draft RED: draft precheck did not return the COMPOSED OK literal"
+      - "graph-draft RED: fan block without following convergence node in draft"
+      - "graph-draft RED: draft surface reaches a launch seam (Rule 3)"
+      - "graph-draft RED: bare-directory write_scope was not normalized to an explicit glob"
+text_absent:
+  - path: support/operator/graph_draft.py
+    texts:
+      - "run_customer_building_in_sandbox"
+      - "run_goal_approve_entry"
+      - "from brick_protocol.support.operator.driver"
+      - "os.system"
+      - "eval("
+      - "exec("
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - future provider behavior
+  - future Building correctness
+  - semantic quality of drafts produced for real tasks

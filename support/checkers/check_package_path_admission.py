@@ -460,6 +460,15 @@ TASK_ORDER_PREFLIGHT0_TARGETS = {
     "support/operator/task_order_preflight.py",
 }
 
+# graph-draft (#15): the weight->graph-decl drafter surface. Pure support
+# operator mechanics: it turns (task text + 8 sizing answers) into a candidate
+# graph-decl declaration + rationale and validates it in memory through the
+# existing assemble_graph_declaration (no new assembler). Owns no crossing,
+# casts no agent, chooses no Movement, and reaches no launch seam (Rule 3).
+GRAPH_DRAFT0_TARGETS = {
+    "support/operator/graph_draft.py",
+}
+
 PLAN_EXPANSION0_TARGETS = {
     "support/operator/plan_expansion.py",
 }
@@ -2007,6 +2016,9 @@ def allowed_path(path: str) -> bool:
         return True
 
     if clean in TASK_ORDER_PREFLIGHT0_TARGETS:
+        return True
+
+    if clean in GRAPH_DRAFT0_TARGETS:
         return True
 
     if clean in PLAN_EXPANSION0_TARGETS:
