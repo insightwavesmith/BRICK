@@ -1,6 +1,6 @@
 schema: checker-profile/v1
 profile_id: operator-correction
-description: Operator correction observation path over evidence_incomplete tails.
+description: Operator correction observation path over evidence_incomplete tails, including correction-consumption and correction-record-removed reversal probes.
 path_exists:
   - support/recording/operator_correction.py
   - support/checkers/lib/operator_correction_check.py
@@ -20,6 +20,12 @@ text_contains:
       - correction_observation_refs
       - frontier_kind_uncorrected
       - correction_applied
+      - correction_ineffective
+  - path: support/checkers/lib/operator_correction_check.py
+    texts:
+      - received<returned measured tail
+      - returnless-death-correction-removed
+      - receipts-file-absent-correction-removed
 proof_limits:
   - support checker evidence only
   - temp fixture roots only
