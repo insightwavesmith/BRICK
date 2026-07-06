@@ -69,6 +69,10 @@ draft-time 하드 RED: RED-1 폭>3 · RED-2 branch write-set 교차 · RED-3 dee
 1. **claude-측 QA 캐스팅 2티어**: QA 렌즈에 claude 투입 시 — 엔진쪽/매우 중요 = **fable5 xhigh**, 그 외 QA = **Opus 4.8 xhigh**(`model:claude:claude-opus-4-8`) 기본. 종전 sonnet-기본을 대체. 부수: fable5 동시 버스트 압력 완화. 적용 = 신규 발주의 QA branch model_ref 명시(즉시) + 초안기 캐스팅 상수 갱신은 #15 규칙표 증분(P8)에 동승 + model-lane 규율 문서 티어 행(기존 소형 묶음 행에 합류).
 2. **온보딩 스플래시**: 무료 초기 배포 전제로 이즈쿠 블록아트 스플래시 채택(Smith — "팔 게 아니면 괜찮다" 리스크 수용 판정). 가드레일 2종 동반: ①에셋은 repo 트리 밖(install이 로컬 배치·출력, git 이력 영구 잔존 회피) ②만료태그 `[임시: 만료=판매/공개 배포 전 오리지널 마스코트 교체]` 등재. 집행 = D(onboard-s0-repair) 랜딩 후속으로 편입(P11).
 
+## H. repo 청소 조사(F1) 채택 판정 (0707, 위임 하 COO 집행)
+
+조사 실측: 추적 5,111파일 census — 로컬 잡동사니는 전부 미추적+ignored(고객 클론 무영향). `.github/workflows/release-gate.yaml`은 활성 CI + 체커 핀(install_release_export_lint_check.py:601-609가 존재 요구) → **유지**(삭제 시 --all RED — Smith 지목 표적이 load-bearing으로 판명). `release_export.sh` 실존: 공개 배포 경로는 이미 project/ 제외 — repo-초대 노출만 남음(향후 노출 축소 레버 = 초대를 export 미러로 전환, 사업 판단이라 Smith 자리, 관찰만 기록). 픽스처류·spec/reviews 역사 문서 = 체커/런타임이 물고 있어 유지-보수적. **채택 집행 2건**: ①support/docs/references/current-origin-dogfood-onebrick-20260630.md — 참조 0건 grep 증명 + 절대 로컬 경로 포함 → status/kernel/archive로 이관 ②.gitignore에 export 거부목록 대비 명시 누락 5행 추가(.gemini/ .mcp.json .ssh/ tokens/ sessions/). 반전 경로: 이관은 git mv라 이력 보존 — 언제든 복귀 가능. 시공 = repo-cleanup-apply-0707a(소형 1샷).
+
 ## E. 초안기 제안측 부재 — 실측 (0707, #15 규칙표 증분 후속 발주의 갭 증거)
 
 resume-rootfix-design-0707a 발주에서 `brick draft`에 준 8답과 초안기 반응 실측 원문:
