@@ -718,6 +718,7 @@ SUPPORT_DOC_TEMPLATE_FILES: set[str] = set()
 
 TEMPLATE0_BRICK_TEMPLATE_DIRS = {
     "brick/templates",
+    "brick/templates/graph-decls",
     "brick/templates/closure",
     "brick/templates/design",
     "brick/templates/bricks",
