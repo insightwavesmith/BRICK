@@ -749,6 +749,7 @@ def check(repo: Path) -> tuple[list[str], Mapping[str, Any]]:
     # deadline, write raw dispatch_child_timeout evidence, and surface a COO-owned
     # loud HOLD instead of waiting for the child indefinitely.
     _fan_dispatch_child_timeout_fire(repo, violations, summary)
+    _fan_dispatch_slow_normal_child_no_false_hold_fire(repo, violations, summary)
 
     return violations, summary
 
@@ -769,6 +770,7 @@ def _fan_dispatch_child_timeout_fire(
         _preset_completion_prompt_from_cli_args,
     )
     from support.checkers.lib.step_output_drain_check import _dynamic_step_output_drain_plan
+    from brick_protocol.support.operator import walker_kernel
 
     plan = json.loads(json.dumps(_dynamic_step_output_drain_plan(missing=False)))
     plan["building_id"] = "checker-fan-dispatch-child-timeout"
@@ -779,9 +781,10 @@ def _fan_dispatch_child_timeout_fire(
             step["selected_adapter_ref"] = "adapter:codex-local"
             step["selected_model_ref"] = "model:codex:default"
             if step.get("step_ref") == "fan-axis-qa":
-                step["work_statement"] = (
+                _set_graph_step_work_statement(
+                    step,
                     "fan-axis-qa silent child timeout fixture; the command_runner "
-                    "must not return before the adapter timeout."
+                    "must not return before the adapter timeout.",
                 )
 
     complete_runner = _preset_completion_command_runner(LocalCliCompleted)
@@ -802,27 +805,33 @@ def _fan_dispatch_child_timeout_fire(
             raise TimeoutError("silent child fixture exceeded adapter timeout")
         return complete_runner(args, cwd, timeout_seconds)
 
-    with tempfile.TemporaryDirectory(prefix="bp-fan-child-timeout-") as tmp_raw:
-        output_root = Path(tmp_raw)
-        started = time.monotonic()
-        result = run_building_plan(
-            plan,
-            output_root=output_root,
-            overwrite_existing=True,
-            command_runner=_timeout_runner,
-            adapter_cwd=repo,
-            adapter_timeout_seconds=1,
-        )
-        elapsed = time.monotonic() - started
-        root = result.lifecycle_write.root
-        # Let the timed-out worker unwind after the main walk has already held;
-        # this keeps the in-process checker deterministic without trusting it as
-        # process-integrity proof.
-        time.sleep(0.75)
-        timeout_records = _jsonl_records(root / "raw" / "dispatch-child-timeout.jsonl")
-        adapter_error_records = _jsonl_records(root / "raw" / "adapter-error.jsonl")
-        link_records = _jsonl_records(root / "raw" / "link.jsonl")
-        frontier = observe_building_frontier(root)
+    default_join_seconds = walker_kernel._adapter_timeout_join_seconds(1)
+    original_floor = walker_kernel._ADAPTER_TIMEOUT_JOIN_MARGIN_FLOOR_SECONDS
+    walker_kernel._ADAPTER_TIMEOUT_JOIN_MARGIN_FLOOR_SECONDS = 0.25
+    try:
+        with tempfile.TemporaryDirectory(prefix="bp-fan-child-timeout-") as tmp_raw:
+            output_root = Path(tmp_raw)
+            started = time.monotonic()
+            result = run_building_plan(
+                plan,
+                output_root=output_root,
+                overwrite_existing=True,
+                command_runner=_timeout_runner,
+                adapter_cwd=repo,
+                adapter_timeout_seconds=1,
+            )
+            elapsed = time.monotonic() - started
+            root = result.lifecycle_write.root
+            # Let the timed-out worker unwind after the main walk has already held;
+            # this keeps the in-process checker deterministic without trusting it as
+            # process-integrity proof.
+            time.sleep(0.75)
+            timeout_records = _jsonl_records(root / "raw" / "dispatch-child-timeout.jsonl")
+            adapter_error_records = _jsonl_records(root / "raw" / "adapter-error.jsonl")
+            link_records = _jsonl_records(root / "raw" / "link.jsonl")
+            frontier = observe_building_frontier(root)
+    finally:
+        walker_kernel._ADAPTER_TIMEOUT_JOIN_MARGIN_FLOOR_SECONDS = original_floor
 
     hold_records = [
         record
@@ -844,12 +853,19 @@ def _fan_dispatch_child_timeout_fire(
     summary["fan_dispatch_child_timeout_mutation_red_execution_log"] = {
         "silent_child_step_ref": "fan-axis-qa",
         "adapter_timeout_seconds": 1,
+        "default_join_seconds": round(default_join_seconds, 3),
+        "checker_join_seconds": round(1 + 0.25, 3),
         "elapsed_seconds": round(elapsed, 3),
         "timeout_raw_rows": len(timeout_records),
         "hold_rows": len(hold_records),
         "proof_limit": "mutation-RED support evidence only",
     }
-    if elapsed >= 2.25:
+    if default_join_seconds < 31.0:
+        violations.append(
+            "fan-dispatch-child-timeout margin-RED: production join margin floor "
+            "was removed or lowered below adapter_timeout_seconds + 30s"
+        )
+    if elapsed >= 1.85:
         violations.append(
             "fan-dispatch-child-timeout mutation-RED: fan walk waited for the "
             "silent child instead of returning near adapter_timeout_seconds"
@@ -866,6 +882,128 @@ def _fan_dispatch_child_timeout_fire(
         violations.append("fan-dispatch-child-timeout: paused lifecycle row with fan_dispatch_child_unresponsive missing")
     elif hold_records[-1].get("transition_lifecycle_required_disposition_owner") != "coo":
         violations.append("fan-dispatch-child-timeout: HOLD owner was not coo")
+
+
+def _fan_dispatch_slow_normal_child_no_false_hold_fire(
+    repo: Path,
+    violations: list[str],
+    summary: dict[str, Any],
+) -> None:
+    from brick_protocol.support.connection.agent_adapter import LocalCliCompleted
+    from brick_protocol.support.operator.frontier_observation import observe_building_frontier
+    from brick_protocol.support.operator.run import run_building_plan
+    from support.checkers.lib.preset_completion_fixture import (
+        _preset_completion_command_runner,
+        _preset_completion_prompt_from_cli_args,
+    )
+    from support.checkers.lib.step_output_drain_check import _dynamic_step_output_drain_plan
+    from brick_protocol.support.operator import walker_kernel
+
+    plan = json.loads(json.dumps(_dynamic_step_output_drain_plan(missing=False)))
+    plan["building_id"] = "checker-fan-dispatch-slow-normal-child"
+    plan["plan_ref"] = "building-plan:checker-fan-dispatch-slow-normal-child"
+    plan["selected_adapter_ref"] = "adapter:codex-local"
+    for step in plan.get("brick_steps", []):
+        if isinstance(step, dict):
+            step["selected_adapter_ref"] = "adapter:codex-local"
+            step["selected_model_ref"] = "model:codex:default"
+            if step.get("step_ref") == "fan-axis-qa":
+                _set_graph_step_work_statement(
+                    step,
+                    "fan-axis-qa slow normal child margin fixture; the command_runner "
+                    "returns after adapter_timeout_seconds but before the outer join margin.",
+                )
+
+    complete_runner = _preset_completion_command_runner(LocalCliCompleted)
+    slow_branch_hits = 0
+
+    def _slow_normal_runner(args: Sequence[str], cwd: Path, timeout_seconds: int, **_kwargs: Any) -> Any:
+        nonlocal slow_branch_hits
+        prompt = _preset_completion_prompt_from_cli_args(tuple(str(arg) for arg in args))
+        try:
+            prompt_packet = json.loads(prompt)
+        except json.JSONDecodeError:
+            prompt_packet = {}
+        work_statement = (
+            str(prompt_packet.get("work_statement") or "")
+            if isinstance(prompt_packet, Mapping)
+            else ""
+        )
+        if "slow normal child margin fixture" in work_statement:
+            slow_branch_hits += 1
+            time.sleep(timeout_seconds + 0.12)
+        return complete_runner(args, cwd, timeout_seconds)
+
+    default_join_seconds = walker_kernel._adapter_timeout_join_seconds(1)
+    original_floor = walker_kernel._ADAPTER_TIMEOUT_JOIN_MARGIN_FLOOR_SECONDS
+    walker_kernel._ADAPTER_TIMEOUT_JOIN_MARGIN_FLOOR_SECONDS = 0.25
+    try:
+        with tempfile.TemporaryDirectory(prefix="bp-fan-slow-normal-") as tmp_raw:
+            output_root = Path(tmp_raw)
+            started = time.monotonic()
+            result = run_building_plan(
+                plan,
+                output_root=output_root,
+                overwrite_existing=True,
+                command_runner=_slow_normal_runner,
+                adapter_cwd=repo,
+                adapter_timeout_seconds=1,
+            )
+            elapsed = time.monotonic() - started
+            root = result.lifecycle_write.root
+            timeout_records = _jsonl_records(root / "raw" / "dispatch-child-timeout.jsonl")
+            adapter_error_records = _jsonl_records(root / "raw" / "adapter-error.jsonl")
+            link_records = _jsonl_records(root / "raw" / "link.jsonl")
+            frontier = observe_building_frontier(root)
+    finally:
+        walker_kernel._ADAPTER_TIMEOUT_JOIN_MARGIN_FLOOR_SECONDS = original_floor
+
+    hold_records = [
+        record
+        for record in link_records
+        if "fan_dispatch_child_unresponsive"
+        in json.dumps(record.get("transition_lifecycle_reason_refs", []))
+    ]
+    summary["fan_dispatch_slow_normal_elapsed_seconds"] = round(elapsed, 3)
+    summary["fan_dispatch_slow_normal_branch_hits"] = slow_branch_hits
+    summary["fan_dispatch_slow_normal_timeout_records"] = len(timeout_records)
+    summary["fan_dispatch_slow_normal_frontier"] = frontier.get("frontier_kind")
+    summary["fan_dispatch_slow_normal_margin_removal_mutation_red_execution_log"] = {
+        "slow_child_step_ref": "fan-axis-qa",
+        "adapter_timeout_seconds": 1,
+        "default_join_seconds": round(default_join_seconds, 3),
+        "checker_join_seconds": round(1 + 0.25, 3),
+        "elapsed_seconds": round(elapsed, 3),
+        "slow_branch_hits": slow_branch_hits,
+        "timeout_raw_rows": len(timeout_records),
+        "hold_rows": len(hold_records),
+        "proof_limit": "mutation-RED support evidence only",
+    }
+    if default_join_seconds < 31.0:
+        violations.append(
+            "fan-dispatch-slow-normal margin-RED: production join margin floor "
+            "was removed or lowered below adapter_timeout_seconds + 30s"
+        )
+    if slow_branch_hits != 1:
+        violations.append("fan-dispatch-slow-normal: slow child fixture branch did not execute exactly once")
+    if frontier.get("frontier_kind") != "complete":
+        violations.append("fan-dispatch-slow-normal: slow normal child did not complete")
+    if timeout_records:
+        violations.append("fan-dispatch-slow-normal: slow normal child was mis-recorded as dispatch_child_timeout")
+    if adapter_error_records:
+        violations.append("fan-dispatch-slow-normal: slow normal child produced adapter-error evidence")
+    if hold_records:
+        violations.append("fan-dispatch-slow-normal: slow normal child produced fan_dispatch_child_unresponsive HOLD")
+
+
+def _set_graph_step_work_statement(step: dict[str, Any], work_statement: str) -> None:
+    for row in step.get("rows", []):
+        if isinstance(row, dict) and row.get("axis") == "Brick":
+            row["work_statement"] = work_statement
+            return
+    raise ValueError("checker fan dispatch fixture step missing Brick row")
+
+
 # Lane1 launch safety FIRE: launch_assembled_building runs inside the engine
 # sandbox. A caller-supplied adapter_cwd that points at the live repo (self or
 # child) must be refused before the composed plan is persisted or dispatched.

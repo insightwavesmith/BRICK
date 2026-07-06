@@ -237,6 +237,17 @@ _STEP_OUTPUT_HANDOFF_PROOF_LIMITS = (
 
 _ADAPTER_USAGE_RAW_STREAM = "raw/adapter-usage.jsonl"
 _DISPATCH_CHILD_TIMEOUT_RAW_STREAM = "raw/dispatch-child-timeout.jsonl"
+_ADAPTER_TIMEOUT_JOIN_MARGIN_FLOOR_SECONDS = 30.0
+_ADAPTER_TIMEOUT_JOIN_MARGIN_RATIO = 0.10
+
+
+def _adapter_timeout_join_seconds(adapter_timeout_seconds: int) -> float:
+    adapter_timeout = max(0.0, float(adapter_timeout_seconds))
+    margin = max(
+        _ADAPTER_TIMEOUT_JOIN_MARGIN_FLOOR_SECONDS,
+        adapter_timeout * _ADAPTER_TIMEOUT_JOIN_MARGIN_RATIO,
+    )
+    return adapter_timeout + margin
 
 
 class _DispatchChildTimeout(RuntimeError):
@@ -1485,7 +1496,16 @@ def _run_dynamic_graph_walker(
                         defer_frontier_writes=True,
                     )
                     try:
-                        return [(single_item, future.result(timeout=adapter_timeout_seconds))]
+                        return [
+                            (
+                                single_item,
+                                future.result(
+                                    timeout=_adapter_timeout_join_seconds(
+                                        adapter_timeout_seconds
+                                    )
+                                ),
+                            )
+                        ]
                     except FutureTimeoutError:
                         timeout_record = _record_dispatch_child_timeout_evidence(
                             building_root=building_root,
@@ -1541,11 +1561,18 @@ def _run_dynamic_graph_walker(
                     for item in items
                 ]
                 outcomes: list[tuple[dict[str, Any], NodeProcessingOutcome]] = []
-                deadline = time.monotonic() + max(0, adapter_timeout_seconds)
                 for item, future in futures:
-                    remaining = max(0.0, deadline - time.monotonic())
                     try:
-                        outcomes.append((item, future.result(timeout=remaining)))
+                        outcomes.append(
+                            (
+                                item,
+                                future.result(
+                                    timeout=_adapter_timeout_join_seconds(
+                                        adapter_timeout_seconds
+                                    )
+                                ),
+                            )
+                        )
                     except FutureTimeoutError:
                         timeout_record = _record_dispatch_child_timeout_evidence(
                             building_root=building_root,
