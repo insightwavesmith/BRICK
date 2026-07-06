@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import fnmatch
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Any, Iterable
@@ -20,10 +19,11 @@ _MUTATION_RED_REQUIRED_FIELDS: tuple[str, ...] = (
 
 
 def _path_matches_scope(path: str, pattern: str) -> bool:
-    """Match exact paths or explicit globs.
+    """Match exact paths or segment-aware explicit globs.
 
     Note: directory-looking entries do not include children (a bare directory
-    entry matches only itself, never a nested file).
+    entry matches only itself, never a nested file). ``*`` matches exactly one
+    path segment; ``**`` matches recursively.
 
     Moved verbatim from ``support/operator/write_observation`` as part of the
     REDO: comparing a changed path against a declared scope pattern is the
@@ -34,7 +34,30 @@ def _path_matches_scope(path: str, pattern: str) -> bool:
     clean_pattern = pattern.strip().replace("\\", "/")
     if not clean_pattern:
         return False
-    return fnmatch.fnmatch(path, clean_pattern) or path == clean_pattern.rstrip("/")
+    clean_path = path.strip().replace("\\", "/")
+    exact_pattern = clean_pattern.rstrip("/")
+    if clean_path == exact_pattern:
+        return True
+    return _segments_match(
+        tuple(part for part in clean_path.split("/") if part),
+        tuple(part for part in exact_pattern.split("/") if part),
+    )
+
+
+def _segments_match(path_parts: tuple[str, ...], pattern_parts: tuple[str, ...]) -> bool:
+    if not pattern_parts:
+        return not path_parts
+    head, *tail = pattern_parts
+    tail_parts = tuple(tail)
+    if head == "**":
+        return _segments_match(path_parts, tail_parts) or (
+            bool(path_parts) and _segments_match(path_parts[1:], pattern_parts)
+        )
+    if not path_parts:
+        return False
+    if head == "*" or head == path_parts[0]:
+        return _segments_match(path_parts[1:], tail_parts)
+    return False
 
 
 path_matches_scope = _path_matches_scope

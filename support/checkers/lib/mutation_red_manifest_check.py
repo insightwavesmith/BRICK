@@ -31,6 +31,7 @@ EXPECTED_SURFACES = frozenset(
         "step_output",
         "gate_sequence_decision",
         "write_scope_commit_gate",
+        "write_scope_segment_matcher",
         "hold_lifecycle",
     }
 )
