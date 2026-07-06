@@ -2779,6 +2779,20 @@ def _w1_worktree_sandbox_fire(
             violations.append(
                 f"w1-direct-close-anchor: run result missing anchored_ref: {direct_anchor_ref!r}"
             )
+        # anchor stamping mints a new frozen result (dataclasses.replace) — the
+        # dynamic walker's in-memory side channels must SURVIVE the stamp
+        # (0706 live-sweep catch: stripped _dynamic_walker_evidence broke the
+        # routing-loop checker and silently dropped report observations).
+        if not hasattr(direct.run_result, "_dynamic_walker_evidence"):
+            violations.append(
+                "w1-direct-close-anchor: anchored result LOST the "
+                "_dynamic_walker_evidence side channel (replace() strip)"
+            )
+        if not hasattr(direct.run_result, "_dynamic_walker_reroute_records"):
+            violations.append(
+                "w1-direct-close-anchor: anchored result LOST the "
+                "_dynamic_walker_reroute_records side channel (replace() strip)"
+            )
         if direct_reclaimed is None or direct_reclaimed[0] != direct_anchor_ref:
             violations.append("w1-direct-close-anchor: close-time WIP ref was not reclaimable")
         elif direct_reclaimed[1]:
