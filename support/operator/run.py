@@ -85,6 +85,10 @@ from brick_protocol.support.operator.gate_sequence import (
     run_gate_sequence_policy,
 )
 from brick_protocol.support.operator.frontier_observation import observe_building_frontier
+from brick_protocol.support.operator.import_identity import (
+    install_source_import_paths,
+    resolve_operator_identity,
+)
 from brick_protocol.support.operator.runtime_env import load_report_env_into_process
 from brick_protocol.support.operator.reporter import (
     building_event_kind_from_frontier,
@@ -143,7 +147,6 @@ from brick_protocol.support.operator.primitives import (
     _DEFAULT_AGENT_OBJECT_ROOT,
     _DECLARED_GATE_REFS_KEY,
     _FORBIDDEN_PAYLOAD_KEYS,
-    _REPO_ROOT,
     _RETURN_FORBIDDEN_KEYS,
     _agent_run_not_proven,
     _first_text,
@@ -196,6 +199,10 @@ from brick_protocol.support.recording.step_outputs import (
     _step_output_dir_ref,
     write_step_output,
 )
+
+_OPERATOR_IMPORT_IDENTITY = resolve_operator_identity(__file__)
+install_source_import_paths(_OPERATOR_IMPORT_IDENTITY)
+_REPO_ROOT = _OPERATOR_IMPORT_IDENTITY.repo_root
 
 
 class AdapterFrontierEvidenceWritten(RuntimeError):

@@ -243,6 +243,7 @@ SINK_REGISTRY0_TARGETS = {
 BRICK_CLI_ENTRYPOINT0_TARGETS = {
     "support/operator/cli.py",
     "support/operator/first_use.py",
+    "support/operator/import_identity.py",
 }
 
 # PROJECT-0 S1-A: the project declaration record loader (reads + validates
