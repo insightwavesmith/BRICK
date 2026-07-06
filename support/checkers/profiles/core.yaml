@@ -23,6 +23,7 @@ kernel_checks:
   - axis_crossing_elegance
   - link_gate_measurement_separation
   - gate_policy_action_single_source
+  - positive_int_bool_boundary
   - fan_out_sibling_evidence_independence
   - evidence_spine
   - evidence_spine_projection

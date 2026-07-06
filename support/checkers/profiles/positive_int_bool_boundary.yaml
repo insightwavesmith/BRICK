@@ -2,7 +2,7 @@ schema: checker-profile/v1
 profile_id: positive-int-bool-boundary
 description: Static Rule 12 guard that keeps budget/count positive-int surfaces from accepting bool.
 kernel_checks:
-  - package_path_admission
+  - positive_int_bool_boundary
 path_exists:
   - support/checkers/check_positive_int_bool_boundary.py
   - support/checkers/profiles/positive_int_bool_boundary.yaml
@@ -23,11 +23,17 @@ text_contains:
       - support/operator/plan_expansion.py
       - support/operator/composition_route_policy.py
       - support/operator/walker_frontier_driver.py
+      - support/operator/walker_reroute_budget.py
+      - support/operator/plan_validation.py
+      - support/operator/walker_resume.py
+      - support/operator/driver.py
       - support/recording/step_outputs.py
       - support/recording/claims_carry_budget.py
+      - DRIVER_CONSOLIDATION_ERROR_CONTRACT
+      - gate_sequence replay reader accepted mixed-case recorded action
 proof_limits:
   - checker profile support evidence only
-  - standalone checker must be run directly because check_profile.py is outside this Brick write scope
+  - profile dispatch observes the checker body only
   - not source truth
   - not success judgment
   - not quality judgment

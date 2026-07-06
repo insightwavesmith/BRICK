@@ -31,6 +31,7 @@ from brick_protocol.support.operator.primitives import (
     _optional_text_value,
     _resource_slug,
 )
+from brick_protocol.support.recording.contracts import require_positive_int
 
 # A reroute target read from a non-binding transition_concern is one of the
 # concern's related_boundary_refs that names a Brick instance/boundary.
@@ -88,19 +89,13 @@ def _node_reroute_budgets(
             raise ValueError(
                 "node_reroute_budgets target must resolve to an existing node: " + brick_ref
             )
-        budget = _positive_int(value, f"node_reroute_budgets[{brick_ref}]")
+        budget = require_positive_int(value, f"node_reroute_budgets[{brick_ref}]")
         budgets[brick_ref] = budget
     return budgets
 
 
 def _positive_int(value: Any, label: str) -> int:
-    if isinstance(value, bool):
-        raise ValueError(f"{label} must be a positive integer")
-    if isinstance(value, int) and value > 0:
-        return value
-    if isinstance(value, str) and value.strip().isdecimal() and int(value) > 0:
-        return int(value)
-    raise ValueError(f"{label} must be a positive integer")
+    return require_positive_int(value, label)
 
 
 def _mapping_value(name: str, value: Any) -> Mapping[str, Any]:
@@ -158,9 +153,19 @@ def _resume_landing_map(
 def _required_disposition_action(disposition: Mapping[str, Any]) -> str:
     action = _optional_text_value(disposition.get("disposition_action")) or ""
     if action not in _DISPOSITION_ACTIONS:
-        raise ValueError("disposition_action must be raise, forward, or stop")
+        raise ValueError(
+            "disposition_action must be one of "
+            + _disposition_actions_error_text()
+        )
     if action == "raise":
-        _positive_int(disposition.get("budget_increment"), "transition_lifecycle.budget_increment")
+        require_positive_int(
+            disposition.get("budget_increment"),
+            "transition_lifecycle.budget_increment",
+        )
     elif disposition.get("budget_increment") is not None:
         raise ValueError("budget_increment is admitted only for disposition_action=raise")
     return action
+
+
+def _disposition_actions_error_text() -> str:
+    return ", ".join(_DISPOSITION_ACTIONS[:-1]) + f", or {_DISPOSITION_ACTIONS[-1]}"
