@@ -61,6 +61,7 @@ PYEOF
         -H 'Content-type: application/json; charset=utf-8' \
         --data "$PAYLOAD" >/dev/null 2>&1 || true
     fi
+    rm -f /tmp/coo-land-lock/log 2>/dev/null
     rmdir /tmp/coo-land-lock 2>/dev/null
   }
   trap _coo_finish EXIT
