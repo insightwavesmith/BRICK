@@ -1,0 +1,62 @@
+{
+  "building_id": "brick-draft-20260706T223424Z-9787f7c8",
+  "declared_by": "coo",
+  "author_ref": "coo:graph-draft",
+  "task": "분할 가능 심층 표본 작업",
+  "write_scope": {
+    "allowed_paths": [
+      "support/**"
+    ],
+    "forbidden_paths": [
+      ".git/**"
+    ]
+  },
+  "nodes": [
+    {
+      "fan": {
+        "branches": [
+          {
+            "kind": "design",
+            "concern_key": "design-fable5",
+            "objective": "병렬 독립 설계(상호 열람 금지): 형제 설계 가지의 증거를 읽지 마라. 담당 관점에서 설계·partition_plan을 반환하라. 판정 금지 — 수렴은 closure, 2단은 새 선언.",
+            "work_statement": "병렬 독립 설계(상호 열람 금지): 형제 설계 가지의 증거를 읽지 마라. 담당 관점에서 설계·partition_plan을 반환하라. 판정 금지 — 수렴은 closure, 2단은 새 선언.",
+            "adapter_ref": "adapter:claude-local",
+            "model_ref": "model:claude:claude-fable-5",
+            "reasoning_effort_ref": "effort:xhigh",
+            "source_facts": [
+              "README.md"
+            ]
+          },
+          {
+            "kind": "design",
+            "concern_key": "design-fugu",
+            "objective": "병렬 독립 설계(상호 열람 금지): 형제 설계 가지의 증거를 읽지 마라. 담당 관점에서 설계·partition_plan을 반환하라. 판정 금지 — 수렴은 closure, 2단은 새 선언.",
+            "work_statement": "병렬 독립 설계(상호 열람 금지): 형제 설계 가지의 증거를 읽지 마라. 담당 관점에서 설계·partition_plan을 반환하라. 판정 금지 — 수렴은 closure, 2단은 새 선언.",
+            "adapter_ref": "adapter:codex-fugu-local",
+            "model_ref": "model:sakana:fugu-ultra",
+            "reasoning_effort_ref": "effort:xhigh",
+            "source_facts": [
+              "README.md"
+            ]
+          },
+          {
+            "kind": "design",
+            "concern_key": "design-codex",
+            "objective": "병렬 독립 설계(상호 열람 금지): 형제 설계 가지의 증거를 읽지 마라. 담당 관점에서 설계·partition_plan을 반환하라. 판정 금지 — 수렴은 closure, 2단은 새 선언.",
+            "work_statement": "병렬 독립 설계(상호 열람 금지): 형제 설계 가지의 증거를 읽지 마라. 담당 관점에서 설계·partition_plan을 반환하라. 판정 금지 — 수렴은 closure, 2단은 새 선언.",
+            "adapter_ref": "adapter:codex-local",
+            "source_facts": [
+              "README.md"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "kind": "closure",
+      "work_statement": "종합: Deliverables 번호별 crosscheck, QA 관찰 종합, decision_ledger 일치 관찰, 미해결은 transition_concern_evidence로. 판정 금지.",
+      "adapter_ref": "adapter:codex-local"
+    }
+  ],
+  "adapter_timeout_seconds": 10800
+}

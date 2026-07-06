@@ -1,0 +1,29 @@
+# graph-draft finalization mutation transcripts (agent-3 finalize)
+# support evidence only; not source truth / success / quality / Movement
+# generated_utc=2026-07-06T22:37:11.178926+00:00
+
+## baseline
+rc=0
+
+
+## M1 source_facts first-branch-only (expect rc=1)
+rc=1
+- graph-draft RED: verified source_facts were not propagated to every work-fan branch/merge lane (D1)
+- graph-draft RED: verified source_facts were not propagated to every design-fan branch (D1)
+
+## M2 work-fan QA downgrade to gemini review (expect rc=1)
+rc=1
+- graph-draft RED: splittable non-deep answers with disjoint scopes did not draft a work fan
+- graph-draft RED: work-fan QA was downgraded to a single gemini review (QA fan retention absent)
+- graph-draft RED: verified source_facts were not propagated to every work-fan branch/merge lane (D1)
+
+## M3 OPUS48_QA else-arm disabled (expect rc=1)
+rc=1
+- graph-draft RED: file_conflict low-tier work did not surface a WARN-2 rationale row (or flipped RED)
+- graph-draft RED: drafted fan width exceeded the ceiling of 3 (min ceiling absent)
+- graph-draft RED: splittable non-deep answers with disjoint scopes did not draft a work fan
+- graph-draft RED: non-escalated code-attack-qa arm did not fire opus-4-8 casting (G1 else arm)
+
+## final restored baseline
+rc=0
+

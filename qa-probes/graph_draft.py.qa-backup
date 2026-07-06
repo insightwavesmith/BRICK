@@ -1229,16 +1229,15 @@ def draft_graph_declaration(
         width_signals=width_signals,
     )
     if verified_facts:
-        # D1 — source_facts 전파: attach the verified sources to EVERY fan branch,
-        # not just the first write/design petal. The spine shape carries a single
-        # top-level work node; a width-fan carries the work/design lanes INSIDE a
+        # D1 — source_facts 전파: attach the verified sources to EVERY write/design
+        # lane petal, not just the first one. The spine shape carries a single
+        # top-level work node; a width-fan carries the write/design lanes INSIDE a
         # fan block (work-partition branches, or design-fan branches) plus a merge
-        # convergence work node and then the standard attack-QA fan. Attaching to
-        # only the first petal silently drops rule ⑥ output for sibling lanes (the
-        # 1st-pass QA observation: a drafted work fan received no source_facts).
-        # Read-only QA/review fan branches are still branches of the proposal
-        # evidence surface, so they inherit the same verified source_facts. The
-        # closure node is not a branch/write-design lane and remains untouched.
+        # convergence work node. Attaching to only the first petal silently drops
+        # rule ⑥ output for every sibling fan lane (the 1st-pass QA observation:
+        # a drafted work fan received no source_facts). Read-only QA/review lenses
+        # (code-attack-qa/evidence-integrity/axis-attack-qa/review) and the closure
+        # node are NOT write/design lanes, so they are deliberately left untouched.
         _WRITE_OR_DESIGN_KINDS = {"work", "design", "deep-design"}
         for node in nodes:
             if not isinstance(node, Mapping):
@@ -1247,7 +1246,7 @@ def draft_graph_declaration(
                 fan_block = node.get("fan")
                 branches = fan_block.get("branches", ()) if isinstance(fan_block, Mapping) else ()
                 for branch in branches or ():
-                    if isinstance(branch, dict):
+                    if isinstance(branch, dict) and branch.get("kind") in _WRITE_OR_DESIGN_KINDS:
                         branch["source_facts"] = list(verified_facts)
             elif node.get("kind") in _WRITE_OR_DESIGN_KINDS:
                 node["source_facts"] = list(verified_facts)

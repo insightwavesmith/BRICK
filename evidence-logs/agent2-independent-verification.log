@@ -1,0 +1,28 @@
+# Independent verification (dev re-order, agent-1 of team) — graph-draft-proposal-fix-0707a
+# All runs live/in-process. support evidence only; not source truth / success / quality / Movement.
+
+[baseline] python3 support/checkers/check_graph_draft_rules.py  -> rc=0, "graph_draft_rules passed: 35 probe(s)"
+
+[D1 teeth] mutate source_facts attach -> first-write-lane-only
+  -> rc=1: RED "source_facts were not propagated to every work-fan write lane (D1)"
+           RED "source_facts were not propagated to every design-fan branch (D1)"
+  restored -> rc=0
+
+[D2a teeth] mutate work-fan QA -> single gemini review (downgrade)
+  -> rc=1 (QA-fan retention probe fires); restored -> rc=0
+
+[G1/D3 teeth] mutate code-attack-qa casting -> always FABLE5 (else-arm never opus)
+  -> rc=1: RED "non-escalated code-attack-qa arm did not fire opus-4-8 casting (G1 else arm)"
+  restored -> rc=0
+
+[D5 draft CLI] brick draft, splittable=yes width_signals=2, --source-fact README.md
+  -> composed_ok=true; design-fan branches EACH carry source_facts=['README.md']
+
+[profile] python3 support/checkers/check_profile.py --profile graph-draft
+  -> rc=0, "profile passed: graph-draft (81 declarative rule observation(s), 1 kernel target(s))"
+
+[CAVEAT] package_path_admission (part of 격리 --all) rejects repo-root
+  evidence-logs/ and qa-probes/ (rc=1) — hardcoded ignore list, not .gitignore-driven.
+  The prior green --all (evidence-logs/isolation-all.log) was produced with those
+  untracked dirs stashed aside. That checker is OUTSIDE this Brick write_scope
+  (allowed: evidence-logs/** only). Caller/Link disposition item.

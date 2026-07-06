@@ -28,6 +28,10 @@ text_contains:
       - "graph-draft RED-6: expansion budget mixes per-node and aggregate modes"
       - "graph-draft WARN-1: more than 2 concurrent xhigh fan siblings"
       - "graph-draft WARN-2: entangled/walker-adjacent surface with low-tier work casting"
+      - "width_signals"
+      - "model:claude:claude-opus-4-8"
+      - "RULE-WIDTH-FAN-PROPOSAL"
+      - "RULE-WIDTH-CEILING"
   - path: support/operator/cli.py
     texts:
       - "_cmd_draft"
@@ -62,6 +66,20 @@ text_contains:
       - "graph-draft RED: rejected draft was persisted without a draft_rejected marker (fail-open #5)"
       - "graph-draft RED: green draft was wrongly stamped with a draft_rejected marker (fail-open #5 over-mark)"
       - "stage-2 draft was not rejected (RED-6 fail-closed)"
+      - "graph-draft RED: splittable deep answers did not draft a parallel design fan (width proposal absent)"
+      - "graph-draft RED: drafted fan width exceeded the ceiling of 3 (min ceiling absent)"
+      - "graph-draft RED: malformed width_signals was not rejected fail-closed"
+      - "graph-draft RED: splittable non-deep answers with disjoint scopes did not draft a work fan"
+      - "graph-draft RED: work fan without disjoint scope partitions was not collapsed to width 1"
+      - "graph-draft RED: note-split-candidate row survived absorption (detect-only path not removed)"
+      - "graph-draft RED: width decision rationale row absent for a splittable draft"
+      - "graph-draft RED: file_conflict answers drafted a parallel fan (work 병렬화 금지)"
+      - "graph-draft RED: non-escalated QA lens casting is not opus-4-8 tier (G1)"
+      - "graph-draft RED: work-fan QA was downgraded to a single gemini review (QA fan retention absent)"
+      - "graph-draft RED: non-escalated code-attack-qa arm did not fire opus-4-8 casting (G1 else arm)"
+      - "graph-draft RED: verified source_facts were not propagated to every work-fan branch/merge lane (D1)"
+      - "graph-draft RED: verified source_facts were not propagated to every design-fan branch (D1)"
+      - "graph-draft RED: ceiling-truncated partitions were not recorded on a residual_owner row (D2②)"
 text_absent:
   - path: support/operator/graph_draft.py
     texts:

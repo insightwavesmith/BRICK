@@ -1,0 +1,32 @@
+package path admission rejected:
+- path evidence-logs is not listed in current seed admission set
+- path evidence-logs/agent-final-designfan-cli.json is not listed in current seed admission set
+- path evidence-logs/agent-final-designfan-decl-rationale.md is not listed in current seed admission set
+- path evidence-logs/agent-final-designfan-decl.json is not listed in current seed admission set
+- path evidence-logs/agent-final-designfan-shape.txt is not listed in current seed admission set
+- path evidence-logs/agent-final-mutation-transcripts.log is not listed in current seed admission set
+- path evidence-logs/agent-final-package-path-admission.err is not listed in current seed admission set
+- path evidence-logs/agent-final-package-path-admission.out is not listed in current seed admission set
+- path evidence-logs/agent-final-workfan-cli.json is not listed in current seed admission set
+- path evidence-logs/agent-final-workfan-decl-rationale.md is not listed in current seed admission set
+- path evidence-logs/agent-final-workfan-decl.json is not listed in current seed admission set
+- path evidence-logs/agent-final-workfan-shape.txt is not listed in current seed admission set
+- path evidence-logs/agent2-independent-verification.log is not listed in current seed admission set
+- path evidence-logs/check_graph_draft_rules.rc0.log is not listed in current seed admission set
+- path evidence-logs/cli_draft_designfan.txt is not listed in current seed admission set
+- path evidence-logs/cli_draft_workfan.txt is not listed in current seed admission set
+- path evidence-logs/d5-node-shape-summary.txt is not listed in current seed admission set
+- path evidence-logs/demo-designfan-decl-rationale.md is not listed in current seed admission set
+- path evidence-logs/demo-designfan-decl.json is not listed in current seed admission set
+- path evidence-logs/demo-workfan-decl-rationale.md is not listed in current seed admission set
+- path evidence-logs/demo-workfan-decl.json is not listed in current seed admission set
+- path evidence-logs/isolation-all.log is not listed in current seed admission set
+- path evidence-logs/mutation_red_variants.log is not listed in current seed admission set
+- path evidence-logs/profile_graph_draft.log is not listed in current seed admission set
+- path qa-probes is not listed in current seed admission set
+- path qa-probes/graph_draft.py.qa-backup is not listed in current seed admission set
+- path qa-probes/qa-own-workfan-rationale.md is not listed in current seed admission set
+- path qa-probes/qa-own-workfan.json is not listed in current seed admission set
+- path qa-probes/qa-own-workfan2-rationale.md is not listed in current seed admission set
+- path qa-probes/qa-own-workfan2.json is not listed in current seed admission set
+proof limit: this checker only inspects path admission; absence is not semantic readiness.

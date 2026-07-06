@@ -1,0 +1,10 @@
+=== WORK-FAN :: evidence-logs/demo-workfan-decl.json ===
+  FAN: [('work', ['support/operator/graph_draft.py'], None), ('work', ['support/operator/graph_draft.py'], None)]
+  NODE: work source_facts= ['support/operator/graph_draft.py']
+  FAN: [('code-attack-qa', None, 'model:claude:claude-opus-4-8'), ('evidence-integrity', None, 'model:claude:claude-opus-4-8')]
+  NODE: closure source_facts= None
+
+=== DESIGN-FAN :: evidence-logs/demo-designfan-decl.json ===
+  FAN: [('design', ['support/operator/graph_draft.py'], 'model:claude:claude-fable-5'), ('design', ['support/operator/graph_draft.py'], 'model:sakana:fugu-ultra'), ('design', ['support/operator/graph_draft.py'], None)]
+  NODE: closure source_facts= None
+

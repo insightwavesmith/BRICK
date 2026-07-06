@@ -1,0 +1,2 @@
+brick command rejected evidence: input_rejected: input rejected by the support CLI boundary
+proof_limits: support CLI wrapper only; existing seams own run/checker behavior; not source truth; not success judgment; not quality judgment; not Movement authority

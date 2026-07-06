@@ -1,0 +1,27 @@
+== QM1: proposal_on drops the file_conflict blocker (autofire past 병렬화 금지) ==
+graph_draft_rules rejected evidence:
+- graph-draft RED: file_conflict answers drafted a parallel fan (work 병렬화 금지)
+support evidence only; not source truth / success / quality / Movement
+QM1 rc=1
+== QM2: non-deep width ignores partition_count (fan over overlapping scopes) ==
+graph_draft_rules rejected evidence:
+- graph-draft RED: work fan without disjoint scope partitions was not collapsed to width 1
+support evidence only; not source truth / success / quality / Movement
+QM2 rc=1
+== QM3: _fan_width loses the min-3 ceiling ==
+graph_draft_rules rejected evidence:
+- graph-draft RED: drafted fan width exceeded the ceiling of 3 (min ceiling absent)
+- graph-draft RED: ceiling-truncated partitions were not recorded on a residual_owner row (D2②)
+support evidence only; not source truth / success / quality / Movement
+QM3 rc=1
+== QM4: rule-width-decision row suppressed (decision-table vacuity witness) ==
+graph_draft_rules rejected evidence:
+- graph-draft RED: width decision rationale row absent for a splittable draft
+- graph-draft RED: note-split-candidate row survived absorption (detect-only path not removed)
+support evidence only; not source truth / success / quality / Movement
+QM4 rc=1
+== restore witness ==
+RESTORED-IDENTICAL
+graph_draft_rules passed: 35 probe(s)
+support evidence only; not source truth / success / quality / Movement
+final rc=0

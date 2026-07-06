@@ -30,6 +30,13 @@ requires); it is never a write fence and is never fed to the Link gate.
 `support/...`, `brick/...`, `agent/...`, `link/...`, `project/...`, or diff hunks actually read).
 Packet-only labels are not enough for this grounding requirement.
 
+When the design proposes that the NEXT stage run as a parallel fan, describe that proposal inside
+`proposed_changes` and `checker_or_verifier_plan` using the deep-design `partition_plan` contract
+(`brick/templates/bricks/deep-design/return.yaml`) as its home — the design kind's own return shape
+does not carry a top-level `partition_plan` field yet (deep-design first, staged adoption). Parallel
+design lanes are mutually blind by law (상호 열람 금지): sibling design branches must not read each
+other's evidence, and any fan you propose declares width ≤ 3 with pairwise-disjoint write fences.
+
 Return: fill the `required_return_shape` from the return_template
 (`brick/templates/bricks/design/return.yaml`):
 `observed_evidence`, `design_summary`, `relevant_current_structure`, `proposed_changes`, `unchanged_surfaces`,
