@@ -14,6 +14,7 @@ required_return_shape:
   - candidate_file_changes
   - reading_scope_map
   - invariants
+  - partition_plan
   - observed_evidence
   - evidence_refs
   - not_proven
@@ -25,6 +26,49 @@ carries_forward_fields:
   - forbidden_drift
   - candidate_file_changes
   - reading_scope_map
+# §A2 (project/brick-protocol/status/kernel/walk-results-adopted-0707.md) fan-partition
+# schema for the REQUIRED partition_plan field above. This commented block is
+# documentation only — the flat required_return_shape list is the single source the
+# drift/U2 checkers read, so this block is inert to those guards. A design that
+# proposes NO fan returns width_decision.n: 1 with branches: []. Draft-time teeth
+# for these fields live in support/operator/graph_draft.py (draft_rule_violations).
+partition_plan_shape:
+  width_decision:                    # next-stage fan width decision
+    n: int                           # declared width; hard ceiling 3 (RED-1)
+    rationale_signals: []            # signal-ladder lines justifying n
+    partition_count: int             # non-colliding partitions found
+    kappa_proxy:                     # write-overlap proxy (width collapser)
+      overlapping_write_pairs: int   # branch pairs with write overlap
+      shared_contract_files: []      # contract files shared across branches
+  branches:                          # one entry per proposed stage-2 branch
+    - branch_id: str                 # unique id; doubles as the fan alias
+      concern_key: str               # single concern the branch owns (RED-4)
+      objective: str                 # branch objective sentence (RED-4)
+      output_format: str             # required output/return format
+      write_set:                     # branch write fence; pairwise disjoint (RED-2)
+        allowed: []                  # allowed path globs
+        forbidden: []                # forbidden path globs
+      returns_field: str             # return field the branch reports through
+      sibling_independent: bool      # true = no sibling-evidence dependency
+      casting:                       # declared branch casting
+        adapter: str                 # adapter ref tail
+        model: str                   # model ref; deep tier ⇒ timeout≥10800 (RED-3)
+        effort: str                  # effort ref tail; xhigh 동시>2 = WARN-1
+        timeout_seconds: int         # per-branch timeout request (RED-3)
+  done_line: str                     # stage-2 finish line (2단 필수 — RED-5)
+  residual_owner: str                # owner of the residue past done_line (RED-5)
+  qa_plan:                           # stage-2 QA plan
+    lenses: []                       # stage-2 QA lens kinds
+    second_verdict_path: str         # where the second verdict comes from
+    max_concurrent_xhigh: int        # declared xhigh concurrency (기본 2)
+    stagger: bool                    # stagger xhigh lanes instead of bursting
+  env_plan:                          # stage-2 environment plan
+    preflight_probe: bool            # probe provider/env before stage-2 launch
+    provider_risk: str               # named provider risk
+  expansion:                         # stage-2 expansion attach + budget
+    attach_to_step_ref: str          # step the expansion attaches to
+    budget_mode: str                 # 'per-node' XOR 'aggregate' (혼합 = RED-6)
+    budgets: {}                      # keys must match budget_mode (RED-6)
 forbidden_return_keys:
   - success
   - failure

@@ -36,6 +36,7 @@ from brick_protocol.brick.spec import derived_worktree_write_scope
 __all__ = [
     "GraphDraftResult",
     "draft_graph_declaration",
+    "draft_rule_violations",
     "write_draft_declaration",
 ]
 
@@ -77,6 +78,41 @@ GEMINI_REVIEW = {"adapter_ref": "adapter:gemini-local"}
 DEEP_TIMEOUT_SECONDS = 10800
 ISOLATION_ONCE_SENTENCE = "격리 --all은 /tmp 로그로 1회만."
 NO_COMMIT_SENTENCE = "git commit 금지."
+
+# ---------------------------------------------------------------------------
+# §A3 draft-time rule table (walk-results-adopted-0707.md). These RED/WARN
+# literals are profile-pinned; the ``# RULE-RED*``/``# RULE-WARN*`` marker
+# comments in ``draft_rule_violations`` are the mutation probes' targets
+# (deleting a rule block must flip the pin checker to rc=1). Support evidence
+# only — none of this chooses Movement, route, sufficiency, success, or quality.
+# ---------------------------------------------------------------------------
+DEEP_TIER_MODEL_REFS = frozenset(
+    {"model:sakana:fugu-ultra", "model:claude:claude-fable-5"}
+)
+DEEP_TIER_MODEL_TAILS = frozenset(
+    ref.rsplit(":", 1)[-1] for ref in DEEP_TIER_MODEL_REFS
+)
+FAN_WIDTH_CEILING = 3
+_EXPANSION_BUDGET_MODES = ("per-node", "aggregate")
+_AGGREGATE_BUDGET_KEY = "total"
+_XHIGH_EFFORT_REFS = frozenset({"effort:xhigh", "xhigh"})
+
+RED1_FAN_WIDTH = "graph-draft RED-1: fan width exceeds 3"
+RED2_WRITE_SET_OVERLAP = "graph-draft RED-2: partition branch write-sets intersect"
+RED3_DEEP_TIER_TIMEOUT = (
+    "graph-draft RED-3: deep-tier casting with adapter_timeout_seconds below 10800"
+)
+RED4_BRANCH_CONTRACT = "graph-draft RED-4: fan branch missing concern_key/objective"
+RED5_STAGE2_FINISH = (
+    "graph-draft RED-5: stage-2 draft missing done_line/residual_owner"
+)
+RED6_BUDGET_MODE = (
+    "graph-draft RED-6: expansion budget mixes per-node and aggregate modes"
+)
+WARN1_XHIGH_BURST = "graph-draft WARN-1: more than 2 concurrent xhigh fan siblings"
+WARN2_LOW_TIER_WORK = (
+    "graph-draft WARN-2: entangled/walker-adjacent surface with low-tier work casting"
+)
 
 # ---------------------------------------------------------------------------
 # Sizing-question contract (decision_ledger #2/#3). All 8 required; fail-closed
@@ -435,11 +471,15 @@ def _shape_nodes(
         branches: list[dict[str, Any]] = [
             {
                 "kind": "code-attack-qa",
+                "concern_key": "code-attack-qa",
+                "objective": CODE_QA_STMT,
                 "work_statement": CODE_QA_STMT,
                 **(FABLE5 if escalated else CLAUDE_INHERIT_XHIGH),
             },
             {
                 "kind": "evidence-integrity",
+                "concern_key": "evidence-integrity",
+                "objective": EVIDENCE_QA_STMT,
                 "work_statement": EVIDENCE_QA_STMT,
                 **CLAUDE_INHERIT_XHIGH,
             },
@@ -448,6 +488,8 @@ def _shape_nodes(
             branches.append(
                 {
                     "kind": "axis-attack-qa",
+                    "concern_key": "axis-attack-qa",
+                    "objective": AXIS_QA_STMT,
                     "work_statement": AXIS_QA_STMT,
                     **CLAUDE_INHERIT_XHIGH,
                 }
@@ -480,6 +522,398 @@ def _shape_nodes(
 # ---------------------------------------------------------------------------
 # Rule ⑩ — precheck: assemble in memory only (no persist, no run).
 # ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# §A3 draft-time rule table body. Pure, read-only, no persist and no launch —
+# turns a drafted declaration (+ optional partition_plan / sizing answers) into
+# (RED literals, WARN literals). Support evidence only.
+# ---------------------------------------------------------------------------
+def _iter_fan_branches(declaration: Mapping[str, Any]) -> "list[list[Mapping[str, Any]]]":
+    """Every fan block's branch list, in declaration order."""
+    out: list[list[Mapping[str, Any]]] = []
+    for node in declaration.get("nodes", ()) or ():
+        if isinstance(node, Mapping) and "fan" in node:
+            fan_block = node.get("fan") or {}
+            branches = fan_block.get("branches", ()) if isinstance(fan_block, Mapping) else ()
+            out.append([b for b in (branches or ()) if isinstance(b, Mapping)])
+    return out
+
+
+def _fan_branches_have_malformed(declaration: Mapping[str, Any]) -> bool:
+    """True when any fan block declares a non-mapping (malformed) branch entry.
+
+    Fail-closed (decision_ledger #8/#9 posture, shared with RED-3): a branch that
+    is not a mapping cannot name concern_key/objective, so it must NOT be silently
+    dropped from the RED-4 branch-contract scan — it counts as a violation.
+    """
+    for node in declaration.get("nodes", ()) or ():
+        if not (isinstance(node, Mapping) and "fan" in node):
+            continue
+        fan_block = node.get("fan") or {}
+        branches = fan_block.get("branches", ()) if isinstance(fan_block, Mapping) else ()
+        for branch in branches or ():
+            if not isinstance(branch, Mapping):
+                return True
+    return False
+
+
+def _scope_segments(entry: str) -> list[str]:
+    """Normalized path segments for a write-scope entry (trailing globs dropped)."""
+    text = str(entry or "").strip().replace("\\", "/").strip("/")
+    if not text:
+        return []
+    segments: list[str] = []
+    for seg in text.split("/"):
+        if seg in ("", "."):
+            continue
+        if seg == "**":
+            # a recursive-glob tail matches any deeper segment; stop collecting
+            # so a shorter prefix list is produced (prefix ⇒ overlap below).
+            break
+        segments.append(seg)
+    return segments
+
+
+def _segment_matches(a: str, b: str) -> bool:
+    if any(ch in a for ch in "*?[") or any(ch in b for ch in "*?["):
+        return True
+    return a == b
+
+
+def _entries_overlap(a: str, b: str) -> bool:
+    """Conservative (over-approximating) static-prefix overlap of two entries.
+
+    Segment-wise: a glob-bearing segment matches any segment; two entries overlap
+    iff one segment list is a prefix of the other (decision_ledger #8). Empty
+    (root) entries overlap everything.
+    """
+    sa = _scope_segments(a)
+    sb = _scope_segments(b)
+    if not sa or not sb:
+        return True
+    for seg_a, seg_b in zip(sa, sb):
+        if not _segment_matches(seg_a, seg_b):
+            return False
+    return True
+
+
+def _branch_allowed_paths(branch: Mapping[str, Any]) -> list[str]:
+    """Allowed write paths declared on a branch, from either shape.
+
+    A partition branch homes them under ``write_set.allowed``; a drafted fan
+    branch (graph-decl node) homes them under ``write_scope.allowed_paths``.
+    """
+    out: list[str] = []
+    ws = branch.get("write_set")
+    if isinstance(ws, Mapping):
+        for p in ws.get("allowed", ()) or ():
+            if str(p).strip():
+                out.append(str(p).strip())
+    scope = branch.get("write_scope")
+    if isinstance(scope, Mapping):
+        for p in scope.get("allowed_paths", ()) or ():
+            if str(p).strip():
+                out.append(str(p).strip())
+    return out
+
+
+def _write_sets_intersect(branches: Sequence[Mapping[str, Any]]) -> bool:
+    paths = [(_branch_allowed_paths(b)) for b in branches]
+    for i in range(len(paths)):
+        for j in range(i + 1, len(paths)):
+            for x in paths[i]:
+                for y in paths[j]:
+                    if _entries_overlap(x, y):
+                        return True
+    return False
+
+
+def _partition_branch_missing_write_set(
+    partition_branches: Sequence[Mapping[str, Any]],
+) -> bool:
+    """True when any §A2 partition branch declares no usable allowed write path.
+
+    Fail-open #1 closure (fail-closed posture, shared with RED-2): a partition
+    branch with no ``write_set`` / an empty ``write_set.allowed`` cannot be proven
+    disjoint from its siblings, so it must NOT slip past the overlap scan. This is
+    partition-scoped on purpose — drafted read-only QA fan branches carry no
+    write_set by design and must stay green.
+    """
+    for branch in partition_branches:
+        ws = branch.get("write_set")
+        allowed = ws.get("allowed", ()) if isinstance(ws, Mapping) else ()
+        if not [str(p).strip() for p in (allowed or ()) if str(p).strip()]:
+            return True
+    return False
+
+
+def _casting_model(casting: Mapping[str, Any]) -> str:
+    for key in ("model", "model_ref"):
+        val = str(casting.get(key) or "").strip()
+        if val:
+            return val
+    return ""
+
+
+def _is_deep_tier_model(model: str) -> bool:
+    # Fail-open #3 closure: a deep-tier model ref authored with a case variant
+    # (e.g. "model:sakana:FUGU-ULTRA") must NOT slip past the RED-3 timeout gate.
+    # Normalize case before matching; the ref/tail sets are already lowercase.
+    model = str(model or "").strip().lower()
+    if not model:
+        return False
+    return model in DEEP_TIER_MODEL_REFS or model in DEEP_TIER_MODEL_TAILS
+
+
+def _declared_deep_tier(
+    declaration: Mapping[str, Any],
+    partition_branches: Sequence[Mapping[str, Any]],
+) -> bool:
+    for node in declaration.get("nodes", ()) or ():
+        if not isinstance(node, Mapping):
+            continue
+        if "fan" in node:
+            fan_block = node.get("fan") or {}
+            for branch in (fan_block.get("branches", ()) if isinstance(fan_block, Mapping) else ()):
+                if isinstance(branch, Mapping) and _is_deep_tier_model(
+                    str(branch.get("model_ref") or branch.get("model") or "")
+                ):
+                    return True
+            continue
+        if _is_deep_tier_model(str(node.get("model_ref") or node.get("model") or "")):
+            return True
+    for branch in partition_branches:
+        casting = branch.get("casting")
+        if isinstance(casting, Mapping) and _is_deep_tier_model(_casting_model(casting)):
+            return True
+    return False
+
+
+def _partition_has_deep_tier(partition_plan: Mapping[str, Any] | None) -> bool:
+    if not isinstance(partition_plan, Mapping):
+        return False
+    for branch in partition_plan.get("branches", ()) or ():
+        if not isinstance(branch, Mapping):
+            continue
+        casting = branch.get("casting")
+        if isinstance(casting, Mapping) and _is_deep_tier_model(_casting_model(casting)):
+            return True
+    return False
+
+
+def _timeout_below(value: Any) -> bool:
+    return not isinstance(value, int) or isinstance(value, bool) or value < DEEP_TIMEOUT_SECONDS
+
+
+def _branch_timeout_below(partition_branches: Sequence[Mapping[str, Any]]) -> bool:
+    for branch in partition_branches:
+        casting = branch.get("casting")
+        if not isinstance(casting, Mapping):
+            continue
+        if not _is_deep_tier_model(_casting_model(casting)):
+            continue
+        if _timeout_below(casting.get("timeout_seconds")):
+            return True
+    return False
+
+
+def _declaration_local_timeout_below(declaration: Mapping[str, Any]) -> bool:
+    """True when a deep-tier declaration node/branch declares a local low timeout."""
+
+    def _entry_low(entry: Mapping[str, Any]) -> bool:
+        model = str(entry.get("model_ref") or entry.get("model") or "")
+        if _is_deep_tier_model(model) and "timeout_seconds" in entry:
+            return _timeout_below(entry.get("timeout_seconds"))
+        casting = entry.get("casting")
+        if isinstance(casting, Mapping) and _is_deep_tier_model(_casting_model(casting)):
+            if "timeout_seconds" in casting and _timeout_below(casting.get("timeout_seconds")):
+                return True
+        return False
+
+    for node in declaration.get("nodes", ()) or ():
+        if not isinstance(node, Mapping):
+            continue
+        if _entry_low(node):
+            return True
+        fan_block = node.get("fan") if "fan" in node else None
+        branches = fan_block.get("branches", ()) if isinstance(fan_block, Mapping) else ()
+        for branch in branches or ():
+            if isinstance(branch, Mapping) and _entry_low(branch):
+                return True
+    return False
+
+
+def _int_or_none(value: Any) -> int | None:
+    if isinstance(value, bool):
+        return None
+    return value if isinstance(value, int) else None
+
+
+def draft_rule_violations(
+    declaration: Mapping[str, Any],
+    *,
+    partition_plan: Mapping[str, Any] | None = None,
+    answers: Mapping[str, Any] | None = None,
+) -> tuple[list[str], list[str]]:
+    """§A3 draft-time rule table → (RED literals, WARN literals).
+
+    Support evidence only — no verdict, Movement, route, sufficiency, success, or
+    quality decision lives here. RED literals reject the draft at the precheck
+    seam; WARN literals surface as advisory rationale rows only.
+    """
+    reds: list[str] = []
+    warns: list[str] = []
+    pplan = partition_plan if isinstance(partition_plan, Mapping) else None
+    p_branches = [
+        b for b in ((pplan or {}).get("branches", ()) or []) if isinstance(b, Mapping)
+    ]
+    fan_branch_lists = _iter_fan_branches(declaration)
+
+    # RULE-RED1-FAN-WIDTH — declared fan width and partition width ceiling of 3.
+    width_exceeded = any(len(branches) > FAN_WIDTH_CEILING for branches in fan_branch_lists)
+    if pplan is not None:
+        n = ((pplan.get("width_decision") or {}) if isinstance(pplan.get("width_decision"), Mapping) else {}).get("n")
+        if (not isinstance(n, int) or isinstance(n, bool) or n > FAN_WIDTH_CEILING) or len(p_branches) > FAN_WIDTH_CEILING:
+            width_exceeded = True
+    if width_exceeded:
+        reds.append(RED1_FAN_WIDTH)
+
+    # RULE-RED2-WRITE-SET — pairwise write-set overlap among sibling branches.
+    # Fail-open #1 closure: a §A2 partition branch that declares NO write_set (or
+    # an empty allowed list) cannot be proven disjoint, so it fails closed to
+    # RED-2 rather than passing. Drafted QA fan branches are read-only lenses and
+    # legitimately carry no write_set, so this presence rule is partition-scoped.
+    if RED2_WRITE_SET_OVERLAP not in reds and _partition_branch_missing_write_set(p_branches):
+        reds.append(RED2_WRITE_SET_OVERLAP)
+    for branches in fan_branch_lists:
+        if RED2_WRITE_SET_OVERLAP in reds:
+            break
+        if _write_sets_intersect(branches):
+            reds.append(RED2_WRITE_SET_OVERLAP)
+            break
+    if RED2_WRITE_SET_OVERLAP not in reds and _write_sets_intersect(p_branches):
+        reds.append(RED2_WRITE_SET_OVERLAP)
+
+    # RULE-RED3-DEEP-TIMEOUT — deep-tier casting must carry ≥10800s (fail-closed
+    # on a missing/low top-level timeout or a low per-branch timeout).
+    if _declared_deep_tier(declaration, p_branches):
+        top_timeout = _int_or_none(declaration.get("adapter_timeout_seconds"))
+        if (
+            top_timeout is None
+            or top_timeout < DEEP_TIMEOUT_SECONDS
+            or _branch_timeout_below(p_branches)
+            or _declaration_local_timeout_below(declaration)
+        ):
+            reds.append(RED3_DEEP_TIER_TIMEOUT)
+
+    # RULE-RED4-BRANCH-CONTRACT — every fan/partition branch names concern_key +
+    # objective (fan-branch-scoped; spine nodes exempt).
+    # Fail-closed: a malformed (non-mapping) fan/partition branch cannot name the
+    # contract fields, so it counts as a RED-4 violation rather than being dropped.
+    red4 = _fan_branches_have_malformed(declaration)
+    if not red4 and pplan is not None:
+        raw_p_branches = (pplan.get("branches", ()) or [])
+        if any(not isinstance(b, Mapping) for b in raw_p_branches):
+            red4 = True
+    for branches in fan_branch_lists:
+        if red4:
+            break
+        for branch in branches:
+            if not str(branch.get("concern_key") or "").strip() or not str(branch.get("objective") or "").strip():
+                red4 = True
+                break
+        if red4:
+            break
+    if not red4:
+        for branch in p_branches:
+            if not str(branch.get("concern_key") or "").strip() or not str(branch.get("objective") or "").strip():
+                red4 = True
+                break
+    if red4:
+        reds.append(RED4_BRANCH_CONTRACT)
+
+    # RULE-RED5-STAGE2-FINISH — a stage-2 draft (partition_plan present) declares
+    # done_line + residual_owner.
+    if pplan is not None:
+        if not str(pplan.get("done_line") or "").strip() or not str(pplan.get("residual_owner") or "").strip():
+            reds.append(RED5_STAGE2_FINISH)
+
+    # RULE-RED6-BUDGET-MODE — expansion budget_mode is per-node XOR aggregate and
+    # its budget keys match the declared mode.
+    # Fail-open #2 closure (fail-closed posture): a stage-2 draft (partition_plan
+    # present) must declare a well-formed expansion — a missing expansion, a
+    # non-mapping/empty/malformed budgets container, or a non-positive-int budget
+    # value all fail closed to RED-6 rather than passing.
+    if pplan is not None:
+        exp = pplan.get("expansion")
+        if not isinstance(exp, Mapping):
+            reds.append(RED6_BUDGET_MODE)
+        else:
+            mode = str(exp.get("budget_mode") or "").strip()
+            raw_budgets = exp.get("budgets")
+            budgets = raw_budgets if isinstance(raw_budgets, Mapping) else None
+            branch_ids = {str(b.get("branch_id") or "").strip() for b in p_branches if str(b.get("branch_id") or "").strip()}
+            bad = False
+            if mode not in _EXPANSION_BUDGET_MODES:
+                bad = True
+            elif budgets is None or not budgets:
+                # missing, non-mapping, or empty budgets — cannot bound the stage.
+                bad = True
+            elif _AGGREGATE_BUDGET_KEY in budgets and any(k != _AGGREGATE_BUDGET_KEY for k in budgets):
+                bad = True  # mixed per-node + aggregate keys.
+            elif mode == "per-node" and (_AGGREGATE_BUDGET_KEY in budgets or not set(budgets) <= branch_ids):
+                bad = True
+            elif mode == "aggregate" and (set(budgets) - {_AGGREGATE_BUDGET_KEY}):
+                bad = True
+            elif any(
+                (not isinstance(v, int)) or isinstance(v, bool) or v <= 0
+                for v in budgets.values()
+            ):
+                bad = True  # every declared budget must be a finite positive int.
+            if bad:
+                reds.append(RED6_BUDGET_MODE)
+
+    # RULE-WARN1-XHIGH-BURST — more than 2 xhigh siblings in any single fan block
+    # or the partition casting cohort (advisory only; literal ceiling of 2).
+    def _xhigh_count(effort_refs: Sequence[str]) -> int:
+        return sum(1 for e in effort_refs if str(e or "").strip() in _XHIGH_EFFORT_REFS)
+
+    for branches in fan_branch_lists:
+        efforts = [str(b.get("reasoning_effort_ref") or b.get("reasoning_effort") or b.get("effort") or "") for b in branches]
+        if _xhigh_count(efforts) > 2:
+            warns.append(WARN1_XHIGH_BURST)
+            break
+    if WARN1_XHIGH_BURST not in warns:
+        p_efforts = [
+            str((b.get("casting") or {}).get("effort") or "") if isinstance(b.get("casting"), Mapping) else ""
+            for b in p_branches
+        ]
+        if _xhigh_count(p_efforts) > 2:
+            warns.append(WARN1_XHIGH_BURST)
+
+    # RULE-WARN2-LOW-TIER — entangled/walker-adjacent surface (from answers) with a
+    # low-tier codex work node casting (advisory only; answer-gated).
+    # Fail-open #4 closure: ``walker_adjacent==yes`` and a hard difficulty both
+    # force escalation → the drafted work node is fugu, never codex-local, so those
+    # two signals alone left WARN-2 structurally unreachable through the drafter.
+    # ``file_conflict==yes`` ("work 병렬화 금지" — an entanglement signal) does NOT
+    # force escalation, so it leaves a codex-local work node on a risky surface —
+    # the exact 얽힘+저티어 case WARN-2 exists to surface (advisory only).
+    if isinstance(answers, Mapping):
+        surface_risk = (
+            str(answers.get("walker_adjacent") or "").strip().lower() == "yes"
+            or str(answers.get("difficulty") or "").strip().lower() in _HARD_DIFFICULTIES
+            or str(answers.get("file_conflict") or "").strip().lower() == "yes"
+        )
+        if surface_risk:
+            for node in declaration.get("nodes", ()) or ():
+                if isinstance(node, Mapping) and node.get("kind") == "work" and str(node.get("adapter_ref") or "").strip() == "adapter:codex-local":
+                    warns.append(WARN2_LOW_TIER_WORK)
+                    break
+
+    return _dedupe_texts(reds), _dedupe_texts(warns)
+
+
 def _precheck(declaration: Mapping[str, Any], repo_root: Path) -> dict[str, Any]:
     try:
         composed = assemble_graph_declaration(declaration, repo_root=repo_root)
@@ -523,6 +957,7 @@ def draft_graph_declaration(
     author_ref: str = "coo:graph-draft",
     contract_vocab: Any = None,
     reorder: Any = None,
+    partition_plan: Mapping[str, Any] | None = None,
 ) -> GraphDraftResult:
     """Draft a launch-ready candidate graph-decl from a task + 8 sizing answers.
 
@@ -530,6 +965,11 @@ def draft_graph_declaration(
     ``assemble_graph_declaration`` (``precheck['literal']`` == ``COMPOSED OK
     <building_id>``) or carries ``composed_ok: False`` with the reject evidence.
     The declaration never carries ``action: forward`` (Rule 3).
+
+    An optional ``partition_plan`` (the §A2 fan-partition proposal) marks a
+    stage-2 draft: it feeds the §A3 draft-time rule table
+    (:func:`draft_rule_violations`) and, when its casting is deep-tier, joins the
+    ``deep_tier`` timeout derivation for generation self-coherence.
     """
 
     repo = Path(repo_root).resolve()
@@ -539,7 +979,11 @@ def draft_graph_declaration(
     cv = _contract_vocab(norm, task_statement, contract_vocab)
     ro = _reorder(norm, task_statement, reorder)
     escalated = _escalated(norm, task_statement, rows, contract_vocab=cv, reorder=ro)
-    deep_tier = escalated or norm["difficulty"] in _HARD_DIFFICULTIES
+    deep_tier = (
+        escalated
+        or norm["difficulty"] in _HARD_DIFFICULTIES
+        or _partition_has_deep_tier(partition_plan)
+    )
 
     # Rule ⑥ — verify source facts BEFORE producing the draft body.
     verified_facts = _verify_source_facts(source_facts, repo, rows)
@@ -613,7 +1057,27 @@ def draft_graph_declaration(
             }
         )
 
-    precheck = _precheck(declaration, repo)
+    # §A3 rule table — WARN rows are advisory; RED literals reject the draft at
+    # the precheck seam (assemble skipped, cli.py turns composed_ok False → rc=1).
+    reds, warns = draft_rule_violations(
+        declaration, partition_plan=partition_plan, answers=norm
+    )
+    for text in warns:
+        rows.append(
+            {
+                "rule_id": "warn1-xhigh-burst" if text == WARN1_XHIGH_BURST else "warn2-low-tier-work",
+                "decision": text,
+                "basis": "§A3 soft WARN — advisory rationale row only",
+            }
+        )
+    if reds:  # RED-REJECT-SEAM — §A3 hard RED: reject the draft, never assemble it.
+        precheck = {
+            "composed_ok": False,
+            "literal": "",
+            "reject_evidence": "; ".join(reds),
+        }
+    else:
+        precheck = _precheck(declaration, repo)
     return GraphDraftResult(
         declaration=declaration,
         rationale_rows=tuple(rows),
@@ -657,12 +1121,27 @@ def write_draft_declaration(result: GraphDraftResult, out_path: Path | str) -> P
     Never writes inside the repo by policy of the caller (the CLI defaults the
     path under ``<brick_home>/drafts/``); this function honors whatever path it
     is given.
+
+    Fail-open #5 closure: a draft whose precheck did not compose (``composed_ok``
+    False — the §A3 RED-REJECT-SEAM or an assemble reject) is stamped on disk with
+    a passive ``draft_rejected`` marker carrying the reject evidence, so the
+    persisted artifact self-identifies as a rejected draft and cannot be mistaken
+    for a launch-ready declaration. The marker is a recorded fact only — it is not
+    an ``action``/Movement key, chooses no route, and grants no launch authority
+    (assemble ignores it; the default ``stop`` still governs).
     """
 
     out = Path(out_path).expanduser().resolve()
     out.parent.mkdir(parents=True, exist_ok=True)
+    declaration: dict[str, Any] = dict(result.declaration)
+    if not result.precheck.get("composed_ok"):
+        declaration["draft_rejected"] = {
+            "composed_ok": False,
+            "reject_evidence": str(result.precheck.get("reject_evidence", "")),
+            "note": "rejected draft — not launch-ready; fix the reject_evidence before build",
+        }
     out.write_text(
-        json.dumps(result.declaration, ensure_ascii=False, indent=2) + "\n",
+        json.dumps(declaration, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
     rationale_path = out.with_name(out.stem + "-rationale.md")
