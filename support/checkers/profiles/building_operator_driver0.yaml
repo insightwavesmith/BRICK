@@ -81,6 +81,14 @@ text_contains:
       - w1_incomplete_wip_anchor_ref
       - w1_direct_close_anchored_ref
       - W1 direct close anchor FIRE passed
+      # D1/D3 (0706 r2-carry): post-assembly side-channel carry single source +
+      # whole-channel (3-of-3) survival across the close-time anchor replace(),
+      # with two mutation-REDs (carry-strip / partial hand-copy).
+      - w1_direct_close_report_observation_count
+      - w1_direct_close_channel_strip_mutation_red_execution_log
+      - w1_direct_close_partial_copy_mutation_red_execution_log
+      - channel-strip mutation-RED
+      - partial-copy mutation-RED
       - sensitive_anchor_red_execution_log
       - mutation-RED support evidence only
       # R3 fan-death detection: silent fan children must hit the adapter-timeout
@@ -164,6 +172,19 @@ text_contains:
       - def _anchor_park_stop_wip
       - "building launch: DIRTY-CWD"
       - run_building_plan_park_stop
+      # D1 (0706 r2-carry): the close-time anchor remint routes its side-channel
+      # carry through the single-source contracts helper, never a local loop.
+      - carry_plan_result_side_channels(result, stamped)
+  - path: support/operator/contracts.py
+    texts:
+      # D1 (0706 r2-carry): single-source side-channel field list + copy-only
+      # carry helper for post-assembly BuildingPlanSupportResult remints.
+      - 'PLAN_RESULT_SIDE_CHANNEL_FIELDS: tuple[str, ...] = ('
+      - def carry_plan_result_side_channels
+  - path: support/operator/walker_kernel.py
+    texts:
+      # D1: the attach block references the single-source field-name tuple.
+      - reroute_field, evidence_field, report_field = PLAN_RESULT_SIDE_CHANNEL_FIELDS
   - path: support/operator/walker_kernel.py
     texts:
       - _ADAPTER_TIMEOUT_JOIN_MARGIN_FLOOR_SECONDS

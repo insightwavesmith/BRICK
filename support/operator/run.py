@@ -69,6 +69,7 @@ from brick_protocol.support.operator.contracts import (
     BuildingRunSupportResult,
     MinimalCrossingRecord,
     ThreeAxisStepRows,
+    carry_plan_result_side_channels,
 )
 from brick_protocol.support.operator.evidence_assembly import (
     _lifecycle_packet_from_mapping,
@@ -592,19 +593,15 @@ def _with_close_wip_anchor(
     if anchored is None:
         return result
     stamped = dataclasses.replace(result, anchored_ref=anchored[0])
-    # dataclasses.replace mints a NEW frozen instance — carry the in-memory
-    # side channels the dynamic walker attached via object.__setattr__, or the
-    # anchor stamp silently strips reroute records / walker evidence / report
-    # observations from every anchored result (0706 live-sweep catch:
-    # bounded_agent P4 AttributeError on _dynamic_walker_evidence).
-    for side_channel in (
-        "_dynamic_walker_reroute_records",
-        "_dynamic_walker_evidence",
-        "_report_event_observations",
-    ):
-        if hasattr(result, side_channel):
-            object.__setattr__(stamped, side_channel, getattr(result, side_channel))
-    return stamped
+    # dataclasses.replace mints a NEW frozen instance — carry the in-memory side
+    # channels the dynamic walker attached via object.__setattr__ through the
+    # single-source D1 helper, or the anchor stamp silently strips reroute records
+    # / walker evidence / report observations from every anchored result (0706
+    # live-sweep catch: bounded_agent P4 AttributeError on
+    # _dynamic_walker_evidence). carry_plan_result_side_channels owns the field
+    # list (PLAN_RESULT_SIDE_CHANNEL_FIELDS) so this remint site never re-types
+    # the channel names.
+    return carry_plan_result_side_channels(result, stamped)
 
 
 def _observe_launch_dirty_cwd(

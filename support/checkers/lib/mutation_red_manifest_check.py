@@ -40,6 +40,8 @@ EXPECTED_SURFACES = frozenset(
         "build_unify_casting_convergence",
         "build_unify_launch_repo_root_line",
         "build_unify_model_alias_loud",
+        "plan_result_side_channel_carry_strip",
+        "plan_result_side_channel_carry_partial",
     }
 )
 MIN_AUDIT_MUTANTS = 5

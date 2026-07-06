@@ -3034,8 +3034,21 @@ def _w1_worktree_sandbox_fire(
         customer4.mkdir(parents=True, exist_ok=True)
         _seed_customer_repo(repo, customer4)
         direct_building_id = "w1-direct-close-anchor-0"
+        # D3 (0706 r2-carry): declare an opt-in building-grain report policy so the
+        # dynamic walk attaches the THIRD side channel (_report_event_observations)
+        # in addition to reroute records + walker evidence. local-inbox is the only
+        # sink (dry-run, no creds); a non-vessel temp root strips external sinks.
+        # This lets the survival check below assert 3-of-3 channels, not 2, across
+        # the close-time anchor replace().
+        direct_intent = dict(_w1_intent(direct_building_id))
+        direct_intent["report_event_policy"] = {
+            "enabled": True,
+            "grain": "building",
+            "event_kinds": ["building_finished"],
+            "sink_refs": ["report-sink:local-inbox"],
+        }
         direct = run_building_intake(
-            _w1_intent(direct_building_id),
+            direct_intent,
             output_root=evidence_root / "direct-close-anchor",
             overwrite_existing=True,
             command_runner=_w1_completing_codex_runner(write=True),
@@ -3055,10 +3068,16 @@ def _w1_worktree_sandbox_fire(
             violations.append(
                 f"w1-direct-close-anchor: run result missing anchored_ref: {direct_anchor_ref!r}"
             )
-        # anchor stamping mints a new frozen result (dataclasses.replace) — the
-        # dynamic walker's in-memory side channels must SURVIVE the stamp
-        # (0706 live-sweep catch: stripped _dynamic_walker_evidence broke the
-        # routing-loop checker and silently dropped report observations).
+        # anchor stamping mints a new frozen result (dataclasses.replace) — ALL
+        # THREE dynamic-walker side channels must SURVIVE the stamp via the D1
+        # single-source carry helper (0706 live-sweep catch: a stripped
+        # _dynamic_walker_evidence broke the routing-loop checker and silently
+        # dropped report observations). D3 whole-channel survival: assert the FULL
+        # PLAN_RESULT_SIDE_CHANNEL_FIELDS set survives, and that the report channel
+        # is present AND non-empty (a partial hand-copy that dropped it would RED
+        # here — see the partial-copy mutation-RED below).
+        direct_report_obs = getattr(direct.run_result, "_report_event_observations", ())
+        summary["w1_direct_close_report_observation_count"] = len(direct_report_obs)
         if not hasattr(direct.run_result, "_dynamic_walker_evidence"):
             violations.append(
                 "w1-direct-close-anchor: anchored result LOST the "
@@ -3068,6 +3087,12 @@ def _w1_worktree_sandbox_fire(
             violations.append(
                 "w1-direct-close-anchor: anchored result LOST the "
                 "_dynamic_walker_reroute_records side channel (replace() strip)"
+            )
+        if not hasattr(direct.run_result, "_report_event_observations") or not direct_report_obs:
+            violations.append(
+                "w1-direct-close-anchor: anchored result LOST the "
+                "_report_event_observations side channel (replace() strip / partial "
+                "hand-copy) — the report policy emitted no surviving observation"
             )
         if direct_reclaimed is None or direct_reclaimed[0] != direct_anchor_ref:
             violations.append("w1-direct-close-anchor: close-time WIP ref was not reclaimable")
@@ -3086,6 +3111,122 @@ def _w1_worktree_sandbox_fire(
                     "w1-direct-close-anchor: WIP anchor did not capture the direct "
                     f"adapter_cwd output exactly: {direct_anchor_files!r}"
                 )
+        # --- D3 MUTATION-RED #1 (channel-strip): neuter the D1 carry helper so
+        # the close-time anchor replace() mints a NEW frozen result WITHOUT any
+        # side channels. The whole-channel survival proof above MUST now RED, i.e.
+        # the anchored result loses every dynamic-walker channel. If stripping the
+        # carry still leaves the channels present, the carry helper is not the
+        # load-bearing surface and the survival proof is vacuous.
+        original_carry = run_module.carry_plan_result_side_channels
+
+        def _strip_carry(_source, minted):  # noqa: ANN001 - checker-local mutant
+            return minted  # carry NOTHING onto the reminted result
+
+        strip_customer = Path(cust_raw) / "customer-direct-close-strip"
+        strip_customer.mkdir(parents=True, exist_ok=True)
+        _seed_customer_repo(repo, strip_customer)
+        strip_building_id = "w1-direct-close-strip-0"
+        strip_intent = dict(direct_intent)
+        strip_intent["building_id"] = strip_building_id
+        strip_intent["write_scope"] = dict(_W1_WRITE_SCOPE)
+        try:
+            run_module.carry_plan_result_side_channels = _strip_carry
+            strip_result = run_building_intake(
+                strip_intent,
+                output_root=evidence_root / "direct-close-strip",
+                overwrite_existing=True,
+                command_runner=_w1_completing_codex_runner(write=True),
+                adapter_cwd=strip_customer,
+                adapter_timeout_seconds=30,
+            ).run_result
+        finally:
+            run_module.carry_plan_result_side_channels = original_carry
+        release_wip_anchor(strip_customer, strip_building_id)
+        strip_channels_present = [
+            field_name
+            for field_name in (
+                "_dynamic_walker_reroute_records",
+                "_dynamic_walker_evidence",
+                "_report_event_observations",
+            )
+            if hasattr(strip_result, field_name)
+        ]
+        strip_anchored = strip_result.anchored_ref.startswith("refs/brick/wip/")
+        summary["w1_direct_close_channel_strip_mutation_red_execution_log"] = {
+            "carry_helper_neutered": True,
+            "anchored_ref_still_stamped": strip_anchored,
+            "channels_present_after_strip": strip_channels_present,
+            "proof_limit": "mutation-RED support evidence only",
+        }
+        if strip_channels_present:
+            violations.append(
+                "w1-direct-close-anchor channel-strip mutation-RED: neutering the "
+                "carry helper still left side channels "
+                f"{strip_channels_present!r} on the anchored result -- the carry "
+                "helper is not the load-bearing surface"
+            )
+        if not strip_anchored:
+            violations.append(
+                "w1-direct-close-anchor channel-strip mutation-RED: the anchor stamp "
+                "did not run, so the strip did not actually exercise the replace() path"
+            )
+
+        # --- D3 MUTATION-RED #2 (partial hand-copy regression): a carry that
+        # copies ONLY the first channel (the pre-helper failure mode: a hand-rolled
+        # loop that drops _report_event_observations). The 3-of-3 whole-channel
+        # survival above MUST RED because the report channel vanishes while the
+        # reroute channel survives -- proving the survival assertion checks the
+        # WHOLE set, not just one channel.
+        def _partial_carry(source, minted):  # noqa: ANN001 - checker-local mutant
+            first = "_dynamic_walker_reroute_records"
+            if hasattr(source, first):
+                object.__setattr__(minted, first, getattr(source, first))
+            return minted  # deliberately DROP evidence + report channels
+
+        partial_customer = Path(cust_raw) / "customer-direct-close-partial"
+        partial_customer.mkdir(parents=True, exist_ok=True)
+        _seed_customer_repo(repo, partial_customer)
+        partial_building_id = "w1-direct-close-partial-0"
+        partial_intent = dict(direct_intent)
+        partial_intent["building_id"] = partial_building_id
+        partial_intent["write_scope"] = dict(_W1_WRITE_SCOPE)
+        try:
+            run_module.carry_plan_result_side_channels = _partial_carry
+            partial_result = run_building_intake(
+                partial_intent,
+                output_root=evidence_root / "direct-close-partial",
+                overwrite_existing=True,
+                command_runner=_w1_completing_codex_runner(write=True),
+                adapter_cwd=partial_customer,
+                adapter_timeout_seconds=30,
+            ).run_result
+        finally:
+            run_module.carry_plan_result_side_channels = original_carry
+        release_wip_anchor(partial_customer, partial_building_id)
+        partial_report_present = (
+            hasattr(partial_result, "_report_event_observations")
+            and bool(getattr(partial_result, "_report_event_observations", ()))
+        )
+        partial_reroute_present = hasattr(partial_result, "_dynamic_walker_reroute_records")
+        summary["w1_direct_close_partial_copy_mutation_red_execution_log"] = {
+            "carry_helper_partial": True,
+            "reroute_channel_survived": partial_reroute_present,
+            "report_channel_survived": partial_report_present,
+            "proof_limit": "mutation-RED support evidence only",
+        }
+        # The regression the whole-channel assertion catches: report channel gone.
+        if partial_report_present:
+            violations.append(
+                "w1-direct-close-anchor partial-copy mutation-RED: the partial carry "
+                "still preserved _report_event_observations -- the 3-of-3 survival "
+                "assertion would not catch a dropped-report regression"
+            )
+        if not partial_reroute_present:
+            violations.append(
+                "w1-direct-close-anchor partial-copy mutation-RED: the partial carry "
+                "dropped even the first channel, so the mutant does not isolate the "
+                "report-channel-only regression"
+            )
         if head3_before != head3_after or status3_after != "":
             violations.append("w1-incomplete: the live tree was mutated by a held building")
 
@@ -3522,7 +3663,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         "W1 direct close anchor FIRE passed: "
         f"anchored_ref={summary.get('w1_direct_close_anchored_ref')} "
         f"reclaimed={summary.get('w1_direct_close_reclaimed_anchor')} "
-        f"files={summary.get('w1_direct_close_anchor_files')}."
+        f"files={summary.get('w1_direct_close_anchor_files')} "
+        f"report_obs={summary.get('w1_direct_close_report_observation_count')}; "
+        "side-channel carry (D1/D3): "
+        f"channel_strip_RED={summary.get('w1_direct_close_channel_strip_mutation_red_execution_log')} "
+        f"partial_copy_RED={summary.get('w1_direct_close_partial_copy_mutation_red_execution_log')}."
     )
     print(
         "D1 park-stop anchor + launch dirty FIRE passed: "
