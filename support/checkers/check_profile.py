@@ -1339,6 +1339,20 @@ def _emit_profile_sweep_start(index: int, total: int, path: Path) -> None:
     )
 
 
+def _emit_profile_sweep_done(index: int, total: int, path: Path) -> None:
+    # D2 sweep-progress twin: the START line announces which profile the --all
+    # sweep is entering; this DONE line announces the k/N COMPLETION so an
+    # operator watching a long --all can see forward progress (k of N done)
+    # instead of a silent stall between START lines. Observation-only: it emits
+    # only after run_profile returned without raising, judges no success/quality,
+    # and authors no Movement.
+    print(
+        f"profile sweep: DONE {index}/{total} profile={path.stem}",
+        file=sys.stderr,
+        flush=True,
+    )
+
+
 @contextlib.contextmanager
 def _temporary_env(updates: Mapping[str, str]):
     previous = {key: os.environ.get(key) for key in updates}
@@ -1368,11 +1382,33 @@ def run_checker_progress_observability(repo: Path) -> KernelResult:
         with _profile_progress_guard(
             _ProfileProgressScope("core", "kernel_check", "checker_progress_observability")
         ):
-            time.sleep(0.03)
+            # D3-1 evidence-wait: the STALL/RUNNING heartbeat lines arrive from a
+            # background thread. Instead of racing them with a fixed wall-clock
+            # sleep (banned: 벽시계 상한 금지 / 숫자 조정 금지), POLL the redirected
+            # stderr until BOTH the STALL and RUNNING evidence-shape needles have
+            # been observed, then exit the guard (which emits the progress DONE
+            # line). The guard's own optional wall-clock timeout stays 0, so this
+            # loop has NO upper wall-clock cap -- it exits ONLY on evidence shape.
+            stall_needle = (
+                "profile progress: STALL "
+                "profile=core kernel_check=checker_progress_observability"
+            )
+            running_needle = (
+                "profile progress: RUNNING "
+                "profile=core kernel_check=checker_progress_observability"
+            )
+            while True:
+                observed_so_far = stderr.getvalue()
+                if stall_needle in observed_so_far and running_needle in observed_so_far:
+                    break
+                time.sleep(0.005)
+        _emit_profile_sweep_done(3, 7, Path("support/checkers/profiles/core.yaml"))
     observed = stderr.getvalue()
     required = (
         "profile sweep: START 3/7 profile=core",
+        "profile sweep: DONE 3/7 profile=core",
         "profile progress: STALL profile=core kernel_check=checker_progress_observability",
+        "profile progress: RUNNING profile=core kernel_check=checker_progress_observability",
         "profile progress: DONE profile=core kernel_check=checker_progress_observability",
     )
     missing = [needle for needle in required if needle not in observed]
@@ -1381,11 +1417,90 @@ def run_checker_progress_observability(repo: Path) -> KernelResult:
             "checker progress observability rejected evidence: missing line(s): "
             + ", ".join(missing)
         )
+    # D4 mutation-RED (stall-detection removed): with the STALL warning disabled
+    # (BRICK_CHECK_PROFILE_STALL_WARNING_SECONDS=0), the heartbeat must NOT emit a
+    # STALL line -- so a mutation that hard-wires STALL on (or drops the disable
+    # guard) is caught: the disabled run would still carry a STALL needle. This
+    # probe proves the stall-detection surface is genuinely gated, not decorative.
+    stall_disabled_observed = _run_progress_guard_probe(
+        heartbeat="0.01",
+        stall_warning="0",
+        emit_running_wait=True,
+    )
+    if "profile progress: STALL" in stall_disabled_observed:
+        raise ProfileError(
+            "checker progress observability mutation-RED: STALL line emitted while "
+            "stall detection was disabled (stall_warning=0) -- stall detection is "
+            "not actually gated"
+        )
+    # D4 mutation-RED (heartbeat removed): with the heartbeat disabled
+    # (BRICK_CHECK_PROFILE_HEARTBEAT_SECONDS=0), neither STALL nor RUNNING may be
+    # emitted, so a mutation that emits progress unconditionally is caught.
+    heartbeat_disabled_observed = _run_progress_guard_probe(
+        heartbeat="0",
+        stall_warning="0.01",
+        emit_running_wait=False,
+    )
+    if (
+        "profile progress: RUNNING" in heartbeat_disabled_observed
+        or "profile progress: STALL" in heartbeat_disabled_observed
+    ):
+        raise ProfileError(
+            "checker progress observability mutation-RED: RUNNING/STALL emitted while "
+            "the heartbeat was disabled (heartbeat=0) -- progress emission is not gated"
+        )
     return KernelResult(
         check_id="checker_progress_observability",
-        inspected=len(required),
-        output="checker progress observability passed: sweep k/N and STALL lines observed.",
+        inspected=len(required) + 2,
+        output=(
+            "checker progress observability passed: sweep START/DONE k/N and "
+            "STALL/RUNNING/DONE progress lines observed by evidence-wait; "
+            "stall-detection + heartbeat mutation-RED probes gated."
+        ),
     )
+
+
+def _run_progress_guard_probe(
+    *,
+    heartbeat: str,
+    stall_warning: str,
+    emit_running_wait: bool,
+) -> str:
+    """Run one bounded progress-guard scope and return the captured stderr.
+
+    D4 mutation-RED helper: drives a single ``_profile_progress_guard`` scope
+    with the supplied heartbeat / stall-warning env so the caller can assert what
+    the guard emits (or must NOT emit) under a disabled surface. When
+    ``emit_running_wait`` is set it polls for the RUNNING needle (evidence-wait,
+    no wall-clock ceiling); otherwise it returns quickly (the disabled-heartbeat
+    case, where no RUNNING line can appear). Support probe only -- authors no
+    Movement / success / quality.
+    """
+
+    probe_stderr = io.StringIO()
+    with _temporary_env(
+        {
+            _CHECK_PROFILE_HEARTBEAT_ENV: heartbeat,
+            _CHECK_PROFILE_STALL_WARNING_ENV: stall_warning,
+            _CHECK_PROFILE_STEP_TIMEOUT_ENV: "0",
+        }
+    ), contextlib.redirect_stderr(probe_stderr):
+        with _profile_progress_guard(
+            _ProfileProgressScope("core", "kernel_check", "checker_progress_observability_probe")
+        ):
+            if emit_running_wait:
+                running_needle = (
+                    "profile progress: RUNNING "
+                    "profile=core kernel_check=checker_progress_observability_probe"
+                )
+                while running_needle not in probe_stderr.getvalue():
+                    time.sleep(0.005)
+            else:
+                # Heartbeat disabled: give the (silent) heartbeat thread a brief
+                # yield so a REGRESSION that emits anyway would be observed. This
+                # is a small fixed yield, not an arrival-order wall-clock cap.
+                time.sleep(0.02)
+    return probe_stderr.getvalue()
 
 
 KERNEL_DISPATCH = {
@@ -1588,6 +1703,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                     if args.all:
                         _emit_profile_sweep_start(index, total, path)
                     run_profile(repo, path)
+                    if args.all:
+                        _emit_profile_sweep_done(index, total, path)
         finally:
             if live_inbox_count_before is not None:
                 assert_all_profiles_did_not_write_live_fixture_inbox(

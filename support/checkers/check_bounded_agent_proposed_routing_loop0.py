@@ -44,7 +44,6 @@ import re
 import sys
 import tempfile
 import threading
-import time
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
@@ -1508,27 +1507,88 @@ def _p6c_normalized_evidence_files(root: Path) -> dict[str, str]:
     return normalized
 
 
-def _p6c_timed_fan_callable(*, prefix: str):
+def _event_handshake_fan_callable(*, slow_lane: str, fast_lane: str):
+    """Build a fan-out callable whose arrival order is EVENT-driven, not timed.
+
+    D3 evidence-shape redesign (벽시계 상한 금지 / 숫자 조정 금지): the previous
+    fixture leaned on relative sleep durations to make the FAST lane finish
+    BEFORE the SLOW lane -- an arrival-order inversion relative to
+    declared/frontier order -- so the drain's re-sort into frontier order was
+    observably load-bearing. A wall-clock race is flaky under CI load and drifts
+    when the numbers are "adjusted". This twin proves the SAME two structural
+    facts with ``threading.Event`` handshakes and NO duration literal:
+
+      * concurrency (max_active >= 2): the slow lane BLOCKS until the fast lane
+        has STARTED, which is only reachable if both lanes are in-flight at once
+        (a pool=1 serial drain can never satisfy it, so pool=1 must NOT block --
+        see the deadlock guard below).
+      * arrival inversion: the slow lane additionally BLOCKS until the fast lane
+        has COMPLETED, so the fast lane's completion is GUARANTEED to be recorded
+        before the slow lane's -- structurally, not by winning a timing race.
+
+    ``handshake_engaged`` is recorded True only when BOTH events were observed by
+    the concurrent (pool>1) run; a pool=1 caller returns without waiting so the
+    serial drain never deadlocks. Support evidence only; the callable authors no
+    Movement, success, or quality.
+    """
+
     lock = threading.Lock()
     state = {
         "active": 0,
         "max_active": 0,
         "completion_order": [],
+        "handshake_engaged": False,
     }
-    lane_a = f"brick-{prefix}-lane-a"
-    lane_b = f"brick-{prefix}-lane-b"
+    fast_started = threading.Event()
+    fast_completed = threading.Event()
+    slow_started = threading.Event()
 
     def _callable(request: Any) -> Mapping[str, Any]:
         with lock:
             state["active"] += 1
             state["max_active"] = max(state["max_active"], state["active"])
         try:
-            if request.brick_instance_ref == lane_a:
-                time.sleep(0.08)
-            elif request.brick_instance_ref == lane_b:
-                time.sleep(0.01)
-            else:
-                time.sleep(0.005)
+            # Deterministic pool discriminator: a pool>1 run engages the event
+            # handshake (guaranteeing concurrency + arrival inversion structurally);
+            # a serial pool=1 drain skips it so it can NEVER deadlock waiting on a
+            # fast lane that has not been dispatched yet. Reading the declared pool
+            # size is race-free, unlike sampling the live active count.
+            try:
+                pool_size = int(os.environ.get("BRICK_FANOUT_DISPATCH_POOL_SIZE", "1"))
+            except ValueError:
+                pool_size = 1
+            concurrent = pool_size > 1
+            if request.brick_instance_ref == fast_lane:
+                # FAST lane: announce start, then (concurrent only) BLOCK until the
+                # SLOW lane has also started before completing. This keeps BOTH
+                # lanes in-flight at once (max_active>=2, structural concurrency)
+                # while still COMPLETING before the slow lane (arrival inversion,
+                # since the slow lane waits on this lane's completion below).
+                fast_started.set()
+                if concurrent:
+                    slow_started.wait()
+                return {
+                    "observed_evidence": [f"obs {request.brick_instance_ref}"],
+                    "not_proven": ["semantic correctness", "provider behavior"],
+                }
+            if request.brick_instance_ref == slow_lane:
+                # SLOW lane: announce start (releasing the fast lane), then BLOCK
+                # until the fast lane has COMPLETED. Only the concurrent (pool>1)
+                # run engages the handshake; a serial pool=1 drain skips the waits
+                # so it can never deadlock waiting on a fast lane not yet dispatched.
+                slow_started.set()
+                if concurrent:
+                    fast_started.wait()
+                    fast_completed.wait()
+                    engaged_started = fast_started.is_set()
+                    engaged_completed = fast_completed.is_set()
+                    if engaged_started and engaged_completed:
+                        with lock:
+                            state["handshake_engaged"] = True
+                return {
+                    "observed_evidence": [f"obs {request.brick_instance_ref}"],
+                    "not_proven": ["semantic correctness", "provider behavior"],
+                }
             return {
                 "observed_evidence": [f"obs {request.brick_instance_ref}"],
                 "not_proven": ["semantic correctness", "provider behavior"],
@@ -1537,57 +1597,37 @@ def _p6c_timed_fan_callable(*, prefix: str):
             with lock:
                 state["completion_order"].append(request.brick_instance_ref)
                 state["active"] -= 1
+            if request.brick_instance_ref == fast_lane:
+                fast_completed.set()
 
     def _stats() -> Mapping[str, Any]:
         with lock:
             return {
                 "max_active": int(state["max_active"]),
                 "completion_order": list(state["completion_order"]),
+                "handshake_engaged": bool(state["handshake_engaged"]),
             }
 
     setattr(_callable, "stats", _stats)
     return _callable
+
+
+def _p6c_timed_fan_callable(*, prefix: str):
+    # D3: the p6c fan fixture's lane-b (fast) must arrive before lane-a (slow) to
+    # invert declared/frontier order. Event handshake, no duration literal.
+    return _event_handshake_fan_callable(
+        slow_lane=f"brick-{prefix}-lane-a",
+        fast_lane=f"brick-{prefix}-lane-b",
+    )
 
 
 def _p4_two_stage_timed_callable(*, prefix: str):
-    lock = threading.Lock()
-    state = {
-        "active": 0,
-        "max_active": 0,
-        "completion_order": [],
-    }
-    lane_c = f"brick-{prefix}-lane-c"
-    lane_d = f"brick-{prefix}-lane-d"
-
-    def _callable(request: Any) -> Mapping[str, Any]:
-        with lock:
-            state["active"] += 1
-            state["max_active"] = max(state["max_active"], state["active"])
-        try:
-            if request.brick_instance_ref == lane_c:
-                time.sleep(0.08)
-            elif request.brick_instance_ref == lane_d:
-                time.sleep(0.01)
-            else:
-                time.sleep(0.005)
-            return {
-                "observed_evidence": [f"obs {request.brick_instance_ref}"],
-                "not_proven": ["semantic correctness", "provider behavior"],
-            }
-        finally:
-            with lock:
-                state["completion_order"].append(request.brick_instance_ref)
-                state["active"] -= 1
-
-    def _stats() -> Mapping[str, Any]:
-        with lock:
-            return {
-                "max_active": int(state["max_active"]),
-                "completion_order": list(state["completion_order"]),
-            }
-
-    setattr(_callable, "stats", _stats)
-    return _callable
+    # D3: the p4 resume fan fixture's lane-d (fast) must arrive before lane-c
+    # (slow). Event handshake, no duration literal.
+    return _event_handshake_fan_callable(
+        slow_lane=f"brick-{prefix}-lane-c",
+        fast_lane=f"brick-{prefix}-lane-d",
+    )
 
 
 def _carry_trace_facts(result: Any) -> list[Mapping[str, Any]]:
@@ -2870,6 +2910,11 @@ def check(repo: Path) -> list[str]:
                 "p6c-byte-fanout-red: timed fixture failed to invert wall-clock "
                 f"arrival order ({completion_order_p6c_4})"
             )
+        if not stats_p6c_4.get("handshake_engaged"):
+            violations.append(
+                "p6c-byte-fanout-red: inversion handshake removed -- arrival-order "
+                f"inversion no longer guaranteed ({stats_p6c_4})"
+            )
         if (
             completion_order_p6c_4.index(lane_b_p6c)
             < completion_order_p6c_4.index(lane_a_p6c)
@@ -2990,6 +3035,11 @@ def check(repo: Path) -> list[str]:
                     violations.append(
                         "p4-resume-fanout-red: timed fixture failed to invert "
                         f"resume arrival order ({completion_order_p4})"
+                    )
+                if not stats_p4.get("handshake_engaged"):
+                    violations.append(
+                        "p4-resume-fanout-red: inversion handshake removed -- resume "
+                        f"arrival-order inversion no longer guaranteed ({stats_p4})"
                     )
             else:
                 violations.append(
