@@ -692,8 +692,8 @@ Smith "과업 모두 종료까지 이어간다". 이 큐가 비면 연속 운행
 | 페이즈 | 내용 | 상태 |
 |---|---|---|
 | **P0 게이트 판독** | (0706 저녁 전량 랜딩·봉인) R3 ccb73b44 · R5R8 e4cf700d · R1 6ae9f3f4 · r3margin 2eb79b40 · firehunk b94a77b3 · fugu451obit d25b89ce, 핸드오프 문서까지 origin=298bfc2e | 완료 |
-| **P1 병렬 4기 걷는 중(0706 야간 발사, 워크트리 HEAD=298bfc2e 검증)** | fugupacket-0706e(packet 재성형 A안 — D3=실패 packet 19KB 통과) · graphdecl-fix-0706e(발주표면 결함 2종) · r9-modellane-0706e(R9 규율 정합) · cpath-mirror-0706c(미러 수술 — 0706a/b 사인=Sakana 451 규명 후 codex 재캐스팅 재발주, 핸드오프·Smith 지시로 발주 경로 복귀) | 걷는 중, 완주 시 게이트 |
-| **P2 walker 직렬(랜딩 순서만 직렬)** | cpath 랜딩 → R2(carry 공용헬퍼) → 자기잠금 가족② | cpath 걷는 중 |
+| **P1 야간 웨이브 — 3기 랜딩 완료** | **r9-modellane 랜딩 db3a17a7** · **cpath-mirror(⑤) + fugupacket 랜딩 7bacb772**(비동기 --land 1호, 스윕 49 green) · graphdecl-fix 걷는 중(3라운드) · fugu-fieldprobe 발사(D3 현장 증명 — 재성형 경유 첫 실전 푸구 디스패치) · checker-audit 완주·원장 complete(산출: 은퇴 0·고아 0·재설계 후보 1) | graphdecl-fix 완주 대기 |
+| **P2 walker 직렬(랜딩 순서만 직렬)** | ~~cpath~~(랜딩됨) → R2(carry 공용헬퍼) → 자기잠금 가족② | R2가 다음 |
 | **P3 줄이기 웨이브(Smith 0706 야간 채택 — 회고 4제안 COO 판정안대로)** | 마찰청산 묶음(표 13·14·16, walker 무접촉) ∥ **#12 build() 단일 진입은 graphdecl-fix 랜딩 직후 발주**(assembly.py write_scope 겹침 해소 대기) · 규칙 만료태그 관례 즉시 발효(임시규율 vs 헌장 태그, 착지 시 대응 규칙 폐기 — 첫 폐기 예정: graphdecl-fix 랜딩 시 "output-root는 반드시 ~/.brick" 우회 규칙) · 인체공학 표 신규 행에 "제거되는 사람-판단" 컬럼 관례 | 4기 랜딩 직후 발주 |
 | **P4 대형** | #15 가중치→그래프 초안기 — #12 랜딩 후(통일 입구 전제) · Case 8 정찰(읽기전용, 슬롯 나는 대로) | #12 뒤 |
 | **P5 저우선** | T10 fresh 0705c(완주 스탬프) | 의존 없음 |
@@ -731,6 +731,14 @@ Smith "과업 모두 종료까지 이어간다". 이 큐가 비면 연속 운행
 
 ### R. 부검 0706a 처방 채택 웨이브 (Smith 0706 "포함시키고 진행" — 전량 편입)
 정본 = postmortem-deep-0706a-diagnosis-synthesis.md. **R7 집행(선언)**: 사건·과업 처분의 단일소스 = 본 문서 마스터 큐(§A~E·R) — 코퍼스/부검 문서는 입력 증거이지 처분 원장이 아니다(Case 6 충돌 해소: T10 0705b 처분은 §B 재판정 행이 지배). **R6 집행(관례)**: R행마다 착지 시 랜딩 커밋을 이 절에 追記 — 처방-착지 추적은 이 절이 원장이다. 순서 판단(COO): 병렬 = R1(parents[N] 정체성 가드+레지스트리 체커) · R4(어댑터 오류 분류+타임스탬프 보존) · R5+R8(부재주장 도메인 라벨 의무+거짓 'git 없음' 자기제한 제거 — 규율 계열 합본). **R3 최우선 격상(0706 오후 실측: erg6·cpath 수술 2연속 무유서 사망 = Case 9 자율운행 반복 위협 — R3가 없어 레인이 조용히 동결)** — 수신-후-무응답 loud HOLD+증거포착을 다음 walker 슬라이스 최상단으로. **cpath 수술은 레인 2연속 동결로 COO-직접 전환(위임 'ex walker', 픽스처 게이트 기랜딩)**. 이후 **직렬(walker_kernel 충돌)** = R2(carry 공용헬퍼+전채널 체커+remint 5좌표 감사 — 푸구 실측 갭 포함) · R3(팬-이음새 driver-사망 증거 포착+수신-후-무응답 loud HOLD, Case 9 선행). 문서-측 = R6(처방-착지 추적) · R7(사건 처분 단일소스 = 마스터 큐 선언). 별도 소형 = R9(모델-레인 규율 정합화: discipline:model-lane-matching 선언을 0705/0706 실정책과 일치시키기 — 부검이 표면화한 선언-정책 충돌).
+
+**착지 원장(R6 집행, 0706 야간 세션 追記)**:
+- **R9 착지 = db3a17a7**(r9-modellane-0706e) — 모델-레인 선언 정합 + 신설 게이트 프로파일(스윕 47→48). 게이트: 포커스 3프로파일 green + 변이 2종 RED(조항 제거·낡은 금지 재삽입) + 격리 --all 48. 원장은 evidence_incomplete(수취 장부 부재 — T10 클래스)로 종결 포기, 산출은 WIP 앵커에서 고아-수확 랜딩. QA 잔여 관찰(리터럴 핀 패러프레이즈 회피 가능성) = 강화 후보.
+- **cpath ⑤ 착지 = 7bacb772 첫 머지**(cpath-mirror-0706c) — concern-path 처분 미러(공유 헬퍼 + 시퀀스 재사용), F-C1/C2/C3 GREEN 플립 + F-R 유지. 변이 3중 RED(gate-seq 사이트=F-R1 패리티 / concern 사이트 #4·#6=선언 리터럴). 강화 후보: rollback 짝 사이트(#3/#5/#7) 무음 중화. P2 직렬 다음 = R2.
+- **fugupacket(packet 재성형 A안) 착지 = 7bacb772 둘째 머지** — sakana 와이어만 경로 라벨 불투명화, 신설 sakana_wire_packet 프로파일(스윕 49). 변이 RED + **라이브 A/B: 경로 라벨 재구성 → BLOCK(451) / 재성형 형태 → PASS**(필터 활성·경로 민감 확정). 현장 증명 = fugu-fieldprobe-0706n 발사(첫 실전 푸구 디스패치). 부수 갭: claude-local 유서 stdout 무발췌(R4 후속 후보).
+- **--land/--ship 비동기화 착지 = 20410768**(COO-직접, Smith 야간 지시) — 기본 비동기(즉시 리턴+로그+RESULT 줄+Slack 벨+동시 잠금), 도그푸드 1호가 위 7bacb772 랜딩. 인체공학 표 14 계열.
+- **checker-audit-0706a 완주·원장 complete** — 체커 53파일·프로파일 47 전수: **은퇴 후보 0 · 고아 0** · 재설계 후보 1(check_bounded_agent_proposed_routing_loop0.py의 시간-픽스처 — 벽시계 클래스 잔존, 줄이기 웨이브 감) · 정리 후보(낡은 주석/인용 — EI 반증으로 축소: 표적은 생존) · 픽스처 헬퍼 중복 1쌍(발산형 — 동일 불변식 아님 판정). 기계-규칙 자산은 건강 — 줄이기의 실표적은 사람-규칙(만료태그)과 시간-픽스처 1건.
+- **레인 스로틀 실측(0706 야간)**: fable5 xhigh 공격QA 동시 3레인 → 밤 후반 rc=1 연쇄(직후 pong 정상 = 일시 스로틀). 교정 규율 = fable5 QA 동시 1~2레인 시차 발주.
 
 **착지 원장(R6 집행, 0706 저녁 세션)**:
 - **R3 착지 = ccb73b44** — 전 세션 사망 걸음(r3-fanwatch-0706a)의 work 산출을 orphan-harvest 게이트로 회수(driver0 green + 신규 fan-dispatch-child-timeout FIRE + 변이스펙 RED-CONFIRMED + 격리 --all 46). 계약 이탈 1건(D1 여유 마진 미구현 + 병렬 공유-데드라인 큐잉 엣지, 실패모드는 loud 과발화라 랜딩 후 후속) → **r3margin-0706e 걸음 중**. **+Smith 0706 저녁 추가 기준: FIRE 판정을 부하-무관(증거-형태)으로 근본 재설계 — 벽시계 상한·숫자 조정 금지**(인체공학 표 19). work 1차 반환 실물은 생산측 마진(+30s 플로어)은 충족했으나 FIRE는 여전히 벽시계(1.85s) — 게이트에서 이 기준으로 판정, 미충족분은 협착 재파견. 랜딩 직후 라이브 스윕에서 preset 완주 fixture(engine-feature-hard) 간헐 agent_incomplete 1회(격리 green — 타이밍 민감, r3margin 랜딩 후 재검).
