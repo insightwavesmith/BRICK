@@ -83,6 +83,13 @@ text_contains:
       - W1 direct close anchor FIRE passed
       - sensitive_anchor_red_execution_log
       - mutation-RED support evidence only
+      # R3 fan-death detection: silent fan children must hit the adapter-timeout
+      # deadline, emit raw dispatch_child_timeout evidence, and surface a COO-owned
+      # loud HOLD.
+      - def _fan_dispatch_child_timeout_fire
+      - fan_dispatch_child_unresponsive
+      - dispatch-child-timeout
+      - fan_dispatch_child_timeout_mutation_red_execution_log
       - w1-fake-allowed-outside
       - w1-fake-missing-paused-at-RED
       - allowed+outside source-write diff did not fire
@@ -138,6 +145,13 @@ text_contains:
       - def _unsafe_resume_adapter_cwd
       - adapter_cwd_refused_live_repo
       - resume_building_plan refuses
+  - path: support/operator/walker_kernel.py
+    texts:
+      - _DISPATCH_CHILD_TIMEOUT_RAW_STREAM
+      - _DispatchChildTimeout
+      - fan_dispatch_child_unresponsive
+      - 'required_disposition_owner": "coo'
+      - raw.dispatch_child_timeout
   - path: support/operator/write_observation.py
     texts:
       - def _path_has_provider_session_like_segment
