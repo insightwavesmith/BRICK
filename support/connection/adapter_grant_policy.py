@@ -363,7 +363,50 @@ def _instruction_packet_for_prompt(
         packet["required_return_shape"] = request.required_return_shape
     if required_labels and "required_return_labels" not in packet:
         packet["required_return_labels"] = list(required_labels)
+    if spec.opaque_resource_paths_on_wire:
+        packet = _sakana_instruction_packet_for_prompt(packet)
     return packet
+
+
+def _sakana_instruction_packet_for_prompt(packet: Mapping[str, Any]) -> dict[str, Any]:
+    """Remove repo path labels from the Sakana wire copy only.
+
+    The request's original AgentInstructionPacket remains intact for local
+    evidence. Sakana sees opaque refs plus inline bodies, avoiding path-shaped
+    labels in the provider prompt without changing non-Sakana packet bytes.
+    """
+
+    cleaned = dict(packet)
+    for key in (
+        "prompt_resources",
+        "skill_resources",
+        "discipline_resources",
+        "charter_resources",
+        "skill_manifest_refs",
+        "tool_policy_resources",
+    ):
+        rows = cleaned.get(key)
+        if isinstance(rows, list):
+            cleaned[key] = [_without_path_label(row) for row in rows]
+    hooks = cleaned.get("hook_resources")
+    if isinstance(hooks, Mapping):
+        cleaned["hook_resources"] = _without_hook_path_labels(hooks)
+    return cleaned
+
+
+def _without_path_label(value: Any) -> Any:
+    if not isinstance(value, Mapping):
+        return value
+    cleaned = dict(value)
+    cleaned.pop("path", None)
+    return cleaned
+
+
+def _without_hook_path_labels(value: Mapping[str, Any]) -> dict[str, Any]:
+    cleaned = dict(value)
+    cleaned.pop("registry_path", None)
+    cleaned.pop("bindings_path", None)
+    return cleaned
 
 
 def _extract_required_return_fields(
