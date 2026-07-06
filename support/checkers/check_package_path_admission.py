@@ -246,6 +246,11 @@ BRICK_CLI_ENTRYPOINT0_TARGETS = {
     "support/operator/import_identity.py",
 }
 
+RESUME_DECLARATION0_TARGETS = {
+    "support/checkers/profiles/resume_declaration.yaml",
+    "support/operator/resume_declaration.py",
+}
+
 # PROJECT-0 S1-A: the project declaration record loader (reads + validates
 # project/<id>/project.json against the closed 9-key charter-shadow schema).
 # Support operator mechanics only: records facts, owns no crossing, judges
@@ -1962,6 +1967,9 @@ def allowed_path(path: str) -> bool:
         return True
 
     if clean in BRICK_CLI_ENTRYPOINT0_TARGETS:
+        return True
+
+    if clean in RESUME_DECLARATION0_TARGETS:
         return True
 
     if clean in PROJECT_DECLARATION0_TARGETS:

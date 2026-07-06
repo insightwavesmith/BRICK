@@ -277,6 +277,16 @@ modules:
     decomposition_target: ""
     pinned_by: resume_replay_disposition_mirror behavioral checker (t7b RED baseline for the non-forward resume-replay disposition MIRROR; gate-sequence fixtures F-R1/F-R2/F-S/F-M dual-acceptance-pinned to the engine refusal literals + labeled probes P-1/P-2/P-3; concern-path fixtures F-C1 (ambiguous) / F-C2 (fan+cohort) / F-C3 (broken-mail) dual-acceptance-pinned to the _require_undisposed_concern_hold guard literal + labeled probe P-C1 (gate-sequence budget-exhausted, the 6th guard site); the concern-path walker mirror edit is COO-direct under this gate)
 
+  - module: support/checkers/check_resume_declaration.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: resume_declaration behavioral checker (JSON declaration loader/preflight, class-action mismatch rejection, explicit adapter_cwd lowering, CLI/profile pins)
+
   - module: support/checkers/check_first_use_wizard.py
     layer: checkers
     role: checker
@@ -1669,6 +1679,17 @@ modules:
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
     pinned_by: brick_cli_entrypoint profile (repo-outside/PYTHONPATH-unset entrypoint smoke)
+
+  - module: support/operator/resume_declaration.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - transition_lifecycle
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: resume_declaration behavioral checker and profile (JSON declaration loader/preflight, class-action mismatch rejection, already-complete no-op, explicit adapter_cwd lowering, CLI/profile pins)
 
   - module: support/operator/first_use.py
     layer: operator

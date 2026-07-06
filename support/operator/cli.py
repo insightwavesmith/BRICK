@@ -36,7 +36,7 @@ import contextlib
 import io
 import json
 import subprocess
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
@@ -57,6 +57,7 @@ from brick_protocol.support.connection.agent_adapter import adapter_is_write_cap
 from brick_protocol.support.connection.adapter_subprocess import preflight_provider
 from brick_protocol.support.operator.first_use import FIRST_USE_FILENAME, write_first_use
 from brick_protocol.support.operator import onboard
+from brick_protocol.support.operator import resume_declaration
 from brick_protocol.support.operator.assembly import (
     assemble_graph_declaration,
     graph_declaration_action,
@@ -838,6 +839,99 @@ def _cmd_verify(args: argparse.Namespace) -> int:
     return exit_code
 
 
+def _cmd_resume(args: argparse.Namespace) -> int:
+    repo = _repo_from_args(args)
+    repo_observation = _resolved_repo_root_observation(repo)
+    stale_refused = _emit_launch_repo_root_observation(args, repo_observation)
+    if stale_refused is not None:
+        return stale_refused
+    try:
+        decl = resume_declaration.load_resume_declaration(args.decl)
+        packet = resume_declaration.run_resume_declaration(
+            decl,
+            repo_root=repo,
+            dry_run=bool(args.dry_run),
+        )
+    except (OSError, json.JSONDecodeError, TypeError) as exc:
+        packet = {
+            "command": "resume",
+            "decl_path": str(args.decl),
+            "error_kind": type(exc).__name__,
+            "error_message": str(exc),
+            "proof_limits": list(PROOF_LIMITS),
+            "not_proven": list(NOT_PROVEN),
+        }
+        if args.json:
+            print(_json_dump(packet))
+        else:
+            print(_render_resume(packet))
+        return 2
+    except ValueError as exc:
+        packet = {
+            "command": "resume",
+            "decl_path": str(args.decl),
+            "error_kind": "resume_declaration_rejected",
+            "error_message": str(exc),
+            "proof_limits": list(PROOF_LIMITS),
+            "not_proven": list(NOT_PROVEN),
+        }
+        if args.json:
+            print(_json_dump(packet))
+        else:
+            print(_render_resume(packet))
+        if "not admitted for hold_reason" in str(exc):
+            return 5
+        return 2
+    packet.update(_resolved_repo_root_observation(repo))
+    if args.json:
+        print(_json_dump(packet))
+    else:
+        print(_render_resume(packet))
+    if packet.get("ok"):
+        return 0
+    if packet.get("error_kind") == "resume_declaration_dead_end":
+        return 4
+    if packet.get("error_kind") == "resume_declaration_no_match":
+        return 4
+    return 1
+
+
+def _render_resume(packet: dict[str, Any]) -> str:
+    lines = [
+        "Brick resume declaration support evidence",
+        f"building_ref: {packet.get('building_ref', '')}",
+        f"chain: {packet.get('chain', '')}",
+        f"dry_run: {'yes' if packet.get('dry_run') else 'no'}",
+    ]
+    preflight = packet.get("preflight")
+    if isinstance(preflight, Mapping):
+        lines.extend(
+            [
+                f"frontier_kind: {preflight.get('frontier_kind', '')}",
+                f"frontier_reason: {preflight.get('frontier_reason', '')}",
+                f"matched: {'yes' if preflight.get('matched') else 'no'}",
+            ]
+        )
+        if preflight.get("warning"):
+            lines.append(str(preflight["warning"]))
+    rounds = packet.get("rounds")
+    if isinstance(rounds, Sequence) and not isinstance(rounds, (str, bytes)):
+        lines.append(f"rounds: {len(rounds)}")
+    if packet.get("message_ko"):
+        lines.append(str(packet["message_ko"]))
+    if packet.get("next_command"):
+        lines.append(str(packet["next_command"]))
+    if packet.get("error_kind"):
+        lines.append(f"error_kind: {packet.get('error_kind', '')}")
+    if packet.get("error_message"):
+        lines.append(f"error_message: {packet.get('error_message', '')}")
+    if packet.get("proof_limits"):
+        lines.append("proof_limits: " + "; ".join(str(item) for item in packet["proof_limits"]))
+    if packet.get("not_proven"):
+        lines.append("not_proven: " + "; ".join(str(item) for item in packet["not_proven"]))
+    return "\n".join(lines)
+
+
 def _cmd_init(args: argparse.Namespace) -> int:
     """One-shot install wizard: the ordered, idempotent, friendly-fallback flow.
 
@@ -1253,6 +1347,24 @@ def build_parser() -> argparse.ArgumentParser:
     )
     build.add_argument("--timeout", type=int, default=120, help="Adapter timeout seconds.")
     build.set_defaults(func=_cmd_build)
+
+    resume = subparsers.add_parser(
+        "resume",
+        help="Lower a JSON hold-disposition declaration into the existing resume seam.",
+        allow_abbrev=False,
+    )
+    _add_common(resume)
+    resume.add_argument("--decl", required=True, help="JSON resume declaration file.")
+    resume.add_argument("--dry-run", action="store_true", help="Validate + preflight only.")
+    resume.add_argument(
+        "--allow-stale-repo",
+        action="store_true",
+        help=(
+            "Allow launching when the resolved repo_root HEAD is behind its upstream. "
+            "Default refuses before resume lowering."
+        ),
+    )
+    resume.set_defaults(func=_cmd_resume)
 
     verify = subparsers.add_parser(
         "verify",
