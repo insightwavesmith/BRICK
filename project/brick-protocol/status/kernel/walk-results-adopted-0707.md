@@ -73,4 +73,10 @@ resume-rootfix-design-0707a 발주에서 `brick draft`에 준 8답과 초안기 
 - rationale 원문 행(그대로 인용): `note-split-candidate | graph shape unchanged (single work node) | 분할 후보: 별도 빌딩 발주 검토 — operator Movement-adjacent`
 - 운영자 조치: 선언 파일의 nodes를 fan[design fable5 ∥ 푸구 ∥ codex] → closure(codex)로 수동 교체 후 발사(0707, 정상 개시).
 
+## F. resume 근본 트랙 — Smith 판독 판정 3건 (0707) + C 게이트 실측
+
+**판정**: ① 푸구 시공 순서 채택(공유 헬퍼+단일소스 핀 먼저) — 승인, resume-admission-unify-0707a 발사. ② 수취 writer = **fable5 원천 봉합 채택**(Smith: "근본수정이 페이블이지? 페이블로 간다. 엔진을 손대는 건 괜찮다") — receipt-writer-join-0707a 발사(기록계 packet 조립부 확장, 커널 무접촉, 미래 걸음 전용). 정정-도장 검증(operator_correction 커버리지)은 과거 꼬리 전담으로 강등·후순위 유지. ③ 체커 신설 = 프로파일-프로브 우선, 표현 불가 실측 시 신설 1개+사유(계약에 반영).
+
+**compress-s1b 1차 게이트 실측(0707)**: VERDICT NEEDS-OPERATOR — ①격리 --all rc=1: `import_identity_modes parents[N] registry mismatch` — 접기가 29파일에 심은 `parents[2]` 신규 사이트가 바인딩 레지스트리(check_import_identity_modes.py 내 하드코딩 dict) 미등재. **원인 = 발주 계약이 그 레지스트리 파일을 do-not-touch로 봉인(레인-불가능 D 배정 클래스, 0703 #14 동족)** — 접기류 수리는 바인딩 레지스트리 등재까지가 한 몸이다. ②QA의 "--all rc=0" 자기보고를 격리 게이트가 반증(codex green 불신 규율 재실증). ③COO 변이 M1(module_registry 행 제거→admission RED 기대)도 NOT RED — 실 지킴이 식별을 C2의 D3로 이관. M2 관찰: ensure_checker_imports no-op에 표본 3체커 무플립(belt-and-suspenders). 처분 = 수리 재발주 compress-s1b-fix-0707a(승계: 앵커 87719e15 diff 적용 + 레지스트리 등재, 재발주 승격 캐스팅). 1차 앵커는 C2 랜딩 시 대체.
+
 판독: 현행 초안기는 분할 가능성을 **감지**(note-split-candidate)하되 **제안하지 않는다** — 폭 계산(min 규칙)·병렬 설계/시공 팬·2단 표준형 1단 그래프의 자동 제안이 전부 부재(제안측 갭). 거부측(안티패턴 RED-2~6·WARN-1~2)은 gt-checker-slice-0707a 계약분. 수리처 = #15 규칙표 증분 후속 발주(방아쇠 = gt-checker-slice 랜딩): 폭 신호용 9번째 답 + min() 폭 계산 + fan 자동 제안 행. 인체공학 표 등재 = operator-ergonomics-wave-0705.md 행 20.
