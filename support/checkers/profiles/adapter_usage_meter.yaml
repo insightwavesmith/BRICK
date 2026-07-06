@@ -29,9 +29,19 @@ text_contains:
       - raw/adapter-usage.jsonl
       - usage_present
       - bp.raw.adapter_usage
+      - adapter_usage_recorded_at
+      - model_alias_resolution
+  - path: support/connection/adapter_local_cli.py
+    texts:
+      - _local_cli_nonzero_classification
+      - adapter_error_classification
+      - adapter_error_recorded_at
+      - dispatched_model
   - path: support/checkers/check_adapter_usage_meter.py
     texts:
       - _returned_usage_leak_keys
+      - _assert_local_cli_nonzero_classification
+      - _assert_usage_record_timestamp_and_alias_resolution
       - mutation RED observed
       - gate-no-measure
 proof_limits:

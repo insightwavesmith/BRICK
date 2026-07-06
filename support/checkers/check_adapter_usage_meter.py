@@ -34,6 +34,7 @@ import subprocess
 import sys
 import tempfile
 from collections.abc import Mapping, Sequence
+from datetime import datetime
 from pathlib import Path
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -186,6 +187,45 @@ def _assert_dispatched_model_alias_record() -> str:
     return "dispatched-model: usage row records the concrete CLI model for Claude aliases"
 
 
+def _assert_usage_record_timestamp_and_alias_resolution() -> str:
+    record = _build_claude_alias_record()
+    recorded_at = record.get("recorded_at")
+    adapter_usage_recorded_at = record.get("adapter_usage_recorded_at")
+    if not isinstance(recorded_at, str) or not recorded_at.endswith("Z"):
+        raise AdapterUsageMeterError(
+            "usage row recorded_at is not an explicit UTC ISO timestamp"
+        )
+    if adapter_usage_recorded_at != recorded_at:
+        raise AdapterUsageMeterError(
+            "usage row adapter_usage_recorded_at does not match graph-ready recorded_at"
+        )
+    try:
+        datetime.fromisoformat(recorded_at.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise AdapterUsageMeterError(
+            f"usage row recorded_at is not parseable ISO text: {recorded_at!r}"
+        ) from exc
+    alias_resolution = record.get("model_alias_resolution")
+    if not isinstance(alias_resolution, Mapping):
+        raise AdapterUsageMeterError("usage row lacks model_alias_resolution mapping")
+    expected = {
+        "adapter_ref": "adapter:claude-local",
+        "selected_model_ref": "model:claude:sonnet",
+        "dispatched_model": "claude-sonnet-5",
+    }
+    for key, value in expected.items():
+        if alias_resolution.get(key) != value:
+            raise AdapterUsageMeterError(
+                f"usage row model_alias_resolution[{key!r}]={alias_resolution.get(key)!r}, "
+                f"expected {value!r}"
+            )
+    return (
+        "timestamp+alias: usage row carries explicit ISO recorded_at/"
+        "adapter_usage_recorded_at plus selected_model_ref -> dispatched_model "
+        "alias-resolution evidence"
+    )
+
+
 def _assert_absent_usage_record() -> str:
     record = _build_record(None)
     if record.get("usage_present") is not False:
@@ -259,6 +299,33 @@ def _assert_mutation_red_dropped_key() -> str:
     raise AdapterUsageMeterError(
         "mutation RED failed: a usage mapping missing output_tokens was still accepted"
     )
+
+
+def _assert_mutation_red_missing_usage_timestamp_alias() -> str:
+    record = dict(_build_claude_alias_record())
+    record.pop("adapter_usage_recorded_at", None)
+    record.pop("model_alias_resolution", None)
+    if "adapter_usage_recorded_at" in record or "model_alias_resolution" in record:
+        raise AdapterUsageMeterError(
+            "mutation RED failed: timestamp/alias fields were not removed from fixture"
+        )
+    try:
+        _assert_usage_record_timestamp_alias_on(record)
+    except AdapterUsageMeterError:
+        return (
+            "mutation RED observed: a usage row missing adapter_usage_recorded_at "
+            "and model_alias_resolution is rejected"
+        )
+    raise AdapterUsageMeterError(
+        "mutation RED failed: a usage row missing timestamp/alias fields was accepted"
+    )
+
+
+def _assert_usage_record_timestamp_alias_on(record: Mapping[str, object]) -> None:
+    if not isinstance(record.get("adapter_usage_recorded_at"), str):
+        raise AdapterUsageMeterError("record missing adapter_usage_recorded_at")
+    if not isinstance(record.get("model_alias_resolution"), Mapping):
+        raise AdapterUsageMeterError("record missing model_alias_resolution")
 
 
 def _assert_present_usage_record_on(record: Mapping[str, object]) -> None:
@@ -335,6 +402,101 @@ def _assert_jsonl_never_becomes_text() -> str:
         "text-safety: codex_assistant_text_from_json_stdout recovers ONLY the "
         "assistant message text from --json JSONL (raw JSONL/usage never returned; "
         "no message event -> empty text)"
+    )
+
+
+def _assert_local_cli_nonzero_classification() -> str:
+    from brick_protocol.support.connection import agent_adapter as adapter
+    from brick_protocol.support.connection import adapter_constants
+    from brick_protocol.support.connection import adapter_local_cli
+
+    cases = (
+        ("spend_limit", "429 billing hard limit: spend limit reached"),
+        ("auth", "401 authentication failed: login required"),
+        ("transport", "503 service unavailable: connection reset"),
+        ("unknown", "provider exited with code 1"),
+    )
+    for expected, stderr in cases:
+        completed = adapter.LocalCliCompleted(
+            ("codex", "exec"),
+            1,
+            "",
+            stderr,
+        )
+        observed = adapter_local_cli._local_cli_nonzero_classification(completed)
+        if observed != expected:
+            raise AdapterUsageMeterError(
+                f"nonzero classification for {stderr!r} was {observed!r}, expected {expected!r}"
+            )
+
+    request = adapter.AgentAdapterRequest(
+        building_id="adapter-error-classification-probe",
+        agent_object_ref="agent-object:dev",
+        adapter_ref=adapter_constants.ADAPTER_CLAUDE_LOCAL,
+        brick_instance_ref="brick-probe",
+        next_brick_instance_ref="brick-closure",
+        casting={"selected_model_ref": "model:claude:sonnet"},
+    )
+    spec = adapter._local_cli_spec(adapter_constants.ADAPTER_CLAUDE_LOCAL)
+    message = adapter_local_cli._local_cli_nonzero_error_message(
+        request,
+        spec,
+        adapter.LocalCliCompleted(
+            ("claude", "-p"),
+            1,
+            "",
+            "401 authentication failed: login required",
+        ),
+    )
+    required = (
+        "adapter_error_classification=auth",
+        "adapter_error_recorded_at=",
+        "selected_model_ref=model:claude:sonnet",
+        "dispatched_model=claude-sonnet-5",
+        "return_code=1",
+    )
+    missing = [marker for marker in required if marker not in message]
+    if missing:
+        raise AdapterUsageMeterError(
+            "nonzero error message lacks required safe evidence marker(s) "
+            f"{missing!r}: {message!r}"
+        )
+    timestamp = message.split("adapter_error_recorded_at=", 1)[1].split(";", 1)[0]
+    try:
+        datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise AdapterUsageMeterError(
+            f"adapter_error_recorded_at is not parseable ISO text: {timestamp!r}"
+        ) from exc
+    forbidden = ("sk-", "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "CLAUDE_CODE_OAUTH_TOKEN")
+    leaked = [marker for marker in forbidden if marker in message]
+    if leaked:
+        raise AdapterUsageMeterError(
+            f"nonzero error message leaked credential-looking marker(s) {leaked!r}"
+        )
+    return (
+        "adapter-error classification: local CLI nonzero evidence carries "
+        "spend_limit/auth/transport/unknown labels, ISO timestamp, return_code, "
+        "selected_model_ref, and dispatched_model without credential markers"
+    )
+
+
+def _assert_mutation_red_missing_error_classification() -> str:
+    message = (
+        "local CLI adapter command returned non-zero; adapter_ref=adapter:claude-local; "
+        "selected_model_ref=model:claude:sonnet; dispatched_model=claude-sonnet-5; "
+        "return_code=1"
+    )
+    required = ("adapter_error_classification=", "adapter_error_recorded_at=")
+    missing = [marker for marker in required if marker not in message]
+    if missing:
+        return (
+            "mutation RED observed: nonzero CLI evidence without classification/"
+            "timestamp markers is rejected"
+        )
+    raise AdapterUsageMeterError(
+        "mutation RED failed: a nonzero CLI message lacking classification/timestamp "
+        "markers was accepted"
     )
 
 
@@ -1151,6 +1313,7 @@ def check(repo: Path) -> list[str]:
     lines = [
         _assert_present_usage_record(),
         _assert_dispatched_model_alias_record(),
+        _assert_usage_record_timestamp_and_alias_resolution(),
         _assert_absent_usage_record(),
         _assert_no_forbidden_keys_in_record(),
         _assert_no_usage_in_codex_returned(repo),
@@ -1158,11 +1321,14 @@ def check(repo: Path) -> list[str]:
         _assert_step_output_carries_no_usage(repo),
         _assert_dynamic_walker_dispatch_timing_persisted(repo),
         _assert_jsonl_never_becomes_text(),
+        _assert_local_cli_nonzero_classification(),
         test_behavioral_probe_usage_only_stdout(),
         _assert_meter_write_guarded_by_usage_present(repo),
         _assert_pure_append_preserves_existing_lines(),
         _assert_mutation_red_dropped_key(),
+        _assert_mutation_red_missing_usage_timestamp_alias(),
         _assert_mutation_red_usage_into_returned(),
+        _assert_mutation_red_missing_error_classification(),
         _assert_mutation_red_behavioral_probe_leak(),
         _assert_mutation_red_jsonl_text_fallback(),
         _assert_mutation_red_pure_append_rewrite(),

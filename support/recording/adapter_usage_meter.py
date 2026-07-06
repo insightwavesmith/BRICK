@@ -130,6 +130,8 @@ def build_adapter_usage_record(
     reasoning = _optional_int(
         adapter_usage.get(_CODEX_PROVENANCE_KEY) if usage_present else None
     )
+    observed_at = recorded_at or graph_ready_timestamp()
+    dispatched_model = _dispatched_model(adapter_ref, selected_model_ref, adapter_usage)
     record: dict[str, Any] = {
         "adapter_usage_ref": f"adapter-usage:{step_ref}:attempt-{attempt_index}",
         "building_id": building_id,
@@ -137,7 +139,13 @@ def build_adapter_usage_record(
         "attempt_index": attempt_index,
         "adapter_ref": adapter_ref,
         "selected_model_ref": selected_model_ref,
-        "dispatched_model": _dispatched_model(adapter_ref, selected_model_ref, adapter_usage),
+        "dispatched_model": dispatched_model,
+        "adapter_usage_recorded_at": observed_at,
+        "model_alias_resolution": {
+            "adapter_ref": adapter_ref,
+            "selected_model_ref": selected_model_ref,
+            "dispatched_model": dispatched_model,
+        },
         "usage_present": usage_present,
         # ALLOWLISTED token counters (null when absent). NEVER a verdict.
         "usage": usage_counters,
@@ -165,7 +173,7 @@ def build_adapter_usage_record(
         record,
         building_id=building_id,
         local_id=f"{_ADAPTER_USAGE_RAW_STREAM}#{record_index}",
-        recorded_at=recorded_at or graph_ready_timestamp(),
+        recorded_at=observed_at,
         event_type="bp.raw.adapter_usage",
         subject=step_ref,
     )

@@ -49,6 +49,7 @@ import tempfile
 import tomllib
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import replace
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, TYPE_CHECKING
 
@@ -595,7 +596,7 @@ def _invoke_local_cli_adapter(
         command_runner=command_runner,
     )
     if completed.return_code != 0:
-        raise ValueError(_local_cli_nonzero_error_message(spec, completed))
+        raise ValueError(_local_cli_nonzero_error_message(request, spec, completed))
     output_text, observed_non_granted_gemini_tools = _extract_output_text(
         spec, completed, request=request
     )
@@ -1208,13 +1209,22 @@ _GEMINI_CLIENT_ERROR_PATH_RE = re.compile(
 _GEMINI_CLIENT_ERROR_MAX_BYTES = 64 * 1024
 
 
-def _local_cli_nonzero_error_message(spec: LocalCliSpec, completed: LocalCliCompleted) -> str:
+def _local_cli_nonzero_error_message(
+    request: AgentAdapterRequest,
+    spec: LocalCliSpec,
+    completed: LocalCliCompleted,
+) -> str:
     from .agent_adapter import _redacted_diagnostic_excerpt
 
+    classification = _local_cli_nonzero_classification(completed)
     parts = [
         "local CLI adapter command returned non-zero",
         f"adapter_ref={spec.adapter_ref}",
+        f"selected_model_ref={request.selected_model_ref or spec.default_model_ref}",
+        f"dispatched_model={_dispatched_model_label(request, spec)}",
         f"return_code={completed.return_code}",
+        f"adapter_error_classification={classification}",
+        f"adapter_error_recorded_at={_adapter_error_timestamp()}",
     ]
     stderr_excerpt = _redacted_diagnostic_excerpt(completed.stderr, limit=420)
     if stderr_excerpt:
@@ -1229,6 +1239,77 @@ def _local_cli_nonzero_error_message(spec: LocalCliSpec, completed: LocalCliComp
     if gemini_error_excerpt:
         parts.append(f"gemini_client_error_excerpt={gemini_error_excerpt}")
     return "; ".join(parts)
+
+
+def _adapter_error_timestamp() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="microseconds").replace("+00:00", "Z")
+
+
+def _local_cli_nonzero_classification(completed: LocalCliCompleted) -> str:
+    """Classify non-zero local-CLI exits without carrying raw provider text."""
+
+    haystack = " ".join(
+        part.lower()
+        for part in (
+            str(completed.return_code),
+            completed.stderr or "",
+            completed.stdout or "",
+        )
+        if part
+    )
+    if any(
+        marker in haystack
+        for marker in (
+            "spend_limit",
+            "spend limit",
+            "billing hard limit",
+            "insufficient_quota",
+            "insufficient quota",
+            "quota exceeded",
+            "rate limit",
+            "429",
+        )
+    ):
+        return "spend_limit"
+    if any(
+        marker in haystack
+        for marker in (
+            "auth",
+            "authentication",
+            "unauthorized",
+            "forbidden",
+            "permission denied",
+            "invalid api key",
+            "api key",
+            "oauth",
+            "login required",
+            "not logged in",
+            "401",
+            "403",
+        )
+    ):
+        return "auth"
+    if any(
+        marker in haystack
+        for marker in (
+            "connection reset",
+            "connection refused",
+            "connection aborted",
+            "network",
+            "dns",
+            "econnreset",
+            "etimedout",
+            "temporarily unavailable",
+            "service unavailable",
+            "bad gateway",
+            "gateway timeout",
+            "502",
+            "503",
+            "504",
+        )
+    ):
+        return "transport"
+    return "unknown"
 
 
 def _stdout_error_excerpt(stdout: str) -> str:
