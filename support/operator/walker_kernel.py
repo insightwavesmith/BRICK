@@ -28,6 +28,7 @@ import os
 import shutil
 import time
 from collections.abc import Mapping, Sequence
+from concurrent.futures import TimeoutError as FutureTimeoutError
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, Callable
@@ -86,6 +87,7 @@ from brick_protocol.support.recording.capture import (
     project_ref_for_building_root,
 )
 from brick_protocol.support.recording.step_outputs import _step_output_manifest_ref
+from brick_protocol.support.recording.walker_evidence import build_hold_record
 from brick_protocol.support.operator.walker_common import (
     FAN_TOPOLOGY_NOT_PROVEN,
     FAN_TOPOLOGY_PROOF_LIMITS,
@@ -218,6 +220,7 @@ class NodeProcessingOutcome:
     park_frontier: Mapping[str, Any] | None = None
     raised_exception: BaseException | None = None
     fan_in_hold_record: Mapping[str, Any] | None = None
+    fan_dispatch_child_timeout_record: Mapping[str, Any] | None = None
     step_result_event: Mapping[str, Any] | None = None
     step_output_recorded: bool = True
     adapter_dispatch_timing: Mapping[str, Any] | None = None
@@ -233,6 +236,25 @@ _STEP_OUTPUT_HANDOFF_PROOF_LIMITS = (
 
 
 _ADAPTER_USAGE_RAW_STREAM = "raw/adapter-usage.jsonl"
+_DISPATCH_CHILD_TIMEOUT_RAW_STREAM = "raw/dispatch-child-timeout.jsonl"
+
+
+class _DispatchChildTimeout(RuntimeError):
+    """Support-only fan child timeout signal before an AgentFact can exist."""
+
+    def __init__(
+        self,
+        *,
+        prepared: Any,
+        adapter_request: Any,
+        adapter_error: Mapping[str, Any],
+    ) -> None:
+        super().__init__(
+            "fan dispatch child did not return before adapter_timeout_seconds"
+        )
+        self.prepared = prepared
+        self.adapter_request = adapter_request
+        self.adapter_error = adapter_error
 
 
 def _require_undisposed_concern_hold(resume_seed, hold_record, step_ref):
@@ -329,6 +351,162 @@ def _append_jsonl_record(path: Path, record: Mapping[str, Any]) -> None:
             if handle.read(1) != b"\n":
                 handle.write(b"\n")
         handle.write(encoded + b"\n")
+
+
+def _prepared_timeout_exception_for_item(
+    item: Mapping[str, Any],
+    *,
+    step: Mapping[str, Any],
+    linear_plan: Mapping[str, Any],
+    linear_steps: Sequence[Mapping[str, Any]],
+    forward_order: Sequence[str],
+    building_id: str,
+    building_root: Path,
+    repo_root_path: Path,
+    adapter_timeout_seconds: int,
+    checked_proof_limits: tuple[str, ...],
+) -> _DispatchChildTimeout:
+    from brick_protocol.support.operator.run import (
+        _adapter_request_from_prepared,
+        prepare_agent_run_from_step_rows,
+    )
+
+    step_ref = str(item["step_ref"])
+    step_fixture = _step_fixture_from_plan_step(
+        linear_plan,
+        step,
+        0,
+        building_id=building_id,
+        incoming_link_handoff_refs=_incoming_link_handoff_refs(
+            linear_steps, forward_order.index(step_ref)
+        )
+        if step_ref in forward_order
+        else {},
+    )
+    step_project_ref = project_ref_for_building_root(
+        building_root,
+        repo_root=repo_root_path,
+    )
+    if step_project_ref:
+        step_fixture = dict(step_fixture)
+        step_fixture["project_ref"] = step_project_ref
+    prepared = prepare_agent_run_from_step_rows(
+        step_fixture,
+        proof_limits=checked_proof_limits,
+    )
+    adapter_request = _adapter_request_from_prepared(step_fixture, prepared)
+    adapter_error = {
+        "error_kind": "dispatch_child_timeout",
+        "exception_type": "TimeoutError",
+        "message_excerpt": (
+            "fan dispatch child did not return before adapter_timeout_seconds"
+        ),
+        "adapter_timeout_seconds": adapter_timeout_seconds,
+        "proof_limits": [
+            "fan child timeout support evidence only",
+            "not Agent returned payload",
+            "not AgentFact",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+        ],
+        "not_proven": [
+            "provider or command_runner behavior after the timeout observation",
+            "semantic correctness of the unreturned child work",
+            "caller/COO disposition after frontier observation",
+        ],
+    }
+    return _DispatchChildTimeout(
+        prepared=prepared,
+        adapter_request=adapter_request,
+        adapter_error=adapter_error,
+    )
+
+
+def _record_dispatch_child_timeout_evidence(
+    *,
+    building_root: Path,
+    building_id: str,
+    item: Mapping[str, Any],
+    timeout_seconds: int,
+) -> Mapping[str, Any]:
+    raw_path = building_root / _DISPATCH_CHILD_TIMEOUT_RAW_STREAM
+    record_index = _jsonl_nonempty_line_count(raw_path) + 1
+    step_ref = str(item.get("step_ref", ""))
+    record = graph_ready_json_object(
+        {
+            "raw_ref": f"raw:dispatch-child-timeout:{step_ref}:attempt-{record_index}",
+            "support_record_role": "dispatch_child_timeout",
+            "building_id": building_id,
+            "step_ref": step_ref,
+            "cascade_depth": int(item.get("cascade_depth", 0)),
+            "adapter_timeout_seconds": timeout_seconds,
+            "hold_reason": "fan_dispatch_child_unresponsive",
+            "required_disposition_owner": "coo",
+            "proof_limits": [
+                "raw fan child timeout support evidence only",
+                "not AgentFact",
+                "not source truth",
+                "not success judgment",
+                "not quality judgment",
+                "not Movement authority",
+            ],
+            "not_proven": [
+                "provider or command_runner behavior after the timeout observation",
+                "semantic correctness of the unreturned child work",
+            ],
+        },
+        building_id=building_id,
+        local_id=f"{_DISPATCH_CHILD_TIMEOUT_RAW_STREAM}#{record_index}",
+        recorded_at=graph_ready_timestamp(),
+        event_type="bp.raw.dispatch_child_timeout",
+        subject=step_ref,
+    )
+    _append_jsonl_record(raw_path, record)
+    return record
+
+
+def _dispatch_child_timeout_hold_record(
+    *,
+    building_id: str,
+    completed_step_results: list[BuildingRunSupportResult],
+    failed_preparation: Any,
+    reroute_records: list[Mapping[str, Any]],
+    node_budget: Mapping[str, int],
+    cascade_depth: int,
+    parent_reroute_ref: str,
+) -> Mapping[str, Any]:
+    step_ref = failed_preparation.step_rows.step_ref
+    target_brick = failed_preparation.brick_instance_ref
+    step_slug = step_ref.replace(":", "-")
+    attempt_number = 1 + sum(
+        1
+        for result in completed_step_results
+        if result.preparation.step_rows.step_ref == step_ref
+    )
+    return build_hold_record(
+        reroute_ref=f"reroute-hold:{building_id}:dispatch-child-timeout:{step_slug}",
+        adoption_sequence_number=len(reroute_records) + 1,
+        cascade_depth=cascade_depth,
+        parent_reroute_ref=parent_reroute_ref,
+        source_step_ref=step_ref,
+        source_brick_ref=target_brick,
+        source_transition_concern_ref=f"observation:dispatch-child-timeout:{step_slug}",
+        transition_concern_binding=False,
+        immediate_target_ref=target_brick,
+        target_brick=target_brick,
+        pending_target_ref=target_brick,
+        attempt_number=attempt_number,
+        node_budget=int(node_budget.get(target_brick, 0)),
+        budget_exhausted=False,
+        disposition_required=True,
+        hold_reason="fan_dispatch_child_unresponsive",
+        required_disposition_owner="coo",
+        transition_lifecycle_state="paused",
+        proof_limits=list(PROOF_LIMITS),
+        not_proven=list(RESUME_NOT_PROVEN),
+    )
 
 
 def _enrich_step_output_with_adapter_dispatch_timing(
@@ -1297,18 +1475,59 @@ def _run_dynamic_graph_walker(
     ) -> list[tuple[dict[str, Any], NodeProcessingOutcome]]:
         try:
             if len(items) == 1:
-                return [
-                    (
-                        items[0],
-                        _process_item(
-                            items[0],
-                            record_step_output_immediately=False,
-                            defer_frontier_writes=True,
-                        ),
+                single_item = items[0]
+                executor = ThreadPoolExecutor(max_workers=1)
+                try:
+                    future = executor.submit(
+                        _process_item,
+                        single_item,
+                        record_step_output_immediately=False,
+                        defer_frontier_writes=True,
                     )
-                ]
+                    try:
+                        return [(single_item, future.result(timeout=adapter_timeout_seconds))]
+                    except FutureTimeoutError:
+                        timeout_record = _record_dispatch_child_timeout_evidence(
+                            building_root=building_root,
+                            building_id=building_id,
+                            item=single_item,
+                            timeout_seconds=adapter_timeout_seconds,
+                        )
+                        future.cancel()
+                        timeout_exc = _prepared_timeout_exception_for_item(
+                            single_item,
+                            step=steps_by_ref[str(single_item["step_ref"])],
+                            linear_plan=linear_plan,
+                            linear_steps=linear_steps,
+                            forward_order=forward_order,
+                            building_id=building_id,
+                            building_root=building_root,
+                            repo_root_path=repo_root_path,
+                            adapter_timeout_seconds=adapter_timeout_seconds,
+                            checked_proof_limits=checked_proof_limits,
+                        )
+                        return [
+                            (
+                                single_item,
+                                NodeProcessingOutcome(
+                                    step_result=None,
+                                    attempt_index=0,
+                                    gate_sequence_decision=GateSequenceDecision(),
+                                    source_fact_body_carry_observation=None,
+                                    report_events=(),
+                                    is_replay=False,
+                                    failure_reason="dispatch_child_timeout_deferred",
+                                    raised_exception=timeout_exc,
+                                    step_output_recorded=True,
+                                    fan_dispatch_child_timeout_record=timeout_record,
+                                ),
+                            )
+                        ]
+                finally:
+                    executor.shutdown(wait=False, cancel_futures=True)
             worker_count = min(pool_size, len(items))
-            with ThreadPoolExecutor(max_workers=worker_count) as executor:
+            executor = ThreadPoolExecutor(max_workers=worker_count)
+            try:
                 futures = [
                     (
                         item,
@@ -1321,7 +1540,53 @@ def _run_dynamic_graph_walker(
                     )
                     for item in items
                 ]
-                return [(item, future.result()) for item, future in futures]
+                outcomes: list[tuple[dict[str, Any], NodeProcessingOutcome]] = []
+                deadline = time.monotonic() + max(0, adapter_timeout_seconds)
+                for item, future in futures:
+                    remaining = max(0.0, deadline - time.monotonic())
+                    try:
+                        outcomes.append((item, future.result(timeout=remaining)))
+                    except FutureTimeoutError:
+                        timeout_record = _record_dispatch_child_timeout_evidence(
+                            building_root=building_root,
+                            building_id=building_id,
+                            item=item,
+                            timeout_seconds=adapter_timeout_seconds,
+                        )
+                        future.cancel()
+                        timeout_exc = _prepared_timeout_exception_for_item(
+                            item,
+                            step=steps_by_ref[str(item["step_ref"])],
+                            linear_plan=linear_plan,
+                            linear_steps=linear_steps,
+                            forward_order=forward_order,
+                            building_id=building_id,
+                            building_root=building_root,
+                            repo_root_path=repo_root_path,
+                            adapter_timeout_seconds=adapter_timeout_seconds,
+                            checked_proof_limits=checked_proof_limits,
+                        )
+                        outcomes.append(
+                            (
+                                item,
+                                NodeProcessingOutcome(
+                                    step_result=None,
+                                    attempt_index=0,
+                                    gate_sequence_decision=GateSequenceDecision(),
+                                    source_fact_body_carry_observation=None,
+                                    report_events=(),
+                                    is_replay=False,
+                                    failure_reason="dispatch_child_timeout_deferred",
+                                    raised_exception=timeout_exc,
+                                    step_output_recorded=True,
+                                    fan_dispatch_child_timeout_record=timeout_record,
+                                ),
+                            )
+                        )
+                        break
+                return outcomes
+            finally:
+                executor.shutdown(wait=False, cancel_futures=True)
         finally:
             _clear_running(items)
 
@@ -1486,8 +1751,21 @@ def _run_dynamic_graph_walker(
             reroute_records=reroute_records,
             node_budget=node_budget,
             node_landings=node_landings,
-            held=False,
-            hold_record=None,
+            held=outcome.fan_dispatch_child_timeout_record is not None,
+            hold_record=(
+                _dispatch_child_timeout_hold_record(
+                    building_id=building_id,
+                    completed_step_results=step_results,
+                    failed_preparation=exc.prepared,
+                    reroute_records=reroute_records,
+                    node_budget=node_budget,
+                    cascade_depth=int(item.get("cascade_depth", 0)),
+                    parent_reroute_ref=item["parent_reroute_ref"],
+                )
+                if outcome.fan_dispatch_child_timeout_record is not None
+                and hasattr(exc, "prepared")
+                else None
+            ),
             cascade_depth=int(item.get("cascade_depth", 0)),
             parent_reroute_ref=item["parent_reroute_ref"],
             fan_in_wait_all_observations=fan_in_wait_all_observations,
