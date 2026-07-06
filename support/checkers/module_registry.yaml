@@ -187,6 +187,16 @@ modules:
     decomposition_target: ""
     pinned_by: agent_resource_resolution kernel check (file-backed Agent Object refs prefix-match + resolve; adapter refs admitted)
 
+  - module: support/checkers/check_model_lane_matching_discipline.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: model_lane_matching_discipline profile (0705/0706 fable-class/fugu reconciliation text pin + mutation-RED probes)
+
   - module: support/checkers/check_import_identity_modes.py
     layer: checkers
     role: checker
