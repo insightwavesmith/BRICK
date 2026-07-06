@@ -219,6 +219,7 @@ BUILDING_OPERATION_SURFACE0_TARGETS = {
 # reuses existing functions, owns no crossing, judges nothing.
 ONBOARD_WIZARD0_TARGETS = {
     "support/operator/onboard.py",
+    "support/operator/re_instruction_rules.py",
 }
 
 # PROVIDER-REGISTRY-LADDER-0: per-user provider registry persistence plus the

@@ -1668,6 +1668,14 @@ def _current_hold_paused_at_ref(building_root: Path) -> str | None:
     return _hold_paused_at_ref(hold)
 
 
+_COMPLIANT_RE_INSTRUCTION = (
+    "Done endline: continue the bounded routing fixture and return the declared "
+    "checker evidence before DONE. Proof must be executable in the receiving "
+    "lane. Repairs outside the receiving lane's scope are COO gate items, not "
+    "re-dispatch."
+)
+
+
 def _append_disposition_row(
     building_root: Path,
     *,
@@ -1706,6 +1714,8 @@ def _append_disposition_row(
         # (link/transition.TRANSITION_LIFECYCLE_ALLOWED_KEYS); the disposition
         # row's reason ADDRESSES are truck-eligible runtime mail (B3 lane 2).
         row["transition_lifecycle_reason_refs"] = list(reason_refs)
+    if action == "reroute":
+        row["transition_lifecycle_re_instruction"] = _COMPLIANT_RE_INSTRUCTION
     with (building_root / "raw" / "link.jsonl").open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(row, separators=(",", ":")) + "\n")
 

@@ -64,6 +64,12 @@ if _IMPORT_IDENTITY not in sys.path:
 
 RED_REROUTE_HOLD_PREFIX = "resume replay encountered an already-disposed recorded HOLD for "
 RED_UNSUPPORTED_REROUTE_SUFFIX = "unsupported prior disposition 'reroute'"
+_COMPLIANT_RE_INSTRUCTION = (
+    "Done endline: replay the prior disposition mirror fixture and return the "
+    "declared checker evidence before DONE. Proof must be executable in the "
+    "receiving lane. Repairs outside the receiving lane's scope are COO gate "
+    "items, not re-dispatch."
+)
 DIVERGENCE_PREFIX = "resume divergence: the seeded walk completed WITHOUT applying"
 APPLIED_DISPOSITION_LITERAL = "dynamic Building already has an applied resume disposition"
 
@@ -308,6 +314,8 @@ def _append_disposition_row(
         "transition_lifecycle_disposition_action": action,
         "transition_author_ref": author_ref,
     }
+    if action == "reroute":
+        row["transition_lifecycle_re_instruction"] = _COMPLIANT_RE_INSTRUCTION
     with (building_root / "raw" / "link.jsonl").open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(row, separators=(",", ":")) + "\n")
 

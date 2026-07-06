@@ -6,14 +6,25 @@ kernel_checks:
 path_exists:
   - brick/templates/reroute-defaults.yaml
   - brick/templates/enforcement-ledger.yaml
+  - support/operator/re_instruction_rules.py
   - support/operator/onboard.py
+  - support/operator/walker_resume.py
   - support/checkers/lib/re_instruction_endline_gate_check.py
   - support/checkers/profiles/re-instruction-endline-gate.yaml
 text_contains:
+  - path: support/operator/re_instruction_rules.py
+    texts:
+      - re_instruction_endline_rules
+      - re_instruction_rule_violations
+      - invalid_re_instruction_endline_result
   - path: support/operator/onboard.py
     texts:
       - _re_instruction_endline_rules
       - _re_instruction_rule_violations
+      - _invalid_re_instruction_endline_result
+  - path: support/operator/walker_resume.py
+    texts:
+      - _validated_resume_re_instruction
       - re_instruction_endline_rule_violation
   - path: support/checkers/check_profile.py
     texts:
@@ -21,6 +32,8 @@ text_contains:
       - run_re_instruction_endline_gate
   - path: support/checkers/lib/re_instruction_endline_gate_check.py
     texts:
+      - _validated_resume_re_instruction
+      - invalid non-reroute re_instruction
       - missing-endline
       - non-executable-proof
       - read-only-all-proof

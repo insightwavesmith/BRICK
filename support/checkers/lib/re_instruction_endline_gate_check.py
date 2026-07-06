@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import sys
 import tempfile
+import inspect
 from pathlib import Path
 from typing import Any
 
@@ -69,11 +70,33 @@ def run_re_instruction_endline_gate(repo: Path) -> KernelResult:
         _re_instruction_rule_violations,
         run_approve_entry,
     )
+    from brick_protocol.support.operator.re_instruction_rules import (
+        re_instruction_endline_rules,
+        re_instruction_rule_violations,
+    )
+    from brick_protocol.support.operator.walker_resume import (
+        _validated_resume_re_instruction,
+    )
 
     rules = _re_instruction_endline_rules(repo)
     if len(rules) != 3:
         raise ProfileError(
             f"{CHECK_ID} expected exactly three declared rules, observed {len(rules)}"
+        )
+    if rules != re_instruction_endline_rules(repo):
+        raise ProfileError(f"{CHECK_ID} onboard rule loader drifted from shared module")
+    if _re_instruction_rule_violations is not re_instruction_rule_violations:
+        raise ProfileError(f"{CHECK_ID} onboard rule checker is not the shared function")
+    onboard_source = inspect.getsource(onboard_module)
+    forbidden_local_markers = (
+        "_RE_INSTRUCTION_RULES_REL =",
+        "def _re_instruction_has_endline_marker",
+        "def _re_instruction_has_scope_repair_without_coo_gate",
+    )
+    copied_markers = [marker for marker in forbidden_local_markers if marker in onboard_source]
+    if copied_markers:
+        raise ProfileError(
+            f"{CHECK_ID} onboard.py must not redeclare re_instruction rules: {copied_markers!r}"
         )
     _assert_ledger_consumer(repo)
 
@@ -103,6 +126,30 @@ def run_re_instruction_endline_gate(repo: Path) -> KernelResult:
     }
     for label, text in red_cases.items():
         _assert_rejects(_re_instruction_rule_violations(text, rules), label)
+
+    try:
+        _validated_resume_re_instruction(
+            "reroute",
+            {"re_instruction": red_cases["missing-endline"]},
+            repo=repo,
+        )
+    except ValueError as exc:
+        if "re_instruction_endline_rule_violation" not in str(exc):
+            raise ProfileError(
+                f"{CHECK_ID} resume seed rejected invalid text with wrong error: {exc}"
+            ) from exc
+    else:
+        raise ProfileError(f"{CHECK_ID} resume seed accepted invalid re_instruction")
+
+    try:
+        _validated_resume_re_instruction("reroute", {}, repo=repo)
+    except ValueError as exc:
+        if "requires re_instruction" not in str(exc):
+            raise ProfileError(
+                f"{CHECK_ID} resume seed rejected missing text with wrong error: {exc}"
+            ) from exc
+    else:
+        raise ProfileError(f"{CHECK_ID} resume seed accepted missing reroute re_instruction")
 
     for label, text in {
         "compliant": _COMPLIANT_RE_INSTRUCTION,
@@ -136,6 +183,21 @@ def run_re_instruction_endline_gate(repo: Path) -> KernelResult:
         if link_path.read_text(encoding="utf-8") != "":
             raise ProfileError(f"{CHECK_ID} invalid reroute wrote raw/link.jsonl")
 
+        forward_result = run_approve_entry(
+            root,
+            action="forward",
+            author_ref="coo:checker",
+            re_instruction=red_cases["missing-endline"],
+            repo_root=repo,
+        )
+        if forward_result.get("error_kind") != "re_instruction_endline_rule_violation":
+            raise ProfileError(
+                f"{CHECK_ID} invalid non-reroute re_instruction was not refused: "
+                f"{forward_result!r}"
+            )
+        if link_path.read_text(encoding="utf-8") != "":
+            raise ProfileError(f"{CHECK_ID} invalid non-reroute wrote raw/link.jsonl")
+
     held_frontier = {
         "frontier_kind": "link_paused",
         "latest_transition_lifecycle": {
@@ -163,13 +225,15 @@ def run_re_instruction_endline_gate(repo: Path) -> KernelResult:
 
     return KernelResult(
         check_id=CHECK_ID,
-        inspected=8,
+        inspected=11,
         output=(
             "re_instruction_endline_gate passed: three declared rules loaded; "
+            "onboard/checker/resume consume the shared support module; "
             "missing endline, non-executable proof, read-only --all proof, and "
             "scope repair without COO gate RED fixtures rejected before raw link "
-            "write; compliant, carried real-sample, Korean postfix prohibition, "
-            "descriptive mention, and token-boundary fixtures accepted."
+            "write, including non-reroute text and resume-seed bypass probes; "
+            "compliant, carried real-sample, Korean postfix prohibition, descriptive "
+            "mention, and token-boundary fixtures accepted."
         ),
     )
 

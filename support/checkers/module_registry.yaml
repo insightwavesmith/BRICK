@@ -1559,6 +1559,16 @@ modules:
     decomposition_target: ""
     pinned_by: onboard_smoke kernel check (building_operator_driver0 profile)
 
+  - module: support/operator/re_instruction_rules.py
+    layer: operator
+    role: operator-support-helper
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: re_instruction_endline_gate kernel check (shared support-only re_instruction rule parser/validator consumed by onboard, walker_resume, and checker fixtures; authors no Link facts and judges no quality/success)
+
   - module: support/operator/provider_registry.py
     layer: operator
     role: operator
