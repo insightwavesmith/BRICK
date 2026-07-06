@@ -560,6 +560,12 @@ write_scope_default_exclude_case:
     case_kind: directory_allowed_path_is_not_recursive
   - label: explicit-wildcard-allows-children
     case_kind: explicit_wildcard_allows_children
+  - label: segment-wildcard-rejects-nested-child
+    case_kind: segment_wildcard_rejects_nested_child
+  - label: recursive-wildcard-allows-nested-child
+    case_kind: recursive_wildcard_allows_nested_child
+  - label: root-wildcard-matches-single-segment-only
+    case_kind: root_wildcard_matches_single_segment_only
   - label: token-shaped-filename-short-marker-accepted
     case_kind: token_shaped_filename_short_marker_accepted
   - label: raw-secret-rejected

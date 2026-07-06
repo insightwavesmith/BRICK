@@ -33,6 +33,10 @@ surfaces:
     fixture_path: support/checkers/check_assembly_equivalence.py
     fixture_identifier: build mutation-RED observed: severed write_scope/expansion_budget/declared_expansion_node_budgets/gates
     incident_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md W2 write_scope_commit_gate
+  - surface: write_scope_segment_matcher
+    fixture_path: support/checkers/lib/write_scope_default_exclude_check.py
+    fixture_identifier: accepted nested child; observed
+    incident_anchor: project/brick-protocol/status/kernel/w1s1-contract-kernel-map-0706.md K4' WR-007 residue
   - surface: hold_lifecycle
     fixture_path: support/checkers/check_building_operator_driver0.py
     fixture_identifier: w1-fake-missing-paused-at-RED
@@ -63,3 +67,8 @@ audit_mutants:
     fixture_path: support/checkers/check_plan_revision_chain.py
     fixture_identifier: gate sequence replay record sideways top-level action
     audit_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md S11 mutant 5종 pending external CSV; local observed substitute
+  - mutant_id: WR-007-fnmatch-star-crosses-slash
+    surface: write_scope_segment_matcher
+    fixture_path: support/checkers/lib/write_scope_default_exclude_check.py
+    fixture_identifier: accepted nested child; observed
+    audit_anchor: project/brick-protocol/status/kernel/w1s1-contract-kernel-map-0706.md K4' WR-007 residue

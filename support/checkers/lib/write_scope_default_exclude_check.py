@@ -33,6 +33,12 @@ def run_write_scope_default_exclude_case(repo: Path, profile: Mapping[str, Any])
             _check_directory_allowed_path_is_not_recursive(label)
         elif case_kind == "explicit_wildcard_allows_children":
             _check_explicit_wildcard_allows_children(label)
+        elif case_kind == "segment_wildcard_rejects_nested_child":
+            _check_segment_wildcard_rejects_nested_child(label)
+        elif case_kind == "recursive_wildcard_allows_nested_child":
+            _check_recursive_wildcard_allows_nested_child(label)
+        elif case_kind == "root_wildcard_matches_single_segment_only":
+            _check_root_wildcard_matches_single_segment_only(label)
         elif case_kind == "token_shaped_filename_short_marker_accepted":
             _check_token_shaped_filename_short_marker_accepted(label)
         elif case_kind == "raw_secret_rejected":
@@ -119,6 +125,59 @@ def _check_explicit_wildcard_allows_children(label: str) -> None:
         )
 
 
+def _check_segment_wildcard_rejects_nested_child(label: str) -> None:
+    from brick_protocol.brick.comparison import compare_changed_paths_to_write_scope
+
+    facts = compare_changed_paths_to_write_scope(
+        ["a/b/c"],
+        {"allowed_paths": ["a/*"]},
+    )
+    outside = facts.get("observed_paths_outside_declared_scope", [])
+    if "a/b/c" not in outside:
+        raise ProfileError(
+            f"write_scope_default_exclude_case rejected {label}: segment wildcard "
+            f"accepted nested child; observed {facts!r}"
+        )
+
+
+def _check_recursive_wildcard_allows_nested_child(label: str) -> None:
+    from brick_protocol.brick.comparison import compare_changed_paths_to_write_scope
+
+    facts = compare_changed_paths_to_write_scope(
+        ["a/b/c"],
+        {"allowed_paths": ["a/**"]},
+    )
+    if facts.get("observed_paths_outside_declared_scope"):
+        raise ProfileError(
+            f"write_scope_default_exclude_case rejected {label}: recursive wildcard "
+            f"did not allow nested child; observed {facts!r}"
+        )
+
+
+def _check_root_wildcard_matches_single_segment_only(label: str) -> None:
+    from brick_protocol.brick.comparison import compare_changed_paths_to_write_scope
+
+    single = compare_changed_paths_to_write_scope(
+        ["leaf.txt"],
+        {"allowed_paths": ["*"]},
+    )
+    if single.get("observed_paths_outside_declared_scope"):
+        raise ProfileError(
+            f"write_scope_default_exclude_case rejected {label}: root wildcard "
+            f"did not allow one segment; observed {single!r}"
+        )
+    nested = compare_changed_paths_to_write_scope(
+        ["dir/leaf.txt"],
+        {"allowed_paths": ["*"]},
+    )
+    outside = nested.get("observed_paths_outside_declared_scope", [])
+    if "dir/leaf.txt" not in outside:
+        raise ProfileError(
+            f"write_scope_default_exclude_case rejected {label}: root wildcard "
+            f"accepted nested child; observed {nested!r}"
+        )
+
+
 def _check_token_shaped_filename_short_marker_accepted(label: str) -> None:
     from support.operator.primitives import _FORBIDDEN_PAYLOAD_KEYS, _validate_no_payload_forbidden
 
@@ -187,4 +246,3 @@ def _check_dirty_root_reuse_requires_overwrite_or_new_root(label: str) -> None:
                 ) from exc
             return
     raise ProfileError(f"write_scope_default_exclude_case expected dirty-root rejection: {label}")
-
