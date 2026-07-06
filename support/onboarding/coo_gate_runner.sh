@@ -25,6 +25,15 @@ if [ "${1:-}" = "--land" ]; then
   i=0
   for ONE in "${SHAS[@]}"; do
     i=$((i+1))
+    # REFUSE meaningless input (0706 Smith correction): a sha already contained
+    # in main merges as a silent no-op ("already up to date") — that is NOT a
+    # landing. --land exists ONLY to bring a gate-worktree harvest commit onto
+    # main. Already-on-main commits take the sweep&&push path instead.
+    if git -C "$REPO" merge-base --is-ancestor "$ONE" HEAD 2>/dev/null; then
+      say "NOTHING TO LAND: $ONE is already on main. --land가 아니라 스윕&&push를 써라:"
+      say "  PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all && git push origin main"
+      exit 1
+    fi
     MSG_PART="/tmp/coo-land-msg-$i.txt"
     awk -v n="$i" 'BEGIN{c=1} /^---$/{c++; next} c==n{print}' "$MSGF" > "$MSG_PART"
     [ -s "$MSG_PART" ] || cp "$MSGF" "$MSG_PART"

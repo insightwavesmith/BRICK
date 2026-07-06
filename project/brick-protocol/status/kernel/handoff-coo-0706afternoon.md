@@ -9,7 +9,7 @@
 4. operator-ergonomics-wave-0705.md 표 13~18 (신규 실수 클래스)
 
 ## git 상태
-로컬 HEAD = 54c6f684 (fugu 근본원인 문서). origin = 432451c7 (R4 랜딩분). **미push 1 = fugu 문서 커밋** — 새 세션 첫 작업: 이 문서까지 스윕&&push(또는 다음 --land에 동승). 수동 push 금지 규율은 --land 경유로 충족.
+로컬 HEAD = 54c6f684 (fugu 근본원인 문서). origin = 432451c7 (R4 랜딩분). **미push 1 = fugu 문서 커밋** — 새 세션 첫 작업: 스윕&&push. **(0706 저녁 Smith 교정) 미push 커밋이 이미 main에 있으면 --land 아님 → 스윕&&push만. --land는 게이트 워크트리의 harvest 커밋을 main으로 가져올 때만.** 명령: `PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all && git push origin main` (10분 캡 없이 백그라운드로).
 
 ## 걷던 것 / 즉시 처분
 | vessel | 상태 | 처분 |
