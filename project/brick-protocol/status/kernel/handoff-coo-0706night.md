@@ -37,7 +37,7 @@
 - **compress-S1 = claude-local xhigh work** (1차 fugu 개시실패 후 교체, 유지). sakana 개시 실패 회피용.
 - 원칙: 신규 발주 기본은 난이도-비례 캐스팅(얽힘=푸구+fable5). 푸구 개시 실패가 재현되면 그 발주만 claude-local xhigh 폴백(전면 교체 아님).
 
-## ★claude 레인 개시 판정 교훈(0707 실측 — COO 오판 1회)★
+## ★claude 레인 개시 판정 교훈(0707 실측 — COO 오판 2회)★
 claude-local 레인은 codex와 달리 **adapter-usage.jsonl을 그 방식으로 안 쓴다.** usage 파일 부재를 "개시 실패"로 판정하면 오판(compress-s1·graph-thinking을 개시실패로 2회 오진). **claude 레인 개시 판정 = `claude -p` 프로세스 실존 + `lsof -a -p <pid> -i` 소켓 ESTABLISHED**로 본다(usage 파일 아님). codex 레인만 adapter-usage/step-output 조기 생성.
 
 ## 걷는 것 3갈래 (마감 시점 — 전부 정상 주행 실측 확인)
@@ -53,6 +53,21 @@ claude-local 레인은 codex와 달리 **adapter-usage.jsonl을 그 방식으로
 
 ## Smith 결정 대기 = 0건
 GP-O 결정①=B 채택 완료. ②실측 먼저는 B와 한 몸(자동), ③기본provider ④Windows ⑤한국어는 검수 실측 후 재론.
+
+## 0707 추기 — 걷던 3갈래 전부 완주 + Smith 판정 6건
+3갈래 모두 gate_passed→building_finished(00:22 compress / 00:25 사고법 / 00:29 onboard, 수취장부 정상). 전원 무변경·읽기전용 반환 — **랜딩할 diff 없음**, 산출은 판정·후속 발주 입력. 증거 정본 = `~/.brick/project/brick-protocol/buildings/{graph-thinking-design,compress-s1,onboard-seq-audit}-0706n/work/step-outputs/`. 요지: 함대 3/3 합의(기존 프리미티브 유지 · fan 폭 리터럴 상한3 · 2단 발주 표준형(expand는 dry-run 증거 전용) · partition_plan=설계 반환계약 필드 · 채택 전 체커 동반), 2:1 분기(partition_plan 홈 deep-design 우선 / held-node 확장은 검증 전 신중), compress-S1은 부트스트랩 닭·달걀 전제충돌을 증명하고 무변경 정직 반환, onboard는 S0 성공 문구 불일치 확정(README:45·quickstart:107 "5) 설치 점검 완료" vs install.sh 실출력) + 발급 갭 B-G1~7 + 발급자 의무 8항목 초안. (부수: 00:13~00:29 WIP 앵커 폭증은 compress-S1 격리 --all의 픽스처 걸음 — 소음 아님. baseline rc=1은 스냅샷의 artifact URL UUID로 추정, main은 이미 마스킹.)
+
+**Smith 판정 6건 (0707)**:
+1. partition_plan 홈 = **deep-design 먼저**(단계적 admission, design 확장은 실측 후).
+2. 첫 시공 조각 = **체커-우선**(계약 산문보다 체커가 먼저 계약을 정의).
+3. held-node 이어걷기 = 봉쇄 유지하되 **resume 근본 해결 트랙 구조화 지시**(Smith 원문 "근본 해결이 필요하고 구조잡아놔라") — resume 3결함 + 홀드체인 순환 + 수취장부 꼬리 + 이어걷기 검증기를 한 부검·설계 트랙으로 묶는다.
+4. compress-S1 = **ⓐ 신규 부트스트랩 모듈 1개 허용**(제약 완화), 사다리 S2~S5 원안 유지.
+5. 고객 배포 = **본 repo 초대 경로**(별도 채널 없음), 발급자 = Smith.
+6. S0 = **install.sh를 문서 의도에 정렬**(설치 후 점검 수행 + "설치 점검 완료" 출력) — 제품 의도 판정. 성공 문자열 체커 핀은 공통 후속.
+
+**0707 판정 확정(Smith): 위 6건 원안대로 확정.** + **메타지시(Smith 원문)**: "'너가 지금 이야기한 것' 자체를 사고해야 한다. 그래서 스킬이 3차원이 중요한 거고" — 사고법 v2(시간→공간→권위 3다이얼)는 전달할 문서가 아니라 **COO가 매 발주 실제로 밟는 사고 절차**이고, sizing 스킬 재작성의 목적은 그 절차를 세션마다 장착시키는 그릇이다. 집행 순서 조정: 절차 뼈대(3질문)는 스킬에 즉시 각인, 계약 핀(스키마·RED 참조)은 A 랜딩 후 추가.
+
+**후속 큐(판정 반영)**: A=사고법 체커 조각(deep-design return.yaml partition_plan + 신설 체커/프로브) ∥ C=compress-S1 ⓐ 재발주 ∥ D=onboard 2단 수리(install.sh 점검화 + 문서 정합 + T9 체커 + 초대 발급 절차) — 셋 다 support/checkers를 만지므로 write_scope 파일 단위 분리 발주. B=resume 근본 부검·설계(이종 병렬 설계 → 홀드 판독 → 2단 시공). **스킬 깎기(sizing 재작성 · task-author 2단 표준형 · design/deep-design brick.md 산문)는 A 랜딩 뒤** — 함대 3/3 권고("체커가 계약을 정의한 뒤 산문 갱신")대로, COO 직접 작업. (이전 4커밋은 push 완료 실측 — origin=1585995d. 이 추기 커밋 1개만 미push, --ship 대기.)
 
 ## 콘솔 Artifact
 claude.ai/code/artifact/b7c11b80-**** (전문 URL은 메모리 brick-session-0706afternoon-closeout, favicon 🧱, url 파라미터로 같은 주소 재배포).
