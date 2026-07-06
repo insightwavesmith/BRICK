@@ -822,6 +822,17 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
     # The external bare-launch lives in the checker layer (kernel_checks.py),
     # never in mcp_projection.py, which owns no execution surface.
     "mcp_stdio_smoke": run_mcp_stdio_smoke,
+    # R9-MODELLANE-0706E. Executes the Agent discipline reconciliation pin
+    # IN-PROCESS: the model-lane discipline must preserve the 0702
+    # codex/sonnet/gemini defaults while admitting the 0705/0706 design-lead
+    # fable-class default, risk-proportional code-attack-QA/closure elevation,
+    # and fugu high-depth tier. The checker carries two built-in mutation-RED
+    # probes: removing the fable-class allowance REDs, and reintroducing the old
+    # absolute "fable5 never lane model" wording REDs.
+    "model_lane_matching_discipline": _repo_main(
+        "model_lane_matching_discipline",
+        "support.checkers.check_model_lane_matching_discipline",
+    ),
     # Execution proof for the CONNECT-GENERATOR-0 read-only generator: imports
     # support/connection/connect.py, renders the Codex MCP config for THIS
     # repo, extracts the command + server script + --repo it emits, then

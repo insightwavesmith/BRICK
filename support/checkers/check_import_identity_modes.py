@@ -46,6 +46,7 @@ PARENTS_BINDING_REGISTRY = {
     "support/checkers/check_interactive_provider_intake.py": {2},
     "support/checkers/check_link_gate_measurement_separation.py": {2},
     "support/checkers/check_mcp_dispatch_wire.py": {2},
+    "support/checkers/check_model_lane_matching_discipline.py": {2},
     "support/checkers/check_positive_int_bool_boundary.py": {2},
     "support/checkers/check_recording_checker_derived_contract.py": {2},
     "support/checkers/check_report_env_autoload.py": {2},
