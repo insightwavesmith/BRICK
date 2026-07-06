@@ -3040,7 +3040,9 @@ def _load_goal_proposal(proposal_ref: Any) -> tuple[Mapping[str, Any], Path | No
 def _proposal_path_from_ref(proposal_ref: Any) -> Path:
     path = Path(str(proposal_ref)).expanduser()
     if path.is_dir():
-        path = path / _GOAL_PROPOSAL_FILENAME
+        direct = path / _GOAL_PROPOSAL_FILENAME
+        work_layout = path / "work" / _GOAL_PROPOSAL_FILENAME
+        path = direct if direct.exists() else work_layout
     return path.resolve()
 
 
@@ -3065,6 +3067,8 @@ def _goal_approval_output_root(
     if output_root is not None:
         return Path(output_root).expanduser().resolve()
     if proposal_path is not None and proposal_path.name == _GOAL_PROPOSAL_FILENAME:
+        if proposal_path.parent.name == "work" and proposal_path.parent.parent != proposal_path.parent:
+            return proposal_path.parent.parent.parent.resolve()
         parent = proposal_path.parent.parent
         if parent != proposal_path.parent:
             return parent.resolve()
@@ -3115,15 +3119,25 @@ def _proposal_root_is_prerun_only(
     if proposal_path is None:
         return False
     root = (durable_output / building_id).resolve()
-    if proposal_path.parent.resolve() != root:
+    proposal_parent = proposal_path.parent.resolve()
+    if proposal_parent.name == "work" and proposal_parent.parent == root:
+        proposal_root = root
+    elif proposal_parent == root:
+        proposal_root = root
+    else:
         return False
     try:
-        entries = list(root.iterdir())
+        entries = list(proposal_root.iterdir())
     except FileNotFoundError:
         return False
     if len(entries) != 1:
         return False
     entry = entries[0]
+    if entry.name == "work" and entry.is_dir() and not entry.is_symlink():
+        work_entries = list(entry.iterdir())
+        if len(work_entries) != 1:
+            return False
+        entry = work_entries[0]
     return (
         entry.resolve() == proposal_path.resolve()
         and entry.name == _GOAL_PROPOSAL_FILENAME

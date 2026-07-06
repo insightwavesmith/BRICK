@@ -41,6 +41,14 @@ surfaces:
     fixture_path: support/checkers/check_building_operator_driver0.py
     fixture_identifier: w1-fake-missing-paused-at-RED
     incident_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md W2 hold_lifecycle
+  - surface: graphdecl_proposal_path
+    fixture_path: support/checkers/check_assembly_equivalence.py
+    fixture_identifier: graph declaration proposal was not persisted under the Building work/ recording path
+    incident_anchor: graphdecl-fix-0706e D1 proposed-building-graph work/ path-shape guard
+  - surface: graphdecl_model_inheritance
+    fixture_path: support/checkers/check_assembly_equivalence.py
+    fixture_identifier: graph declaration omitted model did not inherit adapter default_model_ref
+    incident_anchor: graphdecl-fix-0706e D2 graph declaration omitted model inherits adapter default
 audit_mutants:
   - mutant_id: S11-declared-plan-revision-forged-hash
     surface: declared_plan_revision
@@ -72,3 +80,13 @@ audit_mutants:
     fixture_path: support/checkers/lib/write_scope_default_exclude_check.py
     fixture_identifier: accepted nested child; observed
     audit_anchor: project/brick-protocol/status/kernel/w1s1-contract-kernel-map-0706.md K4' WR-007 residue
+  - mutant_id: graphdecl-proposal-root-placement
+    surface: graphdecl_proposal_path
+    fixture_path: support/checkers/check_assembly_equivalence.py
+    fixture_identifier: graph declaration proposal was not persisted under the Building work/ recording path
+    audit_anchor: graphdecl-fix-0706e D3 mutation RED
+  - mutant_id: graphdecl-omitted-model-default-sentinel
+    surface: graphdecl_model_inheritance
+    fixture_path: support/checkers/check_assembly_equivalence.py
+    fixture_identifier: graph declaration omitted model did not inherit adapter default_model_ref
+    audit_anchor: graphdecl-fix-0706e D3 mutation RED

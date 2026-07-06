@@ -1515,6 +1515,48 @@ def _graph_declaration_fire(repo: Path) -> tuple[str, ...]:
         ],
     }
     via_decl = assemble_graph_declaration(declaration, repo_root=repo)
+    inherited_model_decl = copy.deepcopy(declaration)
+    inherited_model_decl["building_id"] = "heart-phase0-graph-decl-model-inherit"
+    inherited_model_decl["adapter"] = "codex-fugu-local"
+    inherited_model_decl.pop("model", None)
+    inherited_model_decl.pop("model_ref", None)
+    inherited_model = assemble_graph_declaration(inherited_model_decl, repo_root=repo)
+    if inherited_model.selected_model_ref != "model:sakana:fugu":
+        raise AssemblyEquivalenceError(
+            "graph declaration omitted model did not inherit adapter default_model_ref"
+        )
+    node_inherited_model_decl = copy.deepcopy(declaration)
+    node_inherited_model_decl["building_id"] = "heart-phase0-graph-decl-node-model-inherit"
+    node_inherited_model_decl["adapter"] = "codex-local"
+    node_inherited_model_decl["model"] = "model:codex:default"
+    node_inherited_model_decl["nodes"] = [
+        {
+            "kind": "work",
+            "work_statement": (
+                "# Node model inheritance probe\n\n"
+                "## Deliverables\n"
+                "D1: observe node-level omitted model inheritance.\n\n"
+                "## Done Criteria\n"
+                "Return observed evidence only."
+            ),
+            "adapter_ref": "adapter:codex-fugu-local",
+            "write_scope": {
+                "allowed_paths": ["support/checkers/check_assembly_equivalence.py"],
+                "forbidden_paths": [".git/**"],
+            },
+        },
+        {"kind": "closure", "work_statement": "graph declaration close"},
+    ]
+    node_inherited_model = assemble_graph_declaration(node_inherited_model_decl, repo_root=repo)
+    node_inherited_step = _step_for_kind(node_inherited_model.composed_plan, "work")
+    node_inherited_selected_model = _effective_step_model(
+        node_inherited_model.composed_plan,
+        node_inherited_step,
+    )
+    if node_inherited_selected_model != "model:sakana:fugu":
+        raise AssemblyEquivalenceError(
+            "graph declaration node omitted model did not inherit node adapter default_model_ref"
+        )
     via_python = assemble(
         build(
             [
@@ -1569,7 +1611,13 @@ def _graph_declaration_fire(repo: Path) -> tuple[str, ...]:
         raise AssemblyEquivalenceError("graph declaration did not lower to the same contract snapshot as Python assemble()")
     if graph_declaration_action(declaration) != "stop":
         raise AssemblyEquivalenceError("graph declaration action stop was not preserved")
+    if graph_declaration_action({}) != "stop":
+        raise AssemblyEquivalenceError("graph declaration omitted action did not default to stop")
     from brick_protocol.support.operator.cli import _render_build
+
+    cli_source = (_REPO_ROOT / "support" / "operator" / "cli.py").read_text(encoding="utf-8")
+    if "Declaration action defaults to stop" not in cli_source:
+        raise AssemblyEquivalenceError("brick build --graph-decl help did not document action=stop default")
 
     rendered = _render_build(
         {
@@ -1600,6 +1648,10 @@ def _graph_declaration_fire(repo: Path) -> tuple[str, ...]:
         )
         if not proposal_path.is_file():
             raise AssemblyEquivalenceError("graph declaration did not persist a frozen proposal")
+        if proposal_path.name != GOAL_PROPOSAL_FILENAME or proposal_path.parent.name != "work":
+            raise AssemblyEquivalenceError(
+                "graph declaration proposal was not persisted under the Building work/ recording path"
+            )
         from brick_protocol.support.operator.onboard import run_goal_approve_entry
 
         stopped = run_goal_approve_entry(
@@ -1636,7 +1688,9 @@ def _graph_declaration_fire(repo: Path) -> tuple[str, ...]:
     return (
         "graph-decl green: declaration file shape lowered through build()/assemble() to the Python contract snapshot.",
         "graph-decl green: brick build render puts resolved repo_root on line one and preserves warning lines.",
-        "graph-decl green: dry action=stop persisted only the frozen proposal and ran no Building root.",
+        "graph-decl green: omitted model_ref inherited the selected adapter default_model_ref.",
+        "graph-decl green: brick build --graph-decl help documents that omitted action defaults to stop.",
+        "graph-decl green: dry action=stop persisted only the frozen proposal under work/ and ran no Building root.",
         _assert_raises("graph-decl raw packet keys", ValueError, packet_key_probe),
         _assert_raises("graph-decl node write_scope widening", ValueError, mutation_probe),
     )
@@ -2528,6 +2582,23 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
             raise AssemblyEquivalenceError("proposal snapshot did not preserve building_id")
         if not loaded.get("task_statement") or not loaded.get("task_source_ref"):
             raise AssemblyEquivalenceError("proposal snapshot did not carry inline task source")
+        for proposal_ref, label in (
+            (proposal_path, "exact file"),
+            (proposal_path.parent, "work directory"),
+            (proposal_path.parent.parent, "proposal slug directory"),
+        ):
+            resolved_stop = run_goal_approve_entry(
+                proposal_ref,
+                action="stop",
+                author_ref="coo:smith",
+                output_root=stop_root,
+                repo_root=probe_repo,
+            )
+            if resolved_stop.get("ran") is not False or not resolved_stop.get("ok"):
+                raise AssemblyEquivalenceError(
+                    f"{label} proposal ref did not resolve work/proposed-building-graph.json: {resolved_stop!r}"
+                )
+        outputs.append("proposal green: exact-file, work-dir, and slug-dir refs resolved the frozen proposal.")
         _assert_no_building_root(run_root, simple.building_id, "unapproved proposal")
         outputs.append("proposal green: snapshot persisted without running a Building root.")
 
@@ -2775,7 +2846,7 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
             raise AssemblyEquivalenceError(f"build explicit pass-through did not stop cleanly: {explicit!r}")
         explicit_proposal = Path(str(explicit.get("proposal_ref", ""))).resolve()
         expected_proposal_root = explicit_root.resolve().parent / f"{explicit_root.name}-proposals"
-        if explicit_proposal.parent.parent != expected_proposal_root:
+        if explicit_proposal.parent.name != "work" or explicit_proposal.parent.parent.parent != expected_proposal_root:
             raise AssemblyEquivalenceError(f"build output_root proposal staging root drifted: {explicit_proposal}")
         explicit_plan = json.loads(explicit_proposal.read_text(encoding="utf-8"))
         explicit_work_row = _brick_row(_step_for_kind(explicit_plan, "work"))
