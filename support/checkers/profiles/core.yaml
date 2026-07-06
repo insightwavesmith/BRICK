@@ -59,6 +59,7 @@ path_exists:
   - support/checkers/check_evidence_spine_projection.py
   - support/checkers/check_plan_revision_chain.py
   - support/checkers/mutation_red_manifest.yaml
+  - support/checkers/check_import_identity_modes.py
   - support/checkers/lib/mutation_red_manifest_check.py
   - support/checkers/crossing_registry.yaml
   - support/checkers/module_registry.yaml
@@ -100,6 +101,7 @@ path_allowlist:
       - support/checkers/profiles/gate_policy_action_single_source.yaml
       - support/checkers/profiles/graph_topology_fan_barrier.yaml
       - support/checkers/profiles/interactive_provider_intake.yaml
+      - support/checkers/profiles/import_identity_modes.yaml
       - support/checkers/profiles/link_routing_behavioral.yaml
       - support/checkers/profiles/mcp_dispatch_wire.yaml
       - support/checkers/profiles/mutation_red_manifest.yaml

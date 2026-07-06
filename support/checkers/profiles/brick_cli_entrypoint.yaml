@@ -17,12 +17,12 @@ text_contains:
       - 'brick = "brick_protocol.support.operator.cli:main"'
   - path: support/operator/cli.py
     texts:
-      - '_REPO_ROOT = Path(__file__).resolve().parents[2]'
-      - '_IMPORT_IDENTITY_ROOT = _REPO_ROOT / "support" / "import_identity"'
-      - 'sys.path.insert(0, str(_REPO_ROOT))'
-      - 'sys.path.insert(0, str(_IMPORT_IDENTITY_ROOT))'
-      - 'from support.checkers import check_profile'
-      - 'from support.operator.first_use import FIRST_USE_FILENAME, write_first_use'
+      - '_SOURCE_CANDIDATE_REPO_ROOT = Path(__file__).resolve().parents[2]'
+      - 'resolve_operator_identity(__file__)'
+      - 'install_source_import_paths(_OPERATOR_IMPORT_IDENTITY)'
+      - '_REPO_ROOT = _OPERATOR_IMPORT_IDENTITY.repo_root'
+      - 'from brick_protocol.support.checkers import check_profile'
+      - 'from brick_protocol.support.operator.first_use import FIRST_USE_FILENAME, write_first_use'
       - 'run_customer_building_in_sandbox'
       - 'run_customer_graph_building_in_sandbox'
       - 'def _active_slack_buildings_root'

@@ -10,12 +10,26 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-_REPO_ROOT = Path(__file__).resolve().parents[2]
-_IMPORT_IDENTITY_ROOT = _REPO_ROOT / "support" / "import_identity"
-if str(_REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(_REPO_ROOT))
-if str(_IMPORT_IDENTITY_ROOT) not in sys.path:
-    sys.path.insert(0, str(_IMPORT_IDENTITY_ROOT))
+_SOURCE_CANDIDATE_REPO_ROOT = Path(__file__).resolve().parents[2]
+if (_SOURCE_CANDIDATE_REPO_ROOT / "support/operator/import_identity.py").is_file():
+    _source_candidate_text = str(_SOURCE_CANDIDATE_REPO_ROOT)
+    if _source_candidate_text not in sys.path:
+        sys.path.insert(0, _source_candidate_text)
+try:
+    from brick_protocol.support.operator.import_identity import (
+        install_source_import_paths,
+        resolve_operator_identity,
+    )
+except ModuleNotFoundError:
+    from support.operator.import_identity import (
+        install_source_import_paths,
+        resolve_operator_identity,
+    )
+
+_OPERATOR_IMPORT_IDENTITY = resolve_operator_identity(__file__)
+install_source_import_paths(_OPERATOR_IMPORT_IDENTITY)
+_REPO_ROOT = _OPERATOR_IMPORT_IDENTITY.repo_root
+_IMPORT_IDENTITY_ROOT = _OPERATOR_IMPORT_IDENTITY.import_identity_root
 
 import argparse
 import contextlib
@@ -28,8 +42,11 @@ from typing import Any
 from uuid import uuid4
 
 from brick_protocol.brick.spec import derived_worktree_write_scope
-from support.checkers import check_profile
-from support.connection.adapter_constants import (
+try:
+    from brick_protocol.support.checkers import check_profile
+except ModuleNotFoundError:
+    from support.checkers import check_profile
+from brick_protocol.support.connection.adapter_constants import (
     ADAPTER_CLAUDE_LOCAL,
     ADAPTER_CODEX_LOCAL,
     ADAPTER_GEMINI_LOCAL,
@@ -39,11 +56,11 @@ from support.connection.adapter_constants import (
     MODEL_REF_GEMINI_DEFAULT,
     adapter_boundary_matrix,
 )
-from support.connection.agent_adapter import adapter_is_write_capable
-from support.connection.adapter_subprocess import preflight_provider
-from support.operator.first_use import FIRST_USE_FILENAME, write_first_use
-from support.operator import onboard
-from support.operator.assembly import (
+from brick_protocol.support.connection.agent_adapter import adapter_is_write_capable
+from brick_protocol.support.connection.adapter_subprocess import preflight_provider
+from brick_protocol.support.operator.first_use import FIRST_USE_FILENAME, write_first_use
+from brick_protocol.support.operator import onboard
+from brick_protocol.support.operator.assembly import (
     assemble_graph_declaration,
     graph_declaration_action,
     graph_declaration_author_ref,
@@ -52,11 +69,11 @@ from support.operator.assembly import (
     load_graph_declaration,
     persist_proposed_building_graph,
 )
-from support.operator.driver import (
+from brick_protocol.support.operator.driver import (
     run_customer_building_in_sandbox,
 )
-from support.operator.onboard import run_goal_approve_entry
-from support.recording.capture import default_buildings_root
+from brick_protocol.support.operator.onboard import run_goal_approve_entry
+from brick_protocol.support.recording.capture import default_buildings_root
 
 
 ADAPTER_LOCAL = "adapter:local"

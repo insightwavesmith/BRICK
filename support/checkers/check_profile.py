@@ -44,8 +44,10 @@ from typing import Any
 import os.path as _osp
 
 _REPO_ROOT = _osp.dirname(_osp.dirname(_osp.dirname(_osp.abspath(__file__))))
-if _REPO_ROOT not in sys.path:
-    sys.path.insert(0, _REPO_ROOT)
+_IMPORT_IDENTITY_ROOT = _osp.join(_REPO_ROOT, "support", "import_identity")
+for _path in (_REPO_ROOT, _IMPORT_IDENTITY_ROOT):
+    if _path not in sys.path:
+        sys.path.insert(0, _path)
 
 from support.checkers.lib.yaml_subset import (
     ProfileError,
@@ -161,6 +163,7 @@ from support.checkers.lib.kernel_checks import (
 )
 from support.checkers.lib.mutation_red_manifest_check import run_mutation_red_manifest
 from support.checkers.lib.install_release_export_lint_check import run_wheel_smoke
+from support.checkers.check_import_identity_modes import run_import_identity_modes
 
 
 PROFILE_SCHEMA = "checker-profile/v1"
@@ -799,6 +802,7 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
     # inserted repo root before support seams are loaded. Removing the two
     # sys.path.insert bootstrap lines drives this RED with ModuleNotFoundError.
     "brick_cli_entrypoint_smoke": run_brick_cli_entrypoint_smoke,
+    "import_identity_modes": run_import_identity_modes,
     # P3 first-use wizard. Executes the brick init FIRST_USE.md branch
     # IN-PROCESS with simulated doctor/build packets and a temp output root:
     # generated FIRST_USE.md must carry the example-stub disclaimer, the

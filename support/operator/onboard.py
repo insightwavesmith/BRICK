@@ -88,11 +88,17 @@ from brick_protocol.support.operator.sink_registry import (
     brick_home as sink_brick_home,
     record_sink_reachability,
 )
+from brick_protocol.support.operator.import_identity import (
+    install_source_import_paths,
+    resolve_operator_identity,
+)
 from brick_protocol.support.operator.worktree_sandbox import reclaim_wip_anchor
 from brick_protocol.link.transition import DISPOSITION_ACTIONS
 
 
-_REPO_ROOT = Path(__file__).resolve().parents[2]
+_OPERATOR_IMPORT_IDENTITY = resolve_operator_identity(__file__)
+install_source_import_paths(_OPERATOR_IMPORT_IDENTITY)
+_REPO_ROOT = _OPERATOR_IMPORT_IDENTITY.repo_root
 
 # The Phase-1 seam verb the example routes through and the handoff names. Kept as
 # a constant so the checker can pin BOTH the routing and the handoff pointer.

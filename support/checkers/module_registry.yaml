@@ -187,6 +187,16 @@ modules:
     decomposition_target: ""
     pinned_by: agent_resource_resolution kernel check (file-backed Agent Object refs prefix-match + resolve; adapter refs admitted)
 
+  - module: support/checkers/check_import_identity_modes.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: import_identity_modes profile (source/install identity helper probes + parents[N] binding registry + guard-removal RED)
+
   - module: support/checkers/check_axis_field_set_single_source.py
     layer: checkers
     role: oracle
@@ -1568,6 +1578,16 @@ modules:
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
     pinned_by: onboard_smoke kernel check (building_operator_driver0 profile)
+
+  - module: support/operator/import_identity.py
+    layer: operator
+    role: operator-support-helper
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: import_identity_modes profile (source pyproject marker vs installed importlib.metadata identity split; support evidence only)
 
   - module: support/operator/re_instruction_rules.py
     layer: operator
