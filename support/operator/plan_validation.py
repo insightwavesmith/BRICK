@@ -1839,7 +1839,8 @@ def _validate_transition_lifecycle_disposition_action(
     )
     if action not in _DISPOSITION_ACTIONS:
         raise ValueError(
-            "transition_lifecycle.disposition_action must be raise, forward, or stop"
+            "transition_lifecycle.disposition_action must be one of "
+            + _disposition_actions_error_text()
         )
     author_ref = _transition_lifecycle_disposition_author_ref(link_row)
     if not author_ref.startswith(_TRANSITION_LIFECYCLE_DISPOSITION_AUTHOR_PREFIXES):
@@ -1865,7 +1866,13 @@ def _transition_lifecycle_disposition_author_ref(link_row: Mapping[str, Any]) ->
     _validate_route_replay_author_ref(author_ref)
     return author_ref
 
+def _disposition_actions_error_text() -> str:
+    return ", ".join(_DISPOSITION_ACTIONS[:-1]) + f", or {_DISPOSITION_ACTIONS[-1]}"
+
 def _positive_int(field_name: str, value: Any) -> int:
+    # KEEP-PINNED: this injected coercer belongs to _LINK_ENVELOPE_CTX. Replacing
+    # it with the shared helper has no behavior gain and changes this validator's
+    # documented injected-coercer contract/error text.
     if isinstance(value, bool):
         raise ValueError(f"{field_name} must be a finite positive integer")
     if isinstance(value, int) and value > 0:

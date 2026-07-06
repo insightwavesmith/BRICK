@@ -37,6 +37,10 @@ _REQUIRED_LINK_SYMBOLS = (
     "ON_SUFFICIENT_ACTIONS",
     "normalize_gate_policy_action",
 )
+_NORMALIZER_CONSUMER_FUNCTIONS = {
+    Path("support/operator/gate_sequence.py"): "_action_literal",
+    Path("support/operator/plan_validation.py"): "_gate_sequence_action_literal",
+}
 
 PROOF_LIMIT = (
     "proof limit: gate-policy-action single-source checker support evidence only; "
@@ -97,6 +101,34 @@ def find_policy_action_restatements(module: ast.Module) -> list[tuple[int, froze
     return restatements
 
 
+def find_normalization_reimplementations(
+    module: ast.Module,
+    function_name: str,
+) -> list[str]:
+    for node in module.body:
+        if isinstance(node, ast.FunctionDef) and node.name == function_name:
+            calls = [
+                call
+                for call in ast.walk(node)
+                if isinstance(call, ast.Call)
+                and isinstance(call.func, ast.Attribute)
+                and call.func.attr in {"lower", "upper", "casefold"}
+            ]
+            delegated = any(
+                isinstance(call, ast.Call)
+                and isinstance(call.func, ast.Name)
+                and call.func.id == "normalize_gate_policy_action"
+                for call in ast.walk(node)
+            )
+            if calls or not delegated:
+                return [
+                    f"{function_name} must delegate case normalization to "
+                    "link/gate.py normalize_gate_policy_action"
+                ]
+            return []
+    return [f"{function_name} not found"]
+
+
 def check_link_gate_home(module: ast.Module) -> list[str]:
     present = _assigned_names(module)
     missing = [name for name in _REQUIRED_LINK_SYMBOLS if name not in present]
@@ -132,6 +164,14 @@ def check(repo: Path) -> list[str]:
                 f"{rel}:{line} re-states Link-owned policy action set "
                 f"{tuple(sorted(members))}; import from link/gate.py instead"
             )
+        if rel in _NORMALIZER_CONSUMER_FUNCTIONS:
+            for problem in find_normalization_reimplementations(
+                module,
+                _NORMALIZER_CONSUMER_FUNCTIONS[rel],
+            ):
+                violations.append(
+                    "gate-policy-action single-source: " f"{rel}: {problem}"
+                )
 
     if violations:
         raise GatePolicyActionSingleSourceError(
@@ -164,19 +204,33 @@ def _assert_mutation_red() -> str:
             ]
         )
     )
+    local_normalizer = ast.parse(
+        "\n".join(
+            [
+                "def _action_literal(value):",
+                "    return value.strip().lower()",
+            ]
+        )
+    )
 
     all_red = bool(find_policy_action_restatements(restated_all))
     subset_red = bool(find_policy_action_restatements(restated_missing))
     lone_clean = not find_policy_action_restatements(lone_literal)
+    local_normalizer_red = bool(
+        find_normalization_reimplementations(local_normalizer, "_action_literal")
+    )
 
-    if not (all_red and subset_red and lone_clean):
+    if not (all_red and subset_red and lone_clean and local_normalizer_red):
         raise GatePolicyActionSingleSourceError(
             "mutation RED failed: "
-            f"all_red={all_red}, subset_red={subset_red}, lone_clean={lone_clean}"
+            f"all_red={all_red}, subset_red={subset_red}, "
+            f"lone_clean={lone_clean}, "
+            f"local_normalizer_red={local_normalizer_red}"
         )
     return (
         "mutation RED observed: synthetic re-stated all-action and partition "
-        "member sets were rejected, while a lone action comparison was left clean."
+        "member sets and local case-normalization core were rejected, while a "
+        "lone action comparison was left clean."
     )
 
 

@@ -21,6 +21,14 @@ surfaces:
     fixture_path: support/checkers/check_plan_revision_chain.py
     fixture_identifier: gate sequence replay record sideways top-level action
     incident_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md W2 gate_sequence_decision
+  - surface: gate_policy_action_single_source
+    fixture_path: support/checkers/check_gate_policy_action_single_source.py
+    fixture_identifier: local case-normalization core were rejected
+    incident_anchor: project/brick-protocol/status/kernel/w1s1-contract-kernel-map-0706.md K2 gate policy action single-source
+  - surface: positive_int_bool_boundary
+    fixture_path: support/checkers/check_positive_int_bool_boundary.py
+    fixture_identifier: gate_sequence replay reader accepted mixed-case recorded action
+    incident_anchor: project/brick-protocol/status/kernel/w1s1-contract-kernel-map-0706.md K2 positive-int/disposition probes
   - surface: write_scope_commit_gate
     fixture_path: support/checkers/check_assembly_equivalence.py
     fixture_identifier: build mutation-RED observed: severed write_scope/expansion_budget/declared_expansion_node_budgets/gates

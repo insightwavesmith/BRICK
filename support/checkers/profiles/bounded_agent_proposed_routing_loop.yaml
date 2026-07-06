@@ -66,8 +66,9 @@ text_contains:
       # target must resolve to an existing node (support never invents one)
       - must resolve to an existing node
       - in declared_bricks
-      # required + positive budget (no absent / zero / fresh-per-event budget)
-      - must be a positive integer
+      # required + positive budget via the shared Rule 12 helper.
+      - from brick_protocol.support.recording.contracts import require_positive_int
+      - return require_positive_int(value, label)
       # P4 Carry budget evidence refs are exposed without giving support authority.
       - carry_budget_evidence_ref
       - evidence/claim_trace/link/carry_trace.json
