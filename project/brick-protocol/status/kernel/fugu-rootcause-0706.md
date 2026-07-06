@@ -28,3 +28,15 @@ printf 'reply pong\n' | CODEX_HOME="$T/.codex" codex exec --skip-git-repo-check 
   -c 'model_providers.sakana.auth.command="/Users/smith/.local/bin/codex-fugu-token"' \
   --model fugu-ultra -c 'model_provider="sakana"'
 → tools image_generation 거부 에러 재현.
+
+## 0706 저녁 정정
+
+이 절은 기존 본문을 보존한 채 붙이는 정정 evidence다. 기존 본문은 오후 재현 기록으로 남기고, 저녁 시공의 근거 실측 1~5는 아래로 고정한다.
+
+1. fugu-451-obit에서 보강할 직접 원인은 live provider 재현이 아니라 fixture로 재현 가능한 `451` / `content policy` 거부 신호다.
+2. adapter 비정상 종료 분류는 stderr뿐 아니라 `codex exec --json` stdout JSONL의 `error` 및 `turn.failed` 이벤트에서도 같은 신호를 읽어야 한다.
+3. stderr가 경고/소음일 때 유서의 `message_excerpt`는 stdout JSONL에 들어 있는 provider 실제 오류 문장을 먼저 보존해야 한다. 비밀 스크럽 경계는 유지한다.
+4. adapter_error_frontier root-state guard는 걷는 Building 자신의 정상 산출물 루트에 있는 same-Building `raw/adapter-error.jsonl` 행을 full adapter-error frontier evidence로 받아야 한다.
+5. foreign root 또는 다른 Building의 `raw/adapter-error.jsonl` 행은 계속 fail-closed로 남겨야 한다.
+
+검증 경계: live provider CLI 호출은 금지한다. receiving lane에서 실행 가능한 증거는 fixture checker green 및 변이 RED 기록뿐이다.

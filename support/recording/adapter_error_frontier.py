@@ -495,6 +495,7 @@ _DECLARATION_CHAIN_ROOT_ARTIFACTS: frozenset[Path] = frozenset(
         Path("declared-building-plan.json"),
         Path("raw/report-delivery.jsonl"),
         Path("raw/report-thread.jsonl"),
+        Path("raw/adapter-error.jsonl"),
         Path("work/task.md"),
         Path("work/building-intake.json"),
         Path("work/preset-expansion.json"),
@@ -518,11 +519,13 @@ _DECLARATION_CHAIN_JSONL_ARTIFACTS: frozenset[Path] = frozenset(
     {
         Path("raw/report-delivery.jsonl"),
         Path("raw/report-thread.jsonl"),
+        Path("raw/adapter-error.jsonl"),
     }
 )
 _DECLARATION_CHAIN_JSONL_KINDS: Mapping[Path, str] = {
     Path("raw/report-delivery.jsonl"): "report_delivery_observation",
     Path("raw/report-thread.jsonl"): "report_slack_thread_parent_observation",
+    Path("raw/adapter-error.jsonl"): "adapter_error_record",
 }
 _ADAPTER_ERROR_PARTIAL_WRITE_RISK_MARKER = "adapter-error-frontier-partial-write-risk.json"
 _ADAPTER_ERROR_ROOT_STATE_MARKER = "adapter-error-frontier-root-state.json"
