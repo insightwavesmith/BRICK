@@ -865,10 +865,23 @@ def _fan_dispatch_child_timeout_fire(
             "fan-dispatch-child-timeout margin-RED: production join margin floor "
             "was removed or lowered below adapter_timeout_seconds + 30s"
         )
-    if elapsed >= 1.85:
+    # LOAD-AGNOSTIC judgment (Smith 0706-evening: no wall-clock ceilings, redesign
+    # to evidence-shape). Whether the join returned "near adapter_timeout" instead
+    # of waiting for the silent child forever is judged by the EVIDENCE the deadline
+    # firing leaves behind, not by an `elapsed` wall-clock literal (which flaked
+    # under load AND self-contradicted: the deterministic 1.25s join + ~1.2s
+    # unwind/record cost exceeds any tight ceiling). The mutation that removes the
+    # production deadline (walker waits forever) produces NEITHER a dispatch_child_
+    # timeout raw row NOR an agent_incomplete frontier NOR a coo HOLD — so the four
+    # evidence checks below ARE the mutation-RED discriminator. This block only
+    # asserts the deadline actually bounded the wait: the child never returned a
+    # completed step result (no fabricated success), proven load-agnostically.
+    slow_wait_bounded = bool(timeout_records) and frontier.get("frontier_kind") == "agent_incomplete"
+    if not slow_wait_bounded:
         violations.append(
-            "fan-dispatch-child-timeout mutation-RED: fan walk waited for the "
-            "silent child instead of returning near adapter_timeout_seconds"
+            "fan-dispatch-child-timeout mutation-RED: fan walk did not bound the "
+            "silent-child wait with a timeout (no dispatch_child_timeout evidence "
+            "and/or no agent_incomplete frontier) — deadline did not fire"
         )
     if frontier.get("frontier_kind") != "agent_incomplete":
         violations.append(
