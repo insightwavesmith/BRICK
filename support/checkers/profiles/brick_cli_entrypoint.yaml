@@ -107,6 +107,7 @@ text_contains:
       # build-unify #12 D3/D4: casting convergence comment + first-line repo_root emit.
       - 'onboard.build_preset_intent'
       - 'def _emit_launch_repo_root_observation'
+      - 'stale_refused = _emit_launch_repo_root_observation(args'
       - 'repo_root: {repo_observation.get'
       - '--allow-stale-repo'
   - path: support/operator/onboard.py
