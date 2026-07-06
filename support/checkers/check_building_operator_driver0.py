@@ -2748,6 +2748,54 @@ def _w1_worktree_sandbox_fire(
         summary["w1_incomplete_release_cleared"] = released is None
         if released is not None:
             violations.append("w1-incomplete: release_wip_anchor did not clear the WIP ref")
+
+        # CASE 3b (direct close = WIP anchor): a normal run that uses a caller-
+        # supplied adapter_cwd and completes with uncommitted output must still
+        # preserve that output under refs/brick/wip/<building_id>. Mutation-RED:
+        # bypassing run.py's close-time anchor leaves anchored_ref empty and the
+        # ref absent.
+        customer4 = Path(cust_raw) / "customer-direct-close-anchor"
+        customer4.mkdir(parents=True, exist_ok=True)
+        _seed_customer_repo(repo, customer4)
+        direct_building_id = "w1-direct-close-anchor-0"
+        direct = run_building_intake(
+            _w1_intent(direct_building_id),
+            output_root=evidence_root / "direct-close-anchor",
+            overwrite_existing=True,
+            command_runner=_w1_completing_codex_runner(write=True),
+            adapter_cwd=customer4,
+            adapter_timeout_seconds=30,
+        )
+        direct_anchor_ref = direct.run_result.anchored_ref
+        direct_reclaimed = reclaim_wip_anchor(customer4, direct_building_id)
+        summary["w1_direct_close_anchored_ref"] = direct_anchor_ref
+        summary["w1_direct_close_reclaimed_anchor"] = (
+            direct_reclaimed[0] if direct_reclaimed else ""
+        )
+        summary["w1_direct_close_reclaimed_commit"] = (
+            direct_reclaimed[1] if direct_reclaimed else ""
+        )
+        if not direct_anchor_ref.startswith("refs/brick/wip/"):
+            violations.append(
+                f"w1-direct-close-anchor: run result missing anchored_ref: {direct_anchor_ref!r}"
+            )
+        if direct_reclaimed is None or direct_reclaimed[0] != direct_anchor_ref:
+            violations.append("w1-direct-close-anchor: close-time WIP ref was not reclaimable")
+        elif direct_reclaimed[1]:
+            direct_anchor_files = _git_text(
+                customer4,
+                "diff-tree",
+                "--no-commit-id",
+                "--name-only",
+                "-r",
+                direct_reclaimed[1],
+            )
+            summary["w1_direct_close_anchor_files"] = direct_anchor_files
+            if direct_anchor_files != _W1_WRITE_REL:
+                violations.append(
+                    "w1-direct-close-anchor: WIP anchor did not capture the direct "
+                    f"adapter_cwd output exactly: {direct_anchor_files!r}"
+                )
         if head3_before != head3_after or status3_after != "":
             violations.append("w1-incomplete: the live tree was mutated by a held building")
 
@@ -2893,6 +2941,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"mutation-RED bypass_dirtied_live_tree={summary.get('w1_mutation_bypass_dirtied_live_tree')} "
         f"execution_log={summary.get('w1_mutation_red_execution_log')}; "
         f"sensitive_anchor_RED={summary.get('sensitive_anchor_red_execution_log')}."
+    )
+    print(
+        "W1 direct close anchor FIRE passed: "
+        f"anchored_ref={summary.get('w1_direct_close_anchored_ref')} "
+        f"reclaimed={summary.get('w1_direct_close_reclaimed_anchor')} "
+        f"files={summary.get('w1_direct_close_anchor_files')}."
     )
     print(
         "H2a direct-graph intake FIRE passed: "

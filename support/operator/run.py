@@ -171,6 +171,10 @@ from brick_protocol.support.operator.write_observation import (
     _write_adapter_observation_before,
     _write_scope_from_brick_row,
 )
+from brick_protocol.support.operator.worktree_sandbox import (
+    WorktreeSandboxError,
+    anchor_wip_worktree_snapshot,
+)
 from brick_protocol.support.operator.proof_observation import (
     _adapter_result_with_proof_observation,
     _proof_obligations_from_brick_row,
@@ -547,6 +551,40 @@ def _held_result_from_adapter_frontier_signal(
     )
 
 
+def _with_close_wip_anchor(
+    result: BuildingPlanSupportResult,
+    *,
+    adapter_cwd: Path | str | None,
+) -> BuildingPlanSupportResult:
+    """Return ``result`` with a close-time WIP anchor ref when dirty work exists.
+
+    The anchor is a support preservation mechanic for direct ``adapter_cwd`` runs.
+    It records bytes under ``refs/brick/wip/<building_id>``; it does not decide
+    Movement, completion, success, or quality.
+    """
+
+    if result.anchored_ref:
+        return result
+    if adapter_cwd is None:
+        return result
+    cwd = Path(adapter_cwd)
+    try:
+        anchored = anchor_wip_worktree_snapshot(
+            cwd,
+            result.building_id,
+            message=(
+                f"BRICK WIP anchor: {result.building_id}\n\n"
+                "source=run_building_plan_close\n"
+                f"evidence_root={result.lifecycle_write.root}\n"
+            ),
+        )
+    except (OSError, WorktreeSandboxError):
+        anchored = None
+    if anchored is None:
+        return result
+    return dataclasses.replace(result, anchored_ref=anchored[0])
+
+
 def run_building_plan(
     plan: Mapping[str, Any] | str | Path,
     *,
@@ -591,7 +629,7 @@ def run_building_plan(
         proof_limits if proof_limits is not None else packet.get("proof_limits")
     )
     try:
-        return _run_dynamic_graph_walker(
+        result = _run_dynamic_graph_walker(
             packet,
             output_root=output_root,
             overwrite_existing=overwrite_existing,
@@ -611,12 +649,16 @@ def run_building_plan(
             report_env=report_env,
             report_slack_sender=report_slack_sender,
         )
+        return _with_close_wip_anchor(result, adapter_cwd=adapter_cwd)
     except AdapterFrontierEvidenceWritten as adapter_frontier:
         # The adapter raised/timed out before an AgentFact existed; the dynamic
         # walker has already written the resumable adapter-error frontier (hold).
         # Return that already-held Building as a clean held result instead of
         # crashing -- a flaky adapter call ends recoverable, not fatal.
-        return _held_result_from_adapter_frontier_signal(adapter_frontier)
+        return _with_close_wip_anchor(
+            _held_result_from_adapter_frontier_signal(adapter_frontier),
+            adapter_cwd=adapter_cwd,
+        )
 
 
 def resume_building_plan(
@@ -664,16 +706,19 @@ def resume_building_plan(
         raise ValueError(adapter_cwd_refusal)
     frontier = observe_building_frontier(root, repo_root=_REPO_ROOT)
     if frontier.get("frontier_kind") == "chat_session_parked":
-        return _resume_chat_session_parked_building_plan(
-            root,
-            overwrite_existing=overwrite_existing,
-            local_callables=local_callables,
-            command_runner=command_runner,
+        return _with_close_wip_anchor(
+            _resume_chat_session_parked_building_plan(
+                root,
+                overwrite_existing=overwrite_existing,
+                local_callables=local_callables,
+                command_runner=command_runner,
+                adapter_cwd=adapter_cwd,
+                adapter_timeout_seconds=adapter_timeout_seconds,
+                checked_proof_limits=checked_proof_limits,
+                report_env=report_env,
+                report_slack_sender=report_slack_sender,
+            ),
             adapter_cwd=adapter_cwd,
-            adapter_timeout_seconds=adapter_timeout_seconds,
-            checked_proof_limits=checked_proof_limits,
-            report_env=report_env,
-            report_slack_sender=report_slack_sender,
         )
     frontier_history = _adapter_error_frontier_history_snapshot(root)
     try:
@@ -705,7 +750,7 @@ def resume_building_plan(
         # normal-return path does.
         result = _held_result_from_adapter_frontier_signal(adapter_frontier)
     _preserve_adapter_error_frontier_history_after_resume(root, frontier_history)
-    return result
+    return _with_close_wip_anchor(result, adapter_cwd=adapter_cwd)
 
 
 def _unsafe_resume_adapter_cwd(
