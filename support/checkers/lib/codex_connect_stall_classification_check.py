@@ -46,6 +46,7 @@ def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
     """
     _ensure_import_identity(repo)
     adapter = importlib.import_module("brick_protocol.support.connection.agent_adapter")
+    adapter_local_cli = importlib.import_module("brick_protocol.support.connection.adapter_local_cli")
     adapter_subprocess = importlib.import_module("brick_protocol.support.connection.adapter_subprocess")
     run_module = importlib.import_module("brick_protocol.support.operator.run")
     walker_resume = importlib.import_module("brick_protocol.support.operator.walker_resume")
@@ -362,6 +363,80 @@ def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
         )
     inspected += 1
 
+    # (F) content-policy exits are a distinct adapter-error label and preserve the
+    # provider sentence from JSONL stdout even when stderr carries unrelated noise.
+    content_policy_sentence = "Request blocked by content policy (451)."
+    jsonl_stdout = "\n".join(
+        (
+            json.dumps({"type": "turn.started"}),
+            json.dumps({"type": "error", "error": {"message": content_policy_sentence}}),
+        )
+    )
+    turn_failed_stdout = json.dumps(
+        {"type": "turn.failed", "error": {"message": content_policy_sentence}}
+    )
+    noisy_stderr = "warning: unrelated client noise before useful provider JSON"
+    for label, stdout in (("error-event", jsonl_stdout), ("turn-failed", turn_failed_stdout)):
+        completed = adapter.LocalCliCompleted(
+            args=("codex", "exec", "--json"),
+            return_code=1,
+            stdout=stdout,
+            stderr=noisy_stderr,
+        )
+        if adapter_local_cli._local_cli_nonzero_classification(completed) != "content_policy":
+            raise ProfileError(
+                "codex_connect_stall_classification F: "
+                f"{label} stdout did not classify as content_policy"
+            )
+        excerpt = adapter_local_cli._stdout_error_excerpt(stdout)
+        if content_policy_sentence not in excerpt:
+            raise ProfileError(
+                "codex_connect_stall_classification F: "
+                f"{label} stdout did not preserve provider content-policy sentence"
+            )
+        request = adapter.AgentAdapterRequest(
+            building_id="content-policy-classification-probe",
+            agent_object_ref="agent-object:dev",
+            adapter_ref="adapter:codex-local",
+            brick_instance_ref="brick-work",
+            next_brick_instance_ref="brick-closure",
+            casting={"selected_model_ref": "model:codex:default"},
+        )
+        message = adapter_local_cli._local_cli_nonzero_error_message(
+            request,
+            adapter._LOCAL_CLI_SPECS["adapter:codex-local"],
+            completed,
+        )
+        if message.find("stdout_error_excerpt=") < 0 or message.find(
+            "stdout_error_excerpt="
+        ) > message.find("stderr_excerpt="):
+            raise ProfileError(
+                "codex_connect_stall_classification F: provider stdout error did "
+                "not precede noisy stderr in message_excerpt source text"
+            )
+        if run_module._adapter_error_kind(ValueError(message)) != "content_policy":
+            raise ProfileError(
+                "codex_connect_stall_classification F: adapter error kind did not "
+                "map nonzero content-policy classification to content_policy"
+            )
+    removed_signature = adapter_local_cli._content_policy_signature_present
+    try:
+        adapter_local_cli._content_policy_signature_present = lambda _text: False
+        mutated = adapter.LocalCliCompleted(
+            args=("codex", "exec", "--json"),
+            return_code=1,
+            stdout=jsonl_stdout,
+            stderr=noisy_stderr,
+        )
+        if adapter_local_cli._local_cli_nonzero_classification(mutated) == "content_policy":
+            raise ProfileError(
+                "codex_connect_stall_classification F mutation-RED: removing the "
+                "content-policy signature detector did not change classification"
+            )
+    finally:
+        adapter_local_cli._content_policy_signature_present = removed_signature
+    inspected += 1
+
     return KernelResult(
         check_id="codex_connect_stall_classification",
         inspected=inspected,
@@ -373,6 +448,8 @@ def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
             "kind while a plain timeout stays local_cli_timeout; both route to the same "
             "adapter_error_frontier HOLD with NO auto-retry/scheduler token; and the "
             "reap journal carries the last health triple + dead_signature_seconds as "
-            f"support facts only -- NO live provider CLI ({inspected} group(s) inspected)."
+            "support facts only; content-policy JSONL stdout classifies as "
+            "content_policy with the provider sentence ahead of noisy stderr and a "
+            f"mutation-RED detector-removal probe fired -- NO live provider CLI ({inspected} group(s) inspected)."
         ),
     )

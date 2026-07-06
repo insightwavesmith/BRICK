@@ -1461,6 +1461,8 @@ def _adapter_error_kind(exc: Exception) -> str:
         if _timeout_expired_reap_reason(exc) == "stall":
             return "local_cli_connect_stall"
         return "local_cli_timeout"
+    if "adapter_error_classification=content_policy" in message:
+        return "content_policy"
     if "non-zero" in message or "returned non-zero" in message:
         return "local_cli_nonzero"
     if "returned payload" in message or "forbidden returned" in message:

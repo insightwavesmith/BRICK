@@ -30,9 +30,12 @@ kernel_checks:
   # distinct local_cli_connect_stall kind while a plain timeout stays
   # local_cli_timeout; both route to the SAME adapter_error_frontier HOLD with NO
   # auto-retry/scheduler; the reap journal carries the last health triple +
-  # dead_signature_seconds as support facts only. Mutation-RED: re-flatten
-  # _adapter_error_kind (stall -> local_cli_timeout) or restore the ~20-min default
-  # threshold -> RED.
+  # dead_signature_seconds as support facts only. Also pins fixture-only
+  # content_policy classification from 451 / content-policy stderr or Codex JSONL
+  # error/turn.failed stdout, with provider error text preserved ahead of noisy
+  # stderr. Mutation-RED: re-flatten _adapter_error_kind (stall ->
+  # local_cli_timeout), restore the ~20-min default threshold, or remove the
+  # content-policy detector -> RED.
   - codex_connect_stall_classification
   # TREASURE PORT 2 (0611, lifted from 2d44fc7): no provider/runtime session id
   # in kernel/buildings/reviews/archive surfaces; 6 frozen-history legacy leak

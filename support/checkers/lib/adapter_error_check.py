@@ -564,7 +564,7 @@ def run_adapter_error_path_hardening(repo: Path) -> KernelResult:
             "codex adapter probe, resume no longer birth-certificate-refuses the "
             "first-step adapter-error root, stop disposition paper-closed without "
             "adapter invocation for flat and legacy reason-ref holds, pre-frontier "
-            "report raw logs are admitted only for the same Building, codex "
+            "report and adapter-error raw logs are admitted only for the same Building, codex "
             "--ephemeral is env-gated, overwrite cleared stale claim_trace/raw "
             "manifest refs, and F16/F16b/F19 mutation probes fired RED."
         ),
@@ -634,6 +634,96 @@ def _assert_adapter_error_frontier_report_root_admission(
             "adapter_error_path_hardening P0: declaration root with exact "
             "legacy report: report-thread row was rejected"
         )
+
+    adapter_error_raw_path = root / "raw" / "adapter-error.jsonl"
+    _write_adapter_error_existing_raw_probe(
+        adapter_error_raw_path,
+        building_id=base_building_id,
+        message_excerpt="existing walking-vessel adapter obituary line",
+    )
+    if not adapter_error_frontier._root_holds_only_declaration_chain_artifacts(
+        root,
+        building_id=base_building_id,
+    ):
+        raise ProfileError(
+            "adapter_error_path_hardening P0: declaration root with same-Building "
+            "adapter-error raw row was rejected"
+        )
+    if (
+        adapter_error_frontier._adapter_error_existing_root_state(
+            root,
+            building_id=base_building_id,
+        )
+        != "declaration_chain_only"
+    ):
+        raise ProfileError(
+            "adapter_error_path_hardening P0: same-Building adapter-error raw row "
+            "did not admit the walking vessel root for full frontier evidence"
+        )
+    full_result = _write_adapter_error_frontier_direct(
+        run_module,
+        repo=repo,
+        output_root=output_root,
+        building_id=base_building_id,
+        overwrite_existing=False,
+    )
+    if full_result.written_files == (root / "adapter-error-frontier-root-state.json",):
+        raise ProfileError(
+            "adapter_error_path_hardening P0: walking-vessel root wrote only a "
+            "root-state marker instead of full adapter-error evidence"
+        )
+    full_raw_records = _jsonl_records(root / "raw" / "adapter-error.jsonl")
+    if (
+        not full_raw_records
+        or full_raw_records[-1].get("type") != "bp.raw.adapter_error"
+        or full_raw_records[-1].get("adapter_error_ref") in (None, "")
+    ):
+        raise ProfileError(
+            "adapter_error_path_hardening P0: walking-vessel root did not retain a "
+            "full adapter-error raw record"
+        )
+
+    foreign_id = "adapter-error-hardening-foreign-raw-root"
+    foreign_root = output_root / foreign_id
+    (foreign_root / "raw").mkdir(parents=True, exist_ok=True)
+    (foreign_root / "work").mkdir(parents=True, exist_ok=True)
+    (foreign_root / "declared-building-plan.json").write_text(
+        json.dumps({"building_id": foreign_id}, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    (foreign_root / "work" / "declared-building-plan.json").write_text(
+        json.dumps({"building_id": foreign_id}, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    _write_adapter_error_existing_raw_probe(
+        foreign_root / "raw" / "adapter-error.jsonl",
+        building_id="other-building",
+        message_excerpt="foreign adapter obituary line",
+    )
+    if adapter_error_frontier._root_holds_only_declaration_chain_artifacts(
+        foreign_root,
+        building_id=foreign_id,
+    ):
+        raise ProfileError(
+            "adapter_error_path_hardening P0: foreign adapter-error raw row was admitted"
+        )
+    foreign_result = _write_adapter_error_frontier_direct(
+        run_module,
+        repo=repo,
+        output_root=output_root,
+        building_id=foreign_id,
+        overwrite_existing=True,
+    )
+    foreign_marker = foreign_root / "adapter-error-frontier-partial-write-risk.json"
+    if foreign_result.written_files != (foreign_marker,) or not foreign_marker.is_file():
+        raise ProfileError(
+            "adapter_error_path_hardening P0: foreign adapter-error raw root did not "
+            "fail closed to a partial-write-risk marker"
+        )
+
+    # Restore the base root to report-thread-only for the remaining report-id
+    # collision probes below.
+    adapter_error_raw_path.unlink()
 
     _write_adapter_error_report_thread_probe(
         thread_path,
@@ -820,6 +910,40 @@ def _write_adapter_error_report_thread_probe(path: Path, *, report_id: str) -> N
         + "\n",
         encoding="utf-8",
     )
+
+
+def _write_adapter_error_existing_raw_probe(
+    path: Path,
+    *,
+    building_id: str,
+    message_excerpt: str,
+) -> None:
+    path.write_text(
+        json.dumps(
+            {
+                "kind": "adapter_error_record",
+                "schema_version": "adapter-error-record-0",
+                "building_id": building_id,
+                "adapter_error_ref": f"adapter-error:{building_id}:attempt-1",
+                "error_kind": "content_policy",
+                "exception_type": "ValueError",
+                "message_excerpt": message_excerpt,
+                "agent_fact_created": False,
+                "source_truth": False,
+            },
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
+def _jsonl_records(path: Path) -> list[Mapping[str, Any]]:
+    return [
+        json.loads(line)
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
 
 
 def _write_adapter_error_frontier_direct(

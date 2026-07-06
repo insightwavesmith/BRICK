@@ -1226,12 +1226,12 @@ def _local_cli_nonzero_error_message(
         f"adapter_error_classification={classification}",
         f"adapter_error_recorded_at={_adapter_error_timestamp()}",
     ]
-    stderr_excerpt = _redacted_diagnostic_excerpt(completed.stderr, limit=420)
-    if stderr_excerpt:
-        parts.append(f"stderr_excerpt={stderr_excerpt}")
     stdout_error_excerpt = _stdout_error_excerpt(completed.stdout)
     if stdout_error_excerpt:
         parts.append(f"stdout_error_excerpt={stdout_error_excerpt}")
+    stderr_excerpt = _redacted_diagnostic_excerpt(completed.stderr, limit=420)
+    if stderr_excerpt:
+        parts.append(f"stderr_excerpt={stderr_excerpt}")
     stderr_error_path = _stderr_gemini_client_error_path(completed.stderr)
     if stderr_error_path:
         parts.append(f"stderr_error_path={stderr_error_path}")
@@ -1257,6 +1257,8 @@ def _local_cli_nonzero_classification(completed: LocalCliCompleted) -> str:
         )
         if part
     )
+    if _content_policy_signature_present(haystack):
+        return "content_policy"
     if any(
         marker in haystack
         for marker in (
@@ -1316,14 +1318,48 @@ def _stdout_error_excerpt(stdout: str) -> str:
     from .agent_adapter import _redacted_diagnostic_excerpt, _try_json_value
 
     payload = _try_json_value(stdout)
-    if not isinstance(payload, Mapping) or "error" not in payload:
+    if isinstance(payload, Mapping) and "error" in payload:
+        error = payload["error"]
+    else:
+        error = _jsonl_stdout_error_payload(stdout)
+    if error in (None, ""):
         return ""
-    error = payload["error"]
     if isinstance(error, str):
         text = error
     else:
         text = json.dumps(error, ensure_ascii=True, sort_keys=True)
     return _redacted_diagnostic_excerpt(text, limit=360)
+
+
+def _content_policy_signature_present(text: str) -> bool:
+    return "451" in text or "content policy" in text or "content_policy" in text
+
+
+def _jsonl_stdout_error_payload(stdout: str) -> Any:
+    if not isinstance(stdout, str) or not stdout.strip():
+        return None
+    last_error: Any = None
+    for line in stdout.splitlines():
+        text = line.strip()
+        if not text or text[0] != "{":
+            continue
+        try:
+            event = json.loads(text)
+        except (ValueError, TypeError):
+            continue
+        if not isinstance(event, Mapping):
+            continue
+        event_type = event.get("type")
+        if "error" in event and event_type in (None, "error", "turn.failed"):
+            last_error = event.get("error")
+            continue
+        if event_type == "turn.failed":
+            for key in ("message", "reason", "details"):
+                value = event.get(key)
+                if isinstance(value, str) and value.strip():
+                    last_error = value
+                    break
+    return last_error
 
 
 def _stderr_gemini_client_error_path(stderr: str) -> str:
