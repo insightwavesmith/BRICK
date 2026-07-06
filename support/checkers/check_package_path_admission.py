@@ -303,6 +303,7 @@ ONBOARD_INSTALL_SCRIPT0_TARGETS = {
 # choose Movement, or judge success/quality.
 ONBOARD_RELEASE_EXPORT0_TARGETS = {
     "support/onboarding/release_export.sh",
+    "brick/templates/graph-decls/postmortem-deep.json",
     "support/onboarding/coo_gate_runner.sh",
     "support/onboarding/release_gate.sh",
 }

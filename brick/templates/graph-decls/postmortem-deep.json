@@ -1,0 +1,29 @@
+{
+  "_doc": "postmortem-deep — 코퍼스 부검 그래프-선언 템플릿 (Smith 0706). 사용: task와 source_facts의 코퍼스 문서만 회차별로 갈아끼우고 brick build --graph-decl 로 발사. 토큰 절약 변형 없음. 수집 눈≠진단 눈≠종합 눈. 전 레인 read-only, 판정 권한은 헌법 0706 조항.",
+  "building_id": "postmortem-deep-REPLACE",
+  "declared_by": "coo-smith",
+  "author_ref": "coo:smith",
+  "action": "forward",
+  "adapter": "codex-local",
+  "adapter_timeout_seconds": 3600,
+  "task": "# 부검-딥: 코퍼스 회차\n\n## Objective\n코퍼스의 실수/사건 클래스가 축 귀속·처방 후보와 함께 선다 — 반복 패턴, 유령/실재 분리, 대조-사건 회수율 포함.\n\n## 대상\nsource_facts로 실린 코퍼스 문서가 전수 목록이다.\n\n## Hard constraints\n전 레인 read-only(코드·문서 무수정). 판단·채택 금지 — 관찰→진단 후보→종합까지만. 모든 주장에 실물 인용.",
+  "nodes": [
+    {"fan": {"branches": [
+      {"kind": "inspect", "work_statement": "Brick축 관찰 렌즈: 코퍼스 전 사건을 관통해 계약(task/work_statement/write_scope/증명 요구)이 실제로 허용·요구한 것을 사건별로 재구성하고, 2+사건 반복 관찰을 교차-사건 후보로 분리 반환. 관찰만 — 귀속 확정·처방 채택 금지. 전 관찰에 실물 인용(file:line/원장 row/커밋), 미관찰은 not_proven.", "adapter_ref": "adapter:claude-local", "model_ref": "model:claude:sonnet", "reasoning_effort_ref": "effort:xhigh", "source_facts": ["project/brick-protocol/status/kernel/autopsy-corpus-0706.md"]},
+      {"kind": "inspect", "work_statement": "Brick축 반증 렌즈: 위 축의 통설적 재구성이 깨지는 반례를 코퍼스 전 사건에서 사냥 — '계약 틈이 아니라 무시였다' 또는 그 역을 가르는 증거. 관찰만, 실물 인용, 교차-사건 반복 후보 분리.", "adapter_ref": "adapter:claude-local", "model_ref": "model:claude:sonnet", "reasoning_effort_ref": "effort:xhigh", "source_facts": ["project/brick-protocol/status/kernel/autopsy-corpus-0706.md"]},
+      {"kind": "inspect", "work_statement": "Agent축 관찰 렌즈: 코퍼스 전 사건의 레인 수행·자기보고·이탈 시점 타임라인을 사건별 재구성 + 교차-사건 반복 후보. 관찰만, 실물 인용.", "adapter_ref": "adapter:claude-local", "model_ref": "model:claude:sonnet", "reasoning_effort_ref": "effort:xhigh", "source_facts": ["project/brick-protocol/status/kernel/autopsy-corpus-0706.md"]},
+      {"kind": "inspect", "work_statement": "Agent축 반증 렌즈: 자기보고와 산출 실물의 불일치를 코퍼스 전 사건에서 사냥. 관찰만, 실물 인용, 반복 후보 분리.", "adapter_ref": "adapter:claude-local", "model_ref": "model:claude:sonnet", "reasoning_effort_ref": "effort:xhigh", "source_facts": ["project/brick-protocol/status/kernel/autopsy-corpus-0706.md"]},
+      {"kind": "inspect", "work_statement": "Link축 관찰 렌즈: 이동·게이트·홀드·처분 원장을 코퍼스 전 사건에서 재구성 + 교차-사건 반복 후보. 관찰만, 실물 인용.", "adapter_ref": "adapter:claude-local", "model_ref": "model:claude:sonnet", "reasoning_effort_ref": "effort:xhigh", "source_facts": ["project/brick-protocol/status/kernel/autopsy-corpus-0706.md"]},
+      {"kind": "inspect", "work_statement": "Link축 반증 렌즈: 원장이 말하지 않는 것 — 기록 부재·순서 역전·식별자 불일치를 코퍼스 전 사건에서 사냥. 관찰만, 실물 인용, 반복 후보 분리.", "adapter_ref": "adapter:claude-local", "model_ref": "model:claude:sonnet", "reasoning_effort_ref": "effort:xhigh", "source_facts": ["project/brick-protocol/status/kernel/autopsy-corpus-0706.md"]},
+      {"kind": "inspect", "work_statement": "엔진축 관찰 렌즈: support/엔진 경로가 실제 실행한 것을 코퍼스 전 사건에서 코드 좌표와 함께 재구성 + 교차-사건 반복 후보. 관찰만, 실물 인용.", "adapter_ref": "adapter:claude-local", "model_ref": "model:claude:sonnet", "reasoning_effort_ref": "effort:xhigh", "source_facts": ["project/brick-protocol/status/kernel/autopsy-corpus-0706.md"]},
+      {"kind": "inspect", "work_statement": "엔진축 반증 렌즈: 콘텐츠 문제로 위장된 엔진 결함(과 그 역)을 코퍼스 전 사건에서 사냥. 사건 9(구동자 사망)의 기전 후보에 특히 깊게. 관찰만, 실물 인용, 반복 후보 분리.", "adapter_ref": "adapter:claude-local", "model_ref": "model:claude:sonnet", "reasoning_effort_ref": "effort:xhigh", "source_facts": ["project/brick-protocol/status/kernel/autopsy-corpus-0706.md"]}
+    ]}},
+    {"kind": "review", "work_statement": "관찰 병합: 8렌즈 반환을 축×(관찰/반증) 지도로 병합. 중복 제거, 상충은 상충으로 표기(해소 금지), 교차-사건 반복 후보를 클래스 후보 표로 정리. 판단 무권한.", "adapter_ref": "adapter:claude-local", "model_ref": "model:claude:sonnet", "reasoning_effort_ref": "effort:xhigh"},
+    {"fan": {"branches": [
+      {"kind": "design", "work_statement": "독립 진단 A: 병합 지도만 입력으로 근본원인 후보·축 귀속·처방 후보·'다른 두 진단자가 놓쳤을 것'을 반환. 대조 사건(기지-원인)의 원인을 반드시 자력 회수하라. 채택 권한 없음, 전 주장에 지도 항목 인용.", "adapter_ref": "adapter:claude-local", "model_ref": "model:claude:claude-fable-5", "reasoning_effort_ref": "effort:xhigh"},
+      {"kind": "design", "work_statement": "독립 진단 B: 병합 지도만 입력으로 근본원인 후보·축 귀속·처방 후보·상호맹점을 반환. 대조 사건 원인 자력 회수 필수. 채택 권한 없음, 지도 인용.", "adapter_ref": "adapter:codex-local", "reasoning_effort_ref": "effort:xhigh"},
+      {"kind": "design", "work_statement": "독립 진단 C: 병합 지도만 입력으로 근본원인 후보·축 귀속·처방 후보·상호맹점을 반환. 대조 사건 원인 자력 회수 필수. 채택 권한 없음, 지도 인용.", "adapter_ref": "adapter:codex-fugu-local", "model_ref": "model:sakana:fugu-ultra", "reasoning_effort_ref": "effort:xhigh"}
+    ]}},
+    {"kind": "closure", "work_statement": "종합: 3진단의 합의/충돌/고유발견 분리 + 반복 패턴 표(클래스별 사건 목록·축 귀속 후보) + 유령/실재 분리 + 대조-사건 회수율 명시(미회수 진단자의 신규 주장 할인 표기) + 처방 후보를 인체공학 표 행·골 문서 행 후보 형태로. 억지 클래스화 금지(단독 사건은 단독으로). 성공/품질/채택 판정 금지 — 미해결은 transition_concern_evidence로.", "adapter_ref": "adapter:claude-local", "model_ref": "model:claude:claude-fable-5", "reasoning_effort_ref": "effort:xhigh"}
+  ]
+}

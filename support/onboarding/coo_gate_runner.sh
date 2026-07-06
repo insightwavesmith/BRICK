@@ -53,6 +53,12 @@ if [ -d "$WT" ]; then
 fi
 
 # 2) forward-close (fallback: explicit engine worktree cwd)
+# orphan-harvest mode: VESSEL="-" skips the close (walk died mid-flight, no
+# hold to dispose — outputs are harvested and gated; ledger disposition is a
+# separate operator decision).
+if [ "$VESSEL" = "-" ]; then
+  say "close: SKIPPED (orphan-harvest mode)"
+else
 CLOSE=$(BRICK_GATE_REPO="$REPO" PYTHONPATH="$REPO/support/import_identity:$REPO" "$PY" - "$VESSEL" "$WT" <<'EOF'
 import json, os, sys
 from brick_protocol.support.operator.onboard import run_approve_entry
@@ -67,15 +73,26 @@ EOF
 )
 say "close: $CLOSE"
 case "$CLOSE" in *'"frontier_kind": "complete"'*) ;; *) say "VERDICT: CLOSE-NOT-COMPLETE (operator review needed)"; FAIL=1;; esac
+fi
 
 # 3) harvest commit
+# COO_GATE_HARVEST_SHA overrides worktree harvest — for single-call completed
+# walks whose worktree is already disposed and whose output lives in a
+# dangling "BRICK building output" commit.
+HARVEST="${COO_GATE_HARVEST_SHA:-}"
+if [ -z "$HARVEST" ]; then
 HARVEST=""
 if [ -d "$WT" ] && [ -n "$(git -C "$WT" status --porcelain)" ]; then
   git -C "$WT" add -A brick link support >/dev/null 2>&1 || git -C "$WT" add -A >/dev/null
   git -C "$WT" commit -q -m "BRICK building output (COO harvest via gate runner): $B"
 fi
 [ -d "$WT" ] && HARVEST=$(git -C "$WT" rev-parse HEAD 2>/dev/null)
-say "harvest: ${HARVEST:-<none>}"
+fi
+if [ -z "$HARVEST" ]; then
+  say "VERDICT: NO-HARVEST (no worktree output and no COO_GATE_HARVEST_SHA — refusing a bare-main vacuous gate)"
+  exit 1
+fi
+say "harvest: $HARVEST"
 
 # 4) gate worktree at current main + merge
 git -C "$REPO" worktree remove --force "$GATE" >/dev/null 2>&1
