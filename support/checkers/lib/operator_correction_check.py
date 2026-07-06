@@ -41,11 +41,9 @@ def run_operator_correction_case(repo: Path, profile: Mapping[str, Any]) -> int:
                 root = tmp_root / "returnless-death"
                 _write_returnless_death_fixture(root)
                 before = observe_building_frontier(root, repo_root=repo)
-                if before.get("frontier_kind") != "evidence_incomplete":
-                    raise ProfileError(
-                        "operator_correction_case returnless-death expected "
-                        f"evidence_incomplete before correction, got {before.get('frontier_kind')!r}"
-                    )
+                _assert_uncorrected_evidence_incomplete(
+                    before, label="returnless-death"
+                )
                 measured = measure_correction_tail(root, repo_root=repo)
                 result = author_correction_observation(
                     root,
@@ -58,25 +56,43 @@ def run_operator_correction_case(repo: Path, profile: Mapping[str, Any]) -> int:
                     raise ProfileError(f"operator correction was refused: {result}")
                 after = observe_building_frontier(root, repo_root=repo)
                 _assert_corrected_link_pause(after, label="returnless-death")
+                _remove_correction_stream(root)
+                removed = observe_building_frontier(root, repo_root=repo)
+                _assert_uncorrected_evidence_incomplete(
+                    removed, label="returnless-death-correction-removed"
+                )
             elif scenario == "receipts-file-absent":
                 root = tmp_root / "receipts-file-absent"
                 _write_receipts_file_absent_fixture(root)
                 before = observe_building_frontier(root, repo_root=repo)
-                if before.get("frontier_kind") != "evidence_incomplete":
+                _assert_uncorrected_evidence_incomplete(
+                    before, label="receipts-file-absent"
+                )
+                measured = measure_correction_tail(root, repo_root=repo)
+                if not (
+                    int(measured.get("agent_received_count") or 0)
+                    < int(measured.get("agent_return_count") or 0)
+                ):
                     raise ProfileError(
                         "operator_correction_case receipts-file-absent expected "
-                        f"evidence_incomplete before correction, got {before.get('frontier_kind')!r}"
+                        "received<returned measured tail"
                     )
                 result = author_correction_observation(
                     root,
                     author_ref="human:checker",
                     grounds_refs=["observation:receipts-file-absent-tail"],
+                    declared_tail_snapshot=measured,
                     repo_root=repo,
                 )
                 if result.get("ok") is not True:
                     raise ProfileError(f"operator correction was refused: {result}")
                 after = observe_building_frontier(root, repo_root=repo)
                 _assert_corrected_link_pause(after, label="receipts-file-absent")
+                _remove_correction_stream(root)
+                removed = observe_building_frontier(root, repo_root=repo)
+                _assert_uncorrected_evidence_incomplete(
+                    removed, label="receipts-file-absent-correction-removed"
+                )
             elif scenario == "refusals":
                 root = tmp_root / "refusals"
                 _write_complete_fixture(root)
@@ -113,6 +129,21 @@ def run_operator_correction_case(repo: Path, profile: Mapping[str, Any]) -> int:
                 )
         count += 1
     return count
+
+
+def _assert_uncorrected_evidence_incomplete(
+    observation: Mapping[str, Any], *, label: str
+) -> None:
+    if observation.get("frontier_kind") != "evidence_incomplete":
+        raise ProfileError(
+            f"operator_correction_case {label}: expected uncorrected "
+            "evidence_incomplete, got "
+            f"{observation.get('frontier_kind')!r}"
+        )
+    if observation.get("correction_applied") is True:
+        raise ProfileError(
+            f"operator_correction_case {label}: correction unexpectedly applied"
+        )
 
 
 def _assert_corrected_link_pause(observation: Mapping[str, Any], *, label: str) -> None:
@@ -200,6 +231,12 @@ def _reset_root(root: Path) -> None:
             elif path.is_dir():
                 path.rmdir()
     root.mkdir(parents=True, exist_ok=True)
+
+
+def _remove_correction_stream(root: Path) -> None:
+    stream = root / "raw" / "operator-correction.jsonl"
+    if stream.exists():
+        stream.unlink()
 
 
 def _write_json(path: Path, payload: Mapping[str, Any]) -> None:
