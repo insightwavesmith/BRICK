@@ -119,6 +119,7 @@ path_allowlist:
       - support/checkers/profiles/return_field_merge_set_parity.yaml
       - support/checkers/profiles/raw_evidence_stream_scrub.yaml
       - support/checkers/profiles/re-instruction-endline-gate.yaml
+      - support/checkers/profiles/resume_declaration.yaml
       - support/checkers/profiles/session_continuity_adapter.yaml
       - support/checkers/profiles/sakana_wire_packet.yaml
       - support/checkers/profiles/sink_registry.yaml
