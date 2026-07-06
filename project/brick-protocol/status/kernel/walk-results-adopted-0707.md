@@ -73,6 +73,16 @@ draft-time 하드 RED: RED-1 폭>3 · RED-2 branch write-set 교차 · RED-3 dee
 
 조사 실측: 추적 5,111파일 census — 로컬 잡동사니는 전부 미추적+ignored(고객 클론 무영향). `.github/workflows/release-gate.yaml`은 활성 CI + 체커 핀(install_release_export_lint_check.py:601-609가 존재 요구) → **유지**(삭제 시 --all RED — Smith 지목 표적이 load-bearing으로 판명). `release_export.sh` 실존: 공개 배포 경로는 이미 project/ 제외 — repo-초대 노출만 남음(향후 노출 축소 레버 = 초대를 export 미러로 전환, 사업 판단이라 Smith 자리, 관찰만 기록). 픽스처류·spec/reviews 역사 문서 = 체커/런타임이 물고 있어 유지-보수적. **채택 집행 2건**: ①support/docs/references/current-origin-dogfood-onebrick-20260630.md — 참조 0건 grep 증명 + 절대 로컬 경로 포함 → status/kernel/archive로 이관 ②.gitignore에 export 거부목록 대비 명시 누락 5행 추가(.gemini/ .mcp.json .ssh/ tokens/ sessions/). 반전 경로: 이관은 git mv라 이력 보존 — 언제든 복귀 가능. 시공 = repo-cleanup-apply-0707a(소형 1샷).
 
+## I. 0707 새벽 집행 원장 (착지·사건·처분 — 추기)
+
+**착지(origin)**: F2 청소(27b23f0f) → D 온보딩 수리(7562a1fb) → C2 접기+등재 + 스플래시 에셋 반입(21cec775/48a62764) → B2 수취 writer(9fee4231) → E 스플래시 배선(c9f03ab08). P11 완전 집행.
+
+**claude-local 스로틀 창 실측(이 새벽, 레인 사망 4건)**: A1 공격QA(fable5)·A2-dd(fable5, 출생 즉사·유서 무기록=R4 갭)·E EI(opus 동시 2중 1)·B1 R2 공격QA(fable5). **교훈: 이 창에선 모델 불문 claude-local 동시 2도 위험 — 동시 1 안전선, 신규 발주는 codex/gemini 렌즈로 회피**(G2·G3·H1 적용). 회수: E·B1 = attach-QA(재시공 0, 독트린 6 실전 2·3호), A = 승계 재발주 A2r(deep-design 생략 표준).
+
+**처분 기록**: A1 미완주 → fail-open 5종(QA 관찰 전량 채택)을 D2로 박은 A2r 재발주. B1 = D1·D2 완결+524줄 AST 단일소스 핀 실존 → 선착지 판정, 우회형 3종(별칭 인라인·budget_increment 조항·잔여 가드)은 후속 브릭. B2 DL-4 후속 = receipt-writer-dl4-0707a 발사. 반복 관찰 3회: "완주 증거 /tmp 로그 미지속" 클래스(C1 D3·B1 D4·G2 D3) — 증거-지속 표준(vessel-로컬 로그 사본)을 발주 계약 관례로 승격 후보.
+
+**땜빵-아님 확인**: 착지 5건 전부 격리 --all green(52→54 프로파일 성장) + 변이 RED 게이트 통과. 스로틀 창 중 랜딩 실수 1건(착지 창 스테이징 충돌)은 ship 재정합으로 수습 — 교훈 등재됨.
+
 ## E. 초안기 제안측 부재 — 실측 (0707, #15 규칙표 증분 후속 발주의 갭 증거)
 
 resume-rootfix-design-0707a 발주에서 `brick draft`에 준 8답과 초안기 반응 실측 원문:
