@@ -49,6 +49,18 @@ surfaces:
     fixture_path: support/checkers/check_assembly_equivalence.py
     fixture_identifier: graph declaration omitted model did not inherit adapter default_model_ref
     incident_anchor: graphdecl-fix-0706e D2 graph declaration omitted model inherits adapter default
+  - surface: build_unify_casting_convergence
+    fixture_path: support/checkers/lib/brick_cli_entrypoint_check.py
+    fixture_identifier: build-unify D2 casting convergence (표17)
+    incident_anchor: project/brick-protocol/status/kernel/operator-ergonomics-wave-0705.md 표17 입구별 기본 캐스팅 비대칭
+  - surface: build_unify_launch_repo_root_line
+    fixture_path: support/checkers/lib/brick_cli_entrypoint_check.py
+    fixture_identifier: build-unify D4 first launch line (표16)
+    incident_anchor: project/brick-protocol/status/kernel/operator-ergonomics-wave-0705.md 표16 repo_root 발사 첫 줄
+  - surface: build_unify_model_alias_loud
+    fixture_path: support/checkers/lib/brick_cli_entrypoint_check.py
+    fixture_identifier: build-unify D5 model-alias loud rejection (표18)
+    incident_anchor: project/brick-protocol/status/kernel/operator-ergonomics-wave-0705.md 표18 모델 별칭의 조용한 증발
 audit_mutants:
   - mutant_id: S11-declared-plan-revision-forged-hash
     surface: declared_plan_revision
@@ -90,3 +102,18 @@ audit_mutants:
     fixture_path: support/checkers/check_assembly_equivalence.py
     fixture_identifier: graph declaration omitted model did not inherit adapter default_model_ref
     audit_anchor: graphdecl-fix-0706e D3 mutation RED
+  - mutant_id: build-unify-d2-casting-convergence
+    surface: build_unify_casting_convergence
+    fixture_path: support/checkers/lib/brick_cli_entrypoint_check.py
+    fixture_identifier: build-unify D2 casting convergence (표17)
+    audit_anchor: build-unify-0706n D6 mutation RED (표17 per-node casting synthesis reintroduced)
+  - mutant_id: build-unify-d4-launch-repo-root-line
+    surface: build_unify_launch_repo_root_line
+    fixture_path: support/checkers/lib/brick_cli_entrypoint_check.py
+    fixture_identifier: build-unify D4 first launch line (표16)
+    audit_anchor: build-unify-0706n D6 mutation RED (표16 first repo_root launch line removed)
+  - mutant_id: build-unify-d5-model-alias-loud
+    surface: build_unify_model_alias_loud
+    fixture_path: support/checkers/lib/brick_cli_entrypoint_check.py
+    fixture_identifier: build-unify D5 model-alias loud rejection (표18)
+    audit_anchor: build-unify-0706n D6 mutation RED (표18 quiet alias fallback restored)
