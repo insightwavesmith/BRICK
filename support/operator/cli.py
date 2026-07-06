@@ -51,9 +51,6 @@ from brick_protocol.support.connection.adapter_constants import (
     ADAPTER_CODEX_LOCAL,
     ADAPTER_GEMINI_LOCAL,
     ALLOWED_ADAPTER_REFS,
-    MODEL_REF_CLAUDE_INHERIT,
-    MODEL_REF_CODEX_DEFAULT,
-    MODEL_REF_GEMINI_DEFAULT,
     adapter_boundary_matrix,
 )
 from brick_protocol.support.connection.agent_adapter import adapter_is_write_capable
@@ -87,16 +84,14 @@ DEFAULT_EXAMPLE_TASK_SOURCE_REF = "brick/templates/tasks/source-template.md"
 DEFAULT_LOCAL_PRESET_REF = "building-chain-preset:onboarding-example-graph"
 DEFAULT_REAL_TASK_PRESET_REF = "building-chain-preset:fast-fix"
 DEFAULT_DECLARED_BY = "coo"
-REAL_PROVIDER_MODEL_REFS = {
-    ADAPTER_CLAUDE_LOCAL: MODEL_REF_CLAUDE_INHERIT,
-    ADAPTER_CODEX_LOCAL: MODEL_REF_CODEX_DEFAULT,
-    ADAPTER_GEMINI_LOCAL: MODEL_REF_GEMINI_DEFAULT,
-}
-REAL_TASK_STEP_TEMPLATE_REFS = (
-    "building-step-template:work",
-    "building-step-template:code-attack-qa",
-    "building-step-template:closure",
-)
+# build-unify #12 (표17 casting convergence): the CLI no longer synthesizes
+# per-node ``selected_*`` casting. --real-provider now ONLY chooses stub vs a real
+# observed-write adapter (D3); the per-step performer is interpreted at the SINGLE
+# casting interpretation point (plan_rendering._resolve_casting_selection via the
+# agent-object ladder), identically for CLI --preset and build(preset=) (D1/D2).
+# The deleted REAL_PROVIDER_MODEL_REFS / REAL_TASK_STEP_TEMPLATE_REFS /
+# _real_task_step_selection_overrides rung was support deciding the Agent
+# performer -- the exact entry-casting asymmetry #12 removes.
 
 PROOF_LIMITS = (
     "support CLI wrapper only",
@@ -210,6 +205,49 @@ def _hermetic_verify_argv(repo: Path) -> list[str]:
     return ["--repo", str(repo), "--profile", "core"]
 
 
+def _repo_root_behind_count(repo_observation: dict[str, Any]) -> int:
+    raw = str(repo_observation.get("repo_root_behind_count") or "").strip()
+    if not raw:
+        return 0
+    try:
+        return int(raw)
+    except ValueError:
+        return 0
+
+
+def _emit_launch_repo_root_observation(
+    args: argparse.Namespace,
+    repo_observation: dict[str, Any],
+) -> int | None:
+    """Print the resolved repo_root (+ drift warnings) as the FIRST launch line.
+
+    build-unify #12 D4 (표16). Returns a non-zero exit code when the repo_root is
+    behind its upstream and the caller has not opted into --allow-stale-repo
+    (fail-closed refusal before the walk spends lane cost); otherwise returns None
+    and the launch proceeds. In --json mode the human-facing lines are written to
+    STDERR so the stdout JSON contract stays a single object.
+    """
+
+    stream = sys.stderr if getattr(args, "json", False) else sys.stdout
+    print(f"repo_root: {repo_observation.get('repo_root', '')}", file=stream)
+    cwd_repo_root = repo_observation.get("cwd_repo_root") or ""
+    if cwd_repo_root:
+        print(f"cwd_repo_root: {cwd_repo_root}", file=stream)
+    for warning in repo_observation.get("repo_root_warnings", []):
+        print(f"warning: {warning}", file=stream)
+    behind = _repo_root_behind_count(repo_observation)
+    if behind > 0 and not getattr(args, "allow_stale_repo", False):
+        upstream = repo_observation.get("repo_root_upstream_ref") or "upstream"
+        print(
+            "refusing to launch: repo_root HEAD is behind "
+            f"{upstream} by {behind} commit(s); rerun with --allow-stale-repo to "
+            "override (표16: stale-tree launches walk the wrong checkout)",
+            file=sys.stderr,
+        )
+        return 3
+    return None
+
+
 def _default_builds_root() -> Path:
     """Return the customer-visible default evidence root used by ``brick build``.
 
@@ -252,19 +290,6 @@ def _task_write_scope(*, adapter: str, task: str) -> dict[str, Any] | None:
     if task and adapter_is_write_capable(adapter):
         return derived_worktree_write_scope()
     return None
-
-
-def _real_task_step_selection_overrides(adapter: str, preset: str) -> dict[str, dict[str, str]]:
-    if preset != DEFAULT_REAL_TASK_PRESET_REF or adapter not in REAL_PROVIDER_MODEL_REFS:
-        return {}
-    return {
-        step_template_ref: {
-            "selected_adapter_ref": adapter,
-            "selected_model_ref": REAL_PROVIDER_MODEL_REFS[adapter],
-        }
-        for step_template_ref in REAL_TASK_STEP_TEMPLATE_REFS
-    }
-
 
 def _readiness_evidence(row: dict[str, Any]) -> dict[str, Any]:
     """Return redacted provider-readiness evidence safe for CLI packets."""
@@ -375,38 +400,43 @@ def _build_intent(args: argparse.Namespace) -> dict[str, Any]:
     preset = _selected_build_preset(args, adapter=adapter, task=task)
     if task:
         building_id = args.building_id or _task_building_id()
-        intent: dict[str, Any] = {
-            "declared_by": args.declared_by,
-            "task_statement": task,
-            "chain_preset_ref": preset,
-            "selected_adapter_ref": adapter,
-            "building_id": building_id,
-        }
-        if readiness_choice:
-            intent["adapter_choice_basis"] = readiness_choice["adapter_choice_basis"]
-            intent["provider_readiness_observations"] = readiness_choice[
-                "provider_readiness_observations"
-            ]
-        write_scope = _task_write_scope(adapter=adapter, task=task)
-        if write_scope is not None:
-            intent["write_scope"] = write_scope
-        step_overrides = _real_task_step_selection_overrides(adapter, preset)
-        if step_overrides:
-            intent["step_selection_overrides"] = step_overrides
-        return intent
-    intent = {
-        "declared_by": args.declared_by,
-        "task_source_ref": args.task_source_ref,
-        "chain_preset_ref": preset,
-        "selected_adapter_ref": adapter,
-        "building_id": args.building_id or DEFAULT_EXAMPLE_BUILDING_ID,
-    }
-    if readiness_choice:
-        intent["adapter_choice_basis"] = readiness_choice["adapter_choice_basis"]
-        intent["provider_readiness_observations"] = readiness_choice[
-            "provider_readiness_observations"
-        ]
-    return intent
+        # build-unify #12 D1/D2: the confirmed task/preset intent is built by the
+        # SINGLE shared builder onboard.build_preset_intent, so CLI --preset and
+        # build_preset() cannot drift. The CLI adds ONLY human-declared rungs
+        # (task text, preset, the plan-level adapter, worktree write_scope); it no
+        # longer synthesizes per-node casting -- the per-step performer is
+        # interpreted at the single casting interpretation point downstream.
+        return onboard.build_preset_intent(
+            declared_by=args.declared_by,
+            selected_adapter_ref=adapter,
+            chain_preset_ref=preset,
+            task_statement=task,
+            building_id=building_id,
+            write_scope=_task_write_scope(adapter=adapter, task=task),
+            adapter_choice_basis=(
+                readiness_choice.get("adapter_choice_basis", "") if readiness_choice else ""
+            ),
+            provider_readiness_observations=(
+                readiness_choice.get("provider_readiness_observations")
+                if readiness_choice
+                else None
+            ),
+        )
+    return onboard.build_preset_intent(
+        declared_by=args.declared_by,
+        selected_adapter_ref=adapter,
+        chain_preset_ref=preset,
+        task_source_ref=args.task_source_ref,
+        building_id=args.building_id or DEFAULT_EXAMPLE_BUILDING_ID,
+        adapter_choice_basis=(
+            readiness_choice.get("adapter_choice_basis", "") if readiness_choice else ""
+        ),
+        provider_readiness_observations=(
+            readiness_choice.get("provider_readiness_observations")
+            if readiness_choice
+            else None
+        ),
+    )
 
 
 def _materialized_step_adapter_evidence(plan_path: Path) -> list[dict[str, str]]:
@@ -753,6 +783,20 @@ def _cmd_status(args: argparse.Namespace) -> int:
 
 
 def _cmd_build(args: argparse.Namespace) -> int:
+    # build-unify #12 D4 (표16 repo_root + 표17 casting): emit the resolved
+    # repo_root and its drift warnings as the FIRST launch output line, BEFORE the
+    # walk runs, so a launch bound to a stale/second checkout is visible before any
+    # lane cost is spent (the 표16 postmortem: 3 launches walked a 2-day-old tree).
+    # In --json mode this pre-walk line goes to STDERR so the stdout JSON contract
+    # stays a single object; the same observation is also embedded in the packet.
+    # A repo_root that is behind its upstream is REFUSED unless --allow-stale-repo
+    # is passed. The resolved-casting table rides the rendered packet
+    # (materialized_step_adapters) below.
+    repo = _repo_from_args(args)
+    repo_observation = _resolved_repo_root_observation(repo)
+    stale_refused = _emit_launch_repo_root_observation(args, repo_observation)
+    if stale_refused is not None:
+        return stale_refused
     packet = _run_build(args)
     if args.json:
         print(_json_dump(packet))
@@ -1183,6 +1227,14 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     build.add_argument("--building-id", default="", help="Optional explicit Building id.")
+    build.add_argument(
+        "--allow-stale-repo",
+        action="store_true",
+        help=(
+            "Allow launching when the resolved repo_root HEAD is behind its upstream. "
+            "Default refuses (표16: stale-tree launches walk the wrong checkout)."
+        ),
+    )
     build.add_argument(
         "--graph-decl",
         default="",

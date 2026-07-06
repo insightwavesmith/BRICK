@@ -214,16 +214,57 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
             raise ProfileError(
                 "brick_cli_entrypoint_smoke: provider readiness evidence leaked raw credential data"
             )
+        # build-unify #12 D2 (표17 casting convergence): the CLI no longer
+        # synthesizes per-node casting. The selected adapter flows to the
+        # PLAN-LEVEL selected_adapter_ref (the building default), and per-step
+        # casting is interpreted at the SINGLE interpretation point (the
+        # agent-object ladder), identically to a bare intent that carried no CLI
+        # override. Pin: (1) no step_selection_overrides survive on the CLI
+        # intent, (2) the selected adapter lands on the plan-level default, and
+        # (3) the materialized step casting equals what the SAME intent WITHOUT
+        # any CLI-authored casting produces (drift would mean the CLI is still
+        # deciding the performer).
+        if "step_selection_overrides" in gemini_intent:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: CLI intent must not synthesize "
+                f"step_selection_overrides (표17 casting convergence): {gemini_intent!r}"
+            )
         gemini_plan = materialize_building_intent(gemini_intent, repo_root=repo)
-        gemini_step_adapters = {
-            str(step.get("selected_adapter_ref") or "")
-            for step in gemini_plan.get("brick_steps", [])
-            if isinstance(step, Mapping)
-        }
-        if "adapter:gemini-local" not in gemini_step_adapters:
+        if gemini_plan.get("selected_adapter_ref") != "adapter:gemini-local":
             raise ProfileError(
                 "brick_cli_entrypoint_smoke: selected adapter:gemini-local did not "
-                f"flow into materialized work Brick rows: {gemini_step_adapters!r}"
+                f"flow to the plan-level default: {gemini_plan.get('selected_adapter_ref')!r}"
+            )
+        gemini_step_casting = [
+            (
+                str(step.get("step_template_ref") or ""),
+                str(step.get("selected_adapter_ref") or ""),
+                str(step.get("selected_model_ref") or ""),
+            )
+            for step in gemini_plan.get("brick_steps", [])
+            if isinstance(step, Mapping)
+        ]
+        ladder_only_intent = {
+            key: value
+            for key, value in gemini_intent.items()
+            if key not in ("adapter_choice_basis", "provider_readiness_observations")
+        }
+        ladder_only_intent["building_id"] = "gemini-ladder-parity-probe"
+        ladder_plan = materialize_building_intent(ladder_only_intent, repo_root=repo)
+        ladder_step_casting = [
+            (
+                str(step.get("step_template_ref") or ""),
+                str(step.get("selected_adapter_ref") or ""),
+                str(step.get("selected_model_ref") or ""),
+            )
+            for step in ladder_plan.get("brick_steps", [])
+            if isinstance(step, Mapping)
+        ]
+        if gemini_step_casting != ladder_step_casting:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: CLI --real-provider casting drifted from "
+                "the single agent-object ladder interpretation point: "
+                f"cli={gemini_step_casting!r} ladder={ladder_step_casting!r}"
             )
 
         set_preflight(
@@ -605,7 +646,149 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
             f"{bare_json_packet!r}"
         )
 
-    return 15
+    _assert_brick_cli_launch_repo_root_line(cli)
+    _assert_brick_cli_casting_convergence(cli, repo)
+    _assert_brick_cli_model_alias_loud()
+
+    return 18
+
+
+def _assert_brick_cli_launch_repo_root_line(cli: Any) -> None:
+    """build-unify #12 D4 (표16): repo_root is the FIRST launch line + stale refusal."""
+
+    parser = cli.build_parser()
+    args = parser.parse_args(["build", "--task", "x"])
+    # Behind-upstream without --allow-stale-repo -> refuse (non-zero) before walk.
+    behind_stderr = io.StringIO()
+    with contextlib.redirect_stderr(behind_stderr):
+        refused = cli._emit_launch_repo_root_observation(
+            args,
+            {
+                "repo_root": "/tmp/checker-repo",
+                "repo_root_warnings": ["repo_root HEAD is behind origin/main by 2 commit(s)"],
+                "repo_root_behind_count": "2",
+                "repo_root_upstream_ref": "origin/main",
+            },
+        )
+    if refused is None or refused == 0:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: behind-upstream launch must refuse without "
+            "--allow-stale-repo (표16 stale-tree guard)"
+        )
+    if "refusing to launch" not in behind_stderr.getvalue():
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: stale-repo refusal did not name the refusal"
+        )
+    # --allow-stale-repo overrides the refusal and still prints repo_root first.
+    allow_args = parser.parse_args(["build", "--task", "x", "--allow-stale-repo"])
+    allow_stdout = io.StringIO()
+    with contextlib.redirect_stdout(allow_stdout):
+        allowed = cli._emit_launch_repo_root_observation(
+            allow_args,
+            {
+                "repo_root": "/tmp/checker-repo",
+                "repo_root_warnings": [],
+                "repo_root_behind_count": "2",
+            },
+        )
+    if allowed is not None:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: --allow-stale-repo must let a behind launch proceed"
+        )
+    first_line = allow_stdout.getvalue().splitlines()[0] if allow_stdout.getvalue() else ""
+    if not first_line.startswith("repo_root: "):
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: resolved repo_root must be the FIRST launch line, "
+            f"got {first_line!r}"
+        )
+    # A fresh (not-behind) launch prints repo_root first and does not refuse.
+    fresh_stdout = io.StringIO()
+    with contextlib.redirect_stdout(fresh_stdout):
+        fresh = cli._emit_launch_repo_root_observation(
+            args,
+            {"repo_root": "/tmp/checker-repo", "repo_root_warnings": [], "repo_root_behind_count": "0"},
+        )
+    if fresh is not None:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: up-to-date launch must not be refused"
+        )
+    if not fresh_stdout.getvalue().splitlines()[0].startswith("repo_root: "):
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: up-to-date launch lost its first repo_root line"
+        )
+
+
+def _assert_brick_cli_casting_convergence(cli: Any, repo: Path) -> None:
+    """build-unify #12 D1/D2 (표17): CLI --preset intent = build_preset_intent, no override."""
+
+    from brick_protocol.support.operator import onboard
+    from brick_protocol.support.operator.composition_intent import materialize_building_intent
+
+    parser = cli.build_parser()
+    args = parser.parse_args(
+        ["build", "--task", "converge x", "--adapter", "adapter:claude-local", "--building-id", "conv"]
+    )
+    cli_intent = cli._build_intent(args)
+    if "step_selection_overrides" in cli_intent:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: CLI intent must not synthesize step_selection_overrides "
+            f"(표17 casting convergence): {cli_intent!r}"
+        )
+    # D1: the shared builder produces the SAME confirmed intent as the CLI path.
+    shared_intent = onboard.build_preset_intent(
+        declared_by=args.declared_by,
+        selected_adapter_ref="adapter:claude-local",
+        chain_preset_ref=cli_intent["chain_preset_ref"],
+        task_statement="converge x",
+        building_id="conv",
+        write_scope=cli_intent.get("write_scope"),
+    )
+    if cli_intent != shared_intent:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: CLI --preset intent drifted from the shared "
+            f"build_preset_intent builder: cli={cli_intent!r} shared={shared_intent!r}"
+        )
+    # D2: per-step casting is the agent-object ladder, NOT the plan-level adapter.
+    plan = materialize_building_intent(cli_intent, repo_root=repo)
+    if plan.get("selected_adapter_ref") != "adapter:claude-local":
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: CLI adapter must land on the plan-level default"
+        )
+    work_adapters = {
+        str(step.get("selected_adapter_ref") or "")
+        for step in plan.get("brick_steps", [])
+        if isinstance(step, Mapping)
+        and step.get("step_template_ref") == "building-step-template:work"
+    }
+    if work_adapters != {"adapter:codex-local"}:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: fast-fix work casting must resolve via the "
+            f"agent-object ladder (dev->codex), not the CLI adapter: {work_adapters!r}"
+        )
+
+
+def _assert_brick_cli_model_alias_loud() -> None:
+    """build-unify #12 D5 (표18): unadmitted model alias dies LOUDLY at normalization."""
+
+    from brick_protocol.support.connection.adapter_model_casting import (
+        _normalize_selected_model_ref,
+    )
+
+    # An admitted alias is PRESERVED (declared-alias observability contract intact).
+    if _normalize_selected_model_ref("adapter:claude-local", "model:claude:sonnet") != "model:claude:sonnet":
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: admitted model alias must be preserved on the "
+            "declared ref (alias-vs-dispatched observability contract)"
+        )
+    # An unadmitted alias is rejected loudly (no silent account-default fallback).
+    try:
+        _normalize_selected_model_ref("adapter:claude-local", "model:claude:notareal")
+    except ValueError:
+        return
+    raise ProfileError(
+        "brick_cli_entrypoint_smoke: unadmitted model alias must be rejected loudly "
+        "at normalization (표18 silent-evaporation guard)"
+    )
 
 
 def _brick_cli_work_brick_rows(plan: Mapping[str, Any]) -> list[Mapping[str, Any]]:
@@ -875,6 +1058,104 @@ def _probe_verify_default_mutation_red(repo: Path) -> str:
     )
 
 
+def _source_replace_mutation_red(
+    repo: Path,
+    *,
+    label: str,
+    rel_path: str,
+    needle: str,
+    poisoned: str,
+) -> str:
+    """Poison ``needle`` -> ``poisoned`` in ``rel_path``, assert the profile goes RED, restore, GREEN.
+
+    build-unify #12 D6 shared mutation-RED harness: a temp-backed edit to a
+    source file must drive check_profile --profile brick_cli_entrypoint RED, then
+    restoring the file must return it GREEN. Support evidence only.
+    """
+
+    source = repo / rel_path
+    original = source.read_text(encoding="utf-8")
+    if needle not in original:
+        raise ProfileError(f"{label}: mutation needle not found in {rel_path}")
+    backup = tempfile.NamedTemporaryFile(
+        prefix=".brick-build-unify-mut.",
+        suffix=".bak",
+        dir=source.parent,
+        delete=False,
+    )
+    backup_path = Path(backup.name)
+    backup.close()
+    shutil.copyfile(source, backup_path)
+    try:
+        source.write_text(original.replace(needle, poisoned, 1), encoding="utf-8")
+        red = _run_brick_cli_entrypoint_profile(repo)
+        if red.returncode == 0:
+            raise ProfileError(
+                f"{label}: mutation did not turn brick_cli_entrypoint profile RED"
+            )
+    finally:
+        shutil.copyfile(backup_path, source)
+        backup_path.unlink(missing_ok=True)
+    green = _run_brick_cli_entrypoint_profile(repo)
+    if green.returncode != 0:
+        excerpt = "\n".join(green.stdout.splitlines()[-20:])
+        raise ProfileError(
+            f"{label}: restored source but brick_cli_entrypoint remained RED:\n{excerpt}"
+        )
+    return (
+        f"{label} mutation RED probe passed: the mutation made "
+        "check_profile.py --profile brick_cli_entrypoint exit non-zero, then "
+        "restoring the temp-backed source returned it to exit 0."
+    )
+
+
+def probe_build_unify_mutation_red(repo: Path) -> list[str]:
+    """build-unify #12 D6: the three declared mutation-RED probes.
+
+    (1) 표17 casting convergence: re-introduce a per-node CLI casting override on
+        the confirmed intent -> the convergence assertion + build_preset_intent
+        parity go RED.
+    (2) 표16 first launch line: neuter the first-line repo_root emit -> the D4
+        launch-line assertion goes RED.
+    (3) 표18 silent alias fallback: restore the quiet accept of an unadmitted
+        alias at normalization -> the D5 loud-rejection assertion goes RED.
+    """
+
+    outputs = [
+        _source_replace_mutation_red(
+            repo,
+            label="build-unify D2 casting convergence (표17)",
+            rel_path="support/operator/onboard.py",
+            needle='    if write_scope is not None:\n'
+            '        intent["write_scope"] = dict(write_scope)',
+            poisoned='    if write_scope is not None:\n'
+            '        intent["write_scope"] = dict(write_scope)\n'
+            '        intent["step_selection_overrides"] = {\n'
+            '            "building-step-template:work": {\n'
+            '                "selected_adapter_ref": selected_adapter_ref,\n'
+            '                "selected_model_ref": "model:default",\n'
+            "            }\n"
+            "        }  # mutation: 표17 per-node casting synthesis reintroduced",
+        ),
+        _source_replace_mutation_red(
+            repo,
+            label="build-unify D4 first launch line (표16)",
+            rel_path="support/operator/cli.py",
+            needle='    print(f"repo_root: {repo_observation.get(\'repo_root\', \'\')}", file=stream)',
+            poisoned='    pass  # mutation: first repo_root launch line removed',
+        ),
+        _source_replace_mutation_red(
+            repo,
+            label="build-unify D5 model-alias loud rejection (표18)",
+            rel_path="support/connection/adapter_model_casting.py",
+            needle="    resolve_model_alias_ref(adapter_ref, selected_model_ref)\n"
+            "    return selected_model_ref",
+            poisoned="    return selected_model_ref  # mutation: quiet alias fallback restored",
+        ),
+    ]
+    return outputs
+
+
 def probe_mutation_red(repo: Path) -> list[str]:
     source = Path(__file__).resolve()
     original = source.read_text(encoding="utf-8")
@@ -920,6 +1201,7 @@ def probe_mutation_red(repo: Path) -> list[str]:
         "--profile brick_cli_entrypoint exit non-zero, then restoring the "
         "temp-backed self file returned brick_cli_entrypoint to exit 0.",
         _probe_verify_default_mutation_red(repo),
+        *probe_build_unify_mutation_red(repo),
     ]
 
 
