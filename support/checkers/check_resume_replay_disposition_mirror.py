@@ -73,6 +73,18 @@ _COMPLIANT_RE_INSTRUCTION = (
 DIVERGENCE_PREFIX = "resume divergence: the seeded walk completed WITHOUT applying"
 APPLIED_DISPOSITION_LITERAL = "dynamic Building already has an applied resume disposition"
 
+# Concern-path guard literals (pinned verbatim; see walker_kernel.py:238-253
+# `_require_undisposed_concern_hold`, called at the SIX concern-path hold
+# construction sites 1881/2084/2122/2161/2197/2254). A previously-disposed
+# concern-path HOLD carries NO forward-mirror branch (unlike a gate-sequence
+# hold), so ANY prior disposition -- reroute OR forward -- re-reached on replay
+# raises this loud literal. Corrupting either constant below flips the F-C /
+# P-C run RED (self-mutation proof, design final-0706 invariant I6 / D1.11).
+CONCERN_PATH_HOLD_PREFIX = "resume replay reached a previously-disposed concern-path HOLD "
+CONCERN_PATH_MIRROR_NOT_IMPLEMENTED = (
+    "concern-path mirroring is not implemented in this slice"
+)
+
 
 class ProfileError(AssertionError):
     """A fixture reached neither the RED-pin literal nor the GREEN invariants."""
@@ -963,6 +975,697 @@ def _probe_p3_divergence_guard(repo: Path) -> Mapping[str, Any]:
     }
 
 
+# ---------------------------------------------------------------------------
+# CONCERN-PATH mirror fixtures (F-C group) + probe (P-C1) -- Slice 1, walker
+# UNTOUCHED. These pin the SECOND replay-mirror surface: the six concern-path
+# hold sites (ambiguous/pause/unbudgeted/exhausted/broken-mail, plus the
+# gate-sequence reroute budget-exhausted site) each fail LOUD on replay of a
+# previously-disposed concern-path HOLD via _require_undisposed_concern_hold.
+#
+# Dual-acceptance, SAME shape as F-R/F-S/F-M:
+#   (a) RED-PIN  -- at the pinned HEAD baseline the final resume RAISES the
+#       concern-path guard literal (measured; concern-path mirroring is NOT
+#       implemented, so a re-reached disposed concern-path hold is refused).
+#   (b) GREEN    -- after the concern-path mirror lands the same fixture
+#       resumes and the per-fixture invariants hold (authored-but-unmeasured
+#       until Slice 2b; see MODULE NOT_PROVEN). It stays strict so a wrong
+#       mirror cannot pass silently.
+#
+# Chain mechanism (measured): a linear/fan graph with TWO concern-producing
+# nodes holds at node A (concern), a PRIOR human/COO disposition resolves A and
+# the walk re-holds at node B (concern), then a FINAL disposition on B drives
+# the resume whose replay re-reaches the now-disposed concern hold at A --
+# where the guard fires. Any state that is NEITHER (a) NOR (b) is a
+# ProfileError -> exit 1.
+# ---------------------------------------------------------------------------
+
+
+def _concern_step(prefix: str, node: str, brick_ref: str, edge_ref: str) -> Mapping[str, Any]:
+    from support.checkers.lib.fixture_graph_helpers import fixture_graph_brick_step
+
+    return fixture_graph_brick_step(
+        f"{prefix}-{node}",
+        brick_ref,
+        edge_ref,
+        agent_object_ref="agent-object:coo",
+        work_statement=f"Deterministic synthetic concern-path work for {prefix}-{node}.",
+        required_return_shape="observed_evidence, transition_concern_evidence, not_proven",
+        source_facts=["AGENTS.md"],
+    )
+
+
+class _ConcernChainCallable(_CountingCallable):
+    """A deterministic adapter:local stand-in that attaches a transition concern
+    to specific brick instances. ``concern_by_ref`` maps a brick_instance_ref to
+    a (reason_refs, related_boundary_refs) pair. A pair with two resolving
+    related refs yields an AMBIGUOUS concern hold (no single owner); a single
+    resolving ref with an unresolvable ``step-output:`` reason_ref yields a
+    BROKEN-MAIL hold (the recorded runtime address does not resolve in the
+    ledger, walker_runtime_mail:79-93)."""
+
+    def __init__(self, concern_by_ref: Mapping[str, tuple[Sequence[str], Sequence[str]]]) -> None:
+        super().__init__()
+        self._concern_by_ref = dict(concern_by_ref)
+
+    def __call__(self, request: Any) -> Mapping[str, Any]:
+        returned = dict(super().__call__(request))
+        spec = self._concern_by_ref.get(request.brick_instance_ref)
+        if spec is not None:
+            reason_refs, related = spec
+            returned["transition_concern_evidence"] = {
+                "concern_ref": f"transition-concern:{request.brick_instance_ref}",
+                "concern_kind": "implementation_gap",
+                "binding": False,
+                "reason_refs": list(reason_refs),
+                "related_boundary_refs": list(related),
+            }
+        return returned
+
+
+def _concern_plan_scaffold(
+    prefix: str,
+    *,
+    order: Sequence[str],
+    steps: Sequence[Mapping[str, Any]],
+    edges: Sequence[Mapping[str, Any]],
+    budgets: Mapping[str, int],
+    groups: Sequence[Mapping[str, Any]] | None = None,
+) -> Mapping[str, Any]:
+    from support.checkers.lib.fixture_graph_helpers import fixture_proof_limits
+
+    plan: dict[str, Any] = {
+        "plan_ref": f"building-plan:{prefix}",
+        "owner_axis": "Brick",
+        "building_id": f"{prefix}-0706",
+        "plan_shape": "graph",
+        "selected_adapter_ref": "adapter:local",
+        "proof_limits": fixture_proof_limits(),
+        "not_proven": ["semantic correctness of this synthetic concern-path fixture"],
+        "execution_order": list(order),
+        "brick_steps": list(steps),
+        "link_edges": list(edges),
+        "node_reroute_budgets": dict(budgets),
+    }
+    if groups is not None:
+        plan["groups"] = list(groups)
+    return plan
+
+
+def _linear_concern_plan(
+    prefix: str,
+    nodes: Sequence[str],
+    budgets: Mapping[str, int],
+) -> tuple[Mapping[str, Any], Mapping[str, str]]:
+    """A linear graph n0 -> n1 -> ... -> close with plain default-gate forward
+    edges. The concern holds come from the driving callable's returns, not the
+    edge policy (unlike _chain_plan's gate-sequence holds)."""
+
+    from support.checkers.lib.fixture_graph_helpers import fixture_graph_link_edge
+
+    bricks = {n: f"brick-{prefix}-{n}" for n in nodes}
+    order = [f"{prefix}-{n}" for n in nodes]
+    steps: list[Mapping[str, Any]] = []
+    edges: list[Mapping[str, Any]] = []
+    for i, n in enumerate(nodes):
+        if i < len(nodes) - 1:
+            nxt = nodes[i + 1]
+            edge_ref = f"edge:{prefix}-{n}-to-{nxt}"
+            steps.append(_concern_step(prefix, n, bricks[n], edge_ref))
+            edges.append(
+                fixture_graph_link_edge(
+                    edge_ref,
+                    f"{prefix}-{n}",
+                    bricks[nxt],
+                    target_step_ref=f"{prefix}-{nxt}",
+                    declared_gate_refs=["link-gate:default-transition"],
+                    falsy_declared_gate_refs_use_default=True,
+                )
+            )
+        else:
+            edge_ref = f"edge:{prefix}-{n}-to-boundary"
+            steps.append(_concern_step(prefix, n, bricks[n], edge_ref))
+            edges.append(
+                fixture_graph_link_edge(
+                    edge_ref,
+                    f"{prefix}-{n}",
+                    f"building-boundary:{prefix}-closed",
+                    close_reason=f"{prefix} closed for concern-path mirror checker evidence.",
+                    falsy_declared_gate_refs_use_default=True,
+                )
+            )
+    plan = _concern_plan_scaffold(
+        prefix,
+        order=order,
+        steps=steps,
+        edges=edges,
+        budgets={bricks[b]: v for b, v in budgets.items()},
+    )
+    return plan, bricks
+
+
+def _fan_concern_plan(
+    prefix: str,
+    budgets: Mapping[str, int],
+) -> tuple[Mapping[str, Any], Mapping[str, str]]:
+    """A fan graph root -> {lane-a, lane-b} -> join -> close. Both lanes produce
+    a concern hold, so has_fan_groups is True and the concern-path guard fires
+    inside the fan branch of its hold site (held_fan_steps / completed_fan_steps
+    / reroute_insert_width machinery, walker_kernel.py:2087-2097)."""
+
+    from support.checkers.lib.fixture_graph_helpers import fixture_graph_link_edge
+
+    nodes = ["root", "lane-a", "lane-b", "join", "close"]
+    bricks = {n: f"brick-{prefix}-{n}" for n in nodes}
+    order = [f"{prefix}-{n}" for n in nodes]
+
+    def fwd(edge_ref: str, src: str, tgt: str) -> Mapping[str, Any]:
+        return fixture_graph_link_edge(
+            edge_ref,
+            f"{prefix}-{src}",
+            bricks[tgt],
+            target_step_ref=f"{prefix}-{tgt}",
+            declared_gate_refs=["link-gate:default-transition"],
+            falsy_declared_gate_refs_use_default=True,
+        )
+
+    steps = [
+        _concern_step(prefix, "root", bricks["root"], f"edge:{prefix}-root-to-a"),
+        _concern_step(prefix, "lane-a", bricks["lane-a"], f"edge:{prefix}-a-to-join"),
+        _concern_step(prefix, "lane-b", bricks["lane-b"], f"edge:{prefix}-b-to-join"),
+        _concern_step(prefix, "join", bricks["join"], f"edge:{prefix}-join-to-close"),
+        _concern_step(prefix, "close", bricks["close"], f"edge:{prefix}-close-to-boundary"),
+    ]
+    edges = [
+        fwd(f"edge:{prefix}-root-to-a", "root", "lane-a"),
+        fwd(f"edge:{prefix}-root-to-b", "root", "lane-b"),
+        fwd(f"edge:{prefix}-a-to-join", "lane-a", "join"),
+        fwd(f"edge:{prefix}-b-to-join", "lane-b", "join"),
+        fwd(f"edge:{prefix}-join-to-close", "join", "close"),
+        fixture_graph_link_edge(
+            f"edge:{prefix}-close-to-boundary",
+            f"{prefix}-close",
+            f"building-boundary:{prefix}-closed",
+            close_reason=f"{prefix} closed for concern-path fan mirror evidence.",
+            falsy_declared_gate_refs_use_default=True,
+        ),
+    ]
+    groups = [
+        {
+            "group_id": f"group:{prefix}-fan-out",
+            "group_role": "fan_out",
+            "member_ref_kind": "link_edge",
+            "member_refs": [f"edge:{prefix}-root-to-a", f"edge:{prefix}-root-to-b"],
+            "proof_limits": ["support topology label only"],
+            "not_proven": ["parallel runtime execution"],
+        },
+        {
+            "group_id": f"group:{prefix}-fan-in",
+            "group_role": "fan_in",
+            "member_ref_kind": "link_edge",
+            "member_refs": [f"edge:{prefix}-a-to-join", f"edge:{prefix}-b-to-join"],
+            "proof_limits": ["support topology label only"],
+            "not_proven": ["synthesis quality"],
+        },
+    ]
+    plan = _concern_plan_scaffold(
+        prefix,
+        order=order,
+        steps=steps,
+        edges=edges,
+        budgets={bricks[b]: v for b, v in budgets.items()},
+        groups=groups,
+    )
+    return plan, bricks
+
+
+def _concern_green_invariants(
+    fixture: str,
+    *,
+    result: Any,
+    root: Path,
+    frontier: str,
+    first_reason: str,
+    prior_adoption_refs: Sequence[str],
+    fan: bool,
+) -> Mapping[str, Any]:
+    """Post-mirror GREEN invariants for a concern-path fixture (design final-0706
+    D1.7 / D1.11, invariants I1/I2/I6). NOT reachable at the pinned HEAD baseline
+    (all F-C RED-pin there), so this branch is authored-but-unmeasured until the
+    Slice-2b concern-path mirror lands -- see MODULE NOT_PROVEN. It stays strict
+    so a wrong mirror cannot pass silently.
+
+    I1: every prior recorded reroute-adoption ref survives verbatim in the
+    re-walked adoptions (no fresh identity minted). I6: the mirror never
+    re-parks on an ALREADY-DISPOSED concern-path hold identity. F-C3 carve-out:
+    a broken-mail RE-HOLD is a LEGITIMATE outcome (the runtime address genuinely
+    does not resolve on replay, design edge_cases[2]) and must NOT be flagged as
+    an I6 re-park -- the mirror faithfully reproduced a broken ticket."""
+
+    observations = _persisted_observations(root)
+    adopted_refs = {
+        str(r.get("reroute_ref"))
+        for r in _adopted_records(result)
+        if r.get("reroute_ref")
+    }
+    for prior_ref in prior_adoption_refs:
+        if prior_ref and prior_ref not in adopted_refs:
+            raise ProfileError(
+                f"{fixture}: GREEN concern mirror lost prior reroute_ref parity "
+                f"({prior_ref!r} not in re-walked adoptions {sorted(adopted_refs)!r})"
+            )
+
+    broken_mail_first = str(first_reason).startswith(
+        "runtime_handoff_"
+    ) or "broken" in str(first_reason)
+
+    if frontier in ("complete", "closed"):
+        pass
+    elif frontier == "link_paused":
+        current_identity = _evidence_hold_identity(root)
+        current_reason = ""
+        held = _held_records(result)
+        if held:
+            current_reason = str(held[-1].get("hold_reason") or "")
+        # F-C3 carve-out: a fresh broken-mail re-hold on replay is legitimate
+        # (design edge_cases[2]); it is NOT an already-disposed re-park.
+        legit_broken_mail = broken_mail_first and current_reason.startswith(
+            "runtime_handoff_"
+        )
+        if not legit_broken_mail:
+            for observation in observations:
+                disposed_norm = str(observation.get("paused_at_ref") or "").replace(
+                    ":", "-"
+                )
+                if (
+                    current_identity
+                    and disposed_norm
+                    and current_identity in disposed_norm
+                ):
+                    raise ProfileError(
+                        f"{fixture}: GREEN concern mirror re-parked on an "
+                        f"ALREADY-DISPOSED concern-path hold identity "
+                        f"({current_identity!r}) -- the mirror failed to consume "
+                        "a replayed disposition (I6)"
+                    )
+    else:
+        raise ProfileError(
+            f"{fixture}: GREEN concern mirror ended in an inadmissible frontier "
+            f"({frontier!r})"
+        )
+
+    green: dict[str, Any] = {
+        "green_frontier": frontier,
+        "green_adopted_reroute_refs": sorted(adopted_refs),
+        "green_observation_count": len(observations),
+    }
+    if fan:
+        # F-C2: cohort re-verify state must be reproduced (completed_fan_steps /
+        # cohort_skip_carry_forward / fan_in_cohort_records) and the successor
+        # splice offset must honour reroute_insert_width (design D1.7 / edge
+        # cases[4]). Unmeasured at HEAD; recorded so the Slice-2b mirror gate can
+        # assert against it without loosening this branch.
+        green["green_fan_cohort_expectation"] = (
+            "completed_fan_steps + cohort_skip_carry_forward + fan_in_cohort_records "
+            "reproduced; reroute_insert_width offset preserved (unmeasured pre-mirror)"
+        )
+    return green
+
+
+def _classify_concern_final_resume(
+    fixture: str,
+    *,
+    exc: BaseException | None,
+    result: Any,
+    root: Path,
+    repo: Path,
+    first_reason: str,
+    prior_adoption_refs: Sequence[str],
+    fan: bool,
+) -> Mapping[str, Any]:
+    """Return per-fixture branch evidence, or raise ProfileError. ``exc`` is the
+    ValueError the FINAL resume raised (or None if it returned)."""
+
+    if exc is not None:
+        message = str(exc)
+        ok = (
+            message.startswith(CONCERN_PATH_HOLD_PREFIX)
+            and CONCERN_PATH_MIRROR_NOT_IMPLEMENTED in message
+        )
+        if not ok:
+            raise ProfileError(
+                f"{fixture}: final resume raised an UNEXPECTED literal; expected "
+                f"the concern-path guard ({CONCERN_PATH_HOLD_PREFIX!r} ... "
+                f"{CONCERN_PATH_MIRROR_NOT_IMPLEMENTED!r}) but got {message!r}"
+            )
+        return {
+            "fixture": fixture,
+            "branch": "red-pin",
+            "red_literal_kind": "concern-path",
+            "red_message": message,
+        }
+
+    frontier = _frontier_kind(root, repo)
+    green = _concern_green_invariants(
+        fixture,
+        result=result,
+        root=root,
+        frontier=frontier,
+        first_reason=first_reason,
+        prior_adoption_refs=prior_adoption_refs,
+        fan=fan,
+    )
+    return {
+        "fixture": fixture,
+        "branch": "green",
+        "frontier_kind": frontier,
+        **green,
+    }
+
+
+def _drive_concern_chain(
+    repo: Path,
+    *,
+    fixture: str,
+    plan: Mapping[str, Any],
+    cb: _CountingCallable,
+    prior_target_ref: str,
+    final_target_ref: str,
+    fan: bool,
+) -> Mapping[str, Any]:
+    from brick_protocol.support.operator.run import run_building_plan  # noqa: F401  (import audit)
+
+    with tempfile.TemporaryDirectory(prefix=f"bp-resume-cpath-{fixture}-") as tmp:
+        result = _run_to_hold(repo, plan, Path(tmp).resolve(), cb)
+        root = result.lifecycle_write.root
+        if _frontier_kind(root, repo) != "link_paused":
+            raise ProfileError(
+                f"{fixture}: setup did not reach the first concern HOLD "
+                f"(frontier={_frontier_kind(root, repo)!r})"
+            )
+        first_held = _held_records(result)
+        if not first_held:
+            raise ProfileError(f"{fixture}: first concern HOLD carried no held record")
+        first_source = str(first_held[-1].get("source_step_ref") or "")
+        first_reason = str(first_held[-1].get("hold_reason") or "")
+
+        # PRIOR disposition on concern hold A -> must succeed at HEAD and leave
+        # the building held again at concern hold B.
+        _append_disposition_row(
+            root,
+            building_id=plan["building_id"],
+            pending_target_ref=prior_target_ref,
+            action="reroute",
+        )
+        result = _resume(repo, root, cb)
+        prior_adoption_refs = [
+            str(r.get("reroute_ref"))
+            for r in _adopted_records(result)
+            if r.get("reroute_ref")
+        ]
+        if _frontier_kind(root, repo) != "link_paused":
+            raise ProfileError(
+                f"{fixture}: prior concern disposition did not leave the building "
+                f"held at a second concern hold (frontier={_frontier_kind(root, repo)!r})"
+            )
+        second_source = str((_held_records(result) or [{}])[-1].get("source_step_ref") or "")
+
+        # FINAL disposition on concern hold B: append and drive the resume whose
+        # replay re-reaches the now-disposed concern hold A.
+        _append_disposition_row(
+            root,
+            building_id=plan["building_id"],
+            pending_target_ref=final_target_ref,
+            action="reroute",
+        )
+        calls_before_final = cb.calls
+        exc: BaseException | None = None
+        final_result: Any = None
+        try:
+            final_result = _resume(repo, root, cb)
+        except ValueError as raised:
+            exc = raised
+
+        evidence = _classify_concern_final_resume(
+            fixture,
+            exc=exc,
+            result=final_result,
+            root=root,
+            repo=repo,
+            first_reason=first_reason,
+            prior_adoption_refs=prior_adoption_refs,
+            fan=fan,
+        )
+        return {
+            **evidence,
+            "first_hold_source": first_source,
+            "first_hold_reason": first_reason,
+            "second_hold_source": second_source,
+            "prior_adoption_refs": prior_adoption_refs,
+            "callable_calls_before_final": calls_before_final,
+            "callable_calls_after_final": cb.calls,
+        }
+
+
+def _fixture_f_c1(repo: Path) -> Mapping[str, Any]:
+    """F-C1 [ambiguous concern x1]: two nodes each raise an AMBIGUOUS reroute
+    concern (multiple resolving addresses, no single owner -> hold_reason
+    multiple_reroute_addresses_no_single_owner, walker_kernel.py:2062/2084).
+    Prior reroute resolves hold A, the walk re-holds at B, and the FINAL resume
+    replays past the disposed concern hold A. HEAD RED: the concern-path guard
+    literal fires at A."""
+
+    prefix = "t7b-cpath-fc1"
+    plan, bricks = _linear_concern_plan(
+        prefix, ["design", "build", "rev1", "rev2", "close"], {"build": 5, "design": 5}
+    )
+    ambiguous = (bricks["design"], bricks["build"])
+    cb = _ConcernChainCallable(
+        {
+            bricks["rev1"]: ((f"brick-comparison:{bricks['rev1']}",), ambiguous),
+            bricks["rev2"]: ((f"brick-comparison:{bricks['rev2']}",), ambiguous),
+        }
+    )
+    return _drive_concern_chain(
+        repo,
+        fixture="F-C1",
+        plan=plan,
+        cb=cb,
+        prior_target_ref=bricks["build"],
+        final_target_ref=bricks["build"],
+        fan=False,
+    )
+
+
+def _fixture_f_c2(repo: Path) -> Mapping[str, Any]:
+    """F-C2 [fan graph concern + cohort]: a fan graph whose two lanes each raise
+    an AMBIGUOUS concern, so the concern hold and its guard fire inside the fan
+    branch (has_fan_groups True). Prior reroute resolves lane A, the walk
+    re-holds at lane B, and the FINAL resume replays past disposed lane A. HEAD
+    RED: same concern-path guard literal. GREEN (unmeasured) adds the cohort /
+    reroute_insert_width reproduction assertions (design D1.7 / edge_cases[4])."""
+
+    prefix = "t7b-cpath-fc2"
+    plan, bricks = _fan_concern_plan(prefix, {"root": 5, "join": 5})
+    ambiguous = (bricks["root"], bricks["join"])
+    cb = _ConcernChainCallable(
+        {
+            bricks["lane-a"]: ((f"brick-comparison:{bricks['lane-a']}",), ambiguous),
+            bricks["lane-b"]: ((f"brick-comparison:{bricks['lane-b']}",), ambiguous),
+        }
+    )
+    return _drive_concern_chain(
+        repo,
+        fixture="F-C2",
+        plan=plan,
+        cb=cb,
+        prior_target_ref=bricks["root"],
+        final_target_ref=bricks["root"],
+        fan=True,
+    )
+
+
+def _fixture_f_c3(repo: Path) -> Mapping[str, Any]:
+    """F-C3 [broken-mail concern]: two nodes each raise a SINGLE-target reroute
+    concern whose mandatory reason_ref is a ``step-output:`` address that does
+    NOT resolve in the ledger, so the runtime-mail re-read fails and the hold is
+    a BROKEN-MAIL concern hold (hold_reason runtime_handoff_address_unresolved_
+    in_ledger, walker_kernel.py:2226-2254). Prior reroute resolves hold A, the
+    walk re-holds at B, and the FINAL resume replays past disposed hold A. HEAD
+    RED: same concern-path guard literal, reached via the broken-mail site. The
+    (b)/GREEN branch carve-out proves a legitimate broken-mail RE-HOLD is NOT
+    mis-flagged as an already-disposed re-park (design edge_cases[2])."""
+
+    prefix = "t7b-cpath-fc3"
+    plan, bricks = _linear_concern_plan(
+        prefix, ["design", "build", "rev1", "rev2", "close"], {"build": 5, "design": 5}
+    )
+    ghost = ("step-output:t7b-cpath-fc3-ghost-slug:attempt-9",)
+    cb = _ConcernChainCallable(
+        {
+            bricks["rev1"]: (ghost, (bricks["build"],)),
+            bricks["rev2"]: (ghost, (bricks["build"],)),
+        }
+    )
+    return _drive_concern_chain(
+        repo,
+        fixture="F-C3",
+        plan=plan,
+        cb=cb,
+        prior_target_ref=bricks["build"],
+        final_target_ref=bricks["build"],
+        fan=False,
+    )
+
+
+def _reroute_coo_gate_policy(target_brick: str, obs: str) -> list[Mapping[str, Any]]:
+    """A gate-sequence policy that FORWARDS the default gate then REROUTES on the
+    COO gate to ``target_brick``. When that target's reroute budget is exhausted
+    the reroute lands as a gate_sequence_reroute_budget_exhausted HOLD
+    (walker_kernel.py:1846-1881) -- the SIXTH _require_undisposed_concern_hold
+    guard site."""
+
+    return [
+        {
+            "gate_ref": "link-gate:default-transition",
+            "on_missing_required_facts": {
+                "action": "hold",
+                "pending_target_basis": "target_brick",
+                "reason_refs": [f"observation:{obs}-dt"],
+                "required_disposition_owner": "caller-or-coo",
+            },
+            "on_sufficient": {"action": "next", "next_gate_ref": "link-gate:coo"},
+        },
+        {
+            "gate_ref": "link-gate:coo",
+            "on_missing_required_facts": {
+                "action": "reroute",
+                "target_ref": target_brick,
+                "required_target_budget": True,
+                "reason_refs": [f"observation:{obs}-coo"],
+            },
+            "on_sufficient": {"action": "forward"},
+        },
+    ]
+
+
+def _probe_pc1_gate_sequence_budget_exhausted(repo: Path) -> Mapping[str, Any]:
+    """P-C1 (labeled probe, D2): the gate-sequence reroute budget-exhausted hold
+    (walker_kernel.py:1881) is the SIXTH _require_undisposed_concern_hold guard
+    site, distinct from the five agent-concern sites. A prior disposition
+    re-reached on replay there ALSO fails loud with the concern-path guard
+    literal (NOT the forward-mirror path -- a gate-sequence-reroute hold has no
+    forward mirror). Two nodes reroute to a budget-1 target; design primes the
+    single landing so rev1/rev2 exhaust it and hold. Prior forward resolves the
+    rev1 exhausted hold, the walk re-holds exhausted at rev2, and the FINAL
+    resume replays past the disposed rev1 hold -> guard fires."""
+
+    from support.checkers.lib.fixture_graph_helpers import fixture_graph_link_edge
+
+    prefix = "t7b-cpath-pc1"
+    nodes = ["design", "build", "rev1", "rev2", "close"]
+    bricks = {n: f"brick-{prefix}-{n}" for n in nodes}
+    reroute_nodes = ("design", "rev1", "rev2")
+    order = [f"{prefix}-{n}" for n in nodes]
+    steps: list[Mapping[str, Any]] = []
+    edges: list[Mapping[str, Any]] = []
+    for i, n in enumerate(nodes):
+        step = _brick_step(
+            f"{prefix}-{n}", bricks[n], f"edge:{prefix}-{n}-to-"
+            + (nodes[i + 1] if i < len(nodes) - 1 else "boundary"),
+        )
+        steps.append(step)
+        if i < len(nodes) - 1:
+            nxt = nodes[i + 1]
+            edge_ref = f"edge:{prefix}-{n}-to-{nxt}"
+            gates = (
+                ["link-gate:default-transition", "link-gate:coo"]
+                if n in reroute_nodes
+                else ["link-gate:default-transition"]
+            )
+            edge = fixture_graph_link_edge(
+                edge_ref,
+                f"{prefix}-{n}",
+                bricks[nxt],
+                target_step_ref=f"{prefix}-{nxt}",
+                declared_gate_refs=gates,
+                falsy_declared_gate_refs_use_default=True,
+            )
+            if n in reroute_nodes:
+                edge["rows"][0]["gate_sequence_policy"] = _reroute_coo_gate_policy(
+                    bricks["build"], f"{prefix}-{n}-rr"
+                )
+            edges.append(edge)
+        else:
+            edges.append(
+                fixture_graph_link_edge(
+                    f"edge:{prefix}-{n}-to-boundary",
+                    f"{prefix}-{n}",
+                    f"building-boundary:{prefix}-closed",
+                    close_reason=f"{prefix} closed for gate-sequence budget probe.",
+                    falsy_declared_gate_refs_use_default=True,
+                )
+            )
+    plan = _concern_plan_scaffold(
+        prefix, order=order, steps=steps, edges=edges, budgets={bricks["build"]: 1}
+    )
+
+    cb = _CountingCallable()
+    with tempfile.TemporaryDirectory(prefix="bp-resume-cpath-pc1-") as tmp:
+        result = _run_to_hold(repo, plan, Path(tmp).resolve(), cb)
+        root = result.lifecycle_write.root
+        first_held = _held_records(result)
+        first_reason = str((first_held or [{}])[-1].get("hold_reason") or "")
+        if first_reason != "gate_sequence_reroute_budget_exhausted":
+            raise ProfileError(
+                "P-C1: setup did not reach the gate-sequence budget-exhausted hold "
+                f"(hold_reason={first_reason!r})"
+            )
+        # Prior forward resolves the rev1 exhausted hold -> re-hold at rev2.
+        _append_disposition_row(
+            root,
+            building_id=plan["building_id"],
+            pending_target_ref=_current_pending_target(result),
+            action="forward",
+        )
+        result = _resume(repo, root, cb)
+        if _frontier_kind(root, repo) != "link_paused":
+            raise ProfileError(
+                "P-C1: prior forward disposition did not leave a second exhausted "
+                f"hold held (frontier={_frontier_kind(root, repo)!r})"
+            )
+        _append_disposition_row(
+            root,
+            building_id=plan["building_id"],
+            pending_target_ref=_current_pending_target(result),
+            action="forward",
+        )
+        message = ""
+        try:
+            _resume(repo, root, cb)
+        except ValueError as exc:
+            message = str(exc)
+        else:
+            raise ProfileError(
+                "P-C1: replay past the disposed gate-sequence budget-exhausted hold "
+                "was NOT refused (the 6th concern-path guard did not fire)"
+            )
+        ok = (
+            message.startswith(CONCERN_PATH_HOLD_PREFIX)
+            and CONCERN_PATH_MIRROR_NOT_IMPLEMENTED in message
+        )
+        if not ok:
+            raise ProfileError(
+                "P-C1: gate-sequence budget-exhausted replay raised an UNEXPECTED "
+                f"literal; expected the concern-path guard, got {message!r}"
+            )
+    return {
+        "probe": "P-C1",
+        "observed": "gate_sequence_budget_exhausted_guard_fired",
+        "first_hold_reason": first_reason,
+        "message": message,
+    }
+
+
 def run(repo: Path) -> Mapping[str, Any]:
     fixtures = [
         _fixture_f_r1(repo),
@@ -970,12 +1673,22 @@ def run(repo: Path) -> Mapping[str, Any]:
         _fixture_f_s(repo),
         _fixture_f_m(repo),
     ]
+    concern_fixtures = [
+        _fixture_f_c1(repo),
+        _fixture_f_c2(repo),
+        _fixture_f_c3(repo),
+    ]
     probes = [
         _probe_p1_prior_stop_chain(repo),
         _probe_p2_concern_path_silent(repo),
         _probe_p3_divergence_guard(repo),
+        _probe_pc1_gate_sequence_budget_exhausted(repo),
     ]
-    return {"fixtures": fixtures, "probes": probes}
+    return {
+        "fixtures": fixtures,
+        "concern_fixtures": concern_fixtures,
+        "probes": probes,
+    }
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -988,8 +1701,9 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     repo = Path(args.repo).resolve()
     summary = run(repo)
-    branches = {f["fixture"]: f["branch"] for f in summary["fixtures"]}
-    for fixture in summary["fixtures"]:
+    all_fixtures = list(summary["fixtures"]) + list(summary.get("concern_fixtures", ()))
+    branches = {f["fixture"]: f["branch"] for f in all_fixtures}
+    for fixture in all_fixtures:
         print(
             f"  {fixture['fixture']}: {fixture['branch']}"
             + (
@@ -1002,7 +1716,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  {probe['probe']}: {probe['observed']}")
     print(
         "resume_replay_disposition_mirror passed: "
-        f"4 fixtures ({branches}), 3 probes observed."
+        f"{len(all_fixtures)} fixtures ({branches}), "
+        f"{len(summary['probes'])} probes observed."
     )
     return 0
 
