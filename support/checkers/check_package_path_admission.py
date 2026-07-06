@@ -834,6 +834,7 @@ ALLOWED_DIRS = {
     "support/connection",
     "support/operator",
     "support/onboarding",
+    "support/onboarding/assets",
     "support/onboarding/claude-hooks",
     "support/onboarding/codex-hooks",
     "support/import_identity",
@@ -2119,6 +2120,10 @@ def allowed_path(path: str) -> bool:
     if clean.startswith("support/docs/references/") and clean.endswith(".md"):
         return True
     if clean.startswith("support/docs/projection/") and clean.endswith(".md"):
+        return True
+    if clean.startswith("support/onboarding/assets/") and clean.endswith(
+        (".ansi", ".ascii", ".md")
+    ):
         return True
     return False
 
