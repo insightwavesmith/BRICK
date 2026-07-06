@@ -1186,7 +1186,11 @@ def build_parser() -> argparse.ArgumentParser:
     build.add_argument(
         "--graph-decl",
         default="",
-        help="JSON/YAML assemble-argument graph declaration file; rejects raw graph packet keys.",
+        help=(
+            "JSON/YAML assemble-argument graph declaration file; rejects raw graph packet keys. "
+            "Declaration action defaults to stop, which writes only work/proposed-building-graph.json; "
+            "set action=forward to run the declared Building."
+        ),
     )
     build.add_argument("--declared-by", default=DEFAULT_DECLARED_BY, help="Caller/COO declaration ref.")
     build.add_argument("--output-root", default=None, help="Evidence output root.")

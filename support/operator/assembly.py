@@ -65,6 +65,7 @@ from brick_protocol.support.operator.composition_route_policy import (
     _materializer_apply_constitutional_default_reroute_budget,
     _materializer_constitutional_default_reroute_budget,
 )
+from brick_protocol.support.operator.provider_registry import DEFAULT_MODEL_REF_BY_ADAPTER
 from brick_protocol.support.recording.contracts import require_positive_int
 from brick_protocol.support.operator.task_order_preflight import (
     lint_nodes,
@@ -851,6 +852,7 @@ def assemble_graph_declaration(
     if isinstance(nodes, (str, bytes)) or not isinstance(nodes, Sequence):
         raise TypeError("graph declaration nodes must be a sequence")
     task, task_source_ref = _graph_decl_task_fields(declaration)
+    adapter = _graph_decl_adapter(declaration.get("adapter") or declaration.get("adapter_ref"))
     return assemble(
         build([_graph_decl_item(item) for item in nodes]),
         declared_by=_graph_decl_text(declaration, "declared_by", default="coo"),
@@ -858,8 +860,11 @@ def assemble_graph_declaration(
         task=task,
         task_source_ref=task_source_ref,
         building_id=_graph_decl_optional_text(declaration.get("building_id")),
-        adapter=_graph_decl_adapter(declaration.get("adapter") or declaration.get("adapter_ref")),
-        model=_graph_decl_model(declaration.get("model") or declaration.get("model_ref")),
+        adapter=adapter,
+        model=_graph_decl_model(
+            declaration.get("model") or declaration.get("model_ref"),
+            adapter=adapter,
+        ),
         gates=_graph_decl_gates(declaration.get("gates", ())),
         adoption=declaration.get("adoption", Adoption.BINDING),
         shape=_graph_decl_optional_ref_tail(declaration.get("shape") or declaration.get("shape_ref"), "building-shape"),
@@ -937,6 +942,8 @@ def _graph_decl_item(item: Any) -> Any:
 
 def _graph_decl_node_options(item: Mapping[str, Any]) -> dict[str, Any]:
     opts: dict[str, Any] = {}
+    declared_adapter: str | None = None
+    declared_model = False
     for key in (
         "alias",
         "label",
@@ -961,10 +968,15 @@ def _graph_decl_node_options(item: Mapping[str, Any]) -> dict[str, Any]:
         if key not in item:
             continue
         value = item[key]
-        if key == "adapter_ref":
-            opts["adapter"] = value
+        if key in {"adapter", "adapter_ref"}:
+            declared_adapter = _graph_decl_adapter(value)
+            opts["adapter"] = declared_adapter
         elif key == "model_ref":
+            declared_model = True
             opts["model"] = value
+        elif key == "model":
+            declared_model = True
+            opts[key] = value
         elif key == "reasoning_effort_ref":
             opts["reasoning_effort"] = value
         elif key == "write_scope":
@@ -978,6 +990,8 @@ def _graph_decl_node_options(item: Mapping[str, Any]) -> dict[str, Any]:
             opts["route"] = _graph_decl_route_marks(value)
         else:
             opts[key] = value
+    if declared_adapter and not declared_model:
+        opts["model"] = _graph_decl_model(None, adapter=declared_adapter)
     return opts
 
 
@@ -1026,8 +1040,12 @@ def _graph_decl_adapter(value: Any) -> str:
     return _graph_decl_optional_ref_tail(value or "local", "adapter") or "local"
 
 
-def _graph_decl_model(value: Any) -> str:
-    return _graph_decl_optional_ref_tail(value or "default", "model") or "default"
+def _graph_decl_model(value: Any, *, adapter: str) -> str:
+    explicit = _graph_decl_optional_text(value)
+    if explicit:
+        return _prefixed_ref("model", explicit)
+    adapter_ref = _prefixed_ref("adapter", adapter)
+    return DEFAULT_MODEL_REF_BY_ADAPTER.get(adapter_ref, "model:default")
 
 
 def _graph_decl_gates(value: Any) -> tuple[Any, ...]:
@@ -1399,10 +1417,10 @@ def persist_proposed_building_graph(
     root = Path(output_root).expanduser().resolve()
     raw_goal_id = _optional_text(goal_id) or composed.building_id
     proposal_dir = root / _composition_slug(raw_goal_id)
-    proposal_path = proposal_dir / _PROPOSED_BUILDING_GRAPH_FILENAME
+    proposal_path = proposal_dir / "work" / _PROPOSED_BUILDING_GRAPH_FILENAME
     if proposal_path.exists() and not overwrite:
         raise FileExistsError(f"proposed Building graph already exists: {proposal_path}")
-    proposal_dir.mkdir(parents=True, exist_ok=True)
+    proposal_path.parent.mkdir(parents=True, exist_ok=True)
     proposal_path.write_text(
         json.dumps(composed.composed_plan, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",

@@ -35,6 +35,8 @@ EXPECTED_SURFACES = frozenset(
         "write_scope_commit_gate",
         "write_scope_segment_matcher",
         "hold_lifecycle",
+        "graphdecl_proposal_path",
+        "graphdecl_model_inheritance",
     }
 )
 MIN_AUDIT_MUTANTS = 5

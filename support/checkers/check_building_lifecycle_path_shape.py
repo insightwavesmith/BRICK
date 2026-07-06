@@ -88,6 +88,7 @@ MINIMAL_OPTIONAL_RECORDS = {
     ("work", "building-intake.json"),
     ("work", "preset-expansion.json"),
     ("work", "declared-building-plan.json"),
+    ("work", "proposed-building-graph.json"),
     ("work", "link-launch-policy.json"),
     ("capture", "events.jsonl"),
     # E1 (U5.5 slice-3): the live gate-sequence receipts + final policy action.
