@@ -50,7 +50,7 @@ sakana 라우팅이 compress-S1 개시 실패를 낸 정황 + Smith 지시로, *
 GP-O 결정①=B 채택 완료. ②실측 먼저는 B와 한 몸(자동), ③기본provider ④Windows ⑤한국어는 검수 실측 후 재론.
 
 ## 콘솔 Artifact
-claude.ai/code/artifact/b7c11b80-62ee-4d67-a063-6eb70c8a8e03 (favicon 🧱, url 파라미터로 같은 주소 재배포).
+claude.ai/code/artifact/b7c11b80-**** (전문 URL은 메모리 brick-session-0706afternoon-closeout, favicon 🧱, url 파라미터로 같은 주소 재배포).
 
 ## 각인
 - 랜딩 = coo_gate_runner.sh --land/--ship(비동기 기본, RESULT 줄+Slack 벨) 전용, 맨손 git 금지.
