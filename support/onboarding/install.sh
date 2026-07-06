@@ -23,9 +23,9 @@
 #      fresh-machine failure becomes a one-line Korean prescription, not a raw
 #      git error
 #   4. runs `uv sync` in the checkout
-#   5. installs the `brick` entrypoint through pipx from this editable checkout
-#   6. runs `brick init --non-interactive` by ABSOLUTE executable path
-#   7. prints the next step commands
+#   5. installs the `brick` entrypoint, runs first-use init, and verifies the
+#      checkout before printing the required success signal
+#   6. prints the next step commands
 #
 # SAFETY / LIMITS (read this honestly):
 #   - This script is HTTPS-only and carries NO secret / token. It relies on the
@@ -52,7 +52,6 @@ REPO_SLUG="${BRICK_REPO:-}"
 # uv run resolves the synced .venv (where brick-protocol + PyYAML live); a
 # bare python3 outside the venv raises ModuleNotFoundError.
 ONBOARD_ENTRY="uv run python3 -m brick_protocol.support.operator.onboard codex"
-CHECKER_ENTRY="PYTHONPATH=support/import_identity uv run python3 support/checkers/check_profile.py --all"
 
 main() {
     # --help / -h: print the friendly guide and stop.
@@ -157,8 +156,8 @@ main() {
     ( cd "$target" && uv sync )
     printf '%s\n' "4) 의존성 설치 완료 ✅"
 
-    # --- step 5: install the customer entrypoint through pipx ----------------
-    printf '%s\n' "5) brick 진입점을 pipx로 설치할게요 (editable checkout)..."
+    # --- entrypoint: install through pipx -------------------------------------
+    printf '%s\n' "brick 진입점을 pipx로 설치할게요 (editable checkout)..."
     pipx install --force --editable "$target"
     pipx_bin_dir="$(pipx environment --value PIPX_BIN_DIR 2>/dev/null || true)"
     if [ -z "$pipx_bin_dir" ]; then
@@ -183,21 +182,34 @@ main() {
             "  - 'pipx reinstall brick-protocol' 후 다시 실행해 주세요." >&2
         return 1
     fi
-    printf '%s\n' "5) brick 진입점 설치 완료 ✅ ($brick_entry)"
+    printf '%s\n' "brick 진입점 설치 완료 ✅ ($brick_entry)"
 
-    # --- step 6: run first-use init by ABSOLUTE path -------------------------
+    # --- init: run first-use init by ABSOLUTE path ----------------------------
     # Do not rely on this shell's PATH refresh for first success. The executable
     # path resolved above is used directly.
-    printf '%s\n' "" "6) brick init 을 바로 실행할게요 (절대경로 사용)..."
+    printf '%s\n' "" "brick init 을 바로 실행할게요 (절대경로 사용)..."
     "$brick_entry" init --non-interactive --repo "$target"
-    printf '%s\n' "6) brick init 완료 ✅"
+    printf '%s\n' "brick init 완료 ✅"
 
-    # --- step 7: next-step pointer (plain Korean) --------------------------
+    # --- install check: verify the installed checkout through the existing path
+    printf '%s\n' "" "설치 점검을 실행할게요 (brick verify)..."
+    if ! ( cd "$target" && "$brick_entry" verify ); then
+        printf '%s\n' \
+            "5) 설치 점검 실패" \
+            "  - 위의 verify 출력에서 첫 거절 문장을 확인한 뒤 다시 실행해 주세요." >&2
+        return 1
+    fi
+    printf '%s\n' "5) 설치 점검 완료"
+
+    # --- step 6: next-step pointer (plain Korean) ---------------------------
     printf '%s\n' \
         "" \
         "받은 게 멀쩡한지 확인하려면 (verify your download):" \
         "  $brick_entry verify" \
         "  (초록불 = exit 0 이면 정상이에요.)" \
+        "" \
+        "준비 상태 진단을 보려면:" \
+        "  $brick_entry doctor" \
         "" \
         "끝! 다음 한 줄부터 쓰면 돼요:" \
         "  brick status" \

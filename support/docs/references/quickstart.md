@@ -81,19 +81,17 @@ success, or quality.
 | `human_review_waiting` | `fake_landing_write_scope_diff_absent` or `write_scope_forbidden_diff_present` (`support/operator/frontier_observation.py::_latest_hold_reason`) | `forward`, `stop`, or explicit `reroute` | `raise` |
 | `link_paused` | `human_or_coo_gate_pause` (`support/operator/walker_resume.py::hold_disposition_action_menu`) | `forward`, `stop`, or explicit `reroute` | `raise` |
 
-## 가장 빠른 길: 위자드
+## 가장 빠른 길: 설치 후 진단
 
-`install.sh` 가 끝났다면, 첫 빌딩까지는 이 한 줄이 전부예요:
+`install.sh` 가 끝났다면, 준비 상태 진단은 이 한 줄입니다:
 
 ```bash
-uv run python3 -m brick_protocol.support.operator.onboard codex
+brick doctor
 ```
 
-(host 자리는 `codex | claude | gemini | local` — provider CLI가 하나도 없으면
-`local`. provider 없이도 돌아갑니다.) 위자드는 provider 준비 상태 점검 → 연결
-설정 안내 → 첫 예제 빌딩 support evidence(결과는 임시 폴더에만 기록;
-provider 준비 전에는 `agent_incomplete`/`not_ready` 가능) → 다음 단계 안내까지 알아서 진행해요. 이후 고객이 직접 쓰는
-공식 실행 표면은 `brick build` 하나입니다.
+진단은 provider 준비 상태와 증상 -> 처방 표를 보여줍니다. 이후 고객이
+직접 쓰는 공식 실행 표면은 `brick build` 하나입니다. provider 없이도
+`brick doctor` 와 `brick verify` 는 실행할 수 있습니다.
 
 ## AI-runnable onboarding checklist
 
@@ -108,7 +106,7 @@ expected: "5) 설치 점검 완료" 와 다음 온보딩 명령이 출력된다.
 failure signal: BRICK_REPO={OWNER}/BRICK 요청, gh auth login 요청, python3/uv 진단, 또는 clone/pull 실패.
 
 step: doctor
-command: cd ~/BRICK && uv run python3 -m brick_protocol.support.operator.onboard doctor
+command: cd ~/BRICK && brick doctor
 expected: provider별 준비 상태 표와 증상 -> 처방 표가 출력되고 exit 0.
 failure signal: doctor 자체 stack trace, 또는 repo 루트가 아닌 곳에서 실행한 import 실패.
 
@@ -150,7 +148,7 @@ directory`를 반복하는 경우입니다.
 
 ## 막혔을 때: 증상 → 처방
 
-`uv run python3 -m brick_protocol.support.operator.onboard doctor` 를 돌리면
+`brick doctor` 를 돌리면
 지금 컴퓨터의 준비 상태 점검과 함께 아래 표를 출력해요 (진단만 하고 항상
 exit 0).
 
