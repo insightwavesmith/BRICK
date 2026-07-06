@@ -40,10 +40,22 @@ DEFAULT_MODEL_REF_BY_ADAPTER = {
     ADAPTER_GEMINI_LOCAL: MODEL_REF_GEMINI_DEFAULT,
 }
 
+MODEL_REF_PROVIDER_BY_ADAPTER = {
+    ADAPTER_CLAUDE_LOCAL: "claude",
+    ADAPTER_CODEX_LOCAL: "codex",
+    ADAPTER_CODEX_FUGU_LOCAL: "sakana",
+    ADAPTER_GEMINI_LOCAL: "gemini",
+}
+
 LLM_ALIAS_DECLARATIONS = {
     "claude": {
         "adapter_ref": ADAPTER_CLAUDE_LOCAL,
         "model_ref": MODEL_REF_CLAUDE_INHERIT,
+        "model_aliases": {
+            "sonnet": "claude-sonnet-5",
+            "opus": "claude-opus-4.8",
+            "haiku": "claude-haiku-4.5",
+        },
     },
     "codex": {
         "adapter_ref": ADAPTER_CODEX_LOCAL,
@@ -74,6 +86,38 @@ def llm_alias_declaration(alias: str) -> Mapping[str, str]:
         allowed = ", ".join(sorted(LLM_ALIAS_DECLARATIONS))
         raise ValueError(f"llm alias must be one of: {allowed}")
     return declaration
+
+
+def resolve_model_alias_ref(adapter_ref: str, model_ref: str) -> str:
+    """Expand admitted provider model aliases to concrete model refs."""
+
+    provider = MODEL_REF_PROVIDER_BY_ADAPTER.get(adapter_ref)
+    if provider is None:
+        return model_ref
+    expected_prefix = f"model:{provider}:"
+    if not model_ref.startswith(expected_prefix):
+        _validate_model_ref_for_adapter(adapter_ref, model_ref)
+        return model_ref
+    model_id = model_ref.removeprefix(expected_prefix)
+    if model_id in {"default", "inherit"} or model_id.startswith(f"{provider}-"):
+        _validate_model_ref_for_adapter(adapter_ref, model_ref)
+        return model_ref
+    declaration = LLM_ALIAS_DECLARATIONS.get(provider)
+    aliases = declaration.get("model_aliases") if isinstance(declaration, Mapping) else None
+    if not isinstance(aliases, Mapping):
+        _validate_model_ref_for_adapter(adapter_ref, model_ref)
+        return model_ref
+    resolved = aliases.get(model_id) if isinstance(aliases, Mapping) else None
+    if isinstance(resolved, str) and resolved.strip():
+        resolved_ref = f"{expected_prefix}{resolved.strip()}"
+        _validate_model_ref_for_adapter(adapter_ref, resolved_ref)
+        return resolved_ref
+    allowed = ", ".join(sorted(aliases)) if isinstance(aliases, Mapping) else ""
+    raise ValueError(
+        f"selected_model_ref {provider} alias is not admitted; use "
+        f"model:{provider}:<{provider}-model-id>"
+        + (f" or one of aliases: {allowed}" if allowed else "")
+    )
 
 
 def brick_home() -> Path:

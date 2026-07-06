@@ -137,6 +137,7 @@ def build_adapter_usage_record(
         "attempt_index": attempt_index,
         "adapter_ref": adapter_ref,
         "selected_model_ref": selected_model_ref,
+        "dispatched_model": _dispatched_model(adapter_ref, selected_model_ref, adapter_usage),
         "usage_present": usage_present,
         # ALLOWLISTED token counters (null when absent). NEVER a verdict.
         "usage": usage_counters,
@@ -168,6 +169,30 @@ def build_adapter_usage_record(
         event_type="bp.raw.adapter_usage",
         subject=step_ref,
     )
+
+
+def _dispatched_model(
+    adapter_ref: str,
+    selected_model_ref: str,
+    adapter_usage: Mapping[str, Any] | None,
+) -> str:
+    if isinstance(adapter_usage, Mapping):
+        dispatched = adapter_usage.get("dispatched_model")
+        if isinstance(dispatched, str) and dispatched.strip():
+            return dispatched.strip()
+    try:
+        from brick_protocol.support.connection.adapter_model_casting import (
+            project_model_ref_to_cli_arg,
+        )
+        from brick_protocol.support.operator.provider_registry import resolve_model_alias_ref
+
+        projected = project_model_ref_to_cli_arg(
+            adapter_ref,
+            resolve_model_alias_ref(adapter_ref, selected_model_ref),
+        )
+    except (TypeError, ValueError):
+        projected = ""
+    return projected or "declared-default"
 
 
 def _allowlisted_usage_counters(adapter_usage: Mapping[str, Any] | None) -> dict[str, Any]:

@@ -114,6 +114,21 @@ def _build_record(adapter_usage: Mapping[str, object] | None) -> Mapping[str, ob
     )
 
 
+def _build_claude_alias_record() -> Mapping[str, object]:
+    from brick_protocol.support.recording.adapter_usage_meter import (
+        build_adapter_usage_record,
+    )
+
+    return build_adapter_usage_record(
+        building_id="building-meter-fixture",
+        step_ref="step:meter-fixture",
+        adapter_ref="adapter:claude-local",
+        selected_model_ref="model:claude:sonnet",
+        attempt_index=1,
+        adapter_usage={"input_tokens": 1, "output_tokens": 1},
+    )
+
+
 def _assert_present_usage_record() -> str:
     fixture = {
         "input_tokens": 1234,
@@ -125,6 +140,10 @@ def _assert_present_usage_record() -> str:
     if record.get("usage_present") is not True:
         raise AdapterUsageMeterError(
             "present-usage record did not set usage_present=True"
+        )
+    if record.get("dispatched_model") != "declared-default":
+        raise AdapterUsageMeterError(
+            "present default-model usage record did not record dispatched_model=declared-default"
         )
     usage = record.get("usage")
     if not isinstance(usage, Mapping):
@@ -156,6 +175,15 @@ def _assert_present_usage_record() -> str:
         "present-usage: allowlisted counters carried (input/output + codex "
         "cached->cache_read), reasoning provenance recorded, usage_present=True"
     )
+
+
+def _assert_dispatched_model_alias_record() -> str:
+    record = _build_claude_alias_record()
+    if record.get("dispatched_model") != "claude-sonnet-5":
+        raise AdapterUsageMeterError(
+            "Claude alias usage record did not resolve dispatched_model to claude-sonnet-5"
+        )
+    return "dispatched-model: usage row records the concrete CLI model for Claude aliases"
 
 
 def _assert_absent_usage_record() -> str:
@@ -1122,6 +1150,7 @@ def _assert_step_output_carries_no_usage(repo: Path) -> str:
 def check(repo: Path) -> list[str]:
     lines = [
         _assert_present_usage_record(),
+        _assert_dispatched_model_alias_record(),
         _assert_absent_usage_record(),
         _assert_no_forbidden_keys_in_record(),
         _assert_no_usage_in_codex_returned(repo),
