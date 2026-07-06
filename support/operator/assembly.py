@@ -802,6 +802,293 @@ def hold(on: Concern) -> HoldMark:
     return HoldMark(on=on)
 
 
+_GRAPH_DECL_PACKET_KEYS = frozenset(
+    {
+        "brick_steps",
+        "declared_plan_copy",
+        "edges",
+        "execution_order",
+        "groups",
+        "link_edges",
+        "plan_ref",
+        "plan_shape",
+        "steps",
+    }
+)
+
+
+def load_graph_declaration(path: Path | str) -> Mapping[str, Any]:
+    """Load a caller/COO graph declaration file as assemble/build arguments."""
+
+    decl_path = Path(path).expanduser().resolve()
+    if decl_path.suffix not in {".json", ".yaml", ".yml"}:
+        raise ValueError("graph declaration must be a JSON/YAML file")
+    text = decl_path.read_text(encoding="utf-8")
+    if decl_path.suffix in {".yaml", ".yml"}:
+        try:
+            import yaml  # type: ignore[import-not-found]
+        except ImportError as exc:
+            raise ValueError("YAML graph declarations require PyYAML") from exc
+        loaded = yaml.safe_load(text)
+    else:
+        loaded = json.loads(text)
+    if not isinstance(loaded, Mapping):
+        raise TypeError("graph declaration must be a mapping")
+    return loaded
+
+
+def assemble_graph_declaration(
+    declaration: Mapping[str, Any],
+    *,
+    repo_root: Path | str = REPO_ROOT,
+) -> ComposedGraph:
+    """Lower one declaration file body through the existing build()/assemble() path."""
+
+    if not isinstance(declaration, Mapping):
+        raise TypeError("graph declaration must be a mapping")
+    _reject_graph_packet_keys(declaration)
+    nodes = declaration.get("nodes")
+    if isinstance(nodes, (str, bytes)) or not isinstance(nodes, Sequence):
+        raise TypeError("graph declaration nodes must be a sequence")
+    task, task_source_ref = _graph_decl_task_fields(declaration)
+    return assemble(
+        build([_graph_decl_item(item) for item in nodes]),
+        declared_by=_graph_decl_text(declaration, "declared_by", default="coo"),
+        authority=_graph_decl_authority(declaration.get("authority")),
+        task=task,
+        task_source_ref=task_source_ref,
+        building_id=_graph_decl_optional_text(declaration.get("building_id")),
+        adapter=_graph_decl_adapter(declaration.get("adapter") or declaration.get("adapter_ref")),
+        model=_graph_decl_model(declaration.get("model") or declaration.get("model_ref")),
+        gates=_graph_decl_gates(declaration.get("gates", ())),
+        adoption=declaration.get("adoption", Adoption.BINDING),
+        shape=_graph_decl_optional_ref_tail(declaration.get("shape") or declaration.get("shape_ref"), "building-shape"),
+        repo_root=repo_root,
+        write_scope=_graph_decl_optional_mapping(declaration.get("write_scope"), "write_scope"),
+        expansion_budget=declaration.get("expansion_budget"),
+        expansion_node_budgets=_graph_decl_optional_mapping(
+            declaration.get("expansion_node_budgets"),
+            "expansion_node_budgets",
+        ),
+    )
+
+
+def graph_declaration_action(declaration: Mapping[str, Any]) -> str:
+    action = str(declaration.get("action") or "stop").strip().lower()
+    if action not in {"forward", "stop"}:
+        raise ValueError("graph declaration action must be forward or stop")
+    return action
+
+
+def graph_declaration_author_ref(declaration: Mapping[str, Any]) -> str:
+    author = str(declaration.get("author_ref") or "coo:graph-decl").strip()
+    if not author:
+        raise ValueError("graph declaration author_ref must be non-empty")
+    return author
+
+
+def graph_declaration_timeout(declaration: Mapping[str, Any], default: int) -> int:
+    return require_positive_int(
+        declaration.get("adapter_timeout_seconds", default),
+        "adapter_timeout_seconds",
+        allow_decimal_text=False,
+    )
+
+
+def graph_declaration_output_root(declaration: Mapping[str, Any]) -> str:
+    return str(declaration.get("output_root") or "").strip()
+
+
+def _reject_graph_packet_keys(declaration: Mapping[str, Any]) -> None:
+    observed = sorted(key for key in declaration if str(key) in _GRAPH_DECL_PACKET_KEYS)
+    if observed:
+        raise ValueError(
+            "graph declaration accepts assemble/build arguments, not raw graph packet keys: "
+            + ", ".join(observed)
+        )
+
+
+def _graph_decl_item(item: Any) -> Any:
+    if isinstance(item, Mapping):
+        if "fan" in item:
+            fan_block = _graph_decl_mapping(item["fan"], "fan")
+            branches = fan_block.get("branches")
+            if isinstance(branches, (str, bytes)) or not isinstance(branches, Sequence):
+                raise TypeError("fan.branches must be a sequence")
+            return fan(
+                [_graph_decl_item(branch) for branch in branches],
+                sibling_independence=_graph_decl_text_sequence(
+                    fan_block.get("sibling_independence", ()),
+                    "fan.sibling_independence",
+                ),
+            )
+        kind = _graph_decl_text(item, "kind")
+        work = _graph_decl_text(
+            item,
+            "work_statement",
+            default=str(item.get("work") or ""),
+        )
+        opts = _graph_decl_node_options(item)
+        return [kind, work, opts] if opts else [kind, work]
+    if isinstance(item, Sequence) and not isinstance(item, (str, bytes)):
+        return item
+    raise TypeError("graph declaration node must be a mapping or node literal")
+
+
+def _graph_decl_node_options(item: Mapping[str, Any]) -> dict[str, Any]:
+    opts: dict[str, Any] = {}
+    for key in (
+        "alias",
+        "label",
+        "as",
+        "write",
+        "returns",
+        "agent",
+        "gates",
+        "adapter",
+        "adapter_ref",
+        "model",
+        "model_ref",
+        "reasoning_effort",
+        "reasoning_effort_ref",
+        "effort",
+        "source_facts",
+        "node_write_scope",
+        "write_scope",
+        "proof_obligations",
+        "route",
+    ):
+        if key not in item:
+            continue
+        value = item[key]
+        if key == "adapter_ref":
+            opts["adapter"] = value
+        elif key == "model_ref":
+            opts["model"] = value
+        elif key == "reasoning_effort_ref":
+            opts["reasoning_effort"] = value
+        elif key == "write_scope":
+            opts["node_write_scope"] = _graph_decl_mapping(value, key)
+            opts["write"] = True
+        elif key == "gates":
+            opts["gates"] = _graph_decl_gates(value)
+        elif key == "source_facts":
+            opts["source_facts"] = _graph_decl_text_sequence(value, key)
+        elif key == "route":
+            opts["route"] = _graph_decl_route_marks(value)
+        else:
+            opts[key] = value
+    return opts
+
+
+def _graph_decl_route_marks(value: Any) -> tuple[Any, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        raise TypeError("route must be a sequence")
+    marks: list[Any] = []
+    for index, row in enumerate(value):
+        mapping = _graph_decl_mapping(row, f"route[{index}]")
+        action = str(mapping.get("action") or "").strip().lower()
+        concern = _graph_decl_concern(mapping.get("on"), f"route[{index}].on")
+        if action == "hold":
+            marks.append(hold(concern))
+        elif action == "reroute" and "back" in mapping:
+            marks.append(reroute(concern, back(mapping["back"]), budget=mapping.get("budget")))
+        else:
+            raise ValueError(f"route[{index}].action must be hold or reroute with back")
+    return tuple(marks)
+
+
+def _graph_decl_concern(value: Any, label: str) -> Concern:
+    text = _graph_decl_text({"value": value}, "value")
+    try:
+        return Concern(text)
+    except ValueError as exc:
+        raise ValueError(f"{label} is not an admitted concern kind") from exc
+
+
+def _graph_decl_task_fields(declaration: Mapping[str, Any]) -> tuple[str | None, str | None]:
+    task = declaration.get("task")
+    task_file = declaration.get("task_file")
+    if task is not None and task_file is not None:
+        raise ValueError("graph declaration must declare only one of task or task_file")
+    return _graph_decl_optional_text(task), _graph_decl_optional_text(task_file)
+
+
+def _graph_decl_authority(value: Any) -> Authority:
+    text = str(value or Authority.COO.value).strip().lower()
+    try:
+        return Authority(text)
+    except ValueError as exc:
+        raise ValueError("graph declaration authority must be caller or coo") from exc
+
+
+def _graph_decl_adapter(value: Any) -> str:
+    return _graph_decl_optional_ref_tail(value or "local", "adapter") or "local"
+
+
+def _graph_decl_model(value: Any) -> str:
+    return _graph_decl_optional_ref_tail(value or "default", "model") or "default"
+
+
+def _graph_decl_gates(value: Any) -> tuple[Any, ...]:
+    return tuple(_graph_decl_text_sequence(value, "gates"))
+
+
+def _graph_decl_mapping(value: Any, label: str) -> Mapping[str, Any]:
+    if not isinstance(value, Mapping):
+        raise TypeError(f"{label} must be a mapping")
+    return value
+
+
+def _graph_decl_optional_mapping(value: Any, label: str) -> Mapping[str, Any] | None:
+    if value is None:
+        return None
+    return _graph_decl_mapping(value, label)
+
+
+def _graph_decl_text(mapping: Mapping[str, Any], key: str, *, default: str | None = None) -> str:
+    value = mapping.get(key, default)
+    if not isinstance(value, str):
+        raise TypeError(f"{key} must be text")
+    text = value.strip()
+    if not text:
+        raise ValueError(f"{key} must be non-empty text")
+    return text
+
+
+def _graph_decl_optional_text(value: Any) -> str | None:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise TypeError("graph declaration text fields must be text")
+    return value.strip() or None
+
+
+def _graph_decl_text_sequence(value: Any, label: str) -> tuple[str, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        raise TypeError(f"{label} must be a sequence")
+    rows: list[str] = []
+    for index, item in enumerate(value):
+        if not isinstance(item, str):
+            raise TypeError(f"{label}[{index}] must be text")
+        text = item.strip()
+        if text:
+            rows.append(text)
+    return tuple(rows)
+
+
+def _graph_decl_ref_tail(value: Any, prefix: str) -> str:
+    text = _graph_decl_text({"value": value}, "value")
+    return text.split(":", 1)[1] if text.startswith(f"{prefix}:") else text
+
+
+def _graph_decl_optional_ref_tail(value: Any, prefix: str) -> str | None:
+    text = _graph_decl_optional_text(value)
+    if text is None:
+        return None
+    return text.split(":", 1)[1] if text.startswith(f"{prefix}:") else text
+
+
 def assemble(
     graph: GraphSpec,
     *,
@@ -2287,6 +2574,7 @@ __all__ = [
     "GraphSpec",
     "agent",
     "assemble",
+    "assemble_graph_declaration",
     "back",
     "brick",
     "build",
@@ -2299,6 +2587,11 @@ __all__ = [
     "fan_in",
     "fan_out",
     "hold",
+    "graph_declaration_action",
+    "graph_declaration_author_ref",
+    "graph_declaration_output_root",
+    "graph_declaration_timeout",
+    "load_graph_declaration",
     "lower_route",
     "persist_proposed_building_graph",
     "reroute",

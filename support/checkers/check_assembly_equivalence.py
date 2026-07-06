@@ -37,6 +37,7 @@ from brick_protocol.support.operator.assembly import (
     Gate,
     agent,
     assemble,
+    assemble_graph_declaration,
     back,
     brick,
     build,
@@ -48,6 +49,7 @@ from brick_protocol.support.operator.assembly import (
     fan_in,
     fan_out,
     hold,
+    graph_declaration_action,
     persist_proposed_building_graph,
     reroute,
 )
@@ -1453,6 +1455,231 @@ def _sibling_independence_dsl_fire(repo: Path) -> tuple[str, ...]:
         _assert_raises("empty sibling_independence ref", ValueError, empty_ref_probe),
         _assert_raises("non-source sibling_independence ref", ValueError, non_source_ref_probe),
     )
+
+
+def _graph_declaration_fire(repo: Path) -> tuple[str, ...]:
+    graph_scope = {
+        "allowed_paths": ["support/checkers/**", "support/operator/**"],
+        "forbidden_paths": [".git/**"],
+    }
+    declaration = {
+        "building_id": "heart-phase0-graph-decl",
+        "declared_by": DECLARED_BY,
+        "author_ref": "coo:smith",
+        "action": "stop",
+        "task": "graph declaration checker task",
+        "adapter": "codex-local",
+        "model": "default",
+        "gates": ["strict-evidence"],
+        "write_scope": graph_scope,
+        "expansion_budget": 2,
+        "adapter_timeout_seconds": 30,
+        "nodes": [
+            {
+                "kind": "development",
+                "work_statement": "graph declaration design",
+                "source_facts": ["observation:decl-design"],
+            },
+            {
+                "fan": {
+                    "branches": [
+                        {
+                            "kind": "code-attack-qa",
+                            "work_statement": "graph declaration code lens",
+                            "adapter_ref": "adapter:gemini-local",
+                        },
+                        {
+                            "kind": "axis-attack-qa",
+                            "work_statement": "graph declaration axis lens",
+                            "reasoning_effort_ref": "effort:high",
+                        },
+                    ],
+                    "sibling_independence": ["code-attack-qa"],
+                }
+            },
+            {
+                "kind": "work",
+                "work_statement": (
+                    "# Graph declaration closure work\n\n"
+                    "## Deliverables\n"
+                    "D1: edit support/checkers/check_assembly_equivalence.py\n\n"
+                    "## Done Criteria\n"
+                    "Return observed evidence only."
+                ),
+                "write_scope": {
+                    "allowed_paths": ["support/checkers/check_assembly_equivalence.py"],
+                    "forbidden_paths": [".git/**"],
+                },
+            },
+            {"kind": "closure", "work_statement": "graph declaration close"},
+        ],
+    }
+    via_decl = assemble_graph_declaration(declaration, repo_root=repo)
+    via_python = assemble(
+        build(
+            [
+                brick(
+                    "development",
+                    "graph declaration design",
+                    source_facts=["observation:decl-design"],
+                ),
+                fan(
+                    [
+                        brick(
+                            "code-attack-qa",
+                            "graph declaration code lens",
+                            adapter="adapter:gemini-local",
+                        ),
+                        brick(
+                            "axis-attack-qa",
+                            "graph declaration axis lens",
+                            reasoning_effort="effort:high",
+                        ),
+                    ],
+                    sibling_independence=["code-attack-qa"],
+                ),
+                brick(
+                    "work",
+                    "# Graph declaration closure work\n\n"
+                    "## Deliverables\n"
+                    "D1: edit support/checkers/check_assembly_equivalence.py\n\n"
+                    "## Done Criteria\n"
+                    "Return observed evidence only.",
+                    write=True,
+                    node_write_scope={
+                        "allowed_paths": ["support/checkers/check_assembly_equivalence.py"],
+                        "forbidden_paths": [".git/**"],
+                    },
+                ),
+                brick("closure", "graph declaration close"),
+            ]
+        ),
+        declared_by=DECLARED_BY,
+        authority=Authority.COO,
+        task="graph declaration checker task",
+        building_id="heart-phase0-graph-decl",
+        adapter="codex-local",
+        model="default",
+        gates=(Gate.STRICT_EVIDENCE,),
+        repo_root=repo,
+        write_scope=graph_scope,
+        expansion_budget=2,
+    )
+    if _graph_decl_contract(via_decl.composed_plan) != _graph_decl_contract(via_python.composed_plan):
+        raise AssemblyEquivalenceError("graph declaration did not lower to the same contract snapshot as Python assemble()")
+    if graph_declaration_action(declaration) != "stop":
+        raise AssemblyEquivalenceError("graph declaration action stop was not preserved")
+    from brick_protocol.support.operator.cli import _render_build
+
+    rendered = _render_build(
+        {
+            "repo_root": str(repo),
+            "build_input_mode": "graph_decl",
+            "building_id": via_decl.building_id,
+            "adapter_ref": via_decl.selected_adapter_ref,
+            "chain_preset_ref": "",
+            "frontier_kind": "",
+            "customer_visible_frontier_state": "not_ready",
+            "customer_visible_not_ready": True,
+            "customer_visible_frontier_message": "not ready: graph declaration action did not run a Building.",
+            "proof_limits": [PROOF_LIMIT],
+            "not_proven": ["future Building correctness"],
+            "repo_root_warnings": ["repo_root differs from cwd git root: cwd_repo=/tmp/other"],
+        }
+    )
+    if rendered.splitlines()[0] != f"repo_root: {repo}":
+        raise AssemblyEquivalenceError("brick build render did not put resolved repo_root on the first line")
+    if "warning: repo_root differs from cwd git root:" not in rendered:
+        raise AssemblyEquivalenceError("brick build render did not include repo_root warning lines")
+
+    with tempfile.TemporaryDirectory(prefix="bp-graph-decl-") as tmp_raw:
+        proposal_path = persist_proposed_building_graph(
+            via_decl,
+            Path(tmp_raw) / "out",
+            overwrite=True,
+        )
+        if not proposal_path.is_file():
+            raise AssemblyEquivalenceError("graph declaration did not persist a frozen proposal")
+        from brick_protocol.support.operator.onboard import run_goal_approve_entry
+
+        stopped = run_goal_approve_entry(
+            proposal_path,
+            action="stop",
+            author_ref="coo:smith",
+            output_root=Path(tmp_raw) / "runs",
+            repo_root=repo,
+        )
+        if stopped.get("ran") is not False or not stopped.get("ok"):
+            raise AssemblyEquivalenceError(f"graph declaration stop approval did not halt: {stopped!r}")
+
+    def packet_key_probe() -> None:
+        assemble_graph_declaration(
+            {
+                "building_id": "graph-decl-packet-red",
+                "declared_by": DECLARED_BY,
+                "task": "packet key red",
+                "plan_shape": "graph",
+                "brick_steps": [],
+                "nodes": [],
+            },
+            repo_root=repo,
+        )
+
+    def mutation_probe() -> None:
+        mutated = copy.deepcopy(declaration)
+        mutated["nodes"][2]["write_scope"] = {
+            "allowed_paths": ["brick/spec.py"],
+            "forbidden_paths": [".git/**"],
+        }
+        assemble_graph_declaration(mutated, repo_root=repo)
+
+    return (
+        "graph-decl green: declaration file shape lowered through build()/assemble() to the Python contract snapshot.",
+        "graph-decl green: brick build render puts resolved repo_root on line one and preserves warning lines.",
+        "graph-decl green: dry action=stop persisted only the frozen proposal and ran no Building root.",
+        _assert_raises("graph-decl raw packet keys", ValueError, packet_key_probe),
+        _assert_raises("graph-decl node write_scope widening", ValueError, mutation_probe),
+    )
+
+
+def _graph_decl_contract(plan: Mapping[str, Any]) -> Mapping[str, Any]:
+    steps = []
+    for step in plan.get("brick_steps", ()):
+        if not isinstance(step, Mapping):
+            continue
+        brick_row = _brick_row(step)
+        agent_row = _agent_row(step)
+        steps.append(
+            {
+                "step_ref": step.get("step_ref"),
+                "step_template_ref": step.get("step_template_ref"),
+                "work_statement": brick_row.get("work_statement"),
+                "source_facts": brick_row.get("source_facts", []),
+                "write_scope": brick_row.get("write_scope"),
+                "requires_brick_write_scope": brick_row.get("requires_brick_write_scope"),
+                "selected_adapter_ref": agent_row.get("selected_adapter_ref"),
+                "selected_model_ref": agent_row.get("selected_model_ref"),
+                "selected_reasoning_effort_ref": agent_row.get("selected_reasoning_effort_ref"),
+            }
+        )
+    edges = [
+        {
+            "source_step_ref": edge.get("source_step_ref"),
+            "target_step_ref": edge.get("target_step_ref"),
+            "declared_gate_refs": _link_row(edge).get("declared_gate_refs"),
+        }
+        for edge in plan.get("link_edges", ())
+        if isinstance(edge, Mapping)
+    ]
+    return {
+        "building_id": plan.get("building_id"),
+        "task_statement": plan.get("task_statement"),
+        "execution_order": list(plan.get("execution_order", ())),
+        "steps": steps,
+        "edges": edges,
+        "groups": list(plan.get("groups", ())),
+        "expansion_budget": plan.get("expansion_budget"),
+    }
 
 
 def _node_write_scope_fire(repo: Path) -> tuple[str, ...]:
@@ -3247,6 +3474,7 @@ def run(repo: Path) -> list[str]:
 
     outputs.extend(_build_fan_equivalence_fire(repo))
     outputs.extend(_sibling_independence_dsl_fire(repo))
+    outputs.extend(_graph_declaration_fire(repo))
     outputs.extend(_node_write_scope_fire(repo))
     outputs.extend(_node_gates_fire(repo))
     outputs.extend(_write_scope_derivation_fire(repo))

@@ -21,6 +21,7 @@ import argparse
 import contextlib
 import io
 import json
+import subprocess
 from collections.abc import Sequence
 from datetime import datetime, timezone
 from typing import Any
@@ -42,9 +43,19 @@ from support.connection.agent_adapter import adapter_is_write_capable
 from support.connection.adapter_subprocess import preflight_provider
 from support.operator.first_use import FIRST_USE_FILENAME, write_first_use
 from support.operator import onboard
+from support.operator.assembly import (
+    assemble_graph_declaration,
+    graph_declaration_action,
+    graph_declaration_author_ref,
+    graph_declaration_output_root,
+    graph_declaration_timeout,
+    load_graph_declaration,
+    persist_proposed_building_graph,
+)
 from support.operator.driver import (
     run_customer_building_in_sandbox,
 )
+from support.operator.onboard import run_goal_approve_entry
 from support.recording.capture import default_buildings_root
 
 
@@ -136,6 +147,46 @@ def _repo_from_args(args: argparse.Namespace) -> Path:
     if raw_repo:
         return Path(raw_repo).resolve()
     return _REPO_ROOT
+
+
+def _git_stdout(argv: Sequence[str], *, cwd: Path) -> str:
+    result = subprocess.run(
+        ["git", *argv],
+        cwd=str(cwd),
+        check=False,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+    )
+    return result.stdout.strip() if result.returncode == 0 else ""
+
+
+def _resolved_repo_root_observation(repo: Path) -> dict[str, Any]:
+    cwd_repo = _git_stdout(["rev-parse", "--show-toplevel"], cwd=Path.cwd())
+    resolved = str(repo.resolve())
+    warnings: list[str] = []
+    if cwd_repo and Path(cwd_repo).resolve() != repo.resolve():
+        warnings.append(f"repo_root differs from cwd git root: cwd_repo={Path(cwd_repo).resolve()}")
+
+    upstream = _git_stdout(["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"], cwd=repo)
+    behind_count = ""
+    if upstream:
+        counts = _git_stdout(["rev-list", "--left-right", "--count", f"HEAD...{upstream}"], cwd=repo)
+        parts = counts.split()
+        if len(parts) == 2:
+            behind_count = parts[1]
+            try:
+                if int(behind_count) > 0:
+                    warnings.append(f"repo_root HEAD is behind {upstream} by {behind_count} commit(s)")
+            except ValueError:
+                pass
+    return {
+        "repo_root": resolved,
+        "cwd_repo_root": str(Path(cwd_repo).resolve()) if cwd_repo else "",
+        "repo_root_warnings": warnings,
+        "repo_root_upstream_ref": upstream,
+        "repo_root_behind_count": behind_count,
+    }
 
 
 def _hermetic_verify_argv(repo: Path) -> list[str]:
@@ -371,6 +422,8 @@ def _materialized_step_adapter_evidence(plan_path: Path) -> list[dict[str, str]]
 
 def _run_build(args: argparse.Namespace) -> dict[str, Any]:
     repo = _repo_from_args(args)
+    if getattr(args, "graph_decl", ""):
+        return _run_graph_declaration_build(args, repo=repo)
     output_root = (
         Path(args.output_root).expanduser().resolve()
         if args.output_root
@@ -414,6 +467,7 @@ def _run_build(args: argparse.Namespace) -> dict[str, Any]:
         "proof_limits": list(PROOF_LIMITS),
         "not_proven": list(NOT_PROVEN),
     }
+    packet.update(_resolved_repo_root_observation(repo))
     packet.update(_support_observation_packet())
     if intake is not None:
         packet.update(
@@ -430,17 +484,84 @@ def _run_build(args: argparse.Namespace) -> dict[str, Any]:
     return packet
 
 
+def _run_graph_declaration_build(args: argparse.Namespace, *, repo: Path) -> dict[str, Any]:
+    declaration_path = Path(args.graph_decl).expanduser().resolve()
+    declaration = load_graph_declaration(declaration_path)
+    composed = assemble_graph_declaration(declaration, repo_root=repo)
+    declared_output_root = graph_declaration_output_root(declaration)
+    output_root = (
+        Path(args.output_root).expanduser().resolve()
+        if args.output_root
+        else Path(declared_output_root).expanduser().resolve()
+        if declared_output_root
+        else _active_slack_buildings_root()
+    )
+    proposal_path = persist_proposed_building_graph(
+        composed,
+        output_root,
+        overwrite=bool(args.overwrite_existing),
+    )
+    action = graph_declaration_action(declaration)
+    timeout = graph_declaration_timeout(declaration, args.timeout)
+    approval = run_goal_approve_entry(
+        proposal_path,
+        action=action,
+        author_ref=graph_declaration_author_ref(declaration),
+        output_root=output_root,
+        repo_root=repo,
+        overwrite_existing=bool(args.overwrite_existing),
+        adapter_timeout_seconds=timeout,
+        proof_limits=PROOF_LIMITS,
+    )
+    packet: dict[str, Any] = {
+        "command": "build",
+        "build_input_mode": "graph_decl",
+        "graph_decl_path": str(declaration_path),
+        "output_root": str(output_root),
+        "building_id": composed.building_id,
+        "declared_by": composed.declared_by,
+        "adapter_ref": composed.selected_adapter_ref,
+        "selected_model_ref": composed.selected_model_ref,
+        "chain_preset_ref": "",
+        "proposal_ref": str(proposal_path),
+        "approval_result": approval,
+        "action": action,
+        "ran": bool(approval.get("ran")),
+        "plan_path": str(proposal_path),
+        "plan_shape": composed.composed_plan.get("plan_shape", "graph"),
+        "materialized_step_adapters": _materialized_step_adapter_evidence(proposal_path),
+        "proof_limits": list(PROOF_LIMITS),
+        "not_proven": list(NOT_PROVEN),
+    }
+    packet.update(_resolved_repo_root_observation(repo))
+    packet.update(_support_observation_packet())
+    if approval.get("evidence_root"):
+        packet["evidence_root"] = approval.get("evidence_root")
+    if approval.get("frontier_kind"):
+        frontier_kind = str(approval.get("frontier_kind"))
+        packet["frontier_kind"] = frontier_kind
+        packet["customer_visible_frontier_state"] = _customer_visible_frontier_state(frontier_kind)
+        packet["customer_visible_not_ready"] = frontier_kind != "complete"
+        packet["customer_visible_frontier_message"] = _customer_visible_frontier_message(frontier_kind)
+    else:
+        packet["frontier_kind"] = ""
+        packet["customer_visible_frontier_state"] = "not_ready"
+        packet["customer_visible_not_ready"] = True
+        packet["customer_visible_frontier_message"] = "not ready: graph declaration action did not run a Building."
+    return packet
+
+
 def _render_build(packet: dict[str, Any]) -> str:
     lines = [
+        f"repo_root: {packet['repo_root']}",
         "Brick build support evidence",
         f"build_input_mode: {packet.get('build_input_mode', 'preset_task')}",
-        f"repo_root: {packet['repo_root']}",
         f"building_id: {packet['building_id']}",
         f"adapter_ref: {packet['adapter_ref']}",
         f"adapter_choice_basis: {packet.get('adapter_choice_basis', 'not recorded')}",
         f"chain_preset_ref: {packet['chain_preset_ref']}",
-        f"isolation_mode: {packet['isolation_mode']}",
-        f"evidence_root: {packet['evidence_root']}",
+        f"isolation_mode: {packet.get('isolation_mode', 'proposal-approval')}",
+        f"evidence_root: {packet.get('evidence_root', '')}",
         f"frontier_kind: {packet['frontier_kind']}",
         f"customer_visible_frontier_state: {packet['customer_visible_frontier_state']}",
         "customer_visible_not_ready: "
@@ -449,6 +570,12 @@ def _render_build(packet: dict[str, Any]) -> str:
     ]
     if packet.get("plan_path"):
         lines.append(f"plan_path: {packet['plan_path']}")
+    if packet.get("proposal_ref"):
+        lines.append(f"proposal_ref: {packet['proposal_ref']}")
+    if packet.get("action"):
+        lines.append(f"action: {packet['action']}")
+    for warning in packet.get("repo_root_warnings", []):
+        lines.append(f"warning: {warning}")
     if packet.get("materialized_step_adapters"):
         lines.append("materialized_step_adapters:")
         for row in packet["materialized_step_adapters"]:
@@ -970,12 +1097,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="brick",
         description="Brick Protocol support CLI entrypoint.",
+        allow_abbrev=False,
     )
     subparsers = parser.add_subparsers(dest="command")
 
     init_parser = subparsers.add_parser(
         "init",
         help="One-shot install wizard: doctor + plugin (MCP/skills/hooks) + slack + example + verify.",
+        allow_abbrev=False,
     )
     _add_common(init_parser)
     init_parser.add_argument("--skip-build", action="store_true", help="Skip the local example build.")
@@ -1006,7 +1135,11 @@ def build_parser() -> argparse.ArgumentParser:
     init_parser.add_argument("--timeout", type=int, default=120, help="Adapter timeout seconds.")
     init_parser.set_defaults(func=_cmd_init)
 
-    build = subparsers.add_parser("build", help="Run a declared Building through the existing driver seam.")
+    build = subparsers.add_parser(
+        "build",
+        help="Run a declared Building through the existing driver seam.",
+        allow_abbrev=False,
+    )
     _add_common(build)
     build.add_argument("--task", default="", help="Inline task statement. Omit for the bundled example.")
     build.add_argument(
@@ -1033,6 +1166,11 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     build.add_argument("--building-id", default="", help="Optional explicit Building id.")
+    build.add_argument(
+        "--graph-decl",
+        default="",
+        help="JSON/YAML assemble-argument graph declaration file; rejects raw graph packet keys.",
+    )
     build.add_argument("--declared-by", default=DEFAULT_DECLARED_BY, help="Caller/COO declaration ref.")
     build.add_argument("--output-root", default=None, help="Evidence output root.")
     build.add_argument(
@@ -1043,41 +1181,58 @@ def build_parser() -> argparse.ArgumentParser:
     build.add_argument("--timeout", type=int, default=120, help="Adapter timeout seconds.")
     build.set_defaults(func=_cmd_build)
 
-    verify = subparsers.add_parser("verify", aliases=["check"], help="Run check_profile over this checkout.")
+    verify = subparsers.add_parser(
+        "verify",
+        aliases=["check"],
+        help="Run check_profile over this checkout.",
+        allow_abbrev=False,
+    )
     _add_common(verify)
     verify.add_argument("--profile", default="", help="Profile name or YAML path. Defaults to the hermetic core profile.")
     verify.add_argument("--all", action="store_true", help="Run every support/checkers/profiles/*.yaml profile.")
     verify.add_argument("--self-test", action="store_true", help="Run the profile runner self-test.")
     verify.set_defaults(func=_cmd_verify)
 
-    doctor = subparsers.add_parser("doctor", help="Run the existing onboard doctor.")
+    doctor = subparsers.add_parser("doctor", help="Run the existing onboard doctor.", allow_abbrev=False)
     _add_common(doctor)
     doctor.set_defaults(func=_cmd_doctor)
 
-    status = subparsers.add_parser("status", help="Print local support status evidence.")
+    status = subparsers.add_parser("status", help="Print local support status evidence.", allow_abbrev=False)
     _add_common(status)
     status.set_defaults(func=_cmd_status)
 
-    auth = subparsers.add_parser("auth", help="Provider auth readiness + login guidance.")
+    auth = subparsers.add_parser("auth", help="Provider auth readiness + login guidance.", allow_abbrev=False)
     _add_common(auth)
     auth_sub = auth.add_subparsers(dest="auth_command")
-    auth_login = auth_sub.add_parser("login", help="Show provider login guidance and readiness.")
+    auth_login = auth_sub.add_parser(
+        "login",
+        help="Show provider login guidance and readiness.",
+        allow_abbrev=False,
+    )
     _add_common(auth_login)
     auth_login.set_defaults(func=_cmd_auth_login)
     auth.set_defaults(func=_cmd_auth_login)
 
-    provider = subparsers.add_parser("provider", help="Provider registration commands.")
+    provider = subparsers.add_parser("provider", help="Provider registration commands.", allow_abbrev=False)
     _add_common(provider)
     provider_sub = provider.add_subparsers(dest="provider_command")
-    provider_add = provider_sub.add_parser("add", help="Register one ready provider host.")
+    provider_add = provider_sub.add_parser(
+        "add",
+        help="Register one ready provider host.",
+        allow_abbrev=False,
+    )
     _add_common(provider_add)
     provider_add.add_argument("host", choices=onboard.SUPPORTED_HOSTS, help="Provider host to register.")
     provider_add.set_defaults(func=_cmd_provider_add)
 
-    sink = subparsers.add_parser("sink", help="Report sink registration commands.")
+    sink = subparsers.add_parser("sink", help="Report sink registration commands.", allow_abbrev=False)
     _add_common(sink)
     sink_sub = sink.add_subparsers(dest="sink_command")
-    sink_add = sink_sub.add_parser("add", help="Register or validate one report sink.")
+    sink_add = sink_sub.add_parser(
+        "add",
+        help="Register or validate one report sink.",
+        allow_abbrev=False,
+    )
     _add_common(sink_add)
     sink_add.add_argument("sink_name", choices=("slack", "dashboard"), help="Sink to register.")
     sink_add.add_argument("--slack-bot-token", dest="slack_bot_token", default=None)
