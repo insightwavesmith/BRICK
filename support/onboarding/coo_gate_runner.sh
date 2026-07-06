@@ -20,6 +20,53 @@ set -uo pipefail
 REPO="${BRICK_REPO_ROOT:-$(git -C "$(dirname "$0")" rev-parse --show-toplevel)}"
 PY="$REPO/.venv/bin/python"
 
+# --- async land/ship (Smith 0706 night directive) ---------------------------
+# --land and --ship are ASYNC BY DEFAULT: the parent dispatches the existing
+# synchronous body detached (COO_LAND_FG=1), prints the log path, and returns
+# immediately — nobody waits on a sweep. Completion signal = final
+# "== RESULT: ..." log line + Slack bell (report.env auto-loaded by the child).
+# Concurrent land/ship is REFUSED LOUDLY via a lock dir (pushes to main must
+# serialize); a stale lock after a hard kill is removed by hand (rmdir).
+# COO_LAND_FG=1 preserves the old synchronous behavior for callers that need it.
+if { [ "${1:-}" = "--ship" ] || [ "${1:-}" = "--land" ]; } && [ "${COO_LAND_FG:-}" != "1" ]; then
+  MODE="${1#--}"
+  LOCK="/tmp/coo-land-lock"
+  if ! mkdir "$LOCK" 2>/dev/null; then
+    printf '== %s REFUSED: another land/ship holds the lock (%s; its log: %s)\n' \
+      "$MODE" "$LOCK" "$(cat "$LOCK/log" 2>/dev/null || echo '?')"
+    exit 1
+  fi
+  LOG="/tmp/coo-${MODE}-$(date +%s).log"
+  printf '%s\n' "$LOG" > "$LOCK/log"
+  COO_LAND_FG=1 nohup "$0" "$@" > "$LOG" 2>&1 &
+  printf '== %s DISPATCHED (async, pid=%s): log=%s\n' "$MODE" "$!" "$LOG"
+  printf '   done signal = final log line "== RESULT: ..." + Slack bell\n'
+  exit 0
+fi
+if [ "${COO_LAND_FG:-}" = "1" ] && { [ "${1:-}" = "--ship" ] || [ "${1:-}" = "--land" ]; }; then
+  MODE="${1#--}"
+  [ -f "$HOME/.brick/report.env" ] && { set -a; . "$HOME/.brick/report.env"; set +a; }
+  _coo_finish() {
+    RC=$?
+    RES=$([ "$RC" -eq 0 ] && echo GREEN || echo "FAILED(rc=$RC)")
+    printf '== RESULT: %s %s head=%s\n' "$MODE" "$RES" "$(git -C "$REPO" rev-parse --short HEAD 2>/dev/null)"
+    if [ -n "${BRICK_REPORT_SLACK_BOT_TOKEN:-}" ] && [ -n "${BRICK_REPORT_SLACK_CHANNEL_ID:-}" ]; then
+      PAYLOAD=$("$PY" - "$BRICK_REPORT_SLACK_CHANNEL_ID" "BRICK $MODE $RES head=$(git -C "$REPO" rev-parse --short HEAD 2>/dev/null)" <<'PYEOF'
+import json, sys
+print(json.dumps({"channel": sys.argv[1], "text": sys.argv[2]}))
+PYEOF
+)
+      curl -sS -m 10 -X POST https://slack.com/api/chat.postMessage \
+        -H "Authorization: Bearer $BRICK_REPORT_SLACK_BOT_TOKEN" \
+        -H 'Content-type: application/json; charset=utf-8' \
+        --data "$PAYLOAD" >/dev/null 2>&1 || true
+    fi
+    rmdir /tmp/coo-land-lock 2>/dev/null
+  }
+  trap _coo_finish EXIT
+fi
+# ----------------------------------------------------------------------------
+
 if [ "${1:-}" = "--ship" ]; then
   say() { printf '%s\n' "$*"; }
   git -C "$REPO" fetch origin >/dev/null 2>&1
