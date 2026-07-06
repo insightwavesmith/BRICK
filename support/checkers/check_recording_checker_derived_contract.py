@@ -31,6 +31,14 @@ from pathlib import Path
 from typing import Any
 
 
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from support.checkers.lib.bootstrap import ensure_checker_imports
+
+ensure_checker_imports(_REPO_ROOT)
+
+
 def _repo_root_from_arg(repo: str | None) -> Path:
     if repo:
         return Path(repo).resolve()
@@ -38,10 +46,7 @@ def _repo_root_from_arg(repo: str | None) -> Path:
 
 
 def _ensure_import_path(repo: Path) -> None:
-    import_identity = repo / "support" / "import_identity"
-    for entry in (str(import_identity), str(repo)):
-        if entry not in sys.path:
-            sys.path.insert(0, entry)
+    ensure_checker_imports(repo)
 
 
 # Support emits FACTS, not judgment. These tokens are the verdict/attribution

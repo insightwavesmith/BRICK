@@ -48,6 +48,14 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from support.checkers.lib.bootstrap import ensure_checker_imports
+
+ensure_checker_imports(_REPO_ROOT)
+
 from support.checkers.lib.fixture_graph_helpers import (
     fixture_graph_brick_step,
     fixture_graph_link_edge,
@@ -62,10 +70,7 @@ def _repo_root_from_arg(repo: str | None) -> Path:
 
 
 def _ensure_import_path(repo: Path) -> None:
-    import_identity = repo / "support" / "import_identity"
-    for entry in (str(import_identity), str(repo)):
-        if entry not in sys.path:
-            sys.path.insert(0, entry)
+    ensure_checker_imports(repo)
 
 
 # ---- adapter:local fixture builders (no providers) ----

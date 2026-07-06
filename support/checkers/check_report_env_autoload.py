@@ -94,6 +94,14 @@ from pathlib import Path
 
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from support.checkers.lib.bootstrap import ensure_checker_imports
+
+ensure_checker_imports(_REPO_ROOT)
+
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
 
 # Fake fixture values -- NOT real secrets. Used only to assert the loader moves
 # the right KEYS and never echoes a VALUE.
@@ -136,10 +144,7 @@ class ReportEnvAutoloadError(ValueError):
 def _import_loader():
     """Import the real loader module via the import-identity package route."""
 
-    import_root = _REPO_ROOT / "support" / "import_identity"
-    for entry in (str(import_root), str(_REPO_ROOT)):
-        if entry not in sys.path:
-            sys.path.insert(0, entry)
+    ensure_checker_imports(_REPO_ROOT)
     try:
         from brick_protocol.support.operator import runtime_env  # noqa: WPS433
     except ImportError as exc:  # pragma: no cover - surfaced as a RED
@@ -152,10 +157,7 @@ def _import_loader():
 def _import_reporter():
     """Import the real reporter module (for the sink-gating readiness assertion)."""
 
-    import_root = _REPO_ROOT / "support" / "import_identity"
-    for entry in (str(import_root), str(_REPO_ROOT)):
-        if entry not in sys.path:
-            sys.path.insert(0, entry)
+    ensure_checker_imports(_REPO_ROOT)
     try:
         from brick_protocol.support.operator import reporter  # noqa: WPS433
     except ImportError as exc:  # pragma: no cover - surfaced as a RED

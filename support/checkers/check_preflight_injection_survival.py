@@ -12,6 +12,14 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
+
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from support.checkers.lib.bootstrap import ensure_checker_imports
+
+ensure_checker_imports(_REPO_ROOT)
 from typing import Callable
 
 
@@ -31,10 +39,7 @@ SUPPORT_FIXTURE_CONTEXT = "support-fixture:task-order-preflight-non-interference
 
 
 def _bootstrap(repo: Path) -> None:
-    for path in (repo, repo / "support" / "import_identity"):
-        text = str(path.resolve())
-        if text not in sys.path:
-            sys.path.insert(0, text)
+    ensure_checker_imports(repo)
 
 
 def _assert_dirty_rejected(label: str, fn: Callable[[], object], expected_codes: set[str]) -> None:

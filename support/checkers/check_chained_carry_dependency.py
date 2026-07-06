@@ -48,12 +48,11 @@ from pathlib import Path
 
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-# compose_building lazily does `from support.operator...` (a bare `support`
-# import); ensure the repo root is on the path so the engine composition this
-# guard exercises resolves it when the checker runs standalone (parity with
-# check_assembly_equivalence).
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
+from support.checkers.lib.bootstrap import ensure_checker_imports
+
+ensure_checker_imports(_REPO_ROOT)
 
 PROOF_LIMIT = (
     "proof limit: chained-carry dependency guard support evidence only; it does "

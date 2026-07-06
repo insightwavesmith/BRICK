@@ -51,6 +51,14 @@ import sys
 import tempfile
 from pathlib import Path
 
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from support.checkers.lib.bootstrap import ensure_checker_imports
+
+ensure_checker_imports(_REPO_ROOT)
+
 # Roles spanning the work/qa/closure lanes the audit names. The charter must
 # reach EVERY one (work-only injection was the explicit non-goal).
 PROBE_ROLES = ("dev", "qa", "qa-lead", "inspector", "coo", "cto-lead")
@@ -89,10 +97,7 @@ _BYTE_IDENTICAL_KEYS = (
 
 
 def _ensure_import_path(repo: Path) -> None:
-    import_identity = repo / "support" / "import_identity"
-    for entry in (str(import_identity), str(repo)):
-        if entry not in sys.path:
-            sys.path.insert(0, entry)
+    ensure_checker_imports(repo)
 
 
 def _make_probe_repo(real_repo: Path, tmp_root: Path) -> Path:

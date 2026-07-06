@@ -8,10 +8,11 @@ from pathlib import Path
 
 
 REPO = Path(__file__).resolve().parents[2]
-for import_root in (REPO / "support" / "import_identity", REPO):
-    root_text = str(import_root)
-    if root_text not in sys.path:
-        sys.path.insert(0, root_text)
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
+from support.checkers.lib.bootstrap import ensure_checker_imports
+
+ensure_checker_imports(REPO)
 
 DRIVER_CONSOLIDATION_ERROR_CONTRACT = (
     "driver.py current bool error: TypeError('must be a finite positive integer'); "
