@@ -13,6 +13,11 @@ node_modules/
 .vercel/
 .claude/
 .codex/
+.gemini/
+.mcp.json
+.ssh/
+tokens/
+sessions/
 
 # secrets — never commit
 .env
