@@ -32,13 +32,18 @@
 6. **attach-QA**(Smith): 타임아웃/throttle로 죽은 레인의 산출을 앵커에서 COO 직접 게이트(재시공 0). 오늘 3빌딩 이렇게 회수.
 7. **만료태그**(Smith): 임시규율 vs 헌장 태그, 대응 수리 랜딩 시 규칙 폐기(첫 폐기: output-root 우회 규칙).
 
-## ★푸구 → claude-local xhigh 대체(Smith 0707 지시)★
-sakana 라우팅이 compress-S1 개시 실패를 낸 정황 + Smith 지시로, **대기·재발사 발주의 푸구 노드를 전부 claude-local xhigh로 교체**. 이종성 유지(fable5 ≠ sonnet-xhigh ≠ codex — 세 다른 두뇌). 난이도-비례 캐스팅 독트린의 "얽힘=푸구" 자리를 당분간 claude-local xhigh가 대신(sakana 안정화 전까지). fugupacket 랜딩분·과거 실측은 그대로 유효, 신규 발주만 교체.
+## 캐스팅 현황 (Smith 0707 지시 이력 — 최종 상태만 유효)
+- **3인 설계 = fable5 ∥ 푸구 ∥ codex** (원래 이종 구성 확정 — 중간에 푸구→claude 대체했다가 Smith 정정으로 원복). 재발사됨.
+- **compress-S1 = claude-local xhigh work** (1차 fugu 개시실패 후 교체, 유지). sakana 개시 실패 회피용.
+- 원칙: 신규 발주 기본은 난이도-비례 캐스팅(얽힘=푸구+fable5). 푸구 개시 실패가 재현되면 그 발주만 claude-local xhigh 폴백(전면 교체 아님).
 
-## 걷는 것 3갈래 (마감 시점 — 브리프 커밋 db4269fc 후 발사됨)
-- **사고법 v2 3인 이종 설계**: 브리프 graph-thinking-brief-0706.md 커밋 완료(db4269fc, source_facts로 tracked). 조사 4렌즈 종합(§1 표현력 file:line+하드리미트15·미검증조합 / §2 라운드-사인 / §3 패턴카탈로그 / §4 미해결질문16 / §5 불변). **발사됨**: fan(design ×3 이종 = **fable5 ∥ sonnet-xhigh ∥ codex**, 상호 열람 금지) → closure(codex, 합의/2:1분기/3자분산). D1~D5=사고절차v2·2단발주표준형·partition_plan스키마·안티패턴·초안기규칙증분. ★이게 다음 세션의 본류 — 종합 후 sizing 스킬 재작성·design/deep-design 계약 반영·#15 규칙 증분★
-- **compress-S1**(개시실패 후 **claude-local xhigh로 재발사**): 체커 import 부트스트랩 공유 채택(압축 사다리 1단). 1차 fugu 개시실패(sakana 간헐, 실패 vessel /private/tmp/brick-parked-compress-s1-failed-0706에 주차) → work를 claude-local xhigh로 교체 재발사. D4=삭제 줄수 첫 실측.
-- **onboard-seq-audit**(푸구, 정상 주행 중): GP-O 결정①=B(초대 발급) 채택 후 고객 시퀀스 S0~S5 검수. adapter-usage 갱신·step-outputs 존재 실측 — **이 1기만 푸구로 걷는 중**(발사 시점이 지시 전). 완주 회수 → **2단 수리 발주**(README 정합+T9 체커+B-발급 절차, 캐스팅은 검수표로 판정).
+## ★claude 레인 개시 판정 교훈(0707 실측 — COO 오판 1회)★
+claude-local 레인은 codex와 달리 **adapter-usage.jsonl을 그 방식으로 안 쓴다.** usage 파일 부재를 "개시 실패"로 판정하면 오판(compress-s1·graph-thinking을 개시실패로 2회 오진). **claude 레인 개시 판정 = `claude -p` 프로세스 실존 + `lsof -a -p <pid> -i` 소켓 ESTABLISHED**로 본다(usage 파일 아님). codex 레인만 adapter-usage/step-output 조기 생성.
+
+## 걷는 것 3갈래 (마감 시점 — 전부 정상 주행 실측 확인)
+- **사고법 v2 3인 이종 설계**(fable5∥푸구∥codex): 브리프 graph-thinking-brief-0706.md 커밋(db4269fc, source_facts tracked). 조사 4렌즈 종합(§1 표현력 file:line+하드리미트15·미검증조합 / §2 라운드-사인 / §3 패턴카탈로그 / §4 미해결질문16 / §5 불변). **발사·개시 확인**(claude 레인 alive+codex 자식): fan(design ×3 이종, 상호 열람 금지) → closure(codex, 합의/2:1분기/3자분산). D1~D5=사고절차v2·2단발주표준형·partition_plan스키마·안티패턴·초안기규칙증분. ★다음 세션 본류 — 종합 후 sizing 스킬 재작성·design/deep-design 계약 반영·#15 규칙 증분★
+- **compress-S1**(claude-local xhigh, 개시 확인): 체커 import 부트스트랩 공유 채택(압축 사다리 1단). 1차 fugu 개시실패 vessel = /private/tmp/brick-parked-compress-s1-failed-0706. D4=삭제 줄수 첫 실측.
+- **onboard-seq-audit**(푸구, 45분+ 정상): GP-O 결정①=B 채택 후 고객 시퀀스 S0~S5 검수, step 2+. 완주 회수 → **2단 수리 발주**(README 정합+T9 체커+B-발급 절차, 캐스팅은 검수표로 판정).
 
 ## 백로그 (방아쇠 순 — 골 문서 P-백로그가 상세 단일소스)
 - **체커 압축 사다리 S2~S5 + A4 시간-메모이제이션**(checker-consolidation 이종설계 산출, B척추+A접목): S1 실측 보고 후 순차. 절감 실측: 줄 수는 소폭(2~4%, 근육이라 무손실 압축만) / **스윕 시간은 확**(A4가 package_path_admission 전-트리 게이트 16회→1회). 회귀선=커버리지 무손실.
