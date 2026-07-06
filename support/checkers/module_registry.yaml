@@ -275,7 +275,7 @@ modules:
     imports_axis: []
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
-    pinned_by: resume_replay_disposition_mirror behavioral checker (t7b RED baseline for the non-forward resume-replay disposition MIRROR; gate-sequence fixtures F-R1/F-R2/F-S/F-M dual-acceptance-pinned to the engine refusal literals + labeled probes P-1/P-2/P-3; concern-path fixtures F-C1 (ambiguous) / F-C2 (fan+cohort) / F-C3 (broken-mail) dual-acceptance-pinned to the _require_undisposed_concern_hold guard literal + labeled probe P-C1 (gate-sequence budget-exhausted, the 6th guard site); the concern-path walker mirror edit is COO-direct under this gate)
+    pinned_by: resume_replay_disposition_mirror behavioral checker (t7b RED baseline for the non-forward resume-replay disposition MIRROR; gate-sequence fixtures F-R1/F-R2/F-S/F-M dual-acceptance-pinned to the engine refusal literals + labeled probes P-1/P-2/P-3; concern-path fixtures F-C1 (ambiguous) / F-C2 (fan+cohort) / F-C3 (broken-mail) dual-acceptance-pinned to the _require_undisposed_concern_hold guard literal + labeled probe P-C1 (gate-sequence budget-exhausted, the 6th guard site); the concern-path walker mirror edit is COO-direct under this gate; SELFLOCK-0706 family-② additive fixtures SL-1 (D1 validate-before-persist: refused intake leaves raw/link.jsonl byte-identical + retry resumes) / SL-2 (D2 declared void correction path for an already-locked ledger) + validate-before-persist source-guard mutation proof)
 
   - module: support/checkers/check_first_use_wizard.py
     layer: checkers

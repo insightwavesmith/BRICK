@@ -90,6 +90,39 @@ class ResumeBudgetRecoveryDecision:
     bridge_evidence: bool = False
 
 
+# ---------------------------------------------------------------------------
+# Shared refusal literals (pinned verbatim). These are raised by BOTH the live
+# resume path (post-persist, historical firing points) AND the pre-persist
+# ``validate_disposition_intake`` gate (D1). Extracting them to module constants
+# is the anti-drift mechanism for invariant I2 (intake accepts exactly what the
+# resume path accepts, by DELEGATION -- same literal, no copied prose): the
+# intake gate re-raises THE SAME string object the resume path would raise, so
+# the accept/refuse literal can never silently diverge between the two firing
+# points.
+# ---------------------------------------------------------------------------
+_BIRTH_CERTIFICATE_ABSENT_REFUSAL = (
+    "resume requires the declared-building-plan.json birth-certificate "
+    "(full graph topology) to rehydrate the forward walk; it is absent or "
+    "unreadable -- refusing to resume from the linearized snapshot alone "
+    "(would drop fan-in/cohort/nested behaviour)"
+)
+_NO_RECORDED_RETURNS_REFUSAL = (
+    "held Building evidence carries no recorded Agent returns to replay"
+)
+_RAISE_TARGET_NOT_NODE_REFUSAL = (
+    "raise disposition pending_target_ref is not an existing Brick node"
+)
+
+# D2 (0706): the raw/link.jsonl record kind a support void verb appends to make a
+# residual (already-persisted, refused) disposition row unselectable on the next
+# resume read. It is a SUPPORT record kind, NOT a Link DISPOSITION_ACTION
+# (link/transition.py DISPOSITION_ACTIONS is untouched -- Movement stays
+# forward/reroute). It authors no Movement, route, sufficiency, quality, or
+# success; it only records that a human/COO chose to disregard a specific
+# residual row so a corrected disposition can be authored.
+DISPOSITION_VOID_RECORD_KIND = "disposition_void_observation"
+
+
 def hold_disposition_action_menu(
     hold_record: Mapping[str, Any],
     *,
@@ -219,12 +252,7 @@ def _resume_dynamic_graph_walker(
     # delegation source -- STOP rather than ship an unfaithful linear resume.
     declared_plan = _declared_graph_plan_from_birth_certificate(root)
     if declared_plan is None:
-        raise ValueError(
-            "resume requires the declared-building-plan.json birth-certificate "
-            "(full graph topology) to rehydrate the forward walk; it is absent or "
-            "unreadable -- refusing to resume from the linearized snapshot alone "
-            "(would drop fan-in/cohort/nested behaviour)"
-        )
+        raise ValueError(_BIRTH_CERTIFICATE_ABSENT_REFUSAL)
     action = _required_disposition_action(disposition)
     pending_target = _disposition_pending_target_ref(
         action,
@@ -292,7 +320,7 @@ def _resume_dynamic_graph_walker(
 
     recorded_returns = _recorded_agent_returns(root)
     if not recorded_returns:
-        raise ValueError("held Building evidence carries no recorded Agent returns to replay")
+        raise ValueError(_NO_RECORDED_RETURNS_REFUSAL)
     # Per step_ref FIFO of recorded returns + AT-TIME gate records, in REALIZED
     # order, so the forward loop REPLAYS the k-th visit with the k-th recorded
     # return (and reads its recorded gate decision back). Once a step's recorded
@@ -346,7 +374,7 @@ def _resume_dynamic_graph_walker(
             "transition_lifecycle.budget_increment",
         )
         if pending_target not in step_ref_by_brick_from_declared(declared_plan):
-            raise ValueError("raise disposition pending_target_ref is not an existing Brick node")
+            raise ValueError(_RAISE_TARGET_NOT_NODE_REFUSAL)
         budget_delta[pending_target] = increment
 
     # MAIL-REPAIR (0611, B3 lane 2): THIS resume's disposition row is a
@@ -1135,6 +1163,101 @@ def _resume_observations(evidence: Mapping[str, Any]) -> list[Mapping[str, Any]]
     return [item for item in raw if isinstance(item, Mapping)]
 
 
+def _disposition_void_observations(
+    root: Path,
+    current_hold_ref: str,
+) -> set[tuple[str, int]]:
+    """The (voided_raw_ref, same_hold_index) pairs a valid void row covers.
+
+    D2 (0706 self-lock correction path). Reads the human/COO-authored
+    ``disposition_void_observation`` rows in raw/link.jsonl that address THE
+    CURRENT hold identity and returns the set of residual-row discriminators they
+    void. Fail-closed: a void row addressed to this hold that is MALFORMED
+    (foreign author, missing/blank voided raw_ref, or a non-positive
+    same_hold_index) raises loudly rather than silently voiding nothing (I5 void
+    groundedness). A void row addressed to a DIFFERENT hold is not this hold's
+    concern and is skipped without inspection.
+
+    This helper authors nothing; it only reports which residual rows a recorded
+    void makes unselectable. It never chooses Movement, route, sufficiency,
+    quality, or success.
+    """
+
+    voids: set[tuple[str, int]] = set()
+    for record in _jsonl_records(root / "raw" / "link.jsonl"):
+        if _optional_text_value(record.get("kind")) != DISPOSITION_VOID_RECORD_KIND:
+            continue
+        row_hold_ref = _optional_text_value(record.get("paused_at_ref"))
+        if row_hold_ref != current_hold_ref:
+            continue
+        author_ref = _disposition_author_ref(record)
+        if not author_ref.startswith(_HUMAN_AUTHOR_PREFIXES):
+            raise ValueError(
+                "disposition_void_observation author must start with human: or coo:"
+            )
+        voided_raw_ref = _optional_text_value(record.get("voided_raw_ref"))
+        if not voided_raw_ref:
+            raise ValueError(
+                "disposition_void_observation is missing voided_raw_ref"
+            )
+        same_hold_index = record.get("same_hold_index")
+        if (
+            isinstance(same_hold_index, bool)
+            or not isinstance(same_hold_index, int)
+            or same_hold_index < 1
+        ):
+            raise ValueError(
+                "disposition_void_observation same_hold_index must be a positive integer"
+            )
+        voids.add((voided_raw_ref, same_hold_index))
+    return voids
+
+
+def disposition_rows_for_current_hold(
+    root: Path,
+    hold_record: Mapping[str, Any],
+) -> list[tuple[str, int]]:
+    """The (raw_ref, 1-based same-hold index) of every disposition row in
+    raw/link.jsonl addressed to THE CURRENT hold identity, in file order.
+
+    D2 grounding support. Mirrors the matching predicate ``_read_disposition_row``
+    uses (disposition_action present; hold-identity fields all equal the current
+    hold; non-reroute rows must still name the held pending target) WITHOUT the
+    void skip -- so a void verb can confirm the residual row it is asked to void
+    actually exists before appending a void record (refuse groundless voids). It
+    reads only; it authors no disposition, Movement, route, sufficiency, quality,
+    or success.
+    """
+
+    hold_pending_target = _optional_text_value(hold_record.get("pending_target_ref")) or ""
+    if not hold_pending_target:
+        raise ValueError("HOLD record is missing pending_target_ref")
+    current_hold_ref = _hold_paused_at_ref(hold_record)
+    rows: list[tuple[str, int]] = []
+    index = 0
+    for record in _jsonl_records(root / "raw" / "link.jsonl"):
+        lifecycle = _flattened_or_nested_transition_lifecycle(record)
+        action = _optional_text_value(lifecycle.get("disposition_action"))
+        if not action:
+            continue
+        row_pending_target = _optional_text_value(lifecycle.get("pending_target_ref")) or ""
+        if action != "reroute" and row_pending_target != hold_pending_target:
+            continue
+        row_hold_refs = [
+            value
+            for value in (
+                _optional_text_value(lifecycle.get("paused_at_ref")),
+                _optional_text_value(lifecycle.get("resumed_from_ref")),
+            )
+            if value
+        ]
+        if not row_hold_refs or any(value != current_hold_ref for value in row_hold_refs):
+            continue
+        index += 1
+        rows.append((_optional_text_value(record.get("raw_ref")) or "", index))
+    return rows
+
+
 def _read_disposition_row(
     root: Path,
     hold_record: Mapping[str, Any],
@@ -1184,6 +1307,13 @@ def _read_disposition_row(
     if not hold_pending_target:
         raise ValueError("HOLD record is missing pending_target_ref")
     current_hold_ref = _hold_paused_at_ref(hold_record)
+    # D2 (0706 self-lock correction path): collect the human/COO-authored
+    # disposition-void observation rows for THIS hold first. A valid void makes a
+    # SPECIFIC residual disposition row (keyed by hold identity + voided raw_ref +
+    # 1-based same-hold match index) unselectable below. It NEVER creates, edits,
+    # or reorders a disposition (I3); with nothing else matching, the EXISTING
+    # fail-closed 'no human/COO disposition row found' refusal fires downstream.
+    voids = _disposition_void_observations(root, current_hold_ref)
     selected_record: Mapping[str, Any] | None = None
     selected_lifecycle: dict[str, Any] | None = None
     matching_row_count = 0
@@ -1209,6 +1339,15 @@ def _read_disposition_row(
         if not row_hold_refs or any(value != current_hold_ref for value in row_hold_refs):
             continue
         matching_row_count += 1
+        # D2: a valid void covering (this hold identity, this row's raw_ref, this
+        # 1-based match index) makes the row unselectable. The match index is
+        # counted BEFORE the skip so it stays the same file-order discriminator a
+        # void authored against the pre-void snapshot named.
+        if (
+            _optional_text_value(record.get("raw_ref")),
+            matching_row_count,
+        ) in voids:
+            continue
         selected_record = record
         selected_lifecycle = dict(lifecycle)
     if selected_record is None or selected_lifecycle is None:
@@ -1228,6 +1367,114 @@ def _read_disposition_row(
         "disposition_row_same_hold_index": matching_row_count,
     }
     return disposition
+
+
+def validate_disposition_intake(
+    building_root: Path | str,
+    row: Mapping[str, Any],
+    *,
+    repo_root: Path | str,
+) -> None:
+    """D1 (validate-before-persist): raise the resume path's OWN refusal literal
+    for a would-be disposition ``row`` BEFORE it is appended to raw/link.jsonl.
+
+    Support wrappers (``onboard.run_approve_entry``) call this AFTER constructing
+    the disposition row and BEFORE the raw/link.jsonl append. A refused intake
+    therefore leaves the ledger byte-identical (invariant I1) and the human/COO
+    may retry with a corrected row. It adds NO new rejection semantics: it
+    DELEGATES, in the SAME order, to the SAME pure validators the live resume path
+    (``_resume_dynamic_graph_walker``) runs -- so the accept/refuse SET stays
+    identical by construction (invariant I2), and the shared refusal literals are
+    the module constants both firing points raise (no literal drift). The only
+    addition is one intake-only identity assertion: the row's hold-identity field
+    must equal ``_hold_paused_at_ref(hold_record)`` so ``_read_disposition_row``
+    will actually SELECT the row about to persist -- closing the hold-identity
+    drift self-lock (a persisted-then-unselectable row) as a pre-persist refusal.
+
+    It authors no disposition, Movement, route, sufficiency, quality, or success;
+    it only re-runs the resume-path validations earlier. On any refusal it raises
+    ``ValueError`` with the delegated literal verbatim.
+    """
+
+    root = Path(building_root).resolve()
+    repo = Path(repo_root).resolve()
+    _plan, evidence = _read_written_dynamic_plan(root)
+    if not evidence.get("held"):
+        # Parity with the resume path's held/applied guards; a non-held building
+        # has no hold to dispose. Support does not judge state here beyond the
+        # existing resume literals.
+        if _resume_observations(evidence):
+            raise ValueError("dynamic Building already has an applied resume disposition")
+        raise ValueError("resume_building_plan requires a held dynamic_walker_evidence record")
+    hold_record = _mapping_value("dynamic_walker_evidence.hold", evidence.get("hold"))
+
+    # Build the disposition mapping the SAME way _read_disposition_row does (flat
+    # transition_lifecycle_* keys -> lifecycle dict + author_ref) so the delegated
+    # validators see the identical shape.
+    disposition = _flattened_or_nested_transition_lifecycle(row)
+    disposition["author_ref"] = _disposition_author_ref(row)
+
+    declared_plan = _declared_graph_plan_from_birth_certificate(root)
+    if declared_plan is None:
+        raise ValueError(_BIRTH_CERTIFICATE_ABSENT_REFUSAL)
+
+    action = _required_disposition_action(disposition)
+    pending_target = _disposition_pending_target_ref(
+        action,
+        disposition=disposition,
+        hold_record=hold_record,
+        declared_plan=declared_plan,
+    )
+    validate_hold_disposition_action(action, hold_record, public_approval=False)
+    resume_budget_recovery_decision(
+        evidence=evidence,
+        action=action,
+        hold_record=hold_record,
+        pending_target=pending_target,
+    )
+    if action == "raise":
+        if pending_target not in step_ref_by_brick_from_declared(declared_plan):
+            raise ValueError(_RAISE_TARGET_NOT_NODE_REFUSAL)
+
+    recorded_returns = _recorded_agent_returns(root)
+    if not recorded_returns:
+        raise ValueError(_NO_RECORDED_RETURNS_REFUSAL)
+    replay_returns: dict[str, list[Any]] = {}
+    for item in recorded_returns:
+        step_ref = _optional_text_value(item.get("step_ref")) or ""
+        replay_returns.setdefault(step_ref, []).append(item.get("returned"))
+    expected_replay_counts = _completed_step_frontier(root)
+    _require_return_frontier_consistency(expected_replay_counts, replay_returns, root=root)
+    for step_ref, returns in replay_returns.items():
+        completed = expected_replay_counts.get(step_ref, 0)
+        if len(returns) > completed:
+            raise ValueError(
+                f"resume corrupt evidence: step {step_ref!r} has {len(returns)} recorded "
+                f"Agent return(s) but only {completed} completed step-output(s) on disk; "
+                "the recorded-return ledger and the step-output ledger disagree -- "
+                "refusing to resume from inconsistent evidence"
+            )
+
+    _validated_resume_re_instruction(action, disposition, repo=repo)
+
+    # Intake-only identity assertion (the drift self-lock closer): the row must
+    # echo the CURRENT hold identity so _read_disposition_row will select it.
+    current_hold_ref = _hold_paused_at_ref(hold_record)
+    row_hold_refs = [
+        value
+        for value in (
+            _optional_text_value(disposition.get("paused_at_ref")),
+            _optional_text_value(disposition.get("resumed_from_ref")),
+        )
+        if value
+    ]
+    if not row_hold_refs or any(value != current_hold_ref for value in row_hold_refs):
+        raise ValueError(
+            "disposition intake: the disposition row's hold identity "
+            f"({row_hold_refs!r}) does not match the current hold "
+            f"({current_hold_ref!r}); refusing to persist a row the resume read "
+            "would not select (hold-identity drift self-lock guard)"
+        )
 
 
 def _flattened_or_nested_transition_lifecycle(record: Mapping[str, Any]) -> dict[str, Any]:
