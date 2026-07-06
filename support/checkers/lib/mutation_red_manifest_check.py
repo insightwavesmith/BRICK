@@ -37,6 +37,9 @@ EXPECTED_SURFACES = frozenset(
         "hold_lifecycle",
         "graphdecl_proposal_path",
         "graphdecl_model_inheritance",
+        "build_unify_casting_convergence",
+        "build_unify_launch_repo_root_line",
+        "build_unify_model_alias_loud",
     }
 )
 MIN_AUDIT_MUTANTS = 5

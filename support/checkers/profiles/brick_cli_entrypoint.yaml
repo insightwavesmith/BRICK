@@ -93,6 +93,30 @@ text_contains:
       - 'support-only observation lost proof limit'
       - 'bare brick --json did not default to status'
       - 'status packet omitted adapter_boundary_matrix'
+  - path: support/checkers/lib/brick_cli_entrypoint_check.py
+    texts:
+      # build-unify #12 D4/D5/D1-D2 positive assertions (표16/17/18).
+      - '_assert_brick_cli_launch_repo_root_line'
+      - '_assert_brick_cli_casting_convergence'
+      - '_assert_brick_cli_model_alias_loud'
+      - 'resolved repo_root must be the FIRST launch line'
+      - 'CLI --preset intent drifted from the shared'
+      - 'unadmitted model alias must be rejected loudly'
+  - path: support/operator/cli.py
+    texts:
+      # build-unify #12 D3/D4: casting convergence comment + first-line repo_root emit.
+      - 'onboard.build_preset_intent'
+      - 'def _emit_launch_repo_root_observation'
+      - 'stale_refused = _emit_launch_repo_root_observation(args'
+      - 'repo_root: {repo_observation.get'
+      - '--allow-stale-repo'
+  - path: support/operator/onboard.py
+    texts:
+      - 'def build_preset_intent'
+      - 'def build_preset'
+  - path: support/connection/adapter_model_casting.py
+    texts:
+      - 'reject an UNADMITTED provider model'
 text_absent:
   - path: pyproject.toml
     texts:

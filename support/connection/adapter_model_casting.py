@@ -120,7 +120,23 @@ def _normalize_selected_model_ref(adapter_ref: str, selected_model_ref: str) -> 
         return spec.default_model_ref
     if selected_model_ref == MODEL_REF_DEFAULT:
         return spec.default_model_ref
-    _validate_model_ref_for_adapter(adapter_ref, selected_model_ref)
+    # build-unify #12 D5 (표18 residual): reject an UNADMITTED provider model
+    # alias LOUDLY at this normalization choke point (request construction /
+    # read-only CLI-arg projection) instead of letting it survive to spawn. The
+    # spawn-side loud resolution + --model passthrough already landed
+    # (model-alias-loud-0706a); this closes the earlier window where an
+    # alias-shaped id (e.g. a "sonnet" typo) slipped past _validate_model_ref_for
+    # _adapter (prefix+charset only) and only died mid-walk at dispatch.
+    # resolve_model_alias_ref validates the alias against the admitted catalog and
+    # raises on an unknown one; we DISCARD its concrete expansion and return the
+    # DECLARED ref so the declared-alias-vs-dispatched-model observability contract
+    # (adapter usage meter model_alias_resolution) stays intact. The reverse import
+    # edge is lazy (provider_registry imports this module at top level).
+    from brick_protocol.support.operator.provider_registry import (  # noqa: PLC0415
+        resolve_model_alias_ref,
+    )
+
+    resolve_model_alias_ref(adapter_ref, selected_model_ref)
     return selected_model_ref
 
 

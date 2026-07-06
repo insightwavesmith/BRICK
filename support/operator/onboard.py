@@ -2570,6 +2570,134 @@ def render_proposal_for_human(proposal_ref: Any) -> str:
     return _render_goal_proposal_plan(plan)
 
 
+def build_preset_intent(
+    *,
+    declared_by: str,
+    selected_adapter_ref: str,
+    chain_preset_ref: str,
+    task_statement: str = "",
+    task_source_ref: str = "",
+    building_id: str = "",
+    write_scope: Mapping[str, Any] | None = None,
+    adapter_choice_basis: str = "",
+    provider_readiness_observations: Sequence[Any] | None = None,
+) -> dict[str, Any]:
+    """Build the ONE confirmed preset-intent mapping shape (build-unify #12 D1/D2).
+
+    The CLI ``--preset`` flow and the ``build_preset()`` convenience wrapper both
+    construct their confirmed intent HERE, so the two authoring entries cannot
+    drift into interpreting casting differently: the mapping carries only
+    human/COO-declared rungs (declared_by, task source, chain preset, the single
+    plan-level selected_adapter_ref, optional write_scope), never a
+    support-synthesized per-node ``selected_*`` casting. The per-step performer is
+    interpreted downstream at the SINGLE casting interpretation point
+    (plan_rendering via the agent-object ladder).
+    """
+
+    if bool(task_statement.strip()) == bool(task_source_ref.strip()):
+        raise ValueError(
+            "build_preset_intent requires EXACTLY one of task_statement or "
+            "task_source_ref (support does not invent the task source)"
+        )
+    if not str(chain_preset_ref).strip():
+        raise ValueError("build_preset_intent requires a declared chain_preset_ref")
+    if not str(selected_adapter_ref).strip():
+        raise ValueError(
+            "build_preset_intent requires a declared selected_adapter_ref; support "
+            "does not default the adapter (Agent adapter is a human/COO declaration)"
+        )
+    intent: dict[str, Any] = {
+        "declared_by": declared_by,
+        "chain_preset_ref": chain_preset_ref,
+        "selected_adapter_ref": selected_adapter_ref,
+    }
+    if task_statement.strip():
+        intent["task_statement"] = task_statement
+    else:
+        intent["task_source_ref"] = task_source_ref
+    if building_id:
+        intent["building_id"] = building_id
+    if write_scope is not None:
+        intent["write_scope"] = dict(write_scope)
+    if adapter_choice_basis:
+        intent["adapter_choice_basis"] = adapter_choice_basis
+    if provider_readiness_observations:
+        intent["provider_readiness_observations"] = [
+            dict(row) if isinstance(row, Mapping) else row
+            for row in provider_readiness_observations
+        ]
+    return intent
+
+
+def build_preset(
+    *,
+    goal: str,
+    chain_preset_ref: str,
+    selected_adapter_ref: str,
+    declared_by: str,
+    output_root: Path | str | None = None,
+    write_scope: Mapping[str, Any] | None = None,
+    building_id: str = "",
+    overwrite_existing: bool = False,
+    repo_root: Path | str | None = None,
+    local_callables: Mapping[str, Any] | None = None,
+    command_runner: Any | None = None,
+    adapter_timeout_seconds: int = 120,
+) -> dict[str, Any]:
+    """One-call preset build routed through the SAME materializer seam as CLI --preset.
+
+    build-unify #12 D1: this is the ``build(preset=...)`` support entry. It builds
+    the confirmed intent with ``build_preset_intent`` (the shared shape the CLI
+    ``--preset`` flow also uses) and hands it to the customer sandbox
+    (``run_customer_building_in_sandbox`` -> ``run_building_intake`` ->
+    ``materialize_building_intent``). No new assembler is introduced (Rule 9): the
+    preset rows still come from ``materialize_building_intent``, the single preset
+    row-materializer, so a preset launched through the CLI and through
+    ``build_preset()`` produces structurally identical declared plans.
+    """
+
+    from brick_protocol.support.operator.driver import (  # noqa: PLC0415
+        run_customer_building_in_sandbox,
+    )
+    from brick_protocol.support.recording.capture import (  # noqa: PLC0415
+        DEFAULT_BUILDINGS_ROOT,
+    )
+
+    repo = Path(repo_root).resolve() if repo_root is not None else _REPO_ROOT
+    intent = build_preset_intent(
+        declared_by=declared_by,
+        selected_adapter_ref=selected_adapter_ref,
+        chain_preset_ref=chain_preset_ref,
+        task_statement=goal,
+        building_id=building_id,
+        write_scope=write_scope,
+    )
+    durable_output = (
+        Path(output_root).resolve() if output_root is not None else DEFAULT_BUILDINGS_ROOT
+    )
+    result = run_customer_building_in_sandbox(
+        intent,
+        customer_repo_root=repo,
+        output_root=durable_output,
+        overwrite_existing=overwrite_existing,
+        local_callables=local_callables,
+        command_runner=command_runner,
+        adapter_timeout_seconds=adapter_timeout_seconds,
+    )
+    return {
+        "building_id": result.building_id,
+        "chain_preset_ref": intent["chain_preset_ref"],
+        "adapter_ref": intent["selected_adapter_ref"],
+        "output_root": str(durable_output),
+        "evidence_root": result.evidence_root,
+        "frontier_kind": result.frontier_kind,
+        "isolation_mode": result.isolation_mode,
+        "commit_sha": result.commit_sha,
+        "worktree_disposed": result.worktree_disposed,
+        "routed_through": "support.operator.driver.run_customer_building_in_sandbox",
+    }
+
+
 def build(
     graph: Any,
     *,
