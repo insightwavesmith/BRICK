@@ -67,14 +67,18 @@ fi
 
 # 5) focused profiles
 for P in $PROFILES; do
-  PYTHONPATH="$GATE/support/import_identity:$GATE" python3 "$GATE/support/checkers/check_profile.py" --profile "$P" > "/tmp/coo-gate-$B-$P.log" 2>&1
+  ( cd "$GATE" && PYTHONPATH="$GATE/support/import_identity:$GATE" python3 support/checkers/check_profile.py --profile "$P" ) > "/tmp/coo-gate-$B-$P.log" 2>&1
   RC=$?
   say "profile $P: rc=$RC"
   [ $RC -ne 0 ] && { FAIL=1; tail -3 "/tmp/coo-gate-$B-$P.log" | sed 's/^/  /'; }
 done
 
 # 6) operator-authored mutation spec (must self-restore; exit 0 = RED confirmed)
-if [ -n "$MUTSPEC" ]; then
+# skipped when any focused profile already failed — mutations against a red
+# baseline prove nothing (red-for-the-wrong-reason class).
+if [ -n "$MUTSPEC" ] && [ $FAIL -ne 0 ]; then
+  say "mutation-spec: SKIPPED (focused baseline not green)"
+elif [ -n "$MUTSPEC" ]; then
   ( cd "$GATE" && PYTHONPATH="$GATE/support/import_identity:$GATE" python3 "$MUTSPEC" ) > "/tmp/coo-gate-$B-mut.log" 2>&1
   RC=$?
   say "mutation-spec: rc=$RC $([ $RC -eq 0 ] && echo RED-CONFIRMED || echo FAILED)"
@@ -83,7 +87,7 @@ if [ -n "$MUTSPEC" ]; then
 fi
 
 # 7) isolated full sweep
-PYTHONPATH="$GATE/support/import_identity" python3 "$GATE/support/checkers/check_profile.py" --all > "/tmp/coo-gate-$B-all.log" 2>&1
+( cd "$GATE" && PYTHONPATH="$GATE/support/import_identity" python3 support/checkers/check_profile.py --all ) > "/tmp/coo-gate-$B-all.log" 2>&1
 RC=$?
 CNT=$(grep -c '^profile passed' "/tmp/coo-gate-$B-all.log")
 say "isolated --all: rc=$RC profiles=$CNT"
