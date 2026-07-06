@@ -697,7 +697,7 @@ Smith "과업 모두 종료까지 이어간다". 이 큐가 비면 연속 운행
 | **P3 소형 병렬** | R9 모델-레인 규율 정합 · Case 8 정찰(읽기전용) · graph-decl 결함 2종(루트 레이아웃·model:default 상속) | 슬롯 나는 대로 |
 | **P4 대형(묶음)** | #15 가중치→그래프 초안기 + #12 build() 단일 진입 (cli/assembly 이음새 공유) | R웨이브 랜딩 후 |
 | **P5 저우선** | T10 fresh 0705c(완주 스탬프) | 의존 없음 |
-| **P-결정(Smith)** | ①bundle10 wheel Option A/B ②푸구 계정측: 슬롯(2→1 전환분) 되돌리기 시도 여부 · Sakana 문의(라우팅 감사로그 요청) 여부 — packet 재성형과 독립 | 대기 |
+| **P-결정(Smith)** | (0706 저녁 전량 해소) ~~wheel A/B~~ → 이미 0706 오전 위임 판정 B 채택·랜딩(D절 정정 참조) · ~~푸구 계정측~~ → Smith "오케이": packet 재성형 결과 보고 후 재론 | 결정 대기 0건 |
 
 **운영 개선(Smith 0706 오전 지적 → 즉시 도입)**: 게이트의 기계부(스냅샷→마감→수확→프로파일→변이스펙→격리 --all)를 `support/onboarding/coo_gate_runner.sh`로 결정론화 — COO 토큰/시간은 판단 3점(design 승인·변이 설계·머지 결정)에만. **(0706 오후~저녁 개정)** 판정 이후의 기계 꼬리도 러너가 소유: `--land`(harvest 머지→라이브스윕→green일 때만 push) + `--ship`(이미-main 커밋의 무머지 스윕→push, 562dd86c) — **COO 맨손 git merge/push 전면 금지(Smith 0706 저녁), 러너가 already-on-main SHA를 NOTHING TO LAND로 거부(2c11380f)**.
 
@@ -742,7 +742,7 @@ Smith "과업 모두 종료까지 이어간다". 이 큐가 비면 연속 운행
 ### D. 엔진 이월 (Smith 게이트 / 불가침면)
 - ~~t7b replay 다중화~~ → **수리 랜딩 + 라이브 도그푸드 완성(0706)** — 수술 머지 c59d1745(A방향 정합 미러: reroute 미러가 라이브-처분과 동일 채택 경로 재사용 + 시퀀스 재사용→세대 간 reroute_ref 문자열 패리티, forward 미러 시퀀스 롤백, 미러 예산고갈 loud, 무검사 홀드 6사이트 loud-거부). 게이트 = RED→GREEN 4쌍 플립 실증(9a65a814 기준선 red-pin → 전원 GREEN) + 변이-RED(시퀀스 재사용 제거→패리티 즉발) + 프로파일 편입(building-automation) + --all 45. **도그푸드: reroute×4로 봉쇄됐던 설계 vessel 자신이 수리된 replay로 building_finished** — 0705 봉쇄 클래스 라이브 사망 확인. 다단 홀드 운영의 전제 조건 충족.
 - ~~헌법 개정 비준~~ → **Smith 0706 비준 집행 완료** — BRICK-CONSTITUTION.md 0706 개정(3축 절·진단 5단 ⑤: "품질+성공 판정 권한은 Smith가 배분한다(기본 소재: 사람)").
-- **bundle10 wheel 패키징**: Smith Option A/B 결정 대기(64d50be6 명시 — A=source checkout 전용 선언 / B=wheel 공식 지원 설치면 선언). 산출은 WIP 앵커 2기(ce05b4de·ee4d830f)에 봉인, main 부재 — 0706 큐 재점검에서 누락 발견, 유실 방지 등재. 0706 Smith 질의 접수 — 선택지별 비용 보고됨.
+- ~~bundle10 wheel 패키징 — Smith Option A/B 결정 대기~~ → **해소(0706 저녁 원장 정리)**: 0706 오전 위임 하 COO 판정으로 **Option B 채택·랜딩 완료**(§마스터 큐 서두 위임 절에 기록, wheelsmoke-hygiene 592df226까지 후속 랜딩, wheel_smoke 체커 가동 중 — 실증: 0706 저녁 R1 wheel-설치 결함을 이 체커가 적발). 반전 경로(A 폴백)는 예약 유지. 이 행이 갱신 안 된 채 남아 0706 저녁 "결정 대기" 오보 1회 유발 — 낡은 행 정리.
 - 0702 결함가족 ②(자기잠금) · route policy concern 하위분류(A+ W1 인접) — 0706 Smith 질의 접수, 설명 보고됨. 자기잠금 규범 근거는 Rule 11(기비준), 시공 스코프는 t7b 설계 슬라이스 D5가 결합/분리를 판정.
 
 ### E. 무해 잔류 → **전량 원장 마감(0706 오전, Smith "재개 가능한 건 재개해서 써라" 집행)**
