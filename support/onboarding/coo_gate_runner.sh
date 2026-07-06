@@ -11,10 +11,37 @@
 #   --land is the post-VERDICT mechanical tail the operator fires AFTER deciding
 #   to merge: merge --no-ff && LIVE sweep && push, all-or-stop — any failure
 #   halts the chain and prints the fingerprint (never pushes over a red sweep).
+# usage (ship): coo_gate_runner.sh --ship
+#   --ship is the NO-MERGE tail for commits already on main (doc/tool commits):
+#   LIVE sweep && push only. The operator never hand-runs git push — already-on-
+#   main commits go through --ship, harvest commits through --land (Smith 0706).
 set -uo pipefail
 
 REPO="${BRICK_REPO_ROOT:-$(git -C "$(dirname "$0")" rev-parse --show-toplevel)}"
 PY="$REPO/.venv/bin/python"
+
+if [ "${1:-}" = "--ship" ]; then
+  say() { printf '%s\n' "$*"; }
+  git -C "$REPO" fetch origin >/dev/null 2>&1
+  AHEAD=$(git -C "$REPO" rev-list --count origin/main..main 2>/dev/null)
+  if [ "${AHEAD:-0}" -eq 0 ]; then
+    say "NOTHING TO SHIP: main is not ahead of origin/main"
+    exit 1
+  fi
+  say "== COO SHIP: $AHEAD commit(s) ahead — live sweep then push"
+  ( cd "$REPO" && PYTHONPATH="$REPO/support/import_identity" python3 support/checkers/check_profile.py --all ) > /tmp/coo-ship-sweep.log 2>&1
+  RC=$?
+  CNT=$(grep -c '^profile passed' /tmp/coo-ship-sweep.log)
+  say "live sweep: rc=$RC profiles=$CNT"
+  if [ $RC -ne 0 ]; then
+    say "SHIP: SWEEP RED — push blocked (fingerprint below)"
+    grep -m3 'rejected\|Error' /tmp/coo-ship-sweep.log | sed 's/^/  /'
+    exit 1
+  fi
+  git -C "$REPO" push origin main 2>&1 | tail -2
+  say "== SHIP: PUSHED $(git -C "$REPO" rev-parse --short origin/main 2>/dev/null)"
+  exit 0
+fi
 
 if [ "${1:-}" = "--land" ]; then
   SHA="$2"; MSGF="$3"
@@ -30,8 +57,8 @@ if [ "${1:-}" = "--land" ]; then
     # landing. --land exists ONLY to bring a gate-worktree harvest commit onto
     # main. Already-on-main commits take the sweep&&push path instead.
     if git -C "$REPO" merge-base --is-ancestor "$ONE" HEAD 2>/dev/null; then
-      say "NOTHING TO LAND: $ONE is already on main. --land가 아니라 스윕&&push를 써라:"
-      say "  PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all && git push origin main"
+      say "NOTHING TO LAND: $ONE is already on main. --land가 아니라 --ship을 써라:"
+      say "  $0 --ship"
       exit 1
     fi
     MSG_PART="/tmp/coo-land-msg-$i.txt"
