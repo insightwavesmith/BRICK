@@ -1,0 +1,43 @@
+template_ref: brick-template:deep-design-return
+owner_axis: Brick
+template_kind: deep_design_return_shape
+maps_to: AgentFact.returned
+step_template_refs:
+  - building-step-template:deep-design
+required_return_shape:
+  - design_summary
+  - per_deliverable_plan
+  - decision_ledger
+  - hunk_sketches
+  - mutation_designs
+  - forbidden_drift
+  - candidate_file_changes
+  - reading_scope_map
+  - invariants
+  - observed_evidence
+  - evidence_refs
+  - not_proven
+carries_forward_fields:
+  - per_deliverable_plan
+  - decision_ledger
+  - hunk_sketches
+  - mutation_designs
+  - forbidden_drift
+  - candidate_file_changes
+  - reading_scope_map
+forbidden_return_keys:
+  - success
+  - failure
+  - approved
+  - quality
+  - movement_choice
+  - route_target
+proof_limits:
+  - Brick-owned return-shape data resource only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic correctness of returned content
+  - complete coverage

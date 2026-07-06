@@ -63,6 +63,8 @@ physical_template_classification:
       reason: Canonical primary return template for building-step-template:evidence-integrity.
     - path: brick/templates/bricks/closure/return.yaml
       reason: Canonical primary return template for building-step-template:closure.
+    - path: brick/templates/bricks/deep-design/return.yaml
+      reason: Canonical primary return template for building-step-template:deep-design.
   shared_base:
     - path: brick/templates/building-design-contract.yaml
       reason: Building-level human<->COO design-contract table (templates root since T-FLATTEN 0611; building-level by design, so deliberately NOT a brick sheet under bricks/).

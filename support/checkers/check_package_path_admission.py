@@ -734,6 +734,7 @@ TEMPLATE0_BRICK_KINDS = {
     "axis-attack-qa",
     "closure",
     "code-attack-qa",
+    "deep-design",
     "design",
     "development",
     "evidence-integrity",
