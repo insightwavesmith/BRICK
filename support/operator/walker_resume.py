@@ -48,6 +48,10 @@ from brick_protocol.support.operator.primitives import (
     _optional_text_from_mapping,
     _optional_text_value,
 )
+from brick_protocol.support.operator.re_instruction_rules import (
+    re_instruction_endline_rules,
+    re_instruction_rule_violations,
+)
 from brick_protocol.support.recording.building_map import BuildingMapWriteResult
 from brick_protocol.support.recording.capture import (
     BuildingLifecycleWriteResult,
@@ -380,8 +384,13 @@ def _resume_dynamic_graph_walker(
     # disposition transition_lifecycle row (an ADMITTED transition_lifecycle key;
     # the author-prefix gate above already validated the row authority). Carried
     # as plain text onto the seed; the kernel stamps it onto the live retried
-    # target's prompt. Absent => "" => the target runs its original work unchanged.
-    re_instruction = _optional_text_value(disposition.get("re_instruction")) or ""
+    # target's prompt. Resume validates here too so direct raw/link authors
+    # cannot bypass onboard's pre-write check.
+    re_instruction = _validated_resume_re_instruction(
+        action,
+        disposition,
+        repo=Path(repo_root).resolve(),
+    )
 
     seed = ResumeSeed(
         replay_returns=replay_returns,
@@ -434,6 +443,30 @@ def _resume_dynamic_graph_walker(
         report_env=report_env,
         report_slack_sender=report_slack_sender,
     )
+
+
+def _validated_resume_re_instruction(
+    action: str,
+    disposition: Mapping[str, Any],
+    *,
+    repo: Path,
+) -> str:
+    re_instruction = _optional_text_value(disposition.get("re_instruction")) or ""
+    if action == "reroute" and not re_instruction:
+        raise ValueError("resume: reroute disposition row requires re_instruction")
+    if re_instruction:
+        violations = re_instruction_rule_violations(
+            re_instruction,
+            re_instruction_endline_rules(repo),
+        )
+        if violations:
+            details = "; ".join(str(item) for item in violations)
+            raise ValueError(
+                "resume: re_instruction_endline_rule_violation -- "
+                "human/COO disposition row carries re_instruction that violates "
+                f"declared endline rule(s): {details}"
+            )
+    return re_instruction
 
 
 def _require_budget_exhaustion_raise(
