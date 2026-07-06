@@ -10,8 +10,7 @@ ONE FOR ALL, ALL FOR ONE
 
 [hero portrait omitted: ANSI color not supported]
 
-[✓] BRICK installed successfully.
-🚀  You're all set. Build, route, inspect, compose.
-Docs: https://docs.brick.engine
-
-brick@engine ~ $
+[OK] BRICK installed successfully.
+[>]  You're all set. Build, route, inspect, compose.
+Docs: support/docs/references/quickstart.md
+Ready: cd ~/BRICK && brick doctor

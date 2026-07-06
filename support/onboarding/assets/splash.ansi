@@ -50,6 +50,6 @@
 
 [1;38;2;64;255;96m[✓] BRICK[0m[0;37m installed successfully.[0m
 [1;38;2;255;215;64m🚀[0m  [0;37mYou're all set. [1;38;2;64;255;96mBuild, route, inspect, compose.[0m
-[0;37mDocs:[0m [1;38;2;64;255;96mhttps://docs.brick.engine[0m
+[0;37mDocs:[0m [1;38;2;64;255;96msupport/docs/references/quickstart.md[0m
 
-[1;38;2;64;255;96mbrick@engine[0m[0;37m ~ $[0m [1;38;2;64;255;96m█[0m
+[0;37mReady:[0m [1;38;2;64;255;96mcd ~/BRICK && brick doctor[0m
