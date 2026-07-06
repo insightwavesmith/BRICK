@@ -41,6 +41,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import tempfile
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -73,16 +74,17 @@ _COMPLIANT_RE_INSTRUCTION = (
 DIVERGENCE_PREFIX = "resume divergence: the seeded walk completed WITHOUT applying"
 APPLIED_DISPOSITION_LITERAL = "dynamic Building already has an applied resume disposition"
 
-# Concern-path guard literals (pinned verbatim; see walker_kernel.py:238-253
-# `_require_undisposed_concern_hold`, called at the SIX concern-path hold
-# construction sites 1881/2084/2122/2161/2197/2254). A previously-disposed
-# concern-path HOLD carries NO forward-mirror branch (unlike a gate-sequence
-# hold), so ANY prior disposition -- reroute OR forward -- re-reached on replay
-# raises this loud literal. Corrupting either constant below flips the F-C /
-# P-C run RED (self-mutation proof, design final-0706 invariant I6 / D1.11).
+# Concern-path guard literals (pinned verbatim for mirror-unsupported sites,
+# including P-C1). The required F-C fixtures now expect GREEN mirror replay;
+# these literals remain as loud-regression evidence for sites that still call
+# `_require_undisposed_concern_hold`.
 CONCERN_PATH_HOLD_PREFIX = "resume replay reached a previously-disposed concern-path HOLD "
 CONCERN_PATH_MIRROR_NOT_IMPLEMENTED = (
     "concern-path mirroring is not implemented in this slice"
+)
+SEQUENCE_REUSE_GUARD_LITERAL = (
+    "sequence-reuse guard missing: concern mirror must roll back prospective "
+    "hold sequence before replay adoption"
 )
 
 
@@ -459,28 +461,10 @@ def _classify_final_resume(
     ValueError the FINAL resume raised (or None if it returned)."""
 
     if exc is not None:
-        message = str(exc)
-        if expect_red_literal_kind == "reroute-1746":
-            ok = message.startswith(RED_REROUTE_HOLD_PREFIX) and message.endswith(
-                RED_UNSUPPORTED_REROUTE_SUFFIX
-            )
-            literal = f"{RED_REROUTE_HOLD_PREFIX}...{RED_UNSUPPORTED_REROUTE_SUFFIX}"
-        elif expect_red_literal_kind == "divergence":
-            ok = message.startswith(DIVERGENCE_PREFIX)
-            literal = DIVERGENCE_PREFIX
-        else:  # pragma: no cover - guarded caller
-            raise ProfileError(f"{fixture}: unknown expected literal kind {expect_red_literal_kind!r}")
-        if not ok:
-            raise ProfileError(
-                f"{fixture}: final resume raised an UNEXPECTED literal; "
-                f"expected {expect_red_literal_kind!r} ({literal!r}) but got {message!r}"
-            )
-        return {
-            "fixture": fixture,
-            "branch": "red-pin",
-            "red_literal_kind": expect_red_literal_kind,
-            "red_message": message,
-        }
+        raise ProfileError(
+            f"{fixture}: expected GREEN mirror replay, but final resume raised "
+            f"{type(exc).__name__}: {exc}"
+        )
 
     # No raise: the ONLY admissible non-RED state is the GREEN post-repair branch.
     frontier = _frontier_kind(root, repo)
@@ -1306,23 +1290,10 @@ def _classify_concern_final_resume(
     ValueError the FINAL resume raised (or None if it returned)."""
 
     if exc is not None:
-        message = str(exc)
-        ok = (
-            message.startswith(CONCERN_PATH_HOLD_PREFIX)
-            and CONCERN_PATH_MIRROR_NOT_IMPLEMENTED in message
+        raise ProfileError(
+            f"{fixture}: expected GREEN concern-path mirror replay, but final "
+            f"resume raised {type(exc).__name__}: {exc}"
         )
-        if not ok:
-            raise ProfileError(
-                f"{fixture}: final resume raised an UNEXPECTED literal; expected "
-                f"the concern-path guard ({CONCERN_PATH_HOLD_PREFIX!r} ... "
-                f"{CONCERN_PATH_MIRROR_NOT_IMPLEMENTED!r}) but got {message!r}"
-            )
-        return {
-            "fixture": fixture,
-            "branch": "red-pin",
-            "red_literal_kind": "concern-path",
-            "red_message": message,
-        }
 
     frontier = _frontier_kind(root, repo)
     green = _concern_green_invariants(
@@ -1666,7 +1637,36 @@ def _probe_pc1_gate_sequence_budget_exhausted(repo: Path) -> Mapping[str, Any]:
     }
 
 
+def _mutation_sequence_reuse_source_guard(repo: Path) -> Mapping[str, Any]:
+    """Mutation self-proof: removing the concern mirror's sequence rollback must
+    make this checker rc=1 with a stable literal. The behavioral parity checks
+    also catch the drift; this source guard gives the receiving lane an
+    executable, cheap mutation handle for the exact sequence-reuse edit."""
+
+    source = (repo / "support" / "operator" / "walker_kernel.py").read_text(
+        encoding="utf-8"
+    )
+    rollback_sites = len(
+        re.findall(
+            r"(?m)^[ \t]+adoption_sequence_number -= 1\n"
+            r"[ \t]+replaying_prior_concern_reroute_mirror = True",
+            source,
+        )
+    )
+    if rollback_sites != 4:
+        raise ProfileError(SEQUENCE_REUSE_GUARD_LITERAL)
+    return {
+        "mutation_proof": "sequence-reuse",
+        "observed": "concern_mirror_sequence_rollback_sites_intact",
+        "rollback_site_count": rollback_sites,
+        "failure_literal": SEQUENCE_REUSE_GUARD_LITERAL,
+    }
+
+
 def run(repo: Path) -> Mapping[str, Any]:
+    mutation_proofs = [
+        _mutation_sequence_reuse_source_guard(repo),
+    ]
     fixtures = [
         _fixture_f_r1(repo),
         _fixture_f_r2(repo),
@@ -1688,6 +1688,7 @@ def run(repo: Path) -> Mapping[str, Any]:
         "fixtures": fixtures,
         "concern_fixtures": concern_fixtures,
         "probes": probes,
+        "mutation_proofs": mutation_proofs,
     }
 
 
@@ -1714,10 +1715,16 @@ def main(argv: list[str] | None = None) -> int:
         )
     for probe in summary["probes"]:
         print(f"  {probe['probe']}: {probe['observed']}")
+    for proof in summary.get("mutation_proofs", ()):
+        print(
+            f"  mutation:{proof['mutation_proof']}: {proof['observed']} "
+            f"(failure_literal={proof['failure_literal']!r})"
+        )
     print(
         "resume_replay_disposition_mirror passed: "
         f"{len(all_fixtures)} fixtures ({branches}), "
-        f"{len(summary['probes'])} probes observed."
+        f"{len(summary['probes'])} probes observed, "
+        f"{len(summary.get('mutation_proofs', ()))} mutation proofs observed."
     )
     return 0
 

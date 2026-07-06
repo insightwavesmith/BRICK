@@ -269,10 +269,12 @@ class _DispatchChildTimeout(RuntimeError):
 
 
 def _require_undisposed_concern_hold(resume_seed, hold_record, step_ref):
-    """Fail loud when a resume replay re-reaches a concern-path HOLD that a
-    prior human/COO disposition already resolved. Concern-path mirroring is
-    NOT implemented in this slice — silently re-parking a previously-disposed
-    hold would hide the divergence (t7b design D1.11, invariant I6)."""
+    """Fail loud for concern-style hold sites that are still mirror-unsupported.
+
+    The main concern adoption path mirrors prior forward/reroute dispositions
+    below. Sites that still call this helper intentionally remain loud instead
+    of silently re-parking a previously-disposed hold.
+    """
     if resume_seed is None:
         return
     previous = _resume_observation_for_hold(resume_seed, hold_record)
@@ -284,6 +286,37 @@ def _require_undisposed_concern_hold(resume_seed, hold_record, step_ref):
             "is not implemented in this slice — use a fresh re-issue or "
             "extend the mirror (t7b-replay-mirror-design-final-0706 D1.11)"
         )
+
+
+def _previous_concern_hold_disposition(resume_seed, hold_record, step_ref):
+    """Return a prior disposition for a re-reached concern-path hold.
+
+    The caller has already built the prospective hold and consumed its
+    adoption-sequence slot. A mirrored forward/reroute rolls that slot back so
+    the replayed action reuses the sequence shape of the original resume.
+    """
+    if resume_seed is None:
+        return "", ""
+    previous = _resume_observation_for_hold(resume_seed, hold_record)
+    if previous is None:
+        return "", ""
+    prior_action = str(previous.get("disposition_action") or "")
+    if prior_action == "forward":
+        return "forward", ""
+    if prior_action == "reroute":
+        target = str(previous.get("pending_target_ref") or "")
+        if not target:
+            raise ValueError(
+                "resume replay cannot mirror a prior concern-path reroute "
+                f"disposition for {step_ref!r}: the recorded observation "
+                "carries no pending_target_ref"
+            )
+        return "reroute", target
+    raise ValueError(
+        "resume replay reached a previously-disposed concern-path HOLD "
+        f"for {step_ref!r} with unsupported prior disposition "
+        f"{prior_action!r}"
+    )
 
 
 def _adapter_dispatch_timing_record(
@@ -1928,6 +1961,7 @@ def _run_dynamic_graph_walker(
             completed_fan_steps.add((step_ref, cascade_depth))
         human_disposition_reroute_target = ""
         replaying_prior_reroute_mirror = False
+        replaying_prior_concern_reroute_mirror = False
         # RESUME disposition application at the held step occurrence. The held step
         # is the LAST recorded step (the original walk broke there); on replay this
         # is the occurrence that just exhausted its recorded returns at the held
@@ -2332,6 +2366,78 @@ def _run_dynamic_graph_walker(
                 resolved=(human_disposition_reroute_target,),
             )
             human_disposition_adopted_by = "link-policy:human-disposition"
+        if target_classification is not None and target_classification.kind in (
+            "ambiguous",
+            "none",
+        ) and not (
+            concern is not None
+            and plan.get("transition_concern_adoption") == "advisory"
+            and not human_disposition_reroute_target
+        ):
+            hold_target = brick_ref_by_step[step_ref]
+            hold_reason = target_classification.hold_reason or (
+                "multiple_reroute_addresses_no_single_owner"
+                if target_classification.kind == "ambiguous"
+                else "no_resolving_reroute_address"
+            )
+            adoption_sequence_number += 1
+            prospective_hold = _build_hold(
+                building_id=building_id,
+                plan_ref=plan_ref,
+                source_step_ref=step_ref,
+                source_brick_ref=brick_ref_by_step[step_ref],
+                target_brick=hold_target,
+                concern=concern,
+                cascade_depth=item["cascade_depth"],
+                parent_reroute_ref=item["parent_reroute_ref"],
+                adoption_sequence_number=adoption_sequence_number,
+                node_budget=0,
+                attempt_number=0,
+                budget_exhausted=False,
+                hold_reason=hold_reason,
+                step=step,
+                step_result=step_result,
+            )
+            prior_action, prior_target = _previous_concern_hold_disposition(
+                resume_seed,
+                prospective_hold,
+                step_ref,
+            )
+            if prior_action == "forward":
+                adoption_sequence_number -= 1
+                if has_fan_groups:
+                    frontier_driver.splice_declared_successors_after_current(
+                        source_step_ref=step_ref,
+                        cascade_depth=cascade_depth,
+                        parent_reroute_ref=item["parent_reroute_ref"],
+                        successors_by_source=fan_successors_by_source,
+                    )
+                continue
+            if prior_action == "reroute":
+                adoption_sequence_number -= 1
+                replaying_prior_concern_reroute_mirror = True
+                target_classification = _RerouteTargetClassification(
+                    kind="single",
+                    target=prior_target,
+                    resolved=(prior_target,),
+                )
+                human_disposition_adopted_by = "link-policy:human-disposition"
+            else:
+                hold_record = prospective_hold
+                reroute_records.append(hold_record)
+                _drain_pending_outcomes_before_terminal()
+                if has_fan_groups:
+                    held_fan_steps.add((step_ref, cascade_depth))
+                    fan_in_wait_all_observations.extend(
+                        _fan_in_wait_all_observations_for_held_source(
+                            held_source_step_ref=step_ref,
+                            cascade_depth=cascade_depth,
+                            fan_in_sources_by_target=fan_in_sources_by_target,
+                            completed_fan_steps=completed_fan_steps,
+                            held_fan_steps=held_fan_steps,
+                        )
+                    )
+                break
         # WALK ON (carry forward to closure, no HOLD, no reroute landing) when
         # there is NO concern, the plan declares concerns advisory, OR the concern
         # is an EXPLICIT non-reroute concern: either building-boundary: sentinels
@@ -2352,62 +2458,14 @@ def _run_dynamic_graph_walker(
             reroute_insert_width = 0
         else:
             if target_classification.kind in ("ambiguous", "none"):
-                # An Agent named EITHER several resolving nodes (ambiguous: no single
-                # owner) OR none that resolve while a concern IS present (none: an
-                # unaddressable concern). The machine must NOT pick one and must NOT
-                # silently drop the concern -> HOLD (BUDGET-FREE: no node_landings /
-                # node_budget touched; this is a pause, not a reroute LANDING). The
-                # human/COO authors the disposition (caller-or-coo).
-                hold_target = brick_ref_by_step[step_ref]
-                # The classifier may stamp a SPECIFIC hold_reason (e.g. an
-                # unresolvable brick-targeting address co-occurring with a valid
-                # one -> unresolvable_reroute_address); otherwise derive the reason
-                # from the kind (ambiguous vs none).
-                hold_reason = target_classification.hold_reason or (
-                    "multiple_reroute_addresses_no_single_owner"
-                    if target_classification.kind == "ambiguous"
-                    else "no_resolving_reroute_address"
-                )
-                adoption_sequence_number += 1
-                hold_record = _build_hold(
-                    building_id=building_id,
-                    plan_ref=plan_ref,
-                    source_step_ref=step_ref,
-                    source_brick_ref=brick_ref_by_step[step_ref],
-                    target_brick=hold_target,
-                    concern=concern,
-                    cascade_depth=item["cascade_depth"],
-                    parent_reroute_ref=item["parent_reroute_ref"],
-                    adoption_sequence_number=adoption_sequence_number,
-                    node_budget=0,
-                    attempt_number=0,
-                    budget_exhausted=False,
-                    hold_reason=hold_reason,
-                    step=step,
-                    step_result=step_result,
-                )
-                _require_undisposed_concern_hold(resume_seed, hold_record, step_ref)
-                reroute_records.append(hold_record)
-                _drain_pending_outcomes_before_terminal()
-                if has_fan_groups:
-                    held_fan_steps.add((step_ref, cascade_depth))
-                    fan_in_wait_all_observations.extend(
-                        _fan_in_wait_all_observations_for_held_source(
-                            held_source_step_ref=step_ref,
-                            cascade_depth=cascade_depth,
-                            fan_in_sources_by_target=fan_in_sources_by_target,
-                            completed_fan_steps=completed_fan_steps,
-                            held_fan_steps=held_fan_steps,
-                        )
-                    )
-                break
+                raise AssertionError("unreachable after concern hold mirror pre-check")
             else:
                 target_brick = target_classification.target
                 gate = _gate_disposition_for_step(step)
                 if gate == "pause":
                     # human:/coo: gate on the reroute -> PAUSE (transition_lifecycle paused).
                     adoption_sequence_number += 1
-                    hold_record = _build_hold(
+                    prospective_hold = _build_hold(
                         building_id=building_id,
                         plan_ref=plan_ref,
                         source_step_ref=step_ref,
@@ -2424,21 +2482,43 @@ def _run_dynamic_graph_walker(
                         step=step,
                         step_result=step_result,
                     )
-                    _require_undisposed_concern_hold(resume_seed, hold_record, step_ref)
-                    reroute_records.append(hold_record)
-                    _drain_pending_outcomes_before_terminal()
-                    if has_fan_groups:
-                        held_fan_steps.add((step_ref, cascade_depth))
-                        fan_in_wait_all_observations.extend(
-                            _fan_in_wait_all_observations_for_held_source(
-                                held_source_step_ref=step_ref,
+                    prior_action, prior_target = _previous_concern_hold_disposition(
+                        resume_seed,
+                        prospective_hold,
+                        step_ref,
+                    )
+                    if prior_action == "forward":
+                        adoption_sequence_number -= 1
+                        if has_fan_groups:
+                            frontier_driver.splice_declared_successors_after_current(
+                                source_step_ref=step_ref,
                                 cascade_depth=cascade_depth,
-                                fan_in_sources_by_target=fan_in_sources_by_target,
-                                completed_fan_steps=completed_fan_steps,
-                                held_fan_steps=held_fan_steps,
+                                parent_reroute_ref=item["parent_reroute_ref"],
+                                successors_by_source=fan_successors_by_source,
                             )
-                        )
-                    break
+                        continue
+                    if prior_action == "reroute":
+                        adoption_sequence_number -= 1
+                        replaying_prior_concern_reroute_mirror = True
+                        target_brick = prior_target
+                        gate = ""
+                        human_disposition_adopted_by = "link-policy:human-disposition"
+                    else:
+                        hold_record = prospective_hold
+                        reroute_records.append(hold_record)
+                        _drain_pending_outcomes_before_terminal()
+                        if has_fan_groups:
+                            held_fan_steps.add((step_ref, cascade_depth))
+                            fan_in_wait_all_observations.extend(
+                                _fan_in_wait_all_observations_for_held_source(
+                                    held_source_step_ref=step_ref,
+                                    cascade_depth=cascade_depth,
+                                    fan_in_sources_by_target=fan_in_sources_by_target,
+                                    completed_fan_steps=completed_fan_steps,
+                                    held_fan_steps=held_fan_steps,
+                                )
+                            )
+                        break
 
                 # Default/template gate -> auto-adopt IF the target node budget is available.
                 budget = node_budget.get(target_brick)
@@ -2446,7 +2526,7 @@ def _run_dynamic_graph_walker(
                     # A reroute target with no Link-assigned budget cannot be adopted; the
                     # bound depends on every target having a finite budget. HOLD.
                     adoption_sequence_number += 1
-                    hold_record = _build_hold(
+                    prospective_hold = _build_hold(
                         building_id=building_id,
                         plan_ref=plan_ref,
                         source_step_ref=step_ref,
@@ -2463,26 +2543,48 @@ def _run_dynamic_graph_walker(
                         step=step,
                         step_result=step_result,
                     )
-                    _require_undisposed_concern_hold(resume_seed, hold_record, step_ref)
-                    reroute_records.append(hold_record)
-                    _drain_pending_outcomes_before_terminal()
-                    if has_fan_groups:
-                        held_fan_steps.add((step_ref, cascade_depth))
-                        fan_in_wait_all_observations.extend(
-                            _fan_in_wait_all_observations_for_held_source(
-                                held_source_step_ref=step_ref,
+                    prior_action, prior_target = _previous_concern_hold_disposition(
+                        resume_seed,
+                        prospective_hold,
+                        step_ref,
+                    )
+                    if prior_action == "forward":
+                        adoption_sequence_number -= 1
+                        if has_fan_groups:
+                            frontier_driver.splice_declared_successors_after_current(
+                                source_step_ref=step_ref,
                                 cascade_depth=cascade_depth,
-                                fan_in_sources_by_target=fan_in_sources_by_target,
-                                completed_fan_steps=completed_fan_steps,
-                                held_fan_steps=held_fan_steps,
+                                parent_reroute_ref=item["parent_reroute_ref"],
+                                successors_by_source=fan_successors_by_source,
                             )
-                        )
-                    break
+                        continue
+                    if prior_action == "reroute":
+                        adoption_sequence_number -= 1
+                        replaying_prior_concern_reroute_mirror = True
+                        target_brick = prior_target
+                        budget = node_budget.get(target_brick)
+                        human_disposition_adopted_by = "link-policy:human-disposition"
+                    if budget is None:
+                        hold_record = prospective_hold
+                        reroute_records.append(hold_record)
+                        _drain_pending_outcomes_before_terminal()
+                        if has_fan_groups:
+                            held_fan_steps.add((step_ref, cascade_depth))
+                            fan_in_wait_all_observations.extend(
+                                _fan_in_wait_all_observations_for_held_source(
+                                    held_source_step_ref=step_ref,
+                                    cascade_depth=cascade_depth,
+                                    fan_in_sources_by_target=fan_in_sources_by_target,
+                                    completed_fan_steps=completed_fan_steps,
+                                    held_fan_steps=held_fan_steps,
+                                )
+                            )
+                        break
 
                 if node_landings[target_brick] >= budget:
                     # Budget EXHAUSTED -> the next reroute landing is NOT adopted. HOLD.
                     adoption_sequence_number += 1
-                    hold_record = _build_hold(
+                    prospective_hold = _build_hold(
                         building_id=building_id,
                         plan_ref=plan_ref,
                         source_step_ref=step_ref,
@@ -2499,21 +2601,43 @@ def _run_dynamic_graph_walker(
                         step=step,
                         step_result=step_result,
                     )
-                    _require_undisposed_concern_hold(resume_seed, hold_record, step_ref)
-                    reroute_records.append(hold_record)
-                    _drain_pending_outcomes_before_terminal()
-                    if has_fan_groups:
-                        held_fan_steps.add((step_ref, cascade_depth))
-                        fan_in_wait_all_observations.extend(
-                            _fan_in_wait_all_observations_for_held_source(
-                                held_source_step_ref=step_ref,
+                    prior_action, prior_target = _previous_concern_hold_disposition(
+                        resume_seed,
+                        prospective_hold,
+                        step_ref,
+                    )
+                    if prior_action == "forward":
+                        adoption_sequence_number -= 1
+                        if has_fan_groups:
+                            frontier_driver.splice_declared_successors_after_current(
+                                source_step_ref=step_ref,
                                 cascade_depth=cascade_depth,
-                                fan_in_sources_by_target=fan_in_sources_by_target,
-                                completed_fan_steps=completed_fan_steps,
-                                held_fan_steps=held_fan_steps,
+                                parent_reroute_ref=item["parent_reroute_ref"],
+                                successors_by_source=fan_successors_by_source,
                             )
-                        )
-                    break
+                        continue
+                    if prior_action == "reroute":
+                        adoption_sequence_number -= 1
+                        replaying_prior_concern_reroute_mirror = True
+                        target_brick = prior_target
+                        budget = node_budget.get(target_brick)
+                        human_disposition_adopted_by = "link-policy:human-disposition"
+                    if budget is None or node_landings[target_brick] >= budget:
+                        hold_record = prospective_hold
+                        reroute_records.append(hold_record)
+                        _drain_pending_outcomes_before_terminal()
+                        if has_fan_groups:
+                            held_fan_steps.add((step_ref, cascade_depth))
+                            fan_in_wait_all_observations.extend(
+                                _fan_in_wait_all_observations_for_held_source(
+                                    held_source_step_ref=step_ref,
+                                    cascade_depth=cascade_depth,
+                                    fan_in_sources_by_target=fan_in_sources_by_target,
+                                    completed_fan_steps=completed_fan_steps,
+                                    held_fan_steps=held_fan_steps,
+                                )
+                            )
+                        break
 
                 # MAIL-REPAIR (0611, B3 lane 1): the gate ADOPTED this concern for
                 # THIS reroute, so its mandatory reason_refs are truck-eligible.
@@ -2556,7 +2680,21 @@ def _run_dynamic_graph_walker(
                         step=step,
                         step_result=step_result,
                     )
-                    _require_undisposed_concern_hold(resume_seed, hold_record, step_ref)
+                    prior_action, _prior_target = _previous_concern_hold_disposition(
+                        resume_seed,
+                        hold_record,
+                        step_ref,
+                    )
+                    if prior_action == "forward":
+                        adoption_sequence_number -= 1
+                        if has_fan_groups:
+                            frontier_driver.splice_declared_successors_after_current(
+                                source_step_ref=step_ref,
+                                cascade_depth=cascade_depth,
+                                parent_reroute_ref=item["parent_reroute_ref"],
+                                successors_by_source=fan_successors_by_source,
+                            )
+                        continue
                     reroute_records.append(hold_record)
                     _drain_pending_outcomes_before_terminal()
                     if has_fan_groups:
@@ -2659,7 +2797,24 @@ def _run_dynamic_graph_walker(
                         (skipped_step_ref, reroute_cascade_depth)
                     )
                 fan_in_cohort_records.extend(cohort_records)
-                frontier_driver.splice_after_current(appended)
+                mirror_insert_offset = 0
+                if replaying_prior_concern_reroute_mirror and has_fan_groups:
+                    for pending_item in frontier_driver.pending_items():
+                        pending_step_ref = str(pending_item.get("step_ref") or "")
+                        if pending_step_ref in fan_in_sources_by_target:
+                            break
+                        if int(pending_item.get("cascade_depth", 0)) != cascade_depth:
+                            break
+                        if (
+                            str(pending_item.get("parent_reroute_ref") or "")
+                            != str(item.get("parent_reroute_ref") or "")
+                        ):
+                            break
+                        mirror_insert_offset += 1
+                frontier_driver.splice_after_current(
+                    appended,
+                    offset=mirror_insert_offset,
+                )
                 reroute_insert_width = len(appended)
                 # CONTRACT-DERIVED emission (ζ6): build the record FROM the recording
                 # contract field-spec (support/recording/walker_evidence.py iterates
