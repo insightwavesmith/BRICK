@@ -489,6 +489,16 @@ modules:
     decomposition_target: ""
     pinned_by: gate_registry_single_source kernel check (struct-surgery ② 0623; AST seals the Link gate-ref vocabulary + materializer placement rule to ONE data table -- link/spec.GATE_REGISTRY. RULE 1 rejects any collection literal of >= 2 link-gate: literals outside link/spec.py -- a re-stated gate vocabulary, the old DECLARED_GATE_REFS-tuple shape -- while leaving lone behavioral "if ref == link-gate:human" comparisons clean; RULE 2 rejects the support materializer placement helper _materializer_profile_gate_translations if it does not delegate to gate_placement_for_row or hand-authors placement via translate_gate_concept guarded by row flags. Positively asserts GATE_REGISTRY enumerates the vocabulary + gate_placement_for_row is defined on the Link axis. Built-in synthetic mutation-RED probe -- re-enumerated tuple + hand-authored placement both rejected, lone comparison left clean)
 
+  - module: support/checkers/check_gate_policy_action_single_source.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: gate_policy_action_single_source kernel check (K1 vocabulary re-home 0706; AST seals the Link gate-sequence policy action vocabulary and partition subsets to link/gate.py -- ADMITTED_POLICY_ACTIONS, ON_MISSING_REQUIRED_FACTS_ACTIONS, ON_SUFFICIENT_ACTIONS, and normalize_gate_policy_action. Rejects any Python collection literal outside link/gate.py/checker oracle that re-states the full action set or either partition subset; leaves lone behavioral action comparisons clean. Built-in mutation-RED probes -- re-stated all-action tuple + partition set rejected, lone comparison left clean)
+
   - module: support/checkers/check_agent_object_schema_single_source.py
     layer: checkers
     role: checker

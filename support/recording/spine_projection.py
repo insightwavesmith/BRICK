@@ -85,12 +85,11 @@ from brick_protocol.support.recording.spine import (
 # a literal here): MOVEMENT_LITERALS is Link's owned Movement tuple
 # ('forward','reroute'); GATE_SUFFICIENCY_LITERALS is Gate's owned sufficiency tuple
 # ('sufficient','insufficient','missing_required_facts'); ADMITTED_POLICY_ACTIONS is
-# the operator gate-sequence's owned action tuple ('forward','hold','next','reroute').
+# Link's owned gate-sequence action tuple.
 # Importing them means the projector and the owning axis/observer agree by
 # construction; if any drifts, the projector breaks at import, not silently.
 from brick_protocol.link.movement import MOVEMENT_LITERALS
-from brick_protocol.link.gate import GATE_SUFFICIENCY_LITERALS
-from brick_protocol.support.operator.gate_sequence import ADMITTED_POLICY_ACTIONS
+from brick_protocol.link.gate import ADMITTED_POLICY_ACTIONS, GATE_SUFFICIENCY_LITERALS
 
 # SINGLE-SOURCE the two TERMINAL building-scope value vocabularies + the frontier
 # observer from their OWNING modules (never re-list a literal here):

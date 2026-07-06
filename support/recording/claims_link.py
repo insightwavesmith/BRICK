@@ -23,13 +23,12 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping
 from typing import Any
 
-from brick_protocol.link.gate import GATE_SUFFICIENCY_LITERALS, GateFact
+from brick_protocol.link.gate import ADMITTED_POLICY_ACTIONS, GATE_SUFFICIENCY_LITERALS, GateFact
 from brick_protocol.support.operator.contracts import (
     AgentRunPreparationRecord,
     BuildingRunSupportResult,
     MinimalCrossingRecord,
 )
-from brick_protocol.support.operator.gate_sequence import ADMITTED_POLICY_ACTIONS
 from brick_protocol.support.operator.plan_graph import (
     _graph_declared_edges,
     _graph_link_raw_ref,

@@ -622,6 +622,10 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "gate_registry_single_source",
         "support.checkers.check_gate_registry_single_source",
     ),
+    "gate_policy_action_single_source": _repo_main(
+        "gate_policy_action_single_source",
+        "support.checkers.check_gate_policy_action_single_source",
+    ),
     # AGENT-OBJECT SCHEMA SINGLE-SOURCE (③ struct-surgery 0623). AST-seals the
     # agent-OBJECT key/ref/forbidden SCHEMA to ONE source on the Agent axis —
     # agent/spec.AGENT_OBJECT_SCHEMA (assembled over its _AGENT_OBJECT_REF_FIELDS +

@@ -22,6 +22,7 @@ kernel_checks:
   - building_plans_boundary_sweep
   - axis_crossing_elegance
   - link_gate_measurement_separation
+  - gate_policy_action_single_source
   - fan_out_sibling_evidence_independence
   - evidence_spine
   - evidence_spine_projection
@@ -50,6 +51,7 @@ path_exists:
   - support/checkers/check_building_declaration_integrity.py
   - support/checkers/check_axis_crossing_elegance.py
   - support/checkers/check_link_gate_measurement_separation.py
+  - support/checkers/check_gate_policy_action_single_source.py
   - support/checkers/check_fan_out_sibling_evidence_independence.py
   - support/checkers/check_evidence_spine.py
   - support/checkers/check_evidence_spine_projection.py
@@ -93,6 +95,7 @@ path_allowlist:
       - support/checkers/profiles/core.yaml
       - support/checkers/profiles/declaration_enforcement_parity.yaml
       - support/checkers/profiles/gate_registry_single_source.yaml
+      - support/checkers/profiles/gate_policy_action_single_source.yaml
       - support/checkers/profiles/graph_topology_fan_barrier.yaml
       - support/checkers/profiles/interactive_provider_intake.yaml
       - support/checkers/profiles/link_routing_behavioral.yaml

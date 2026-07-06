@@ -187,6 +187,13 @@ crossings:
       # E1 (U5.5 slice-3): the admitted Link gate sufficiency vocabulary, single-
       # sourced by recording (claims_link) to validate the recorded sufficiency.
       - GATE_SUFFICIENCY_LITERALS
+      # K1 vocabulary re-home (0706): gate-sequence policy action vocabulary and
+      # partition subsets are Link gate policy facts. Support imports these names
+      # instead of re-stating forward/hold/next/reroute member sets.
+      - ADMITTED_POLICY_ACTIONS
+      - ON_MISSING_REQUIRED_FACTS_ACTIONS
+      - ON_SUFFICIENT_ACTIONS
+      - normalize_gate_policy_action
     defined_at: link/gate.py
     projection_yaml: link/gate.yaml
     pinned_by: check_axis_contract_projection (check_link_gate)

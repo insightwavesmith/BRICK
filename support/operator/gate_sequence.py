@@ -12,7 +12,12 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any
 
-from brick_protocol.link.gate import GateFact, evaluate_declared_movement_gate
+from brick_protocol.link.gate import (
+    ADMITTED_POLICY_ACTIONS,
+    GateFact,
+    evaluate_declared_movement_gate,
+    normalize_gate_policy_action,
+)
 from brick_protocol.support.operator.contracts import BuildingRunSupportResult
 from brick_protocol.support.operator.plan_validation import (
     _artifact_grounding_required_return_fields,
@@ -20,10 +25,6 @@ from brick_protocol.support.operator.plan_validation import (
 from brick_protocol.support.operator.primitives import _optional_text_value
 
 
-# The admitted gate-sequence policy actions. ``ADMITTED_POLICY_ACTIONS`` is the
-# exported tuple (stable order) that recording (E1) single-sources to validate the
-# recorded policy_action; ``_ADMITTED_ACTIONS`` stays the internal membership set.
-ADMITTED_POLICY_ACTIONS: tuple[str, ...] = ("forward", "hold", "next", "reroute")
 _ADMITTED_ACTIONS = frozenset(ADMITTED_POLICY_ACTIONS)
 
 
@@ -497,9 +498,9 @@ def _link_row_has_non_empty_list(
 
 def _action_literal(value: Any) -> str:
     text = _optional_text_value(value) or ""
-    if text.upper() == "HOLD":
-        return "hold"
-    return text.lower()
+    if not text:
+        return ""
+    return normalize_gate_policy_action(text)
 
 
 def _target_ref(
