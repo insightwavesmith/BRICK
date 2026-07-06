@@ -6,11 +6,35 @@
 # final merge decision AFTER reading the VERDICT block. This script never
 # merges to main and never pushes.
 #
-# usage: coo_gate_runner.sh <building_id> <vessel_root_abs> "<profile1 profile2 ...>" [mutspec.py]
+# usage (gate): coo_gate_runner.sh <building_id> <vessel_root_abs> "<profiles...>" [mutspec.py]
+# usage (land): coo_gate_runner.sh --land <harvest_sha> <merge_msg_file>
+#   --land is the post-VERDICT mechanical tail the operator fires AFTER deciding
+#   to merge: merge --no-ff && LIVE sweep && push, all-or-stop — any failure
+#   halts the chain and prints the fingerprint (never pushes over a red sweep).
 set -uo pipefail
 
 REPO="${BRICK_REPO_ROOT:-$(git -C "$(dirname "$0")" rev-parse --show-toplevel)}"
 PY="$REPO/.venv/bin/python"
+
+if [ "${1:-}" = "--land" ]; then
+  SHA="$2"; MSGF="$3"
+  say() { printf '%s\n' "$*"; }
+  say "== COO LAND: merge $SHA"
+  git -C "$REPO" merge --no-ff "$SHA" -F "$MSGF" || { say "LAND: MERGE FAILED"; exit 1; }
+  say "merged: $(git -C "$REPO" log -1 --format=%h)"
+  ( cd "$REPO" && PYTHONPATH="$REPO/support/import_identity" python3 support/checkers/check_profile.py --all ) > /tmp/coo-land-sweep.log 2>&1
+  RC=$?
+  CNT=$(grep -c '^profile passed' /tmp/coo-land-sweep.log)
+  say "live sweep: rc=$RC profiles=$CNT"
+  if [ $RC -ne 0 ]; then
+    say "LAND: SWEEP RED — push blocked (fingerprint below)"
+    grep -m3 'rejected\|Error' /tmp/coo-land-sweep.log | sed 's/^/  /'
+    exit 1
+  fi
+  git -C "$REPO" push origin main 2>&1 | tail -2
+  say "== LAND: PUSHED $(git -C "$REPO" rev-parse --short origin/main 2>/dev/null)"
+  exit 0
+fi
 B="$1"; VESSEL="$2"; PROFILES="$3"; MUTSPEC="${4:-}"
 WT="$HOME/.brick/worktrees/$B"
 GATE="/private/tmp/coo-gate-$B"
