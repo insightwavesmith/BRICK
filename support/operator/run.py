@@ -582,7 +582,20 @@ def _with_close_wip_anchor(
         anchored = None
     if anchored is None:
         return result
-    return dataclasses.replace(result, anchored_ref=anchored[0])
+    stamped = dataclasses.replace(result, anchored_ref=anchored[0])
+    # dataclasses.replace mints a NEW frozen instance — carry the in-memory
+    # side channels the dynamic walker attached via object.__setattr__, or the
+    # anchor stamp silently strips reroute records / walker evidence / report
+    # observations from every anchored result (0706 live-sweep catch:
+    # bounded_agent P4 AttributeError on _dynamic_walker_evidence).
+    for side_channel in (
+        "_dynamic_walker_reroute_records",
+        "_dynamic_walker_evidence",
+        "_report_event_observations",
+    ):
+        if hasattr(result, side_channel):
+            object.__setattr__(stamped, side_channel, getattr(result, side_channel))
+    return stamped
 
 
 def run_building_plan(
