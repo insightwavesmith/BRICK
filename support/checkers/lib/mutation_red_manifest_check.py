@@ -30,6 +30,8 @@ EXPECTED_SURFACES = frozenset(
         "route_materialization",
         "step_output",
         "gate_sequence_decision",
+        "gate_policy_action_single_source",
+        "positive_int_bool_boundary",
         "write_scope_commit_gate",
         "hold_lifecycle",
     }

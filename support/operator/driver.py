@@ -17,6 +17,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from brick_protocol.support.recording.contracts import require_positive_int
 from brick_protocol.agent.return_fact import validate_transition_concern_evidence
 from brick_protocol.brick.work import parse_required_return_shape
 from brick_protocol.link.gate import GateFact, evaluate_declared_movement_gate
@@ -2442,13 +2443,7 @@ def _text_tuple(label: str, value: Any) -> tuple[str, ...]:
 
 
 def _positive_int(value: Any, label: str) -> int:
-    if isinstance(value, bool):
-        raise TypeError(f"{label} must be a finite positive integer")
-    if isinstance(value, int) and value > 0:
-        return value
-    if isinstance(value, str) and value.strip().isdecimal() and int(value) > 0:
-        return int(value)
-    raise ValueError(f"{label} must be a finite positive integer")
+    return require_positive_int(value, label)
 
 
 def _merge_texts(*groups: Any) -> tuple[str, ...]:
