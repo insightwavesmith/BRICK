@@ -53,6 +53,24 @@ REPO_SLUG="${BRICK_REPO:-}"
 # bare python3 outside the venv raises ModuleNotFoundError.
 ONBOARD_ENTRY="uv run python3 -m brick_protocol.support.operator.onboard codex"
 
+print_install_splash() {
+    assets_dir="$1/support/onboarding/assets"
+    splash_file="$assets_dir/splash.ascii"
+
+    if [ -t 1 ] &&
+        [ -z "${NO_COLOR:-}" ] &&
+        [ "${FORCE_COLOR:-}" != "0" ] &&
+        [ "${TERM:-}" != "dumb" ]; then
+        splash_file="$assets_dir/splash.ansi"
+    fi
+
+    if [ -r "$splash_file" ]; then
+        printf '\n'
+        cat "$splash_file"
+        printf '\n'
+    fi
+}
+
 main() {
     # --help / -h: print the friendly guide and stop.
     case "${1:-}" in
@@ -200,6 +218,7 @@ main() {
         return 1
     fi
     printf '%s\n' "5) 설치 점검 완료"
+    print_install_splash "$target"
 
     # --- step 6: next-step pointer (plain Korean) ---------------------------
     printf '%s\n' \
