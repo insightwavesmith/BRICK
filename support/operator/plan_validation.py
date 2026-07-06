@@ -17,7 +17,13 @@ from brick_protocol.brick.spec import (
 )
 from brick_protocol.brick.work import parse_required_return_shape
 from brick_protocol.link.carry import make_carry_fact
-from brick_protocol.link.gate import gate_required_return_fields, make_gate_fact
+from brick_protocol.link.gate import (
+    ON_MISSING_REQUIRED_FACTS_ACTIONS,
+    ON_SUFFICIENT_ACTIONS,
+    gate_required_return_fields,
+    make_gate_fact,
+    normalize_gate_policy_action,
+)
 from brick_protocol.link.movement import (
     MOVEMENT_LITERALS,
     MovementFact,
@@ -1395,12 +1401,12 @@ def _validate_gate_sequence_action(
         action_row.get("action"),
     )
     if action_key == "on_missing_required_facts":
-        if action not in {"reroute", "hold"}:
+        if action not in ON_MISSING_REQUIRED_FACTS_ACTIONS:
             raise ValueError(
                 "gate_sequence_policy on_missing_required_facts action must be reroute or HOLD"
             )
     else:
-        if action not in {"next", "forward"}:
+        if action not in ON_SUFFICIENT_ACTIONS:
             raise ValueError("gate_sequence_policy on_sufficient action must be next or forward")
         if action == "forward" and policy_index < len(gate_refs) - 1:
             raise ValueError("gate_sequence_policy forward action requires a terminal gate")
@@ -1477,12 +1483,7 @@ def _validate_gate_sequence_action(
 
 def _gate_sequence_action_literal(field_name: str, value: Any) -> str:
     raw = _required_text(field_name, value)
-    if raw.upper() == "HOLD":
-        return "hold"
-    action = raw.lower()
-    if action not in {"forward", "hold", "next", "reroute"}:
-        raise ValueError("gate_sequence_policy action is not admitted")
-    return action
+    return normalize_gate_policy_action(raw)
 
 def _gate_sequence_target_ref(
     action_row: Mapping[str, Any],

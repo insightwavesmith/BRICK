@@ -18,6 +18,9 @@ GATE_SUFFICIENCY_LITERALS: tuple[str, ...] = (
     "insufficient",
     "missing_required_facts",
 )
+ADMITTED_POLICY_ACTIONS: tuple[str, ...] = ("forward", "hold", "next", "reroute")
+ON_MISSING_REQUIRED_FACTS_ACTIONS: frozenset[str] = frozenset(("reroute", "hold"))
+ON_SUFFICIENT_ACTIONS: frozenset[str] = frozenset(("next", "forward"))
 # DERIVED from the Link gate single-source data table (link/spec.GATE_REGISTRY,
 # struct-surgery ② 0623): the ordered gate-ref vocabulary, the human/auto
 # disposition partitions, and the per-gate required-return field map are all read
@@ -54,6 +57,22 @@ _GATE_REQUIRED_RETURN_FIELDS: tuple[tuple[str, tuple[str, ...]], ...] = tuple(
     if row.required_return_fields
 )
 _GATE_REQUIRED_RETURN_FIELD_MAP = dict(_GATE_REQUIRED_RETURN_FIELDS)
+
+
+def normalize_gate_policy_action(value: str) -> str:
+    """Normalize an authored gate-sequence policy action to Link's vocabulary."""
+
+    if not isinstance(value, str):
+        raise TypeError("gate_sequence_policy action must be text")
+    raw = value.strip()
+    if not raw:
+        raise ValueError("gate_sequence_policy action must not be blank")
+    if raw.upper() == "HOLD":
+        return "hold"
+    action = raw.lower()
+    if action not in ADMITTED_POLICY_ACTIONS:
+        raise ValueError("gate_sequence_policy action is not admitted")
+    return action
 
 
 @dataclass(frozen=True)
@@ -448,6 +467,9 @@ def _text_tuple(
 __all__ = [
     "GATE_STAGE_LITERALS",
     "GATE_SUFFICIENCY_LITERALS",
+    "ADMITTED_POLICY_ACTIONS",
+    "ON_MISSING_REQUIRED_FACTS_ACTIONS",
+    "ON_SUFFICIENT_ACTIONS",
     "DECLARED_GATE_REFS",
     "HUMAN_DISPOSITION_GATE_REFS",
     "AUTO_ADOPT_GATE_REFS",
@@ -455,6 +477,7 @@ __all__ = [
     "COO_GATE_REF",
     "GateFact",
     "make_gate_fact",
+    "normalize_gate_policy_action",
     "gate_required_return_fields",
     "gate_ref_required_return_fields",
     "evaluate_declared_gate_ref",
