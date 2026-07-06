@@ -9,10 +9,10 @@
 # usage: coo_gate_runner.sh <building_id> <vessel_root_abs> "<profile1 profile2 ...>" [mutspec.py]
 set -uo pipefail
 
-REPO=/Users/smith/projects/BRICK
+REPO="${BRICK_REPO_ROOT:-$(git -C "$(dirname "$0")" rev-parse --show-toplevel)}"
 PY="$REPO/.venv/bin/python"
 B="$1"; VESSEL="$2"; PROFILES="$3"; MUTSPEC="${4:-}"
-WT="/Users/smith/.brick/worktrees/$B"
+WT="$HOME/.brick/worktrees/$B"
 GATE="/private/tmp/coo-gate-$B"
 SNAP="/tmp/coo-gate-$B-snapshot.patch"
 FAIL=0
@@ -29,12 +29,12 @@ if [ -d "$WT" ]; then
 fi
 
 # 2) forward-close (fallback: explicit engine worktree cwd)
-CLOSE=$(PYTHONPATH="$REPO/support/import_identity:$REPO" "$PY" - "$VESSEL" "$WT" <<'EOF'
-import json, sys
+CLOSE=$(BRICK_GATE_REPO="$REPO" PYTHONPATH="$REPO/support/import_identity:$REPO" "$PY" - "$VESSEL" "$WT" <<'EOF'
+import json, os, sys
 from brick_protocol.support.operator.onboard import run_approve_entry
 vessel, wt = sys.argv[1], sys.argv[2]
 kw = dict(action="forward", author_ref="coo:smith",
-          repo_root="/Users/smith/projects/BRICK", adapter_timeout_seconds=600)
+          repo_root=os.environ["BRICK_GATE_REPO"], adapter_timeout_seconds=600)
 r = run_approve_entry(vessel, **kw)
 if r.get("error_kind") == "resume_requires_isolated_adapter_cwd":
     r = run_approve_entry(vessel, adapter_cwd=wt, **kw)
