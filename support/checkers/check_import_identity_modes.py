@@ -42,6 +42,7 @@ PARENTS_BINDING_REGISTRY = {
     "support/checkers/check_first_use_wizard.py": {2},
     "support/checkers/check_gate_policy_action_single_source.py": {2},
     "support/checkers/check_gate_registry_single_source.py": {2},
+    "support/checkers/check_graph_draft_rules.py": {2},
     "support/checkers/check_import_identity_modes.py": {2},
     "support/checkers/check_interactive_provider_intake.py": {2},
     "support/checkers/check_link_gate_measurement_separation.py": {2},

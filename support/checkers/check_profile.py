@@ -361,6 +361,10 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "assembly_equivalence",
         "support.checkers.check_assembly_equivalence",
     ),
+    "graph_draft_rules": _repo_main(
+        "graph_draft_rules",
+        "support.checkers.check_graph_draft_rules",
+    ),
     "preflight_injection_survival": _repo_main(
         "preflight_injection_survival",
         "support.checkers.check_preflight_injection_survival",
