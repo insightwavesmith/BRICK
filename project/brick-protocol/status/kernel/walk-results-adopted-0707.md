@@ -63,3 +63,14 @@ draft-time 하드 RED: RED-1 폭>3 · RED-2 branch write-set 교차 · RED-3 dee
 4. **held-node 직접 확장 검증기**: HELD 수렴 노드 위 expand→resume의 append-only 안전성(re-route 차단 여부) — 검증 실험 통과 시 2단 표준형을 직결형으로 단순화하는 반전 경로(사고법 v2 합의의 유일한 엔진 실측 의존점).
 
 부수 대상(같은 가족, 설계 판단에 포함): 증명-예산 HOLD 경로의 WIP 앵커 부재 갭, fake_landing_write_scope_diff_absent의 다회 forward 인체공학.
+
+## E. 초안기 제안측 부재 — 실측 (0707, #15 규칙표 증분 후속 발주의 갭 증거)
+
+resume-rootfix-design-0707a 발주에서 `brick draft`에 준 8답과 초안기 반응 실측 원문:
+
+- 8답: walker_adjacent=yes · size=large · **splittable=yes · file_conflict=no** · failure_cost=high · human_approval=no · termination_shape=doc · difficulty=entangled — 폭 신호가 최대치로 켜진 조합.
+- 초안기 산출 모양: **단일 work**(+deep-design 자동 삽입) → QA fan → closure. 병렬 팬은 제안하지 않음.
+- rationale 원문 행(그대로 인용): `note-split-candidate | graph shape unchanged (single work node) | 분할 후보: 별도 빌딩 발주 검토 — operator Movement-adjacent`
+- 운영자 조치: 선언 파일의 nodes를 fan[design fable5 ∥ 푸구 ∥ codex] → closure(codex)로 수동 교체 후 발사(0707, 정상 개시).
+
+판독: 현행 초안기는 분할 가능성을 **감지**(note-split-candidate)하되 **제안하지 않는다** — 폭 계산(min 규칙)·병렬 설계/시공 팬·2단 표준형 1단 그래프의 자동 제안이 전부 부재(제안측 갭). 거부측(안티패턴 RED-2~6·WARN-1~2)은 gt-checker-slice-0707a 계약분. 수리처 = #15 규칙표 증분 후속 발주(방아쇠 = gt-checker-slice 랜딩): 폭 신호용 9번째 답 + min() 폭 계산 + fan 자동 제안 행. 인체공학 표 등재 = operator-ergonomics-wave-0705.md 행 20.
