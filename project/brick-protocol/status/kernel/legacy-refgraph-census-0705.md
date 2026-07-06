@@ -50,3 +50,42 @@ z5 recording/connection/onboarding/루트 91 · z6 status 53.
 
 증거 한계: 조사 원장. source truth·성공 판정 아님. 개별 행 원자료는
 project/brick-protocol/buildings/legacy-refgraph-0705/ 증거 트리.
+
+## rev-1 재조사 追記 (t10rev1-0706n — 이동 실행 없음)
+
+대상: 처분 후보 #2의 4번째 archive 후보 = "기타 z6 판정분".
+
+재조사 결론: **unresolvable-by-evidence 확정(rev-1 재확인)**. 원본 z6 인벤토리
+행을 이 워크트리에서 복원할 수 없다 — 추측으로 대체 후보를 지목하지 않는다.
+
+뒤진 곳(탐색 도메인):
+- kernel 루트 전 `*.md` 74개 열거 (`ls project/brick-protocol/status/kernel/*.md`).
+- 전-repo 참조 재census: 각 kernel basename에 대해 `grep -rIl`(`.git`·`__pycache__`
+  제외) 참조 카운트, 자기-파일 자기-언급 제외.
+- `archive/0705-legacy-refgraph/` — 이미 이동된 3건 실재 확인
+  (goal-loop-progress-0702night-0703am, handoff-0704-t10-dynamic-graph,
+  discipline-audit-0618).
+- `t10-drive-runbook-0705.md` §5 — 기존 rev-1 발견 레인 결과("증거상 특정 불가").
+- 본 census 처분후보 #2 행(:30-34).
+
+안 뒤진 곳 / 부재(탐색 불가 도메인):
+- `project/brick-protocol/buildings/legacy-refgraph-0705/` 증거 트리 — 이 워크트리에
+  **부재**(`test -d` = MISSING). 380행 z6 원자 인벤토리, 즉 4번째 후보를 지목한
+  원본 행이 여기 없다.
+- git 히스토리·타 워크트리·빌딩 세션 step-output 원자료 — 선언 write_scope 밖·로컬 부재.
+
+재census가 원본을 대체 못 하는 이유(실측): (a) 0705 이후 repo 상태 표류 — 3건이
+이미 archive로 이동돼 kernel 루트에서 사라졌고 0706 신규 문서가 추가됨; (b) 원본
+z6 인벤토리 부재.
+
+추측 금지 준수: 신선 재census의 참조 0 kernel 문서 7건(bundle11b-order-draft-0705,
+fixture-graph-helpers-spec-0704, handoff-coo-0705night-continuous,
+handoff-coo-0706afternoon, handoff-coo-0706evening,
+handoff-external-audit-track-0705, onboarding-minimal-set-0702)은 대부분 0705/0706
+최근 라이브 핸드오프·활성 초안으로 역사-완결 프로파일이 아니다 — **4번째 후보로
+지목하지 않음**(본 census 원칙 #4·#5: 걷는/최근 빌딩 증거 보존).
+
+이동 실행: **없음**. 4번째 후보의 archive 이동은 rev-2(후속 v2b 승인 빌딩) 몫이며,
+본 追記는 발견-전용으로 파일 이동 0건이다.
+
+증거 한계: rev-1 조사 追記. source truth·성공·품질 판정 아님. Movement 선택 아님.

@@ -72,3 +72,48 @@ Proof limits: this section records the unresolved verdict only. It does not
 move files, select a substitute candidate, rewrite the three moved-record rows,
 rewrite the two STAY rows, judge cleanup success or quality, or choose Link
 Movement.
+
+## Fourth z6 candidate verdict — rev-1 re-investigation (t10rev1-0706n)
+
+Status: `unresolvable-by-evidence` — CONFIRMED at rev-1. No file is moved by
+this record; no substitute candidate is guessed.
+
+Searched domains (뒤진 곳):
+
+- Full kernel root enumeration: all 74 `*.md` under
+  `project/brick-protocol/status/kernel/`.
+- Fresh whole-repo reference re-census: `grep -rIl` (excluding `.git`,
+  `__pycache__`) per kernel basename, self-mention excluded.
+- `archive/0705-legacy-refgraph/` — confirms the three already-moved records
+  are present.
+- `t10-drive-runbook-0705.md` §5 — prior rev-1 discovery result ("evidence
+  cannot identify it").
+- `legacy-refgraph-census-0705.md:30-34` — candidate #2 rows.
+
+Domains not searched / absent (안 뒤진 곳):
+
+- `project/brick-protocol/buildings/legacy-refgraph-0705/` evidence tree —
+  ABSENT in this worktree (`test -d` = MISSING). This tree holds the 380-row z6
+  atomic inventory whose row named the fourth candidate; it is not present here.
+- git history, other worktrees, and building-session step-output raw data —
+  outside the declared write_scope and not locally present.
+
+Why a fresh re-census cannot substitute (measured): (a) repo state drifted
+since 0705 — the three candidates were already moved out of the kernel root and
+new 0706 docs were added; (b) the original z6 inventory is absent.
+
+No-guess compliance: the fresh re-census found 7 zero-reference kernel docs
+(`bundle11b-order-draft-0705`, `fixture-graph-helpers-spec-0704`,
+`handoff-coo-0705night-continuous`, `handoff-coo-0706afternoon`,
+`handoff-coo-0706evening`, `handoff-external-audit-track-0705`,
+`onboarding-minimal-set-0702`); these are recent 0705/0706 live handoffs or
+active drafts, not completed-history archive profile, so none is nominated as
+the fourth candidate.
+
+Move execution: none. Any archive move of a fourth candidate remains rev-2's
+(follow-on v2b approval building) responsibility; this record is
+discovery-only.
+
+Proof limits: rev-1 re-investigation note only. Does not move files, select a
+substitute candidate, rewrite prior rows, judge success or quality, or choose
+Link Movement.
