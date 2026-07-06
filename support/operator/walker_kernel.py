@@ -50,6 +50,7 @@ from brick_protocol.support.connection.agent_adapter import (
 from brick_protocol.support.operator.contracts import (
     BuildingPlanSupportResult,
     BuildingRunSupportResult,
+    PLAN_RESULT_SIDE_CHANNEL_FIELDS,
 )
 from brick_protocol.support.operator.gate_sequence import (
     GateSequenceDecision,
@@ -3033,16 +3034,20 @@ def _run_dynamic_graph_walker(
     # fact class, NOT a frozen dataclass field) for callers/checkers that walk the
     # dynamic walk in-process. The persistent HOLD signal is the paused
     # transition_lifecycle injected into link.jsonl (observe_building_frontier).
-    object.__setattr__(result, "_dynamic_walker_reroute_records", tuple(reroute_records))
+    # D1 single-source: PLAN_RESULT_SIDE_CHANNEL_FIELDS owns the field-name
+    # literals; this attach block references those names (index 0/1/2) rather than
+    # re-typing them, so the carry helper and the attach site cannot drift.
+    reroute_field, evidence_field, report_field = PLAN_RESULT_SIDE_CHANNEL_FIELDS
+    object.__setattr__(result, reroute_field, tuple(reroute_records))
     object.__setattr__(
         result,
-        "_dynamic_walker_evidence",
+        evidence_field,
         write_plan["dynamic_walker_evidence"],
     )
     if report_event_observations:
         object.__setattr__(
             result,
-            "_report_event_observations",
+            report_field,
             tuple(report_event_observations),
         )
     return result

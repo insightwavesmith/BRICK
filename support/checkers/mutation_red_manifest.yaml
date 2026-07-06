@@ -41,6 +41,14 @@ surfaces:
     fixture_path: support/checkers/check_building_operator_driver0.py
     fixture_identifier: w1-fake-missing-paused-at-RED
     incident_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md W2 hold_lifecycle
+  - surface: plan_result_side_channel_carry_strip
+    fixture_path: support/checkers/check_building_operator_driver0.py
+    fixture_identifier: w1-direct-close-anchor channel-strip mutation-RED
+    incident_anchor: r2-carry-0706n D3 post-assembly side-channel carry (whole-channel survival)
+  - surface: plan_result_side_channel_carry_partial
+    fixture_path: support/checkers/check_building_operator_driver0.py
+    fixture_identifier: w1-direct-close-anchor partial-copy mutation-RED
+    incident_anchor: r2-carry-0706n D3 post-assembly side-channel carry (partial hand-copy regression)
   - surface: graphdecl_proposal_path
     fixture_path: support/checkers/check_assembly_equivalence.py
     fixture_identifier: graph declaration proposal was not persisted under the Building work/ recording path
@@ -117,3 +125,13 @@ audit_mutants:
     fixture_path: support/checkers/lib/brick_cli_entrypoint_check.py
     fixture_identifier: build-unify D5 model-alias loud rejection (표18)
     audit_anchor: build-unify-0706n D6 mutation RED (표18 quiet alias fallback restored)
+  - mutant_id: r2-carry-side-channel-carry-strip
+    surface: plan_result_side_channel_carry_strip
+    fixture_path: support/checkers/check_building_operator_driver0.py
+    fixture_identifier: w1-direct-close-anchor channel-strip mutation-RED
+    audit_anchor: r2-carry-0706n D3 mutation RED (carry helper neutered -> all channels stripped by anchor replace())
+  - mutant_id: r2-carry-side-channel-carry-partial
+    surface: plan_result_side_channel_carry_partial
+    fixture_path: support/checkers/check_building_operator_driver0.py
+    fixture_identifier: w1-direct-close-anchor partial-copy mutation-RED
+    audit_anchor: r2-carry-0706n D3 mutation RED (partial hand-copy drops _report_event_observations across anchor replace())

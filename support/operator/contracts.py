@@ -223,3 +223,47 @@ class BuildingPlanSupportResult:
     proof_limits: tuple[str, ...]
     not_proven: tuple[str, ...]
     anchored_ref: str = ""
+
+
+# ---------------------------------------------------------------------------
+# D1 (0706 r2-carry): post-assembly side-channel carry, single source.
+# ---------------------------------------------------------------------------
+# The dynamic walker attaches in-memory side channels onto a
+# ``BuildingPlanSupportResult`` via ``object.__setattr__`` -- they are NOT frozen
+# dataclass fields and NOT new BAL facts: the nested reroute records, the
+# dynamic-walker evidence, and the opt-in report-event observations. Any
+# post-assembly re-mint (``dataclasses.replace``) of such a result mints a NEW
+# frozen instance whose ``__dict__`` side channels are DROPPED. Every caller that
+# re-mints a post-assembly plan result MUST route the new instance back through
+# ``carry_plan_result_side_channels`` so the close-time anchor stamp (or any
+# future ``replace()``) cannot silently strip walker evidence / reroute records /
+# report observations (0706 live-sweep catch: bounded_agent P4 AttributeError on
+# ``_dynamic_walker_evidence`` after the anchor ``replace()``). The field-name
+# literals live here ONCE (I1 single-source); attach + carry sites reference this
+# tuple rather than re-typing the names.
+PLAN_RESULT_SIDE_CHANNEL_FIELDS: tuple[str, ...] = (
+    "_dynamic_walker_reroute_records",
+    "_dynamic_walker_evidence",
+    "_report_event_observations",
+)
+
+
+def carry_plan_result_side_channels(
+    source: BuildingPlanSupportResult,
+    minted: BuildingPlanSupportResult,
+) -> BuildingPlanSupportResult:
+    """Copy the in-memory side channels from ``source`` onto ``minted`` in place.
+
+    Copy-only (I3): a channel ABSENT on ``source`` stays ABSENT on ``minted`` --
+    the helper never originates an attachment and never mints an empty tuple for a
+    channel the walk did not produce, so getattr-with-default and ``hasattr``
+    consumers keep their current semantics. The tuple order of any carried channel
+    is preserved by reference (I4), never rebuilt. Returns ``minted`` for
+    call-site chaining. This is support recording carry only: it authors no
+    Movement, gate, route, success, or quality, and adds no BAL fact class.
+    """
+
+    for field_name in PLAN_RESULT_SIDE_CHANNEL_FIELDS:
+        if hasattr(source, field_name):
+            object.__setattr__(minted, field_name, getattr(source, field_name))
+    return minted
