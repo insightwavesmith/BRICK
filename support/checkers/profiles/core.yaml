@@ -102,6 +102,7 @@ path_allowlist:
       - support/checkers/profiles/graphdecl_fix.yaml
       - support/checkers/profiles/graph_draft.yaml
       - support/checkers/profiles/graph_topology_fan_barrier.yaml
+      - support/checkers/profiles/heldnode_expansion_verifier.yaml
       - support/checkers/profiles/interactive_provider_intake.yaml
       - support/checkers/profiles/import_identity_modes.yaml
       - support/checkers/profiles/link_routing_behavioral.yaml

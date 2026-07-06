@@ -1,0 +1,30 @@
+schema: checker-profile/v1
+profile_id: heldnode-expansion-verifier
+description: Held-node direct expansion verifier checker presence and declarative boundary pin.
+path_exists:
+  - support/checkers/check_heldnode_expansion_verifier.py
+  - support/checkers/profiles/heldnode_expansion_verifier.yaml
+text_contains:
+  - path: support/checkers/check_heldnode_expansion_verifier.py
+    texts:
+      - "expand() dry-run stages drifted"
+      - "prior evidence bytes changed after expansion append"
+      - "RED disposition-consumption probe did not reject missing approval evidence"
+      - "existing route/reroute link history changed in the expanded plan prefix"
+      - "verification-gap-target"
+      - "prior transition_concern_evidence rejected by current Agent return contract"
+      - "verification_gap must not name a reroute-capable Brick boundary"
+      - "not source truth"
+      - "direct-connect adoption"
+proof_limits:
+  - checker profile support evidence only
+  - declarative path/text profile only; direct checker execution is measured by running support/checkers/check_heldnode_expansion_verifier.py
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - executable kernel dispatch through check_profile.py; support/checkers/check_profile.py is outside this Brick write scope
+  - semantic correctness of future held-node direct expansion adoption
+  - future Building correctness
+  - provider reliability

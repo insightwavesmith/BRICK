@@ -368,6 +368,16 @@ modules:
     decomposition_target: ""
     pinned_by: plan_revision_chain kernel check (T10-S2 declared-building-plan revision chain; fixture RED/GREEN probes for append-only revisions, hash chain, approval evidence, expansion budget, immutable budget fields, and hold-class whitelist; judges nothing)
 
+  - module: support/checkers/check_heldnode_expansion_verifier.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: heldnode_expansion_verifier profile (fixture append-only expansion safety + mutation-RED probes; support evidence only)
+
   - module: support/checkers/check_pin_estate_integrity.py
     layer: checkers
     role: checker
