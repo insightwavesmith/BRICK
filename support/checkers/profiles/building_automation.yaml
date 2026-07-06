@@ -44,6 +44,23 @@ text_contains:
       - credential redacted
       - write_adapter_error_frontier_evidence
       - write_chat_session_park_frontier_evidence
+  # SELFLOCK-0706 family-② (D4, additive): the validate-before-persist self-lock
+  # fix and the declared void correction path. These pins keep the D1 intake
+  # gate and the D2 void verb/record kind from silently disappearing; the
+  # behavioral + mutation coverage rides the already-registered
+  # resume_replay_disposition_mirror kernel check (no new kernel_checks entry,
+  # no new module_registry row -- t7b D5 fixture-home judgment).
+  - path: support/operator/onboard.py
+    texts:
+      - validate_disposition_intake(building_root, row
+      - disposition_intake_refused_before_persist
+      - def run_disposition_void_entry(
+  - path: support/operator/walker_resume.py
+    texts:
+      - def validate_disposition_intake(
+      - DISPOSITION_VOID_RECORD_KIND
+      - def _disposition_void_observations(
+      - def disposition_rows_for_current_hold(
   # PROCGROUP-HARDENING (B3): the adapter's single provider chokepoint
   # (_run_command) spawns codex/claude in its OWN process group
   # (start_new_session=True) and on timeout SIGKILLs the whole group

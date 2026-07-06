@@ -87,6 +87,23 @@ SEQUENCE_REUSE_GUARD_LITERAL = (
     "hold sequence before replay adoption"
 )
 
+# ---------------------------------------------------------------------------
+# Family-② SELF-LOCK literals (0706 selflock slice, shared home). D1
+# validate-before-persist + D2 declared correction (void) path. The source guard
+# below is the D1-removal MUTATION-RED handle.
+# ---------------------------------------------------------------------------
+INTAKE_VALIDATE_BEFORE_PERSIST_GUARD_LITERAL = (
+    "validate-before-persist guard missing: disposition intake must validate "
+    "before the raw/link.jsonl append"
+)
+# The existing resume-path refusal a residual out-of-class reroute row triggers
+# (walker_resume._disposition_pending_target_ref). Pinned verbatim: the D2 void
+# path must leave THIS literal firing until the residual row is voided (no
+# validation weakened -- D2 only makes a specific row unselectable).
+_RAISE_TARGET_NOT_NODE_REFUSAL_REROUTE = (
+    "reroute disposition pending_target_ref is not an existing Brick node"
+)
+
 
 class ProfileError(AssertionError):
     """A fixture reached neither the RED-pin literal nor the GREEN invariants."""
@@ -1663,9 +1680,253 @@ def _mutation_sequence_reuse_source_guard(repo: Path) -> Mapping[str, Any]:
     }
 
 
+# ---------------------------------------------------------------------------
+# Family-② SELF-LOCK fixtures (0706 selflock slice). D1 = validate-before-persist
+# (a refused disposition leaves the ledger unchanged and a retry is possible);
+# D2 = declared correction (void) path for an ALREADY-locked ledger.
+# ---------------------------------------------------------------------------
+
+
+def _sl_isolated_adapter_cwd(tmp: Path) -> Path:
+    """An adapter_cwd OUTSIDE the live repo so onboard.run_approve_entry accepts
+    it (the caller-supplied path guard refuses live-repo/self-or-child paths)."""
+
+    cwd = tmp / "adapter-cwd"
+    cwd.mkdir(parents=True, exist_ok=True)
+    return cwd
+
+
+def _sl_ledger_hash(root: Path) -> str:
+    import hashlib
+
+    return hashlib.sha256((root / "raw" / "link.jsonl").read_bytes()).hexdigest()
+
+
+def _fixture_sl1_refused_intake_clean(repo: Path) -> Mapping[str, Any]:
+    """SL-1 (D1): drive to HOLD, then submit a disposition the resume path would
+    refuse (reroute to a NON-declared target) THROUGH onboard.run_approve_entry.
+    The intake gate must refuse it BEFORE persist -> raw/link.jsonl byte-identical
+    (I1) and a corrected retry still resumes (validate-before-persist)."""
+
+    from brick_protocol.support.operator import onboard
+
+    prefix = "selflock-sl1"
+    plan, bricks = _chain_plan(
+        prefix,
+        ["design", "build", "review", "close"],
+        {("design", "build"): "h1", ("review", "close"): "h2"},
+        {"review": 5, "build": 5},
+    )
+    cb = _CountingCallable()
+    with tempfile.TemporaryDirectory(prefix="bp-resume-selflock-sl1-") as tmp:
+        result = _run_to_hold(repo, plan, Path(tmp).resolve(), cb)
+        root = result.lifecycle_write.root
+        if _frontier_kind(root, repo) != "link_paused":
+            raise ProfileError(
+                f"SL-1: setup did not reach the first HOLD "
+                f"(frontier={_frontier_kind(root, repo)!r})"
+            )
+        hash_before = _sl_ledger_hash(root)
+        refused = onboard.run_approve_entry(
+            root,
+            action="reroute",
+            author_ref="coo:smith",
+            reroute_target_ref="brick-selflock-sl1-does-not-exist",
+            re_instruction=_COMPLIANT_RE_INSTRUCTION,
+            repo_root=repo,
+            adapter_cwd=_sl_isolated_adapter_cwd(Path(tmp)),
+        )
+        if refused.get("error_kind") != "disposition_intake_refused_before_persist":
+            raise ProfileError(
+                "SL-1: an out-of-class disposition was NOT refused at intake "
+                f"(result={refused!r})"
+            )
+        if refused.get("disposition_written") is not False:
+            raise ProfileError("SL-1: refused disposition still reported written")
+        if _sl_ledger_hash(root) != hash_before:
+            raise ProfileError(
+                "SL-1: refused intake mutated raw/link.jsonl (I1 ledger cleanliness "
+                "violated) -- a self-lock row was persisted before validation"
+            )
+        # Retry with a valid forward disposition: it must still resume (the
+        # refusal did not corrupt the held ledger).
+        _append_disposition_row(
+            root,
+            building_id=plan["building_id"],
+            pending_target_ref=_current_pending_target(result),
+            action="forward",
+        )
+        try:
+            _resume(repo, root, cb)
+        except ValueError as exc:
+            raise ProfileError(
+                f"SL-1: corrected retry after a refused intake failed to resume: {exc}"
+            ) from exc
+        retry_frontier = _frontier_kind(root, repo)
+        if retry_frontier not in ("link_paused", "complete", "closed"):
+            raise ProfileError(
+                f"SL-1: corrected retry ended in an inadmissible frontier "
+                f"({retry_frontier!r})"
+            )
+    return {
+        "fixture": "SL-1",
+        "branch": "green",
+        "observed": "refused_intake_left_ledger_clean_retry_resumed",
+        "refused_error_kind": refused.get("error_kind"),
+        "retry_frontier": retry_frontier,
+    }
+
+
+def _fixture_sl2_legacy_residue_void(repo: Path) -> Mapping[str, Any]:
+    """SL-2 (D2): synthesize an ALREADY-locked ledger -- a valid forward row
+    (index 1) shadowed by a residual out-of-class reroute row (index 2, selected
+    last). The resume self-locks on the residual row's refusal literal. Author the
+    declared void for the residual row via run_disposition_void_entry; the resume
+    then selects the valid forward row and resumes (GREEN). RED variant: a void
+    that does NOT cover the residual row leaves the self-lock literal firing."""
+
+    from brick_protocol.support.operator import onboard
+
+    prefix = "selflock-sl2"
+    plan, bricks = _chain_plan(
+        prefix,
+        ["design", "build", "review", "close"],
+        {("design", "build"): "h1", ("review", "close"): "h2"},
+        {"review": 5, "build": 5},
+    )
+    cb = _CountingCallable()
+    with tempfile.TemporaryDirectory(prefix="bp-resume-selflock-sl2-") as tmp:
+        result = _run_to_hold(repo, plan, Path(tmp).resolve(), cb)
+        root = result.lifecycle_write.root
+        if _frontier_kind(root, repo) != "link_paused":
+            raise ProfileError(
+                f"SL-2: setup did not reach the first HOLD "
+                f"(frontier={_frontier_kind(root, repo)!r})"
+            )
+        pending = _current_pending_target(result)
+        # Bypass intake (direct append) to reconstruct the residual-lock shape:
+        # a valid forward row plus an out-of-class reroute row appended after it.
+        _append_disposition_row(
+            root, building_id=plan["building_id"], pending_target_ref=pending, action="forward"
+        )
+        _append_disposition_row(
+            root,
+            building_id=plan["building_id"],
+            pending_target_ref="brick-selflock-sl2-does-not-exist",
+            action="reroute",
+        )
+        # The self-lock: the resume selects the LAST matching row (the residual
+        # reroute) and refuses with the exact pinned literal.
+        self_lock_literal = ""
+        try:
+            _resume(repo, root, cb)
+        except ValueError as exc:
+            self_lock_literal = str(exc)
+        else:
+            raise ProfileError(
+                "SL-2: the residual out-of-class reroute row did NOT self-lock the "
+                "resume (expected the existing pinned refusal)"
+            )
+        if self_lock_literal != _RAISE_TARGET_NOT_NODE_REFUSAL_REROUTE:
+            raise ProfileError(
+                "SL-2: residual-lock raised an UNEXPECTED literal; expected "
+                f"{_RAISE_TARGET_NOT_NODE_REFUSAL_REROUTE!r}, got {self_lock_literal!r}"
+            )
+        # RED variant: a groundless void (wrong index) must be refused and must
+        # NOT clear the self-lock -- the residual row stays selected.
+        groundless = onboard.run_disposition_void_entry(
+            root,
+            author_ref="coo:smith",
+            voided_raw_ref="raw:link:disposition:reroute",
+            same_hold_index=99,
+            repo_root=repo,
+        )
+        if groundless.get("error_kind") != "void_target_not_found":
+            raise ProfileError(
+                f"SL-2: a groundless void was NOT refused (result={groundless!r})"
+            )
+        try:
+            _resume(repo, root, cb)
+        except ValueError as exc:
+            if str(exc) != _RAISE_TARGET_NOT_NODE_REFUSAL_REROUTE:
+                raise ProfileError(
+                    "SL-2: after a refused groundless void the self-lock literal "
+                    f"changed unexpectedly: {exc}"
+                ) from exc
+        else:
+            raise ProfileError(
+                "SL-2: a refused groundless void silently cleared the self-lock"
+            )
+        # D2: the declared void for the residual reroute row (index 2) makes it
+        # unselectable; the resume then selects the valid forward row (index 1).
+        void_result = onboard.run_disposition_void_entry(
+            root,
+            author_ref="coo:smith",
+            voided_raw_ref="raw:link:disposition:reroute",
+            same_hold_index=2,
+            note="0706 selflock checker: disregard the residual out-of-class reroute row",
+            repo_root=repo,
+        )
+        if not void_result.get("ok") or not void_result.get("void_written"):
+            raise ProfileError(
+                f"SL-2: the grounded void was not written (result={void_result!r})"
+            )
+        try:
+            _resume(repo, root, cb)
+        except ValueError as exc:
+            raise ProfileError(
+                f"SL-2: after voiding the residual row the resume still self-locked: {exc}"
+            ) from exc
+        green_frontier = _frontier_kind(root, repo)
+        if green_frontier not in ("link_paused", "complete", "closed"):
+            raise ProfileError(
+                f"SL-2: post-void resume ended in an inadmissible frontier "
+                f"({green_frontier!r})"
+            )
+    return {
+        "fixture": "SL-2",
+        "branch": "green",
+        "observed": "residual_lock_voided_then_resumed",
+        "self_lock_literal": self_lock_literal,
+        "green_frontier": green_frontier,
+    }
+
+
+def _mutation_validate_before_persist_source_guard(repo: Path) -> Mapping[str, Any]:
+    """MUTATION-RED (D1 removal): the D1 self-lock fix is that
+    onboard.run_approve_entry calls walker_resume.validate_disposition_intake
+    BEFORE it appends the disposition row to raw/link.jsonl. This source guard
+    asserts that call ordering textually: the validate_disposition_intake(...)
+    invocation must precede the raw/link.jsonl append (link_path.open("a", ...))
+    inside onboard.py. Removing or reordering the pre-persist call -> rc=1 with a
+    stable literal (a behavioral RED handle for the exact self-lock reintroduction
+    edit). SL-1 is the behavioral partner: with the call removed, the refused
+    intake would persist a self-lock row and SL-1's I1 hash-compare fails."""
+
+    source = (repo / "support" / "operator" / "onboard.py").read_text(encoding="utf-8")
+    marker = "def run_approve_entry("
+    start = source.find(marker)
+    if start < 0:
+        raise ProfileError(INTAKE_VALIDATE_BEFORE_PERSIST_GUARD_LITERAL)
+    end = source.find("\ndef ", start + len(marker))
+    body = source[start:] if end < 0 else source[start:end]
+    validate_pos = body.find("validate_disposition_intake(building_root, row")
+    append_pos = body.find('link_path.open("a"')
+    if validate_pos < 0 or append_pos < 0 or validate_pos >= append_pos:
+        raise ProfileError(INTAKE_VALIDATE_BEFORE_PERSIST_GUARD_LITERAL)
+    return {
+        "mutation_proof": "validate-before-persist",
+        "observed": "intake_validate_precedes_raw_link_append",
+        "validate_offset": validate_pos,
+        "append_offset": append_pos,
+        "failure_literal": INTAKE_VALIDATE_BEFORE_PERSIST_GUARD_LITERAL,
+    }
+
+
 def run(repo: Path) -> Mapping[str, Any]:
     mutation_proofs = [
         _mutation_sequence_reuse_source_guard(repo),
+        _mutation_validate_before_persist_source_guard(repo),
     ]
     fixtures = [
         _fixture_f_r1(repo),
@@ -1678,6 +1939,10 @@ def run(repo: Path) -> Mapping[str, Any]:
         _fixture_f_c2(repo),
         _fixture_f_c3(repo),
     ]
+    selflock_fixtures = [
+        _fixture_sl1_refused_intake_clean(repo),
+        _fixture_sl2_legacy_residue_void(repo),
+    ]
     probes = [
         _probe_p1_prior_stop_chain(repo),
         _probe_p2_concern_path_silent(repo),
@@ -1687,6 +1952,7 @@ def run(repo: Path) -> Mapping[str, Any]:
     return {
         "fixtures": fixtures,
         "concern_fixtures": concern_fixtures,
+        "selflock_fixtures": selflock_fixtures,
         "probes": probes,
         "mutation_proofs": mutation_proofs,
     }
@@ -1696,13 +1962,20 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo", default=_REPO_ROOT)
     # --all is accepted for check-runner parity; this standalone checker runs the
-    # SAME fixture set regardless (it is not yet a profiles/*.yaml member, so a
-    # profile-driven --all run does not reach it).
+    # SAME fixture set regardless. It IS a member of the building-automation
+    # profile (support/checkers/profiles/building_automation.yaml kernel_checks;
+    # mapped in support/checkers/check_profile.py; pinned in
+    # support/checkers/module_registry.yaml), so a profile-driven --all run DOES
+    # reach it.
     parser.add_argument("--all", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
     repo = Path(args.repo).resolve()
     summary = run(repo)
-    all_fixtures = list(summary["fixtures"]) + list(summary.get("concern_fixtures", ()))
+    all_fixtures = (
+        list(summary["fixtures"])
+        + list(summary.get("concern_fixtures", ()))
+        + list(summary.get("selflock_fixtures", ()))
+    )
     branches = {f["fixture"]: f["branch"] for f in all_fixtures}
     for fixture in all_fixtures:
         print(
@@ -1710,7 +1983,7 @@ def main(argv: list[str] | None = None) -> int:
             + (
                 f" ({fixture.get('red_literal_kind')})"
                 if fixture["branch"] == "red-pin"
-                else f" (frontier={fixture.get('frontier_kind')})"
+                else f" (frontier={fixture.get('frontier_kind') or fixture.get('observed')})"
             )
         )
     for probe in summary["probes"]:
