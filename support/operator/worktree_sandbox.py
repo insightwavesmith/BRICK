@@ -341,6 +341,28 @@ def anchor_wip_worktree_snapshot(
     return reclaimed
 
 
+def observe_preexisting_dirty_paths(repo_root: Path | str) -> tuple[str, ...]:
+    """Read-only observation of an ``adapter_cwd`` worktree's dirty paths.
+
+    This is the LAUNCH-time twin of ``anchor_wip_worktree_snapshot``: before a
+    direct ``adapter_cwd`` dispatch begins, the run surface observes whether the
+    caller-owned worktree already carries uncommitted changes so it can WARN the
+    operator that a close-time WIP anchor will fold pre-existing dirt into the
+    same snapshot. It is purely observational -- it NEVER refuses, mutates, moves
+    a branch, raises, or judges Movement/success/quality. A non-git tree, a git
+    failure, or a clean tree all yield an empty tuple.
+    """
+
+    try:
+        repo = Path(repo_root).resolve()
+    except OSError:
+        return ()
+    status = _git(repo, "status", "--porcelain", "--untracked-files=all")
+    if status is None or not status.strip():
+        return ()
+    return _git_status_paths(status)
+
+
 def reclaim_wip_anchor(repo_root: Path | str, building_id: str) -> tuple[str, str] | None:
     """Return the WIP anchor ref + commit for ``building_id``, when present."""
 
@@ -752,6 +774,7 @@ __all__ = [
     "commit_sandbox_output",
     "create_worktree_sandbox",
     "dispose_worktree_sandbox",
+    "observe_preexisting_dirty_paths",
     "probe_worktree_capable",
     "reap_stale_wip_anchors",
     "reap_stale_worktrees",

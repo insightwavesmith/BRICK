@@ -14,6 +14,7 @@ import os
 import re
 import secrets
 import subprocess
+import sys
 
 from datetime import datetime, timezone
 
@@ -177,6 +178,7 @@ from brick_protocol.support.operator.write_observation import (
 from brick_protocol.support.operator.worktree_sandbox import (
     WorktreeSandboxError,
     anchor_wip_worktree_snapshot,
+    observe_preexisting_dirty_paths,
 )
 from brick_protocol.support.operator.proof_observation import (
     _adapter_result_with_proof_observation,
@@ -605,6 +607,75 @@ def _with_close_wip_anchor(
     return stamped
 
 
+def _observe_launch_dirty_cwd(
+    adapter_cwd: Path | str | None,
+    *,
+    building_id: str,
+) -> tuple[str, ...]:
+    """Warn (observation-only) when a direct ``adapter_cwd`` launch is dirty.
+
+    D1 launch surface: a direct ``adapter_cwd`` run close-anchors the worktree's
+    dirty state under ``refs/brick/wip/<building_id>`` at completion/park. If the
+    caller's worktree ALREADY carried uncommitted changes at launch, that
+    pre-existing dirt would be FOLDED into the close-time WIP anchor (the anchor
+    cannot distinguish provider WIP from pre-existing WIP), so the run surface
+    emits one stderr WARNING line naming the count. It NEVER refuses, mutates,
+    moves a branch, raises, or judges Movement/success/quality -- warn, never
+    refuse. Returns the observed paths (empty when clean / non-git / adapter_cwd
+    is None).
+    """
+
+    if adapter_cwd is None:
+        return ()
+    try:
+        dirty_paths = observe_preexisting_dirty_paths(adapter_cwd)
+    except (OSError, WorktreeSandboxError):
+        return ()
+    if not dirty_paths:
+        return ()
+    print(
+        "building launch: DIRTY-CWD "
+        f"building={building_id} adapter_cwd={Path(adapter_cwd)} "
+        f"paths={len(dirty_paths)}",
+        file=sys.stderr,
+        flush=True,
+    )
+    return dirty_paths
+
+
+def _anchor_park_stop_wip(
+    adapter_cwd: Path | str | None,
+    *,
+    building_id: str,
+    source: str,
+) -> None:
+    """Best-effort close-time WIP anchor for a parked/stopped direct run.
+
+    D1 park-stop surface: when a direct ``adapter_cwd`` walk PARKS or STOPS
+    before returning a clean result (the chat-session park frontier is written,
+    then re-raised past ``_with_close_wip_anchor``), the completion-time anchor
+    in ``_with_close_wip_anchor`` never runs. This preserves the worktree's dirty
+    bytes under ``refs/brick/wip/<building_id>`` on that early-exit path too, so
+    a park/stop never destroys useful provider WIP. It is best-effort: any git /
+    sandbox failure is swallowed so the anchor NEVER masks the propagating park
+    signal, and it authors no Movement / success / quality.
+    """
+
+    if adapter_cwd is None:
+        return
+    try:
+        anchor_wip_worktree_snapshot(
+            Path(adapter_cwd),
+            building_id,
+            message=(
+                f"BRICK WIP anchor: {building_id}\n\n"
+                f"source={source}\n"
+            ),
+        )
+    except (OSError, WorktreeSandboxError):
+        return
+
+
 def run_building_plan(
     plan: Mapping[str, Any] | str | Path,
     *,
@@ -648,6 +719,15 @@ def run_building_plan(
     checked_proof_limits = _proof_limits_tuple(
         proof_limits if proof_limits is not None else packet.get("proof_limits")
     )
+    # D1 launch surface: observe (never refuse) a pre-existing dirty adapter_cwd
+    # so the operator knows the close-time WIP anchor will fold pre-existing dirt
+    # into the same snapshot. Observation-only; failure never blocks the walk.
+    _observe_launch_dirty_cwd(
+        adapter_cwd,
+        building_id=_plan_building_id(
+            packet, _optional_text_value(packet.get("plan_ref")) or "building-plan:single-step"
+        ),
+    )
     try:
         result = _run_dynamic_graph_walker(
             packet,
@@ -670,6 +750,18 @@ def run_building_plan(
             report_slack_sender=report_slack_sender,
         )
         return _with_close_wip_anchor(result, adapter_cwd=adapter_cwd)
+    except ChatSessionParkFrontierEvidenceWritten as parked:
+        # D1 park-stop surface: the walk parked/stopped before a clean result, so
+        # the completion-time anchor in _with_close_wip_anchor never runs on this
+        # early-exit path. Best-effort anchor the dirty adapter_cwd bytes, then
+        # re-raise the park signal UNCHANGED (the anchor never masks it -- the
+        # driver.py:1781 contract observes this exact exception object).
+        _anchor_park_stop_wip(
+            adapter_cwd,
+            building_id=parked.building_id,
+            source="run_building_plan_park_stop",
+        )
+        raise
     except AdapterFrontierEvidenceWritten as adapter_frontier:
         # The adapter raised/timed out before an AgentFact existed; the dynamic
         # walker has already written the resumable adapter-error frontier (hold).

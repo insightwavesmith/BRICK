@@ -751,6 +751,13 @@ def check(repo: Path) -> tuple[list[str], Mapping[str, Any]]:
     _fan_dispatch_child_timeout_fire(repo, violations, summary)
     _fan_dispatch_slow_normal_child_no_false_hold_fire(repo, violations, summary)
 
+    # D1 park-stop WIP anchor + launch dirty-cwd observation FIRE: a direct
+    # adapter_cwd walk that PARKS/STOPS before a clean result must still anchor
+    # the worktree's dirty bytes under refs/brick/wip/<building_id> (the
+    # completion-time anchor never runs on the early-exit path), and a
+    # pre-existing dirty adapter_cwd must be WARNED (observation-only) at launch.
+    _park_stop_anchor_and_launch_dirty_fire(repo, violations, summary)
+
     return violations, summary
 
 
@@ -3152,6 +3159,292 @@ def _w1_worktree_sandbox_fire(
             )
 
 
+def _d1_park_stop_graph_plan(building_id: str) -> Mapping[str, Any]:
+    """A two-step graph whose FIRST step parks on adapter:chat-session.
+
+    The park frontier is written before an AgentFact returns, so the direct
+    adapter_cwd run raises ChatSessionParkFrontierEvidenceWritten past the
+    completion-time anchor -- the D1 park-stop anchor path.
+    """
+
+    return {
+        "plan_ref": f"building-plan:{building_id}",
+        "owner_axis": "Brick",
+        "building_id": building_id,
+        "plan_shape": "graph",
+        "execution_order": ["d1-park-work", "d1-followup-work"],
+        "brick_steps": [
+            {
+                "step_ref": "d1-park-work",
+                "selected_adapter_ref": "adapter:chat-session",
+                "completion_edge_ref": "edge:d1-park-work-to-followup",
+                "rows": [
+                    {
+                        "axis": "Brick",
+                        "row_ref": "brick-row:d1-park-work",
+                        "brick_work_ref": "work:d1-park-work",
+                        "brick_instance_ref": "brick-d1-park-work",
+                        "work_statement": "Exercise chat-session park on a direct adapter_cwd run.",
+                        "comparison_rule": "Support observes parked evidence shape only.",
+                        "required_return_shape": "made_changes, observed_evidence, not_proven",
+                    },
+                    {
+                        "axis": "Agent",
+                        "row_ref": "agent-row:d1-park-work",
+                        "agent_object_ref": "agent-object:dev",
+                    },
+                ],
+            },
+            {
+                "step_ref": "d1-followup-work",
+                "selected_adapter_ref": "adapter:local",
+                "completion_edge_ref": "edge:d1-followup-work-to-boundary",
+                "rows": [
+                    {
+                        "axis": "Brick",
+                        "row_ref": "brick-row:d1-followup-work",
+                        "brick_work_ref": "work:d1-followup-work",
+                        "brick_instance_ref": "brick-d1-followup-work",
+                        "work_statement": "Live follow-up after chat-session submission.",
+                        "comparison_rule": "Support observes follow-up invocation only.",
+                        "required_return_shape": "returned_summary, adapter_ref",
+                    },
+                    {
+                        "axis": "Agent",
+                        "row_ref": "agent-row:d1-followup-work",
+                        "agent_object_ref": "agent-object:dev",
+                    },
+                ],
+            },
+        ],
+        "link_edges": [
+            {
+                "edge_ref": "edge:d1-park-work-to-followup",
+                "source_step_ref": "d1-park-work",
+                "target_step_ref": "d1-followup-work",
+                "rows": [
+                    {
+                        "axis": "Link",
+                        "row_ref": "link-row:d1-park-work",
+                        "movement": "forward",
+                        "target_ref": "brick-d1-followup-work",
+                        "declared_gate_refs": ["link-gate:default-transition"],
+                    }
+                ],
+            },
+            {
+                "edge_ref": "edge:d1-followup-work-to-boundary",
+                "source_step_ref": "d1-followup-work",
+                "rows": [
+                    {
+                        "axis": "Link",
+                        "row_ref": "link-row:d1-followup-work",
+                        "movement": "forward",
+                        "target_ref": "building-boundary:d1-park-closed",
+                        "declared_gate_refs": ["link-gate:default-transition"],
+                    }
+                ],
+            },
+        ],
+    }
+
+
+def _park_stop_anchor_and_launch_dirty_fire(
+    repo: Path,
+    violations: list[str],
+    summary: dict[str, Any],
+) -> None:
+    """D1 FIRE: park-stop WIP anchor + launch dirty-cwd observation.
+
+    Two proofs over a DIRECT adapter_cwd run (not the engine worktree sandbox):
+
+      * park-stop anchor: a walk that PARKS before a clean result still preserves
+        the worktree's dirty bytes under refs/brick/wip/<building_id>, because the
+        run surface anchors on the ChatSessionParkFrontierEvidenceWritten path
+        before re-raising. Mutation-RED: an in-process monkeypatch that neuters
+        _anchor_park_stop_wip leaves the ref absent.
+      * launch dirty observation: a pre-existing dirty adapter_cwd emits one
+        stderr DIRTY-CWD warning at launch and NEVER refuses. Mutation-RED: a
+        clean adapter_cwd emits NO warning (so the warning is genuinely gated).
+    """
+
+    import contextlib
+    import io
+
+    from brick_protocol.support.operator import run as run_module
+    from brick_protocol.support.operator.run import (
+        ChatSessionParkFrontierEvidenceWritten,
+        run_building_plan,
+    )
+    from brick_protocol.support.operator.worktree_sandbox import (
+        reclaim_wip_anchor,
+        release_wip_anchor,
+    )
+
+    with tempfile.TemporaryDirectory(prefix="bp-d1-customer-") as cust_raw, \
+            tempfile.TemporaryDirectory(prefix="bp-d1-evidence-") as ev_raw, \
+            _TemporaryHome(Path(cust_raw) / "engine-home"):
+        customer = Path(cust_raw) / "customer-live"
+        customer.mkdir(parents=True, exist_ok=True)
+        evidence_root = Path(ev_raw)
+        _seed_customer_repo(repo, customer)
+        original_runner_repo = run_module._REPO_ROOT
+        try:
+            run_module._REPO_ROOT = customer
+
+            # --- park-stop anchor (GREEN): dirty the worktree, then park. ---
+            (customer / "d1-provider-wip.txt").write_text(
+                "provider WIP written before the park\n", encoding="utf-8"
+            )
+            park_building_id = "d1-park-stop-anchor-0"
+            park_stderr = io.StringIO()
+            parked_ok = False
+            with contextlib.redirect_stderr(park_stderr):
+                try:
+                    run_building_plan(
+                        _d1_park_stop_graph_plan(park_building_id),
+                        output_root=evidence_root / "park-stop",
+                        overwrite_existing=True,
+                        adapter_cwd=customer,
+                    )
+                except ChatSessionParkFrontierEvidenceWritten:
+                    parked_ok = True
+                except Exception as exc:  # noqa: BLE001 - surface unexpected leak
+                    violations.append(
+                        f"d1-park-stop-anchor: expected chat-session park, got {type(exc).__name__}: {exc}"
+                    )
+            if not parked_ok:
+                violations.append(
+                    "d1-park-stop-anchor: direct adapter_cwd run did not park on the chat-session step"
+                )
+            park_reclaimed = reclaim_wip_anchor(customer, park_building_id)
+            summary["d1_park_stop_anchor_ref"] = park_reclaimed[0] if park_reclaimed else ""
+            if park_reclaimed is None or not park_reclaimed[0].startswith("refs/brick/wip/"):
+                violations.append(
+                    "d1-park-stop-anchor: park path did NOT anchor the dirty worktree "
+                    f"({park_reclaimed!r})"
+                )
+            elif park_reclaimed[1]:
+                anchored_files = _git_text(
+                    customer, "diff-tree", "--no-commit-id", "--name-only", "-r", park_reclaimed[1]
+                )
+                summary["d1_park_stop_anchor_files"] = anchored_files
+                if "d1-provider-wip.txt" not in anchored_files:
+                    violations.append(
+                        "d1-park-stop-anchor: WIP anchor did not capture the provider WIP "
+                        f"({anchored_files!r})"
+                    )
+            release_wip_anchor(customer, park_building_id)
+
+            # --- park-stop anchor MUTATION-RED: neuter the anchor -> ref absent. ---
+            (customer / "d1-provider-wip.txt").write_text(
+                "provider WIP written before the parked mutation run\n", encoding="utf-8"
+            )
+            mutation_building_id = "d1-park-stop-anchor-mutation-0"
+            original_anchor = run_module._anchor_park_stop_wip
+            neutered_calls = {"count": 0}
+
+            def _neutered_anchor(*_args: Any, **_kwargs: Any) -> None:
+                neutered_calls["count"] += 1
+                return None
+
+            try:
+                run_module._anchor_park_stop_wip = _neutered_anchor
+                with contextlib.redirect_stderr(io.StringIO()):
+                    try:
+                        run_building_plan(
+                            _d1_park_stop_graph_plan(mutation_building_id),
+                            output_root=evidence_root / "park-stop-mutation",
+                            overwrite_existing=True,
+                            adapter_cwd=customer,
+                        )
+                    except ChatSessionParkFrontierEvidenceWritten:
+                        pass
+                    except Exception:  # noqa: BLE001 - the mutation still parks/raises
+                        pass
+            finally:
+                run_module._anchor_park_stop_wip = original_anchor
+            mutation_reclaimed = reclaim_wip_anchor(customer, mutation_building_id)
+            summary["d1_park_stop_anchor_mutation_red_execution_log"] = {
+                "neutered_anchor_calls": neutered_calls["count"],
+                "ref_absent_after_neuter": mutation_reclaimed is None,
+                "proof_limit": "mutation-RED support evidence only",
+            }
+            if mutation_reclaimed is not None:
+                release_wip_anchor(customer, mutation_building_id)
+                violations.append(
+                    "d1-park-stop-anchor mutation-RED: neutering the park-stop anchor still "
+                    "produced a WIP ref -- the anchor is not the load-bearing surface"
+                )
+            if neutered_calls["count"] == 0:
+                violations.append(
+                    "d1-park-stop-anchor mutation-RED: the park-stop anchor hook was never "
+                    "invoked on the park path -- the anchor is not wired into run_building_plan"
+                )
+
+            # --- launch dirty observation (GREEN): dirty cwd warns at launch. ---
+            (customer / "d1-preexisting-dirt.txt").write_text(
+                "pre-existing uncommitted change at launch\n", encoding="utf-8"
+            )
+            dirty_building_id = "d1-launch-dirty-0"
+            dirty_stderr = io.StringIO()
+            with contextlib.redirect_stderr(dirty_stderr):
+                try:
+                    run_building_plan(
+                        _d1_park_stop_graph_plan(dirty_building_id),
+                        output_root=evidence_root / "launch-dirty",
+                        overwrite_existing=True,
+                        adapter_cwd=customer,
+                    )
+                except ChatSessionParkFrontierEvidenceWritten:
+                    pass
+                except Exception:  # noqa: BLE001 - the warning is emitted before dispatch
+                    pass
+            dirty_observed = dirty_stderr.getvalue()
+            summary["d1_launch_dirty_warned"] = "building launch: DIRTY-CWD" in dirty_observed
+            if f"building launch: DIRTY-CWD building={dirty_building_id}" not in dirty_observed:
+                violations.append(
+                    "d1-launch-dirty: a pre-existing dirty adapter_cwd did NOT emit the "
+                    "launch DIRTY-CWD warning"
+                )
+            release_wip_anchor(customer, dirty_building_id)
+
+            # --- launch dirty MUTATION-RED: a CLEAN cwd emits NO warning. ---
+            clean_customer = Path(cust_raw) / "customer-clean"
+            clean_customer.mkdir(parents=True, exist_ok=True)
+            _seed_customer_repo(repo, clean_customer)
+            run_module._REPO_ROOT = clean_customer
+            clean_building_id = "d1-launch-clean-0"
+            clean_stderr = io.StringIO()
+            with contextlib.redirect_stderr(clean_stderr):
+                try:
+                    run_building_plan(
+                        _d1_park_stop_graph_plan(clean_building_id),
+                        output_root=evidence_root / "launch-clean",
+                        overwrite_existing=True,
+                        adapter_cwd=clean_customer,
+                    )
+                except ChatSessionParkFrontierEvidenceWritten:
+                    pass
+                except Exception:  # noqa: BLE001
+                    pass
+            clean_observed = clean_stderr.getvalue()
+            summary["d1_launch_dirty_mutation_red_execution_log"] = {
+                "clean_cwd_warned": "building launch: DIRTY-CWD" in clean_observed,
+                "proof_limit": "mutation-RED support evidence only",
+            }
+            if "building launch: DIRTY-CWD" in clean_observed:
+                violations.append(
+                    "d1-launch-dirty mutation-RED: a CLEAN adapter_cwd emitted the DIRTY-CWD "
+                    "warning -- the observation is not actually gated on dirt"
+                )
+            release_wip_anchor(clean_customer, clean_building_id)
+        finally:
+            run_module._REPO_ROOT = original_runner_repo
+
+    summary["d1_park_stop_and_launch_dirty_fire"] = "passed"
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description=(
@@ -3230,6 +3523,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"anchored_ref={summary.get('w1_direct_close_anchored_ref')} "
         f"reclaimed={summary.get('w1_direct_close_reclaimed_anchor')} "
         f"files={summary.get('w1_direct_close_anchor_files')}."
+    )
+    print(
+        "D1 park-stop anchor + launch dirty FIRE passed: "
+        f"park_anchor_ref={summary.get('d1_park_stop_anchor_ref')} "
+        f"park_anchor_files={summary.get('d1_park_stop_anchor_files')} "
+        f"park_mutation_red={summary.get('d1_park_stop_anchor_mutation_red_execution_log')} "
+        f"launch_dirty_warned={summary.get('d1_launch_dirty_warned')} "
+        f"launch_mutation_red={summary.get('d1_launch_dirty_mutation_red_execution_log')}."
     )
     print(
         "H2a direct-graph intake FIRE passed: "

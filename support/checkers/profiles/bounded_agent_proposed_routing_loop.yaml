@@ -142,6 +142,12 @@ text_contains:
       - "qa-verification-gap-sentinel: non-reroute verification_gap produced"
       - "p6c-byte-fanout: normalized evidence-manifest/spine/building-map"
       - "p6c-byte-fanout-red: timed fixture failed to invert wall-clock"
+      # D3 evidence-shape redesign: the fan-out arrival inversion is now proven by
+      # a threading.Event handshake (no wall-clock duration literal). Removing the
+      # handshake REDs both the p6c and p4-resume fan fixtures.
+      - def _event_handshake_fan_callable
+      - "p6c-byte-fanout-red: inversion handshake removed"
+      - "p4-resume-fanout-red: inversion handshake removed"
       - "p6c-shared-fanin-reroute: normalized evidence-manifest/spine/"
       - "route-policy-yaml-absent-red: absent preset budgets did not"
       - "route-policy-fields-red: missing route-policy provenance"
@@ -219,6 +225,11 @@ text_absent:
     texts:
       - subprocess
       - os.system
+      # D3 wall-clock reintroduction RED pins: the p6c/p4 fan fixture judgments
+      # must remain evidence-shape/Event-handshake based, not sleep- or timeout-
+      # number based.
+      - "time.sleep("
+      - _handshake_liveness_wait_seconds
 proof_limits:
   - support evidence only
   - not source truth
