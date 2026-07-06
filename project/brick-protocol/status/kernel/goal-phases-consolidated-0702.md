@@ -694,7 +694,7 @@ Smith "과업 모두 종료까지 이어간다". 이 큐가 비면 연속 운행
 | **P0 게이트 판독** | (0706 저녁 전량 랜딩·봉인) R3 ccb73b44 · R5R8 e4cf700d · R1 6ae9f3f4 · r3margin 2eb79b40 · firehunk b94a77b3 · fugu451obit d25b89ce, 핸드오프 문서까지 origin=298bfc2e | 완료 |
 | **P1 야간 웨이브 — 전량 랜딩 완료** | r9 db3a17a7 · cpath⑤+fugupacket 7bacb772 · **graphdecl-fix 612abed3**(5라운드 종료선 절단 — 표17 격자 일반해는 #12로 명시 이관, 변이 2종 RED, 스윕 50) · fugu-fieldprobe 성공(푸구 실사용 개방 확정) · checker-audit complete(은퇴 0·고아 0·재설계 1) | 완료 |
 | **P3 줄이기 웨이브 — 랜딩 완료** | **build-unify(#12) 랜딩 1fd22290**(게이트에서 배선 갭 적발·핀 추가·변이 RED 재확인, deep-design KIND 동승) · **friction-bundle 랜딩**(표13·14+시간픽스처, 변이 RED — 앵커콜 중화→FIRE). 둘 다 푸구 시공을 타임아웃 사망 후 앵커에서 COO 직접 게이트(Smith 'QA만 붙여라' 지시 — 재시공 0) | 완료 |
-| **P-막판 5기 병렬(Smith '5개 걷자', 0706 심야 발사 — HEAD=df0ea719 검증)** | resume-decl(이어가기 선언 표면 — **deep-design 1호 + codex work A/B 측정 칸**) ∥ R2 carry(공용 이사 헬퍼, design+푸구) ∥ graph-draft #15(초안기, deep-design+푸구) ∥ selflock 가족②(validate-before-persist, design+푸구, walker_kernel 무접촉으로 R2와 비충돌) ∥ t10rev1(z6 발견+원장 마감, sonnet 경량) | 걷는 중 — 이게 마스터 큐의 마지막 시공 대열 |
+| **P-막판 5기 — 전량 랜딩, ★마스터 잔여 큐 소진★(0706 심야)** | t10rev1(cf84a610 직전 랜딩·P5 종결) · graph-draft #15 + R2 carry(cf6d601e — 중간 driver0 flake 1회는 재실행 green으로 경합 확정) · **resume-decl + selflock(d15a75e0)** — resume-decl은 게이트에서 병기-충돌 해소(registry·cli 양쪽 유지), selflock은 QA 프로브 잔해 스트립 후 --all green. Smith 0706 새벽 위임("골 잡고 모든 과업이 없어질 때까지")의 시공 종료선 도달 | **소진** |
 | **P2 walker 직렬(랜딩 순서만 직렬)** | ~~cpath~~(랜딩됨) → R2(carry 공용헬퍼) → 자기잠금 가족② | R2가 다음 |
 | **P3 줄이기 웨이브(Smith 0706 야간 채택 — 회고 4제안 COO 판정안대로)** | 마찰청산 묶음(표 13·14·16, walker 무접촉) ∥ **#12 build() 단일 진입은 graphdecl-fix 랜딩 직후 발주**(assembly.py write_scope 겹침 해소 대기) · 규칙 만료태그 관례 즉시 발효(임시규율 vs 헌장 태그, 착지 시 대응 규칙 폐기 — 첫 폐기 예정: graphdecl-fix 랜딩 시 "output-root는 반드시 ~/.brick" 우회 규칙) · 인체공학 표 신규 행에 "제거되는 사람-판단" 컬럼 관례 | 4기 랜딩 직후 발주 |
 | **P4 대형** | ~~#15 초안기~~(걷는 중) · ~~Case 8 정찰~~(완료 — 처방측 착지 확인+경계 증거 확보) | 소진 중 |
@@ -735,7 +735,13 @@ Smith "과업 모두 종료까지 이어간다". 이 큐가 비면 연속 운행
 ### R. 부검 0706a 처방 채택 웨이브 (Smith 0706 "포함시키고 진행" — 전량 편입)
 정본 = postmortem-deep-0706a-diagnosis-synthesis.md. **R7 집행(선언)**: 사건·과업 처분의 단일소스 = 본 문서 마스터 큐(§A~E·R) — 코퍼스/부검 문서는 입력 증거이지 처분 원장이 아니다(Case 6 충돌 해소: T10 0705b 처분은 §B 재판정 행이 지배). **R6 집행(관례)**: R행마다 착지 시 랜딩 커밋을 이 절에 追記 — 처방-착지 추적은 이 절이 원장이다. 순서 판단(COO): 병렬 = R1(parents[N] 정체성 가드+레지스트리 체커) · R4(어댑터 오류 분류+타임스탬프 보존) · R5+R8(부재주장 도메인 라벨 의무+거짓 'git 없음' 자기제한 제거 — 규율 계열 합본). **R3 최우선 격상(0706 오후 실측: erg6·cpath 수술 2연속 무유서 사망 = Case 9 자율운행 반복 위협 — R3가 없어 레인이 조용히 동결)** — 수신-후-무응답 loud HOLD+증거포착을 다음 walker 슬라이스 최상단으로. **cpath 수술은 레인 2연속 동결로 COO-직접 전환(위임 'ex walker', 픽스처 게이트 기랜딩)**. 이후 **직렬(walker_kernel 충돌)** = R2(carry 공용헬퍼+전채널 체커+remint 5좌표 감사 — 푸구 실측 갭 포함) · R3(팬-이음새 driver-사망 증거 포착+수신-후-무응답 loud HOLD, Case 9 선행). 문서-측 = R6(처방-착지 추적) · R7(사건 처분 단일소스 = 마스터 큐 선언). 별도 소형 = R9(모델-레인 규율 정합화: discipline:model-lane-matching 선언을 0705/0706 실정책과 일치시키기 — 부검이 표면화한 선언-정책 충돌).
 
-**착지 원장(R6 집행, 0706 야간 세션 追記)**:
+**착지 원장(R6 집행, 0706 심야 마감 追記 — 마스터 큐 소진 랜딩분)**:
+- **t10rev1 착지** — z6 4번째 후보 unresolvable 최종 확정(재전수+탐색 도메인 라벨) + 분류 원장 마감. 야간 첫 무홀드 클린 완주. P5 종결.
+- **graph-draft #15 착지(73e522f4→cf6d601e 봉인)** — 초안기 670줄+`brick draft` CLI+규칙 체커(스윕 51). deep-design+푸구 1라운드 무홀드. 0706 실수 규칙 전량이 표면으로. D3 잔여(규칙 핀 커버리지)는 첫 실사용이 검수.
+- **R2 carry 착지(cf6d601e)** — 공용 side-channel carry 헬퍼+전채널 생존 단언+재주조 감사(K2 폐쇄). P2 직렬 2번.
+- **resume-decl 착지(d15a75e0 첫 머지)** — 이어가기 선언 표면: 사전검증(클래스-액션 오판을 원장 접촉 전 거부)+`brick resume --decl`+adapter_cwd 자동+체인 자동+막다른길 loud(스윕 52). **A/B 판정: 시공 두뇌가 라운드 수 지배(푸구 1R vs codex 5R, 설계 무관) / deep-design은 라운드 깊이·QA 정밀도(결정원장 번호 지목)를 바꿈 / +Smith 폭 변수 재분류: 5R 판들의 주범은 설계자 1인 사각지대 — 병렬 이종 설계가 처방(consolidation 실증)**.
+- **selflock 착지(d15a75e0 둘째 머지)** — 결함가족② 폐쇄: validate-before-persist(거부 처분 무persist)+잔존 잠금 정정 경로+가족② 픽스처(공유 홈, D5 판정대로). P2 직렬 완결(cpath⑤→R2→selflock 전부 0706 하루에).
+- **폭 사다리 각인(Smith 0706 심야)**: 설계 공간 넓으면 설계도 병렬 — 신호 4종, N=1/2이종/3이종 상한3. sizing 스킬 7번 다이얼 신설. 후속: design·deep-design 계약 본문 반영 + #15 초안기 규칙(그래프 사고법 v2 재설계와 합본 — 조사 워크플로→푸구∥코덱스 설계 듀오 진행 중).
 - **graphdecl-fix(발주표면 결함 2종) 착지 = 612abed3** — ①proposal 파일 work/ 배치+체커 인지(vessel 주차 소멸) ②model_ref 생략 시 어댑터 default 상속(선언층+노드층). 5라운드 종료선 절단(6번째 reroute = 메타류 기각), 변이 2종 RED, 스윕 50. **잔여 이관**: 표17 캐스팅-해석 격자의 일반해 → build-unify(#12). **만료태그 첫 폐기 집행**: "output-root는 반드시 ~/.brick" 우회 규칙 만료 — 이후 발주는 repo-안 output-root 허용.
 - **--land 잠금 버그 수리 = 0123690f** — 비동기화 1호 도그푸드에서 EXIT 트랩의 빈-디렉토리 rmdir가 로그 포인터 때문에 조용히 실패 → 2호가 stale lock 거부. 포인터 선삭제로 수리, 2호(612abed3 랜딩)에서 해제 검증.
 - **난이도-비례 캐스팅 독트린(Smith 0706 야간)**: 단순·정직·중간=codex / 복잡·얽힘=푸구+페이블 work(또는 dev fan 분할) — 싼 두뇌의 절약분이 QA 라운드로 역류한다(graphdecl-fix 5라운드가 실측 근거). work 레인 fable5 금지 해제(어려움-비례). 줄이기 웨이브 2기가 1호 적용. 소형 후속: model-lane 규율 문서에 티어 행 추가.
