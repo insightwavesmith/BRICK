@@ -718,7 +718,10 @@ Smith "과업 모두 종료까지 이어간다". 이 큐가 비면 연속 운행
 - **bundle10 wheel 패키징**: Smith Option A/B 결정 대기(64d50be6 명시 — A=source checkout 전용 선언 / B=wheel 공식 지원 설치면 선언). 산출은 WIP 앵커 2기(ce05b4de·ee4d830f)에 봉인, main 부재 — 0706 큐 재점검에서 누락 발견, 유실 방지 등재. 0706 Smith 질의 접수 — 선택지별 비용 보고됨.
 - 0702 결함가족 ②(자기잠금) · route policy concern 하위분류(A+ W1 인접) — 0706 Smith 질의 접수, 설명 보고됨. 자기잠금 규범 근거는 Rule 11(기비준), 시공 스코프는 t7b 설계 슬라이스 D5가 결합/분리를 판정.
 
-### E. 무해 잔류 (조치 불요)
+### E. 무해 잔류 → **전량 원장 마감(0706 오전, Smith "재개 가능한 건 재개해서 써라" 집행)**
+재개-가치 감정 후 처분: **7기 전원 `frontier=complete` 마감** — 11B v1(reroute×2+stop = **F-S 픽스처 모양의 라이브 재현, 미러 2차 실증**) · 11B v2 · W1-S1 · expand-dsl-0706a · erg4a·W2a(낡은-트리 무효) · 부검 fleet. **T10 0705b만 회생 불능 종결**: 정정 기록(raw:operator-correction:01) 후에도 correction_ineffective — 반환5>수취0(타 빌딩 스텝 포함)의 음의 갭은 위조-인접 형상이라 t7-recovery가 설계대로 거부(fail-closed 정당). 완주 스탬프는 fresh 0705c만 유효(저우선). **0705 봉쇄 5기 전부 해소.**
+
+#### (구 E절 기록 — 마감 전 상태)
 - 주차 3기(t1s2v3·wsallow·engine-smalls) — 대체·수확 완료. fresh 불요.
 - 부검 fleet v2 vessel(link_paused) — 산출 회수 완료.
 - **11B v2 vessel**(bundle11b-walkeradj-0705b, link_paused/worker 진입 전 COO 처분 대기) — v1 랜딩으로 대체, design 산출은 C절 후속 슬라이스에 수확. forward 금지(중복 시공 재개됨).
