@@ -36,7 +36,7 @@ Sakana API가 codex 기본 `tools` 목록의 `image_generation`을 거부(functi
 W1 웨이브 전체(K1'·K2'·K4') · walker 미러 수술+도그푸드 · wheel B+하이지엔 · A+ W2(공허검증 차단) · expand() · erg5(자동앵커)+erg6(--graph-decl=무마찰 판정선 도달) · 11B 후속 · 부검-딥 1회차(3두뇌, R1~R8 채택) · R4(어댑터 유서). 주차 vessel 7기 원장 마감. 도구: coo_gate_runner.sh(게이트+--land, 수동 머지·push 대체).
 
 ## 콘솔
-Artifact: https://claude.ai/code/artifact/b7c11b80-62ee-4d67-a063-6eb70c8a8e03 (한국어 체크리스트, 상태 바뀔 때 재배포).
+Artifact: claude.ai/code/artifact/b7c11b80-**** (전문 주소는 COO 메모리 brick-session-0706afternoon-closeout에 — kernel 문서 UUID redaction 규율로 마스킹). 한국어 체크리스트, 상태 바뀔 때 재배포.
 
 ## 새 세션 각인
 - 긴 연속 운행 시 도구 호출 문법 자기점검(이 파손이 세션 말 반복). cwd 리셋 함정: 발사는 cd repo && 선행 or 절대경로.
