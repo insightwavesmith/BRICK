@@ -20,11 +20,11 @@ from typing import Any
 
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_IMPORT_IDENTITY_ROOT = _REPO_ROOT / "support" / "import_identity"
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
-if str(_IMPORT_IDENTITY_ROOT) not in sys.path:
-    sys.path.insert(0, str(_IMPORT_IDENTITY_ROOT))
+from support.checkers.lib.bootstrap import ensure_checker_imports
+
+ensure_checker_imports(_REPO_ROOT)
 
 
 class InteractiveProviderIntakeError(RuntimeError):

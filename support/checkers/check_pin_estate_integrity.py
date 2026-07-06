@@ -90,10 +90,12 @@ from pathlib import Path
 from typing import Any
 
 
-_REPO_ROOT = _osp.dirname(_osp.dirname(_osp.dirname(_osp.abspath(__file__))))
-for _entry in (_REPO_ROOT, _osp.join(_REPO_ROOT, "support", "import_identity")):
-    if _entry not in sys.path:
-        sys.path.insert(0, _entry)
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from support.checkers.lib.bootstrap import ensure_checker_imports
+
+ensure_checker_imports(_REPO_ROOT)
 
 from support.checkers.lib.yaml_subset import (  # noqa: E402
     ProfileError,

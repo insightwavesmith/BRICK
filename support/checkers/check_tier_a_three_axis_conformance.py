@@ -61,6 +61,14 @@ from pathlib import Path
 from typing import Any
 
 
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from support.checkers.lib.bootstrap import ensure_checker_imports
+
+ensure_checker_imports(_REPO_ROOT)
+
+
 # CLEAN-YARD v3: the asserted root is GENERATED per run into a temp dir; the
 # id is parameterized and intentionally distinct from the retired project #1
 # dogfood id (tier-a-3axis-conformance-0, preserved in the frozen museum repo).
@@ -536,10 +544,7 @@ def assert_building_conformance(
 # module (independent oracle preserved).
 # ---------------------------------------------------------------------------
 def _ensure_import_identity(repo: Path) -> None:
-    identity = repo / "support" / "import_identity"
-    for candidate in (str(identity), str(repo)):
-        if candidate not in sys.path:
-            sys.path.insert(0, candidate)
+    ensure_checker_imports(repo)
 
 
 def _tier_a_proof_limits() -> list[str]:

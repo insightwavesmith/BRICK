@@ -22,14 +22,12 @@ from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any
 
-import os.path as _osp
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from support.checkers.lib.bootstrap import ensure_checker_imports
 
-_REPO_ROOT = _osp.dirname(_osp.dirname(_osp.dirname(_osp.abspath(__file__))))
-if _REPO_ROOT not in sys.path:
-    sys.path.insert(0, _REPO_ROOT)
-_IMPORT_IDENTITY = _osp.join(_REPO_ROOT, "support", "import_identity")
-if _IMPORT_IDENTITY not in sys.path:
-    sys.path.insert(0, _IMPORT_IDENTITY)
+ensure_checker_imports(_REPO_ROOT)
 
 from support.recording.declaration_packets import (  # noqa: E402
     _canonical_json_text,

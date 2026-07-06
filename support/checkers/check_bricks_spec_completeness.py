@@ -21,6 +21,14 @@ import tempfile
 from pathlib import Path, PurePosixPath
 
 
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from support.checkers.lib.bootstrap import ensure_checker_imports
+
+ensure_checker_imports(_REPO_ROOT)
+
+
 BRICKS_DIR = Path("brick/templates/bricks")
 BRICK_SPEC_FILENAME = "brick.md"
 BRICK_RETURN_FILENAME = "return.yaml"
@@ -452,11 +460,7 @@ def _run_loader_legacy_key_fire() -> str:
     fixture repo is sufficient. Anti-tautology: restoring the loader's old
     alias-read behavior makes the loader NOT raise and this FIRE goes RED.
     """
-    repo_root = Path(__file__).resolve().parents[2]
-    import_identity = repo_root / "support" / "import_identity"
-    for entry in (str(import_identity), str(repo_root)):
-        if entry not in sys.path:
-            sys.path.insert(0, entry)
+    ensure_checker_imports(_REPO_ROOT)
     from brick_protocol.support.operator.plan_rendering import _step_templates_from_bricks
 
     with tempfile.TemporaryDirectory(prefix="bp-bricks-legacy-loader-fire-") as tmp:
@@ -702,10 +706,7 @@ def _u2_resolution_regression_violations(repo: Path, specs: dict[str, dict]) -> 
     # Standalone bootstrap (codex U2-4 P3): allow `python3 check_bricks_spec_completeness.py`
     # from repo root WITHOUT the canonical PYTHONPATH=support/import_identity, mirroring
     # the engine-backed standalone checkers (e.g. check_building_operator_driver0).
-    import_identity = repo / "support" / "import_identity"
-    for entry in (str(import_identity), str(repo)):
-        if entry not in sys.path:
-            sys.path.insert(0, entry)
+    ensure_checker_imports(repo)
     from brick_protocol.support.operator.plan_rendering import _step_templates_from_bricks
 
     violations: list[str] = []

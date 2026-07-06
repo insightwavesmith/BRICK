@@ -19,10 +19,11 @@ from typing import Any
 
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-if str(_REPO_ROOT / "support" / "import_identity") not in sys.path:
-    sys.path.insert(0, str(_REPO_ROOT / "support" / "import_identity"))
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
+from support.checkers.lib.bootstrap import ensure_checker_imports
+
+ensure_checker_imports(_REPO_ROOT)
 
 from brick_protocol.support.connection.agent_adapter import (  # noqa: E402
     AgentAdapterRequest,

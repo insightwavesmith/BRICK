@@ -56,6 +56,14 @@ from pathlib import Path
 from typing import Any
 
 
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from support.checkers.lib.bootstrap import ensure_checker_imports
+
+ensure_checker_imports(_REPO_ROOT)
+
+
 CROSSING_REGISTRY_REL = "support/checkers/crossing_registry.yaml"
 MODULE_REGISTRY_REL = "support/checkers/module_registry.yaml"
 
@@ -484,9 +492,7 @@ def _mag0_registered_support_modules(repo: Path) -> set[str] | None:
     skips the bidirectional mag-0 tie rather than raising).
     """
 
-    repo_text = str(repo)
-    if repo_text not in sys.path:
-        sys.path.insert(0, repo_text)
+    ensure_checker_imports(repo)
     try:
         from support.checkers import check_package_path_admission as mag0
     except Exception:  # pragma: no cover - defensive

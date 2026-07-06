@@ -42,6 +42,14 @@ import sys
 import tempfile
 from pathlib import Path
 
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from support.checkers.lib.bootstrap import ensure_checker_imports
+
+ensure_checker_imports(_REPO_ROOT)
+
 MIN_CHARTER_LINES = 3
 
 PROBE_DECLARATION = {
@@ -59,10 +67,7 @@ PROBE_CHARTER = "# FIRE probe\n\npurpose line\ndirection line\n"
 
 
 def _ensure_import_path(repo: Path) -> None:
-    import_identity = repo / "support" / "import_identity"
-    for entry in (str(import_identity), str(repo)):
-        if entry not in sys.path:
-            sys.path.insert(0, entry)
+    ensure_checker_imports(repo)
 
 
 def _charter_nontrivial(charter_path: Path) -> bool:

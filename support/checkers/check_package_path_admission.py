@@ -9,6 +9,14 @@ import sys
 from pathlib import Path
 
 
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from support.checkers.lib.bootstrap import ensure_checker_imports
+
+ensure_checker_imports(_REPO_ROOT)
+
+
 _MODULE_REGISTRY = Path(__file__).resolve().parent / "module_registry.yaml"
 
 
@@ -1430,14 +1438,7 @@ def _spine_event_types() -> frozenset[str]:
 
     global _SPINE_EVENT_TYPES_CACHE
     if _SPINE_EVENT_TYPES_CACHE is None:
-        import os.path as _osp
-        import sys as _sys
-
-        repo_root = _osp.dirname(_osp.dirname(_osp.dirname(_osp.abspath(__file__))))
-        import_identity = _osp.join(repo_root, "support", "import_identity")
-        for entry in (import_identity, repo_root):
-            if entry not in _sys.path:
-                _sys.path.insert(0, entry)
+        ensure_checker_imports(_REPO_ROOT)
         from brick_protocol.support.recording.spine import SPINE_EVENT_TYPES
 
         _SPINE_EVENT_TYPES_CACHE = SPINE_EVENT_TYPES

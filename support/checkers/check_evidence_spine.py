@@ -39,14 +39,12 @@ from pathlib import Path
 # `PYTHONPATH=support/import_identity python3 ...` (no repo-root on PYTHONPATH)
 # can still import the support tree when this checker is run standalone. The
 # import_identity router governs only brick_protocol.*, not support.*.
-import os.path as _osp
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from support.checkers.lib.bootstrap import ensure_checker_imports
 
-_REPO_ROOT = _osp.dirname(_osp.dirname(_osp.dirname(_osp.abspath(__file__))))
-if _REPO_ROOT not in sys.path:
-    sys.path.insert(0, _REPO_ROOT)
-_IMPORT_IDENTITY = _osp.join(_REPO_ROOT, "support", "import_identity")
-if _IMPORT_IDENTITY not in sys.path:
-    sys.path.insert(0, _IMPORT_IDENTITY)
+ensure_checker_imports(_REPO_ROOT)
 
 # SINGLE-SOURCE the structural validation from the spine module. The convergent
 # slice-1B fix made spine.spine_structural_violations the ONE shared validator that

@@ -26,10 +26,11 @@ from typing import Any
 
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_IMPORT_IDENTITY_ROOT = _REPO_ROOT / "support" / "import_identity"
-for _path in (str(_REPO_ROOT), str(_IMPORT_IDENTITY_ROOT)):
-    if _path not in sys.path:
-        sys.path.insert(0, _path)
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from support.checkers.lib.bootstrap import ensure_checker_imports
+
+ensure_checker_imports(_REPO_ROOT)
 
 from brick_protocol.support.operator.assembly import (
     Authority,
