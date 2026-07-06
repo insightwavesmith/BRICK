@@ -109,6 +109,7 @@ path_allowlist:
       - support/checkers/profiles/mutation_red_manifest.yaml
       - support/checkers/profiles/model_lane_matching_discipline.yaml
       - support/checkers/profiles/native_dispatch_brick_backstop.yaml
+      - support/checkers/profiles/onboarding_success_literal.yaml
       - support/checkers/profiles/operator_correction.yaml
       - support/checkers/profiles/plan_expansion.yaml
       - support/checkers/profiles/positive_int_bool_boundary.yaml
