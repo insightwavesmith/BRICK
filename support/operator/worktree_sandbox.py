@@ -29,9 +29,11 @@ left untouched.
 
 from __future__ import annotations
 
+import os
 import subprocess
 import tempfile
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -274,6 +276,69 @@ def anchor_wip_snapshot(
     if _git(sandbox.repo_root, "update-ref", ref, commit.strip()) is None:
         raise WorktreeSandboxError(f"git update-ref failed for WIP anchor {ref}")
     return ref
+
+
+def anchor_wip_worktree_snapshot(
+    repo_root: Path | str,
+    building_id: str,
+    *,
+    message: str,
+) -> tuple[str, str] | None:
+    """Pin the current dirty state of an existing git worktree, if any.
+
+    This is the close-time twin for direct ``adapter_cwd`` runs: unlike the
+    engine worktree sandbox, the caller owns the worktree lifecycle, so this
+    helper only writes ``refs/brick/wip/<building_id>`` and leaves the worktree
+    itself in place.
+    """
+
+    repo = Path(repo_root).resolve()
+    base = _git(repo, "rev-parse", "HEAD")
+    if base is None or not base.strip():
+        return None
+    status = _git(repo, "status", "--porcelain", "--untracked-files=all")
+    if status is None or not status.strip():
+        return None
+    sensitive_paths = _raw_sensitive_path_writes(_git_status_paths(status))
+    if sensitive_paths:
+        raise WorktreeSandboxError(
+            "observed_sensitive_path_writes block direct WIP anchor: "
+            + ", ".join(sensitive_paths)
+        )
+    with tempfile.TemporaryDirectory(prefix="bp-wip-index-") as tmp:
+        index_path = str(Path(tmp) / "index")
+        env = {**os.environ, "GIT_INDEX_FILE": index_path}
+        if _git_env(repo, env, "read-tree", base.strip()) is None:
+            raise WorktreeSandboxError(f"git read-tree failed in worktree {repo}")
+        if _git_env(repo, env, "add", "--all") is None:
+            raise WorktreeSandboxError(f"git add failed in temporary index for {repo}")
+        tree = _git_env(repo, env, "write-tree")
+    if tree is None or not tree.strip():
+        raise WorktreeSandboxError(f"git write-tree failed in temporary index for {repo}")
+    commit = _git(
+        repo,
+        "-c",
+        "user.name=brick-engine",
+        "-c",
+        "user.email=engine@brick.local",
+        "commit-tree",
+        tree.strip(),
+        "-p",
+        base.strip(),
+        "-m",
+        message,
+    )
+    if commit is None or not commit.strip():
+        raise WorktreeSandboxError(f"git commit-tree failed in worktree {repo}")
+    ref = _wip_anchor_ref(building_id)
+    if _git(repo, "update-ref", ref, commit.strip()) is None:
+        raise WorktreeSandboxError(f"git update-ref failed for WIP anchor {ref}")
+    reclaimed = reclaim_wip_anchor(repo, building_id)
+    if reclaimed is None:
+        raise WorktreeSandboxError(f"WIP anchor did not resolve after update-ref: {ref}")
+    if not reclaimed[0]:
+        return None
+    return reclaimed
 
 
 def reclaim_wip_anchor(repo_root: Path | str, building_id: str) -> tuple[str, str] | None:
@@ -625,6 +690,23 @@ def _git(cwd: Path, *args: str) -> str | None:
     return completed.stdout
 
 
+def _git_env(cwd: Path, env: Mapping[str, str], *args: str) -> str | None:
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(cwd), *args],
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=60,
+            env=dict(env),
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if completed.returncode != 0:
+        return None
+    return completed.stdout
+
+
 def _git_status_paths(status: str) -> tuple[str, ...]:
     paths: list[str] = []
     for line in status.splitlines():
@@ -666,6 +748,7 @@ __all__ = [
     "WorktreeSandbox",
     "WorktreeSandboxError",
     "anchor_wip_snapshot",
+    "anchor_wip_worktree_snapshot",
     "commit_sandbox_output",
     "create_worktree_sandbox",
     "dispose_worktree_sandbox",

@@ -222,3 +222,4 @@ class BuildingPlanSupportResult:
     building_map_packet: Mapping[str, Any]
     proof_limits: tuple[str, ...]
     not_proven: tuple[str, ...]
+    anchored_ref: str = ""

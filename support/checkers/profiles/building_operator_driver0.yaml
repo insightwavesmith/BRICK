@@ -79,6 +79,8 @@ text_contains:
       - w1_stale_bad_preserved
       - w1_mutation_red_execution_log
       - w1_incomplete_wip_anchor_ref
+      - w1_direct_close_anchored_ref
+      - W1 direct close anchor FIRE passed
       - sensitive_anchor_red_execution_log
       - mutation-RED support evidence only
       - w1-fake-allowed-outside

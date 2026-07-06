@@ -3801,11 +3801,13 @@ def run_approve_entry(
     result["disposition_written"] = True
     result["disposition_row"] = row
     try:
-        resume_building_plan(
+        resume_result = resume_building_plan(
             building_root,
             adapter_cwd=prepared_adapter_cwd,
             adapter_timeout_seconds=adapter_timeout_seconds,
         )
+        if getattr(resume_result, "anchored_ref", ""):
+            result["anchored_ref"] = resume_result.anchored_ref
         frontier_after = dict(observe_building_frontier(building_root, repo_root=repo))
         if (
             action_text == "forward"

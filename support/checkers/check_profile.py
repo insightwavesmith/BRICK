@@ -1013,8 +1013,10 @@ KERNEL_CHECK_IDS = frozenset(KERNEL_DISPATCH)
 # providers, or change any checker invariant.
 _CHECK_PROFILE_STEP_TIMEOUT_ENV = "BRICK_CHECK_PROFILE_STEP_TIMEOUT_SECONDS"
 _CHECK_PROFILE_HEARTBEAT_ENV = "BRICK_CHECK_PROFILE_HEARTBEAT_SECONDS"
+_CHECK_PROFILE_STALL_WARNING_ENV = "BRICK_CHECK_PROFILE_STALL_WARNING_SECONDS"
 _DEFAULT_STEP_TIMEOUT_SECONDS = 900.0
 _DEFAULT_HEARTBEAT_SECONDS = 60.0
+_DEFAULT_STALL_WARNING_SECONDS = 300.0
 
 
 class _ProfileStepTimeout(TimeoutError):
@@ -1055,9 +1057,14 @@ def _profile_progress_guard(scope: _ProfileProgressScope):
         _CHECK_PROFILE_HEARTBEAT_ENV,
         _DEFAULT_HEARTBEAT_SECONDS,
     )
+    stall_warning_seconds = _float_env(
+        _CHECK_PROFILE_STALL_WARNING_ENV,
+        _DEFAULT_STALL_WARNING_SECONDS,
+    )
     started = time.monotonic()
     stop = threading.Event()
     timed_out = False
+    stall_warned = False
     previous_handler: Any = None
     use_signal_timeout = (
         timeout_seconds > 0
@@ -1066,10 +1073,24 @@ def _profile_progress_guard(scope: _ProfileProgressScope):
     )
 
     def _heartbeat() -> None:
+        nonlocal stall_warned
         if heartbeat_seconds <= 0:
             return
         while not stop.wait(heartbeat_seconds):
             elapsed = time.monotonic() - started
+            if (
+                stall_warning_seconds > 0
+                and elapsed >= stall_warning_seconds
+                and not stall_warned
+            ):
+                stall_warned = True
+                print(
+                    "profile progress: STALL "
+                    f"{scope.label} elapsed={elapsed:.1f}s "
+                    f"stall_warning={stall_warning_seconds:.1f}s",
+                    file=sys.stderr,
+                    flush=True,
+                )
             print(
                 "profile progress: RUNNING "
                 f"{scope.label} elapsed={elapsed:.1f}s timeout={timeout_seconds:.1f}s",
@@ -1284,6 +1305,70 @@ def run_profile(repo: Path, path: Path) -> tuple[int, list[KernelResult]]:
     return rule_count, kernel_results
 
 
+def _emit_profile_sweep_start(index: int, total: int, path: Path) -> None:
+    print(
+        f"profile sweep: START {index}/{total} profile={path.stem}",
+        file=sys.stderr,
+        flush=True,
+    )
+
+
+@contextlib.contextmanager
+def _temporary_env(updates: Mapping[str, str]):
+    previous = {key: os.environ.get(key) for key in updates}
+    try:
+        for key, value in updates.items():
+            os.environ[key] = value
+        yield
+    finally:
+        for key, value in previous.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
+
+
+def run_checker_progress_observability(repo: Path) -> KernelResult:
+    del repo
+    stderr = io.StringIO()
+    with _temporary_env(
+        {
+            _CHECK_PROFILE_HEARTBEAT_ENV: "0.01",
+            _CHECK_PROFILE_STALL_WARNING_ENV: "0.01",
+            _CHECK_PROFILE_STEP_TIMEOUT_ENV: "0",
+        }
+    ), contextlib.redirect_stderr(stderr):
+        _emit_profile_sweep_start(3, 7, Path("support/checkers/profiles/core.yaml"))
+        with _profile_progress_guard(
+            _ProfileProgressScope("core", "kernel_check", "checker_progress_observability")
+        ):
+            time.sleep(0.03)
+    observed = stderr.getvalue()
+    required = (
+        "profile sweep: START 3/7 profile=core",
+        "profile progress: STALL profile=core kernel_check=checker_progress_observability",
+        "profile progress: DONE profile=core kernel_check=checker_progress_observability",
+    )
+    missing = [needle for needle in required if needle not in observed]
+    if missing:
+        raise ProfileError(
+            "checker progress observability rejected evidence: missing line(s): "
+            + ", ".join(missing)
+        )
+    return KernelResult(
+        check_id="checker_progress_observability",
+        inspected=len(required),
+        output="checker progress observability passed: sweep k/N and STALL lines observed.",
+    )
+
+
+KERNEL_DISPATCH = {
+    **KERNEL_DISPATCH,
+    "checker_progress_observability": run_checker_progress_observability,
+}
+KERNEL_CHECK_IDS = frozenset(KERNEL_DISPATCH)
+
+
 def write_self_test_files(root: Path) -> Path:
     repo = root / "repo"
     (repo / "support/checkers/profiles").mkdir(parents=True)
@@ -1472,7 +1557,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         try:
             with _checker_profile_sweep_env():
-                for path in paths:
+                total = len(paths)
+                for index, path in enumerate(paths, start=1):
+                    if args.all:
+                        _emit_profile_sweep_start(index, total, path)
                     run_profile(repo, path)
         finally:
             if live_inbox_count_before is not None:

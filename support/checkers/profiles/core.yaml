@@ -28,6 +28,7 @@ kernel_checks:
   - evidence_spine_projection
   - plan_revision_chain
   - mutation_red_manifest
+  - checker_progress_observability
 path_exists:
   - AGENTS.md
   - support/checkers/check_profile.py
