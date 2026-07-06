@@ -116,6 +116,14 @@ class RawClaimTracePacket:
     link_gate_receipt_claim_facts: tuple[Mapping[str, Any], ...] = ()
     link_policy_action_claim_facts: tuple[Mapping[str, Any], ...] = ()
     agent_output_text_raw_records: tuple[Mapping[str, Any], ...] = ()
+    # receipt-writer-join 0707 (rootfix 2): the NORMAL-completion Agent receipt
+    # rows. Same shape as the adapter-error / chat-session-park frontier
+    # receipt rows (received work observation only; no returned payload, no
+    # verdict). Default to empty so existing constructors stay valid; the
+    # forward writer emits raw/agent-received.jsonl in the SAME transaction as
+    # the returned rows so a completed walk carries the receipt ledger the
+    # frontier observer requires.
+    agent_received_raw_records: tuple[Mapping[str, Any], ...] = ()
 
 
 @dataclass(frozen=True)

@@ -78,6 +78,40 @@ def _agent_output_text_raw_records(
                     "semantic completeness of scrub-sensitive payload classes",
                 ],
             }
+            )
+    return tuple(records)
+
+
+def _agent_received_raw_records(
+    building_id: str,
+    step_results: tuple[BuildingRunSupportResult, ...],
+) -> tuple[Mapping[str, Any], ...]:
+    """Normal-completion Agent receipt rows (received work observation only).
+
+    receipt-writer-join 0707 (rootfix 2): mirror of the adapter-error receipt
+    rows (``_adapter_error_agent_received_raw_records``) for the forward path.
+    Each completed step yields ONE receipt row keyed by the same
+    ``raw:agent-received:<index>`` ref the frontier writer uses, so a completed
+    walk records the receipt ledger the frontier observer requires. No returned
+    payload, adapter session, route, or verdict rides here; it is a received
+    work observation only.
+    """
+
+    records: list[Mapping[str, Any]] = []
+    for index, result in enumerate(step_results, start=1):
+        prepared = result.preparation
+        records.append(
+            {
+                "raw_ref": _raw_ref("agent-received", index),
+                "raw_refs": [_raw_ref("agent-received", index)],
+                "building_id": building_id,
+                "step_ref": prepared.step_rows.step_ref,
+                "agent_object_ref": prepared.agent_object.object_ref,
+                "received_work_ref": _step_fact_ref(
+                    "brick-work", index, prepared.step_rows.step_ref
+                ),
+                "receipt_record_role": "received work observation only",
+            }
         )
     return tuple(records)
 

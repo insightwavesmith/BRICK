@@ -116,6 +116,7 @@ path_allowlist:
       - support/checkers/profiles/preflight_injection_survival.yaml
       - support/checkers/profiles/provider_registry_ladder.yaml
       - support/checkers/profiles/read_side_projection_boundary.yaml
+      - support/checkers/profiles/receipt_writer_join.yaml
       - support/checkers/profiles/report_env_autoload.yaml
       - support/checkers/profiles/return_field_merge_set_parity.yaml
       - support/checkers/profiles/raw_evidence_stream_scrub.yaml

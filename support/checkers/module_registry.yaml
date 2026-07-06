@@ -439,6 +439,16 @@ modules:
     decomposition_target: ""
     pinned_by: tier_a_three_axis_conformance kernel check (FIRE probe + per-axis assertions)
 
+  - module: support/checkers/check_receipt_writer_join.py
+    layer: checkers
+    role: oracle
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: receipt_writer_join profile (path/text pins) + the standalone checker's adapter:local complete-walk probe + two mutation-RED probes (writer block + scrub mask); asserts the normal-completion forward writer records raw/agent-received.jsonl in the returned transaction so a completed walk is not evidence_incomplete (T10)
+
   - module: support/checkers/check_building_operator_driver0.py
     layer: checkers
     role: checker
