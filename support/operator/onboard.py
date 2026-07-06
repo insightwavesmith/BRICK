@@ -3933,6 +3933,34 @@ def run_approve_entry(
     # present-only injection: absent => target runs its original work unchanged.
     if re_instruction_text:
         row["transition_lifecycle_re_instruction"] = re_instruction_text
+    # D1 (validate-before-persist): re-run the resume path's OWN class/shape
+    # validators against the constructed row BEFORE the raw/link.jsonl append,
+    # by DELEGATION (walker_resume.validate_disposition_intake). A refused intake
+    # leaves raw/link.jsonl byte-identical (no self-lock row can be authored) and
+    # the human/COO may retry with a corrected row. This ADDS no rejection
+    # semantics: it moves the SAME fail-closed checks earlier (the accept/refuse
+    # set stays identical to the resume path). The earlier menu/budget precheck
+    # block above is redundant-but-harmless with this call.
+    try:
+        from brick_protocol.support.operator.walker_resume import (  # noqa: PLC0415
+            validate_disposition_intake,
+        )
+
+        validate_disposition_intake(building_root, row, repo_root=repo)
+    except FileNotFoundError:
+        # Evidence not readable here (e.g. a monkeypatched-frontier surface probe
+        # with no on-disk evidence). The pre-persist menu/budget precheck above
+        # already covers the readable path; do not manufacture a refusal.
+        pass
+    except ValueError as exc:
+        result.update(
+            {
+                "error_kind": "disposition_intake_refused_before_persist",
+                "error_message": str(exc),
+                "message_ko": "처분 검증에서 걸려 원장에 행을 쓰지 않았어요.",
+            }
+        )
+        return result
     try:
         with link_path.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(row, separators=(",", ":"), ensure_ascii=False) + "\n")
@@ -4044,6 +4072,226 @@ def run_approve_entry(
     result["frontier_reason"] = str(frontier_after.get("frontier_reason") or "")
     result["ok"] = True
     result["message_ko"] = "승인 disposition을 쓰고 resume_building_plan을 호출했어요."
+    return result
+
+
+def run_disposition_void_entry(
+    building_ref: str | Path,
+    *,
+    author_ref: str | None = None,
+    voided_raw_ref: str | None = None,
+    same_hold_index: int | None = None,
+    note: str | None = None,
+    output_root: Path | str | None = None,
+    repo_root: Path | str | None = None,
+) -> dict[str, Any]:
+    """D2 (declared correction path): append ONE disposition-void observation row
+    for an ALREADY-locked ledger so a specific residual (refused, still-present)
+    disposition row becomes unselectable on the next resume read.
+
+    This is the minimal-form correction path for ledgers that were self-locked
+    BEFORE D1 landed (new self-locks are prevented at intake). It appends the
+    void row ONLY when the building is currently HELD and the addressed residual
+    disposition row (raw_ref + 1-based same-hold index against the current hold
+    identity) is actually present -- refusing groundless voids loudly (I5). It is
+    author-gated (human:/coo:) exactly like the disposition it disregards.
+
+    It authors NO disposition, Movement, route target, sufficiency, quality, or
+    success. The void makes a residual row unselectable; it never creates, edits,
+    or reorders a disposition (I3). With nothing else matching, the EXISTING
+    fail-closed 'no human/COO disposition row found' resume refusal still fires.
+    """
+
+    repo = _safe_repo_root(repo_root)
+    building_text = str(building_ref).strip()
+    author_text = str(author_ref or "").strip()
+    voided_raw_ref_text = str(voided_raw_ref or "").strip()
+    result: dict[str, Any] = {
+        "ok": False,
+        "building_ref": building_text,
+        "author_ref": author_text,
+        "voided_raw_ref": voided_raw_ref_text,
+        "void_written": False,
+    }
+    if not building_text:
+        result.update(
+            {
+                "error_kind": "invalid_building_ref",
+                "error_message": "building ref가 비어 있어요.",
+                "message_ko": "void할 building을 지정해야 해요.",
+            }
+        )
+        return result
+    if not (author_text.startswith("coo:") or author_text.startswith("human:")):
+        result.update(
+            {
+                "error_kind": "invalid_author_ref",
+                "error_message": "author_ref는 coo: 또는 human: 접두로 시작해야 해요.",
+                "message_ko": "작성자 ref는 coo: 또는 human: 으로 시작해야 해요.",
+            }
+        )
+        return result
+    if not voided_raw_ref_text:
+        result.update(
+            {
+                "error_kind": "missing_voided_raw_ref",
+                "error_message": "void에는 무시할 처분 행의 raw_ref가 필요해요.",
+                "message_ko": "무시할 처분 행의 raw_ref를 지정해야 해요.",
+            }
+        )
+        return result
+    if (
+        isinstance(same_hold_index, bool)
+        or not isinstance(same_hold_index, int)
+        or same_hold_index < 1
+    ):
+        result.update(
+            {
+                "error_kind": "invalid_same_hold_index",
+                "error_message": "same_hold_index는 양의 정수여야 해요.",
+                "message_ko": "same_hold_index는 1 이상의 정수여야 해요.",
+            }
+        )
+        return result
+
+    building_root, building_root_candidates = _resolve_approval_building_root(
+        building_text,
+        output_root=output_root,
+        repo_root=repo,
+    )
+    if building_root is None:
+        result.update(
+            {
+                "error_kind": "building_root_not_found",
+                "error_message": (
+                    "building root not found for building_ref "
+                    f"{building_text!r}; checked: "
+                    + ", ".join(str(path) for path in building_root_candidates)
+                ),
+                "message_ko": "지정한 building root를 찾을 수 없어요.",
+                "building_root_candidates": [
+                    str(path) for path in building_root_candidates
+                ],
+            }
+        )
+        return result
+    result["building_root"] = str(building_root)
+    result["evidence_root"] = str(building_root)
+
+    from brick_protocol.support.operator.walker_resume import (  # noqa: PLC0415
+        DISPOSITION_VOID_RECORD_KIND,
+        _read_written_dynamic_plan,
+        disposition_rows_for_current_hold,
+    )
+
+    try:
+        _plan_w, evidence_w = _read_written_dynamic_plan(building_root)
+    except (OSError, ValueError) as exc:
+        result.update(
+            {
+                "error_kind": type(exc).__name__,
+                "error_message": str(exc),
+                "message_ko": "resume evidence를 읽을 수 없어 void를 쓰지 않았어요.",
+            }
+        )
+        return result
+    raw_hold_record_w = evidence_w.get("hold") or {}
+    hold_record_w = raw_hold_record_w if isinstance(raw_hold_record_w, Mapping) else {}
+    if not evidence_w.get("held"):
+        result.update(
+            {
+                "error_kind": "building_not_held",
+                "error_message": (
+                    "disposition void is only grounded on a currently HELD building; "
+                    "this building is not held -- refusing a groundless void"
+                ),
+                "message_ko": "지금 hold 상태가 아니라 void를 쓰지 않았어요.",
+            }
+        )
+        return result
+    try:
+        current_rows = disposition_rows_for_current_hold(building_root, hold_record_w)
+    except ValueError as exc:
+        result.update(
+            {
+                "error_kind": type(exc).__name__,
+                "error_message": str(exc),
+                "message_ko": "현재 hold의 처분 행을 읽을 수 없어 void를 쓰지 않았어요.",
+            }
+        )
+        return result
+    if (voided_raw_ref_text, same_hold_index) not in current_rows:
+        result.update(
+            {
+                "error_kind": "void_target_not_found",
+                "error_message": (
+                    "no residual disposition row addressed to the current hold "
+                    f"matches (raw_ref={voided_raw_ref_text!r}, "
+                    f"same_hold_index={same_hold_index}); refusing a groundless void"
+                ),
+                "message_ko": "현재 hold에 해당하는 잔존 처분 행이 없어 void를 거부했어요.",
+                "current_hold_disposition_rows": [
+                    {"raw_ref": ref, "same_hold_index": idx} for ref, idx in current_rows
+                ],
+            }
+        )
+        return result
+
+    from brick_protocol.support.operator.walker_hold import (  # noqa: PLC0415
+        _hold_paused_at_ref,
+    )
+
+    current_hold_ref = _hold_paused_at_ref(hold_record_w)
+    link_path = building_root / "raw" / "link.jsonl"
+    if not link_path.parent.is_dir():
+        result.update(
+            {
+                "error_kind": "missing_raw_link_dir",
+                "error_message": f"raw/link.jsonl parent does not exist: {link_path.parent}",
+                "message_ko": "raw/link.jsonl을 쓸 evidence 폴더가 없어요.",
+            }
+        )
+        return result
+    row: dict[str, Any] = {
+        "raw_ref": f"raw:link:disposition-void:{voided_raw_ref_text}:{same_hold_index}",
+        "building_id": building_root.name,
+        "kind": DISPOSITION_VOID_RECORD_KIND,
+        "paused_at_ref": current_hold_ref,
+        "voided_raw_ref": voided_raw_ref_text,
+        "same_hold_index": same_hold_index,
+        "transition_author_ref": author_text,
+        "proof_limits": [
+            "support void observation only",
+            "makes a specific residual disposition row unselectable",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+        ],
+    }
+    note_text = str(note or "").strip()
+    if note_text:
+        row["note"] = note_text
+    try:
+        with link_path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(row, separators=(",", ":"), ensure_ascii=False) + "\n")
+    except Exception as exc:  # noqa: BLE001 -- support evidence, no traceback surface
+        result.update(
+            {
+                "error_kind": type(exc).__name__,
+                "error_message": str(exc),
+                "message_ko": "void row를 raw/link.jsonl에 쓰지 못했어요.",
+            }
+        )
+        return result
+    result["void_written"] = True
+    result["void_row"] = row
+    result["paused_at_ref"] = current_hold_ref
+    result["ok"] = True
+    result["message_ko"] = (
+        "잔존 처분 행을 무시하는 void 관찰 행을 원장에 추가했어요. "
+        "이제 정정된 처분을 다시 작성할 수 있어요."
+    )
     return result
 
 
