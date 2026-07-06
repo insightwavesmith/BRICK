@@ -96,6 +96,8 @@ resume-rootfix-design-0707a 발주에서 `brick draft`에 준 8답과 초안기 
 
 ## F. resume 근본 트랙 — Smith 판독 판정 3건 (0707) + C 게이트 실측
 
+**판정 ④(0707 새벽 추가, Smith): held-node 직결화 = 라이브 1회 감시 통과 후 개방** — 다음 실전 2단 발주(1순위 후보 = P10 압축 사다리, 방아쇠 = P8 랜딩)의 2단째를 직결형(held 수렴 노드 위 expand→resume)으로 시도하되 check_heldnode_expansion_verifier 감시 + 실패 시 새-선언 폴백(반전 경로). green이면 2단 표준형을 직결형으로 개정(판정 3의 예정된 반전 경로 집행). 그 전까지 봉쇄 유지.
+
 **판정**: ① 푸구 시공 순서 채택(공유 헬퍼+단일소스 핀 먼저) — 승인, resume-admission-unify-0707a 발사. ② 수취 writer = **fable5 원천 봉합 채택**(Smith: "근본수정이 페이블이지? 페이블로 간다. 엔진을 손대는 건 괜찮다") — receipt-writer-join-0707a 발사(기록계 packet 조립부 확장, 커널 무접촉, 미래 걸음 전용). 정정-도장 검증(operator_correction 커버리지)은 과거 꼬리 전담으로 강등·후순위 유지. ③ 체커 신설 = 프로파일-프로브 우선, 표현 불가 실측 시 신설 1개+사유(계약에 반영).
 
 **compress-s1b 1차 게이트 실측(0707)**: VERDICT NEEDS-OPERATOR — ①격리 --all rc=1: `import_identity_modes parents[N] registry mismatch` — 접기가 29파일에 심은 `parents[2]` 신규 사이트가 바인딩 레지스트리(check_import_identity_modes.py 내 하드코딩 dict) 미등재. **원인 = 발주 계약이 그 레지스트리 파일을 do-not-touch로 봉인(레인-불가능 D 배정 클래스, 0703 #14 동족)** — 접기류 수리는 바인딩 레지스트리 등재까지가 한 몸이다. ②QA의 "--all rc=0" 자기보고를 격리 게이트가 반증(codex green 불신 규율 재실증). ③COO 변이 M1(module_registry 행 제거→admission RED 기대)도 NOT RED — 실 지킴이 식별을 C2의 D3로 이관. M2 관찰: ensure_checker_imports no-op에 표본 3체커 무플립(belt-and-suspenders). 처분 = 수리 재발주 compress-s1b-fix-0707a(승계: 앵커 87719e15 diff 적용 + 레지스트리 등재, 재발주 승격 캐스팅). 1차 앵커는 C2 랜딩 시 대체.
