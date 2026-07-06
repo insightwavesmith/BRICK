@@ -24,7 +24,7 @@ disposition author).
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -90,6 +90,29 @@ class ResumeBudgetRecoveryDecision:
     bridge_evidence: bool = False
 
 
+@dataclass(frozen=True)
+class ResumeAdmissionDecision:
+    """Closed result of the single-source resume admission sequence (D1).
+
+    Support evidence only: this dataclass carries the accepted resume-admission
+    facts the two firing points need to keep walking; it authors no disposition,
+    Movement, route, sufficiency, quality, or success. ``adapter_error_stop``
+    signals the resume-only paper-stop early-accept short-circuit (the ledger
+    loaders were NOT invoked); ``raise_budget_increment`` is populated only when
+    the caller enforces the resume-only budget_increment check.
+    """
+
+    action: str
+    pending_target: str
+    hold_record: Mapping[str, Any]
+    budget_recovery: ResumeBudgetRecoveryDecision
+    replay_returns: Mapping[str, list[Any]]
+    recorded_returns: Sequence[Mapping[str, Any]]
+    expected_replay_counts: Mapping[str, int]
+    raise_budget_increment: int | None = None
+    adapter_error_stop: bool = False
+
+
 # ---------------------------------------------------------------------------
 # Shared refusal literals (pinned verbatim). These are raised by BOTH the live
 # resume path (post-persist, historical firing points) AND the pre-persist
@@ -111,6 +134,14 @@ _NO_RECORDED_RETURNS_REFUSAL = (
 )
 _RAISE_TARGET_NOT_NODE_REFUSAL = (
     "raise disposition pending_target_ref is not an existing Brick node"
+)
+# Lifted verbatim from the previously-duplicated inline strings (resume side
+# :237-238 and intake side :1407-1408) so BOTH firing points and the shared
+# ``resume_admission_decision`` sequence raise THE SAME string object (invariant
+# I2 anti-drift, same mechanism as the refusal literals above).
+_APPLIED_RESUME_REFUSAL = "dynamic Building already has an applied resume disposition"
+_NOT_HELD_REFUSAL = (
+    "resume_building_plan requires a held dynamic_walker_evidence record"
 )
 
 # D2 (0706): the raw/link.jsonl record kind a support void verb appends to make a
@@ -234,8 +265,8 @@ def _resume_dynamic_graph_walker(
     existing_resume_observations = _resume_observations(evidence)
     if not evidence.get("held"):
         if existing_resume_observations:
-            raise ValueError("dynamic Building already has an applied resume disposition")
-        raise ValueError("resume_building_plan requires a held dynamic_walker_evidence record")
+            raise ValueError(_APPLIED_RESUME_REFUSAL)
+        raise ValueError(_NOT_HELD_REFUSAL)
     hold_record = _mapping_value("dynamic_walker_evidence.hold", evidence.get("hold"))
     disposition = _read_disposition_row(root, hold_record)
     if disposition is None:
@@ -251,16 +282,28 @@ def _resume_dynamic_graph_walker(
     # snapshot is the LINEARIZED plan (no groups/edges) and is NOT a faithful
     # delegation source -- STOP rather than ship an unfaithful linear resume.
     declared_plan = _declared_graph_plan_from_birth_certificate(root)
-    if declared_plan is None:
-        raise ValueError(_BIRTH_CERTIFICATE_ABSENT_REFUSAL)
-    action = _required_disposition_action(disposition)
-    pending_target = _disposition_pending_target_ref(
-        action,
+
+    # SINGLE-SOURCE resume admission (D1/D2): delegate the whole overlapping
+    # validation clause chain to resume_admission_decision. The ledger reads are
+    # supplied as loaders invoked at the exact sequence position resume uses
+    # today (past the paper-stop short-circuit). This firing point ENFORCES the
+    # resume-only budget_increment check and TAKES the paper-stop early-accept.
+    decision = resume_admission_decision(
+        evidence=evidence,
         disposition=disposition,
-        hold_record=hold_record,
         declared_plan=declared_plan,
+        recorded_returns_loader=lambda: _recorded_agent_returns(root),
+        completed_step_frontier_loader=lambda: _completed_step_frontier(root),
+        returned_claims_present_loader=lambda: (
+            root / "evidence" / "claim_trace" / "agent" / "returned_claims.json"
+        ).is_file(),
+        enforce_raise_budget_increment=True,
+        adapter_error_stop_short_circuit=True,
     )
-    validate_hold_disposition_action(action, hold_record, public_approval=False)
+    action = decision.action
+    pending_target = decision.pending_target
+    hold_record = decision.hold_record
+    budget_recovery = decision.budget_recovery
 
     # RE-ATTACH the Link-owned node_reroute_budgets onto the recovered declared
     # plan. The birth-certificate STRIPS runtime walker keys (incl.
@@ -271,12 +314,6 @@ def _resume_dynamic_graph_walker(
     # assigned_budget). raise's budget_delta is applied separately in the kernel.
     declared_plan = dict(declared_plan)
     bridged_evidence: Mapping[str, Any] = evidence
-    budget_recovery = resume_budget_recovery_decision(
-        evidence=evidence,
-        action=action,
-        hold_record=hold_record,
-        pending_target=pending_target,
-    )
     if budget_recovery.node_reroute_budgets is not None:
         recovered_budgets = dict(budget_recovery.node_reroute_budgets)
         expansion_budgets = _expansion_node_budgets_from_revision_chain(
@@ -302,7 +339,7 @@ def _resume_dynamic_graph_walker(
     )
     author_ref = _optional_text_value(disposition.get("author_ref")) or "human:unknown"
 
-    if action == "stop" and _adapter_error_hold_without_return(hold_record):
+    if decision.adapter_error_stop:
         return _paper_stop_adapter_error_hold(
             root,
             declared_plan=declared_plan,
@@ -318,19 +355,18 @@ def _resume_dynamic_graph_walker(
             checked_proof_limits=checked_proof_limits,
         )
 
-    recorded_returns = _recorded_agent_returns(root)
-    if not recorded_returns:
-        raise ValueError(_NO_RECORDED_RETURNS_REFUSAL)
     # Per step_ref FIFO of recorded returns + AT-TIME gate records, in REALIZED
     # order, so the forward loop REPLAYS the k-th visit with the k-th recorded
     # return (and reads its recorded gate decision back). Once a step's recorded
     # returns are exhausted the loop runs it LIVE (a continued / post-HOLD step).
-    replay_returns: dict[str, list[Any]] = {}
+    # replay_returns is the SAME map the shared admission sequence built; the
+    # gate_records / replay_recorded_at collections are resume-only seed inputs
+    # (residue) rebuilt here from decision.recorded_returns.
+    replay_returns: dict[str, list[Any]] = dict(decision.replay_returns)
     gate_records: dict[str, list[Any]] = {}
     replay_recorded_at: dict[str, list[str]] = {}
-    for item in recorded_returns:
+    for item in decision.recorded_returns:
         step_ref = _optional_text_value(item.get("step_ref")) or ""
-        replay_returns.setdefault(step_ref, []).append(item.get("returned"))
         gate_records.setdefault(step_ref, []).append(
             item.get("gate_sequence_decision_record")
         )
@@ -338,44 +374,17 @@ def _resume_dynamic_graph_walker(
             _optional_text_value(item.get("recorded_at")) or ""
         )
 
-    # FAIL-CLOSED gap-1: the recorded COMPLETED-STEP FRONTIER -- per step_ref the
-    # number of occurrences that completed BEFORE the HOLD -- derived from the
-    # ON-DISK step-output ledger (work/step-outputs/<slug>-attempt-N), which is
-    # INDEPENDENT of raw/agent-return.jsonl. The kernel uses this to distinguish an
-    # EXPECTED replay (occurrence at/before the frontier; a missing return =>
-    # corrupt evidence => raise) from a genuine continued/post-HOLD step (beyond
-    # the frontier; runs live). A missing/short agent-return.jsonl line therefore
-    # CANNOT masquerade as a continued step and silently re-run a pre-HOLD step
-    # live. FAIL CLOSED if the two ledgers disagree the WRONG way (more recorded
-    # returns than completed step-outputs = an unaccounted occurrence).
-    expected_replay_counts = _completed_step_frontier(root)
-    _require_return_frontier_consistency(
-        expected_replay_counts,
-        replay_returns,
-        root=root,
-    )
-    for step_ref, returns in replay_returns.items():
-        completed = expected_replay_counts.get(step_ref, 0)
-        if len(returns) > completed:
-            raise ValueError(
-                f"resume corrupt evidence: step {step_ref!r} has {len(returns)} recorded "
-                f"Agent return(s) but only {completed} completed step-output(s) on disk; "
-                "the recorded-return ledger and the step-output ledger disagree -- "
-                "refusing to resume from inconsistent evidence"
-            )
+    # FAIL-CLOSED gap-1 (completed-step frontier + torn-pair/skew + overrun) is
+    # validated inside resume_admission_decision above; the accepted frontier is
+    # carried on the decision.
+    expected_replay_counts = decision.expected_replay_counts
 
     # raise => bump the held node's budget by the declared budget_increment so the
     # held landing ADOPTS naturally on the bigger budget (verified byte-identical
     # to a fresh forward walk with the bumped budget). forward/stop/reroute => no delta.
     budget_delta: dict[str, int] = {}
     if action == "raise":
-        increment = _positive_int(
-            disposition.get("budget_increment"),
-            "transition_lifecycle.budget_increment",
-        )
-        if pending_target not in step_ref_by_brick_from_declared(declared_plan):
-            raise ValueError(_RAISE_TARGET_NOT_NODE_REFUSAL)
-        budget_delta[pending_target] = increment
+        budget_delta[pending_target] = decision.raise_budget_increment
 
     # MAIL-REPAIR (0611, B3 lane 2): THIS resume's disposition row is a
     # truck-eligible runtime row -- its reason_refs (an ADMITTED
@@ -642,6 +651,140 @@ def resume_budget_recovery_decision(
             pending_target,
         )
     return decision
+
+
+def resume_admission_decision(
+    *,
+    evidence: Mapping[str, Any],
+    disposition: Mapping[str, Any],
+    declared_plan: Mapping[str, Any] | None,
+    recorded_returns_loader: Callable[[], Sequence[Mapping[str, Any]]],
+    completed_step_frontier_loader: Callable[[], Mapping[str, int]],
+    returned_claims_present_loader: Callable[[], bool],
+    enforce_raise_budget_increment: bool,
+    adapter_error_stop_short_circuit: bool,
+) -> ResumeAdmissionDecision:
+    """Single-source resume-admission validation sequence for BOTH firing points.
+
+    This is the ONE pure sequence the live resume path
+    (``_resume_dynamic_graph_walker``) and the pre-persist intake gate
+    (``validate_disposition_intake``) both delegate to, so their accept/refuse SET
+    can never silently diverge (Rule 11: the writer and reader of the same
+    contract share the same validation rules). Clause ORDER is the current RESUME
+    order; every refusal literal is raised verbatim (module constants or the
+    inline strings lifted from the old duplicated bodies). Two measured
+    resume-only non-overlaps are DECLARED as caller flags rather than silently
+    unified: ``adapter_error_stop_short_circuit`` (the resume-only paper-stop
+    early-accept, which must precede any ledger read) and
+    ``enforce_raise_budget_increment`` (the resume-only ``_positive_int`` check on
+    ``budget_increment``). Ledger reads enter as caller-supplied zero-arg loaders
+    invoked at the exact sequence position resume uses today, because both loaders
+    raise on corrupt ledgers and today run only AFTER the paper-stop early return
+    -- value-eager staging would change the resume accept set.
+
+    Support evidence only: it performs zero writes and authors no disposition,
+    Movement, route, sufficiency, quality, or success fact. Refusals raise
+    ``ValueError`` with the shared literal verbatim.
+    """
+
+    if not evidence.get("held"):
+        if _resume_observations(evidence):
+            raise ValueError(_APPLIED_RESUME_REFUSAL)
+        raise ValueError(_NOT_HELD_REFUSAL)
+    hold_record = _mapping_value("dynamic_walker_evidence.hold", evidence.get("hold"))
+    if declared_plan is None:
+        raise ValueError(_BIRTH_CERTIFICATE_ABSENT_REFUSAL)
+    action = _required_disposition_action(disposition)
+    pending_target = _disposition_pending_target_ref(
+        action,
+        disposition=disposition,
+        hold_record=hold_record,
+        declared_plan=declared_plan,
+    )
+    validate_hold_disposition_action(action, hold_record, public_approval=False)
+    budget_recovery = resume_budget_recovery_decision(
+        evidence=evidence,
+        action=action,
+        hold_record=hold_record,
+        pending_target=pending_target,
+    )
+
+    # Resume-only paper-stop early-accept: BEFORE any ledger read (the loaders
+    # raise on corrupt evidence, so invoking them here would flip an
+    # adapter-error-stop hold with a corrupt ledger from accept to refusal).
+    if (
+        adapter_error_stop_short_circuit
+        and action == "stop"
+        and _adapter_error_hold_without_return(hold_record)
+    ):
+        return ResumeAdmissionDecision(
+            action=action,
+            pending_target=pending_target,
+            hold_record=hold_record,
+            budget_recovery=budget_recovery,
+            replay_returns={},
+            recorded_returns=(),
+            expected_replay_counts={},
+            adapter_error_stop=True,
+        )
+
+    recorded_returns = list(recorded_returns_loader())
+    if not recorded_returns:
+        raise ValueError(_NO_RECORDED_RETURNS_REFUSAL)
+    replay_returns: dict[str, list[Any]] = {}
+    for item in recorded_returns:
+        step_ref = _optional_text_value(item.get("step_ref")) or ""
+        replay_returns.setdefault(step_ref, []).append(item.get("returned"))
+
+    # FAIL-CLOSED gap-1 (absorbs the old _require_return_frontier_consistency):
+    # the completed-step frontier is derived from the ON-DISK step-output ledger,
+    # independent of raw/agent-return.jsonl.
+    expected_replay_counts = dict(completed_step_frontier_loader())
+    for step_ref, completed in expected_replay_counts.items():
+        recorded = len(replay_returns.get(step_ref, []))
+        if completed > recorded:
+            raise ValueError(
+                f"resume corrupt evidence: step {step_ref!r} has {completed} completed "
+                f"step-output(s) on disk but only {recorded} recorded Agent return(s); "
+                "the step-output frontier is ahead of raw/agent-return.jsonl -- "
+                "refusing to resume before replay adoption"
+            )
+    if expected_replay_counts and not returned_claims_present_loader():
+        raise ValueError(
+            "resume corrupt evidence: required claim_trace agent/returned_claims.json "
+            "is absent while completed step-output replay obligations exist -- "
+            "refusing to resume before replay adoption"
+        )
+    for step_ref, returns in replay_returns.items():
+        completed = expected_replay_counts.get(step_ref, 0)
+        if len(returns) > completed:
+            raise ValueError(
+                f"resume corrupt evidence: step {step_ref!r} has {len(returns)} recorded "
+                f"Agent return(s) but only {completed} completed step-output(s) on disk; "
+                "the recorded-return ledger and the step-output ledger disagree -- "
+                "refusing to resume from inconsistent evidence"
+            )
+
+    raise_budget_increment: int | None = None
+    if action == "raise":
+        if enforce_raise_budget_increment:
+            raise_budget_increment = _positive_int(
+                disposition.get("budget_increment"),
+                "transition_lifecycle.budget_increment",
+            )
+        if pending_target not in step_ref_by_brick_from_declared(declared_plan):
+            raise ValueError(_RAISE_TARGET_NOT_NODE_REFUSAL)
+
+    return ResumeAdmissionDecision(
+        action=action,
+        pending_target=pending_target,
+        hold_record=hold_record,
+        budget_recovery=budget_recovery,
+        replay_returns=replay_returns,
+        recorded_returns=tuple(recorded_returns),
+        expected_replay_counts=expected_replay_counts,
+        raise_budget_increment=raise_budget_increment,
+    )
 
 
 def _disposition_pending_target_ref(
@@ -1399,14 +1542,6 @@ def validate_disposition_intake(
     root = Path(building_root).resolve()
     repo = Path(repo_root).resolve()
     _plan, evidence = _read_written_dynamic_plan(root)
-    if not evidence.get("held"):
-        # Parity with the resume path's held/applied guards; a non-held building
-        # has no hold to dispose. Support does not judge state here beyond the
-        # existing resume literals.
-        if _resume_observations(evidence):
-            raise ValueError("dynamic Building already has an applied resume disposition")
-        raise ValueError("resume_building_plan requires a held dynamic_walker_evidence record")
-    hold_record = _mapping_value("dynamic_walker_evidence.hold", evidence.get("hold"))
 
     # Build the disposition mapping the SAME way _read_disposition_row does (flat
     # transition_lifecycle_* keys -> lifecycle dict + author_ref) so the delegated
@@ -1415,47 +1550,28 @@ def validate_disposition_intake(
     disposition["author_ref"] = _disposition_author_ref(row)
 
     declared_plan = _declared_graph_plan_from_birth_certificate(root)
-    if declared_plan is None:
-        raise ValueError(_BIRTH_CERTIFICATE_ABSENT_REFUSAL)
 
-    action = _required_disposition_action(disposition)
-    pending_target = _disposition_pending_target_ref(
-        action,
-        disposition=disposition,
-        hold_record=hold_record,
-        declared_plan=declared_plan,
-    )
-    validate_hold_disposition_action(action, hold_record, public_approval=False)
-    resume_budget_recovery_decision(
+    # SINGLE-SOURCE resume admission (D1/D2): delegate the whole overlapping
+    # validation clause chain to the SAME pure sequence the live resume path
+    # runs, so the accept/refuse SET stays identical by construction (invariant
+    # I2). Intake does NOT enforce the resume-only budget_increment check and
+    # does NOT take the resume-only paper-stop early-accept (both flags False) --
+    # the measured resume-only divergences are preserved, not silently unified.
+    decision = resume_admission_decision(
         evidence=evidence,
-        action=action,
-        hold_record=hold_record,
-        pending_target=pending_target,
+        disposition=disposition,
+        declared_plan=declared_plan,
+        recorded_returns_loader=lambda: _recorded_agent_returns(root),
+        completed_step_frontier_loader=lambda: _completed_step_frontier(root),
+        returned_claims_present_loader=lambda: (
+            root / "evidence" / "claim_trace" / "agent" / "returned_claims.json"
+        ).is_file(),
+        enforce_raise_budget_increment=False,
+        adapter_error_stop_short_circuit=False,
     )
-    if action == "raise":
-        if pending_target not in step_ref_by_brick_from_declared(declared_plan):
-            raise ValueError(_RAISE_TARGET_NOT_NODE_REFUSAL)
+    hold_record = decision.hold_record
 
-    recorded_returns = _recorded_agent_returns(root)
-    if not recorded_returns:
-        raise ValueError(_NO_RECORDED_RETURNS_REFUSAL)
-    replay_returns: dict[str, list[Any]] = {}
-    for item in recorded_returns:
-        step_ref = _optional_text_value(item.get("step_ref")) or ""
-        replay_returns.setdefault(step_ref, []).append(item.get("returned"))
-    expected_replay_counts = _completed_step_frontier(root)
-    _require_return_frontier_consistency(expected_replay_counts, replay_returns, root=root)
-    for step_ref, returns in replay_returns.items():
-        completed = expected_replay_counts.get(step_ref, 0)
-        if len(returns) > completed:
-            raise ValueError(
-                f"resume corrupt evidence: step {step_ref!r} has {len(returns)} recorded "
-                f"Agent return(s) but only {completed} completed step-output(s) on disk; "
-                "the recorded-return ledger and the step-output ledger disagree -- "
-                "refusing to resume from inconsistent evidence"
-            )
-
-    _validated_resume_re_instruction(action, disposition, repo=repo)
+    _validated_resume_re_instruction(decision.action, disposition, repo=repo)
 
     # Intake-only identity assertion (the drift self-lock closer): the row must
     # echo the CURRENT hold identity so _read_disposition_row will select it.
@@ -1633,31 +1749,6 @@ def _completed_step_frontier(root: Path) -> dict[str, int]:
             )
         slots.add(attempt)
     return {step_ref: len(slots) for step_ref, slots in attempts_by_step.items()}
-
-
-def _require_return_frontier_consistency(
-    expected_replay_counts: Mapping[str, int],
-    replay_returns: Mapping[str, list[Any]],
-    *,
-    root: Path,
-) -> None:
-    for step_ref, completed in expected_replay_counts.items():
-        recorded = len(replay_returns.get(step_ref, []))
-        if completed > recorded:
-            raise ValueError(
-                f"resume corrupt evidence: step {step_ref!r} has {completed} completed "
-                f"step-output(s) on disk but only {recorded} recorded Agent return(s); "
-                "the step-output frontier is ahead of raw/agent-return.jsonl -- "
-                "refusing to resume before replay adoption"
-            )
-    if expected_replay_counts and not (
-        root / "evidence" / "claim_trace" / "agent" / "returned_claims.json"
-    ).is_file():
-        raise ValueError(
-            "resume corrupt evidence: required claim_trace agent/returned_claims.json "
-            "is absent while completed step-output replay obligations exist -- "
-            "refusing to resume before replay adoption"
-        )
 
 
 def _step_output_field_matches(root: Path, step_ref: str, field: str) -> list[Any]:

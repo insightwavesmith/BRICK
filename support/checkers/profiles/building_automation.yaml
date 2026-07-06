@@ -12,6 +12,7 @@ kernel_checks:
 path_exists:
   - support/operator/run.py
   - support/checkers/check_resume_replay_disposition_mirror.py
+  - support/checkers/check_resume_admission_single_source.py
   - agent/performance.py
   - support/connection/agent_adapter.py
   - support/connection/agent_resources.py
@@ -61,6 +62,16 @@ text_contains:
       - DISPOSITION_VOID_RECORD_KIND
       - def _disposition_void_observations(
       - def disposition_rows_for_current_hold(
+      # RESUME-ADMISSION-UNIFY 0707: single-source pins for the shared resume
+      # admission sequence both firing points delegate to (behavioral +
+      # AST-delegation coverage rides check_resume_admission_single_source.py;
+      # no new kernel_checks entry).
+      - def resume_admission_decision(
+      - class ResumeAdmissionDecision
+      - raise ValueError(_NO_RECORDED_RETURNS_REFUSAL)
+      - raise ValueError(_RAISE_TARGET_NOT_NODE_REFUSAL)
+      - enforce_raise_budget_increment
+      - adapter_error_stop_short_circuit
   # PROCGROUP-HARDENING (B3): the adapter's single provider chokepoint
   # (_run_command) spawns codex/claude in its OWN process group
   # (start_new_session=True) and on timeout SIGKILLs the whole group
