@@ -120,9 +120,9 @@ class RawClaimTracePacket:
     # rows. Same shape as the adapter-error / chat-session-park frontier
     # receipt rows (received work observation only; no returned payload, no
     # verdict). Default to empty so existing constructors stay valid; the
-    # forward writer emits raw/agent-received.jsonl in the SAME transaction as
-    # the returned rows so a completed walk carries the receipt ledger the
-    # frontier observer requires.
+    # forward writer still emits raw/agent-received.jsonl in the SAME
+    # transaction as the returned rows (as an empty file for zero-step / empty
+    # packets) so the design ledger is deterministic.
     agent_received_raw_records: tuple[Mapping[str, Any], ...] = ()
 
 

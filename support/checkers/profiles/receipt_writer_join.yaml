@@ -1,6 +1,6 @@
 schema: checker-profile/v1
 profile_id: receipt-writer-join
-description: receipt-writer-join rootfix 2 pin (0707). The NORMAL-completion forward writer must record raw/agent-received.jsonl in the SAME transaction as the returned rows so a completed walk carries the receipt ledger the frontier observer requires (without it a normal completion fails evidence_incomplete / T10). The executable adapter:local complete-walk probe + two mutation-RED probes (writer block + scrub mask) live in the standalone support/checkers/check_receipt_writer_join.py; this profile pins the surfaces so --all reports drift. Support evidence only.
+description: receipt-writer-join DL-4 pin (0707). The NORMAL-completion forward writer must record raw/agent-received.jsonl in the SAME transaction as the returned rows so a completed walk carries the receipt ledger the frontier observer requires (without it a normal completion fails evidence_incomplete / T10). The executable adapter:local complete-walk probe + three mutation-RED probes (writer block + empty packet/no truthiness guard + scrub mask) live in the standalone support/checkers/check_receipt_writer_join.py; this profile pins the surfaces so --all reports drift. Support evidence only.
 path_exists:
   - support/checkers/check_receipt_writer_join.py
   - support/recording/raw_claim_trace.py
@@ -32,12 +32,14 @@ text_contains:
     texts:
       - normal-completion
       - received row count
+      - zero-step / empty receipt packet
+      - truthiness guard
       - raw-manifest.json lacks the
       - evidence-manifest raw_stream_refs lacks
       - mutation-RED
 proof_limits:
   - checker profile support evidence only
-  - the executable complete-walk + mutation-RED probes live in the standalone checker
+  - the executable complete-walk + mutation-RED probes, including the empty packet/no truthiness guard probe, live in the standalone checker
   - not source truth
   - not success judgment
   - not quality judgment

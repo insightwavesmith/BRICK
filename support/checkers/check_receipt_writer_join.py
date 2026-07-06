@@ -15,10 +15,11 @@ temp root (removed after) and asserts:
     the raw/evidence manifests list the new receipt stream;
   * the frontier observer reads the completed vessel as ``complete`` (receipt
     satisfied), not ``evidence_incomplete`` / ``agent_incomplete``;
-  * two in-process mutation-RED probes fire: (1) a populated packet with the
-    forward writer's agent-received block MUST land the receipt file, and
-    (2) the raw scrub still masks a sensitive ``session_id`` value in a receipt
-    row (mask cannot be bypassed).
+  * three in-process mutation-RED probes fire: (1) a populated packet with the
+    forward writer's agent-received block MUST land the receipt file, (2) a
+    zero-step / empty receipt packet MUST still land an empty receipt file (DL-4:
+    no truthiness guard), and (3) the raw scrub still masks a sensitive
+    ``session_id`` value in a receipt row (mask cannot be bypassed).
 
 It authors no Movement, target, route, verdict, success, or quality judgment;
 it is support evidence only. It uses an ``os.path`` self-anchored sys.path
@@ -348,8 +349,45 @@ def _probe_writer_block_mutation_red(violations: list[str]) -> None:
         )
 
 
+def _probe_empty_packet_mutation_red(violations: list[str]) -> None:
+    """MUTATION-RED 2: a zero-step / empty receipt packet still MUST land an
+    empty receipt file (reintroducing a truthiness guard makes this probe fire)."""
+
+    from brick_protocol.support.recording import raw_claim_trace
+    from brick_protocol.support.recording.contracts import RawClaimTracePacket
+
+    packet = RawClaimTracePacket(
+        brick_raw_records=(),
+        agent_raw_records=(),
+        link_raw_records=(),
+        brick_claim_facts=(),
+        agent_claim_facts=(),
+        link_transfer_claim_facts=(),
+        link_carry_claim_facts=(),
+        link_sufficiency_claim_facts=(),
+        link_movement_claim_facts=(),
+        agent_received_raw_records=(),
+    )
+    with tempfile.TemporaryDirectory(prefix="bp-receipt-join-empty-") as tmp:
+        root = Path(tmp) / "b"
+        raw_claim_trace.write_raw_and_claim_trace(root, "b", packet)
+        received_path = root / "raw" / "agent-received.jsonl"
+        wrote_received = received_path.is_file()
+        text = received_path.read_text(encoding="utf-8") if wrote_received else None
+    if not wrote_received:
+        violations.append(
+            "receipt-writer-join RED: zero-step / empty receipt packet did not "
+            "emit raw/agent-received.jsonl (truthiness guard reintroduced)"
+        )
+    elif text != "":
+        violations.append(
+            "receipt-writer-join RED: zero-step / empty receipt packet wrote "
+            f"non-empty raw/agent-received.jsonl content ({text!r})"
+        )
+
+
 def _probe_scrub_mutation_red(violations: list[str]) -> None:
-    """MUTATION-RED 2: the raw scrub masks a sensitive session_id value in a
+    """MUTATION-RED 3: the raw scrub masks a sensitive session_id value in a
     receipt row (the mask cannot be bypassed on this stream)."""
 
     from brick_protocol.support.recording import raw_claim_trace
@@ -407,6 +445,7 @@ def check(repo: Path | None = None) -> list[str]:
     violations: list[str] = []
     _probe_normal_walk(violations)
     _probe_writer_block_mutation_red(violations)
+    _probe_empty_packet_mutation_red(violations)
     _probe_scrub_mutation_red(violations)
     return violations
 
@@ -426,8 +465,8 @@ def main(argv: list[str] | None = None) -> int:
         "receipt-writer-join passed: the normal-completion forward writer "
         "records raw/agent-received.jsonl in the returned transaction (received "
         "count == returned count), the frontier observer reads the completed "
-        "vessel as complete, and two mutation-RED probes (writer block + scrub "
-        "mask) fired."
+        "vessel as complete, and three mutation-RED probes (writer block + "
+        "empty packet + scrub mask) fired."
     )
     print(_PROOF_LIMIT)
     return 0
