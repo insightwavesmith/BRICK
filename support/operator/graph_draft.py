@@ -77,7 +77,13 @@ OPUS48_QA = {
     "model_ref": "model:claude:claude-opus-4-8",
     "reasoning_effort_ref": "effort:xhigh",
 }
-# G1 (walk-results-adopted-0707 §G1): 엔진쪽/매우 중요 QA = fable5, 그 외 QA = opus-4-8.
+# 캐스팅 정본 (Smith 0707 오후 판정, this Building work_statement Context): claude-측
+# QA 캐스팅은 전부 model:claude:claude-opus-4-8 xhigh — 종전 §G1 두-티어(엔진급 QA=
+# fable5)를 승계(대체)한다. fable5의 유일 사용처는 기획 라인(design/deep-design);
+# QA·work 제안 경로에는 fable5 금지 (§K: codex 개발 제외·work=opus/fugu 와 정합).
+# NOTE(source basis): 이 판정은 walk-results-adopted-0707.md에 별도 §M 섹션으로는
+# 미반영이다 — 같은 문서 §M은 부재(실측: 채택 섹션 = A,B,C,D,G,H,I,J,K,L,E,F).
+# 근거 정본은 §G1(승계 대상)·§K + 이 Building work_statement 이다.
 CODEX = {"adapter_ref": "adapter:codex-local"}
 GEMINI_REVIEW = {"adapter_ref": "adapter:gemini-local"}
 
@@ -113,8 +119,12 @@ def answer_fingerprint(sizing_answers: Mapping[str, Any]) -> str:
 # (deleting a rule block must flip the pin checker to rc=1). Support evidence
 # only — none of this chooses Movement, route, sufficiency, success, or quality.
 # ---------------------------------------------------------------------------
+# work 상위-두뇌 승격 후보 집합 = fugu-ultra 단독 (복잡 work 승격=푸구 단독, §K).
+# fable5는 여기서 제거됨: fable5는 기획(design/deep-design) 라인 전용이고, work·QA
+# 승격 후보가 아니다 (Smith 0707 오후 판정 — §K: codex 개발 제외·work=opus/fugu).
+# 이 집합은 RED-3 deep-tier timeout 게이트의 대상 모델 집합이기도 하다.
 DEEP_TIER_MODEL_REFS = frozenset(
-    {"model:sakana:fugu-ultra", "model:claude:claude-fable-5"}
+    {"model:sakana:fugu-ultra"}
 )
 DEEP_TIER_MODEL_TAILS = frozenset(
     ref.rsplit(":", 1)[-1] for ref in DEEP_TIER_MODEL_REFS
@@ -515,11 +525,45 @@ def _fan_width(width_signals: int, *, partition_count: int | None = None) -> int
 
 
 # ---------------------------------------------------------------------------
+# fable5 봉쇄 — fable5는 기획(design/deep-design) 노드 제안에만 허용한다. QA·work
+# 제안 경로에 fable5 casting이 등장하면 opus-4-8 xhigh로 정규화한다. Support evidence
+# only — no launch, no verdict. (Smith 0707 오후 판정 — §G1 승계·§K 정합.)
+# ---------------------------------------------------------------------------
+def _contain_fable5(branches: Sequence[Mapping[str, Any]]) -> bool:
+    """Normalize any fable5 casting on a QA/work-lane branch to opus-4-8 xhigh.
+
+    Returns True when at least one branch was normalized. fable5 stays legal only
+    on design/deep-design node proposals; on a QA/work proposal lane it is a
+    mis-cast and is rewritten to :data:`OPUS48_QA` (claude-측 QA 전부 opus-4-8).
+    """
+    hit = False
+    for branch in branches:
+        if not isinstance(branch, dict):
+            continue
+        if str(branch.get("model_ref") or "").strip() == FABLE5["model_ref"]:
+            branch.update(OPUS48_QA)
+            hit = True
+    return hit
+
+
+def _qa_branch_casting(kind: str) -> Mapping[str, str]:
+    """Return the canonical casting for a QA fan branch.
+
+    The private helper keeps the QA-casting source behavior-probeable without
+    changing the public draft contract: check_graph_draft_rules temporarily
+    substitutes a fable5 casting here, then verifies the live draft pipeline
+    normalizes it back through ``_contain_fable5``. Support evidence only.
+    """
+
+    return OPUS48_QA
+
+
+# ---------------------------------------------------------------------------
 # H3b — the STANDARD QA fan (D2①: a width-fan does NOT downgrade QA to a single
 # gemini review). Shared by the spine shape and the partition (work/design) fan
 # shapes so an escalated split still gets the full attack-QA fan (code-attack-qa
 # + evidence-integrity, + axis-attack-qa on a costly contract surface) at the
-# G1 casting tier. Support evidence only — no launch, no verdict.
+# opus-4-8 casting tier (all claude QA = opus-4-8 xhigh). Support evidence only.
 # ---------------------------------------------------------------------------
 def _qa_fan_branches(
     answers: Mapping[str, str],
@@ -534,14 +578,15 @@ def _qa_fan_branches(
             "concern_key": "code-attack-qa",
             "objective": CODE_QA_STMT,
             "work_statement": CODE_QA_STMT,
-            **(FABLE5 if escalated else OPUS48_QA),
+            # 캐스팅 정본: claude-측 QA 전부 opus-4-8 xhigh (엔진급 fable5 분기 폐지).
+            **_qa_branch_casting("code-attack-qa"),
         },
         {
             "kind": "evidence-integrity",
             "concern_key": "evidence-integrity",
             "objective": EVIDENCE_QA_STMT,
             "work_statement": EVIDENCE_QA_STMT,
-            **OPUS48_QA,
+            **_qa_branch_casting("evidence-integrity"),
         },
     ]
     if answers["failure_cost"] == "high" and contract_vocab:
@@ -551,19 +596,26 @@ def _qa_fan_branches(
                 "concern_key": "axis-attack-qa",
                 "objective": AXIS_QA_STMT,
                 "work_statement": AXIS_QA_STMT,
-                **OPUS48_QA,
+                **_qa_branch_casting("axis-attack-qa"),
             }
         )
-    # Rule ⑨ — fable5 QA 동시 버스트 회피: at most one fable5 fan sibling; the
-    # other lenses run opus-4-8 (G1: 그 외 QA = Opus 4.8 xhigh).
-    if escalated:
-        rows.append(
-            {
-                "rule_id": "rule9-fable5-burst",
-                "decision": "at most one fable5 fan sibling; others opus-4-8",
-                "basis": "fable5 QA 동시 버스트 회피 (그 외 렌즈 = opus-4-8 xhigh, §G1)",
-            }
-        )
+    # Rule ⑨ (fable5 봉쇄) — fable5는 design/deep-design 노드 제안에만 허용한다.
+    # QA 제안 경로에 fable5 casting이 새어들면 opus-4-8 xhigh로 정규화한다: claude-측
+    # QA 캐스팅은 전부 model:claude:claude-opus-4-8 (엔진급 fable5 분기 폐지, Smith 0707 오후 판정).
+    normalized = _contain_fable5(branches)
+    rows.append(
+        {
+            "rule_id": "rule9-fable5-containment",
+            "decision": (
+                "QA 캐스팅 전부 opus-4-8 xhigh"
+                + ("; fable5 재도입 → opus-4-8 정규화" if normalized else "")
+            ),
+            "basis": (
+                "fable5는 기획(design/deep-design) 라인 전용 — QA·work 제안 경로 fable5 봉쇄 "
+                "(Smith 0707 오후 판정 — §G1 두-티어 승계·§K 정합: claude-측 QA 전부 opus-4.8 xhigh)"
+            ),
+        }
+    )
     return branches
 
 

@@ -39,7 +39,7 @@ Probes:
   P28 D2     width_signals=0 falls through to the single-work spine (note-split absorbed)
   P29 D2     an overlapping single-group scope collapses the work fan to width 1
   P30 D2     file_conflict==yes blocks the fan trigger (work 병렬화 금지)
-  P31 G1     the escalated QA fan casts code-attack-qa=fable5, evidence-integrity=opus-4-8
+  P31 0707pm the escalated QA fan casts code-attack-qa=opus-4-8, evidence-integrity=opus-4-8 (fable5 branch removed; §G1 승계)
   P32 G1     a non-escalated QA fan casts code-attack-qa=opus-4-8 (the else arm fires)
   P33 D1     source_facts propagate to every work-fan write lane (branches + merge)
   P34 D1     source_facts propagate to every design-fan branch
@@ -67,6 +67,14 @@ Probes:
              never fires the canary at sample=1 (negative-window clamp closed)
   P49 D2     the repo-outside guard applies to the DEFAULT ledger/prereg path
              too; a BRICK_HOME resolving inside the repo is refused
+  P50 0707pm the work promotion (deep-tier) candidate set is fugu-ultra only;
+             re-adding fable5 is a variant-RED (fable5 봉쇄; §K work=opus/fugu)
+  P51 0707pm no QA-fan casting lane carries fable5 (all claude QA = opus-4-8);
+             re-introducing fable5 on any QA lens is a variant-RED (fable5 봉쇄)
+  P52 0707pm a live draft normalizes a fable5 QA casting input back to opus-4-8
+             and emits the normalization rationale row (normalized wiring pin)
+  P53 0707pm the canonical QA branch casting source is opus-4-8 xhigh, not
+             fable5; replacing the source arm with fable5 is a variant-RED
 
 P4 runs before P3 so mutation M3 (deleting the convergence emission) hits the
 P4 literal first.
@@ -102,6 +110,8 @@ from brick_protocol.support.operator.graph_draft import (
     answer_fingerprint,
     ANSWER_FINGERPRINT_PREFIX,
 )
+from brick_protocol.support.operator.graph_draft import DEEP_TIER_MODEL_REFS
+from brick_protocol.support.operator import graph_draft as _graph_draft
 from brick_protocol.support.operator import draft_diff as _draft_diff
 
 PROOF_LIMIT = "support evidence only; not source truth / success / quality / Movement"
@@ -371,10 +381,12 @@ def _violations(repo: Path) -> list[str]:
                 "fan": {
                     "branches": [
                         {
-                            "kind": "code-attack-qa",
+                            "kind": "design",
                             "concern_key": "deep",
                             "objective": "deep",
-                            "model_ref": "model:claude:claude-fable-5",
+                            # 0707pm: fable5 is no longer a deep-tier model, so a
+                            # branch-local low timeout is exercised via fugu.
+                            "model_ref": "model:sakana:fugu-ultra",
                             "timeout_seconds": 3600,
                         }
                     ]
@@ -785,8 +797,10 @@ def _violations(repo: Path) -> list[str]:
             "graph-draft RED: file_conflict answers drafted a parallel fan (work 병렬화 금지)"
         )
 
-    # P31 — G1 casting rider: in the escalated QA fan the code-attack-qa lens stays
-    # fable5 and the evidence-integrity lens is opus-4-8 (그 외 QA = Opus 4.8 xhigh).
+    # P31 — casting rider (Smith 0707 오후 판정): in the ESCALATED QA fan the
+    # code-attack-qa lens is now opus-4-8 (엔진급 fable5 분기 폐지) and evidence-
+    # integrity is opus-4-8 too — claude-측 QA 전부 opus-4.8 xhigh (§G1 두-티어 승계·
+    # §K 정합). Re-introducing fable5 on the code-attack-qa lens flips this probe RED.
     g1 = draft_graph_declaration(
         "walker 인접 엔진 작업 — 심층 구현.",
         WALKER_COMPLEX_ANSWERS,
@@ -803,10 +817,15 @@ def _violations(repo: Path) -> list[str]:
     ei = g1_by_kind.get("evidence-integrity")
     if (
         code_qa is None
-        or code_qa.get("model_ref") != "model:claude:claude-fable-5"
+        or code_qa.get("model_ref") != "model:claude:claude-opus-4-8"
+        or code_qa.get("adapter_ref") != "adapter:claude-local"
         or ei is None
         or ei.get("model_ref") != "model:claude:claude-opus-4-8"
     ):
+        # NOTE: literal string kept verbatim — the graph_draft.yaml profile
+        # text_contains rule (line 104, outside this Brick's write_scope) pins it.
+        # Smith 0707 오후 판정 now makes BOTH the escalated and non-escalated QA
+        # lenses opus-4-8 (the pinned literal wording is retained for the profile).
         out.append(
             "graph-draft RED: non-escalated QA lens casting is not opus-4-8 tier (G1)"
         )
@@ -916,6 +935,98 @@ def _violations(repo: Path) -> list[str]:
         out.append(
             "graph-draft RED: ceiling-truncated partitions were not recorded on a residual_owner row (D2②)"
         )
+
+    # P50 — fable5 봉쇄 variant-RED ② (Smith 0707 오후 판정): the work 상위-두뇌 승격 후보 집합
+    # (DEEP_TIER_MODEL_REFS) must be fugu-ultra 단독. Re-adding fable5 to that set
+    # (the mutation) flips this probe RED — fable5 is a 기획-라인-only model, never
+    # a work/QA promotion candidate.
+    if "model:claude:claude-fable-5" in DEEP_TIER_MODEL_REFS:
+        out.append(
+            "graph-draft RED: fable5 re-added to the work promotion (deep-tier) candidate set (fable5 봉쇄)"
+        )
+
+    # P51 — fable5 봉쇄 variant-RED ① (Smith 0707 오후 판정): NO QA-fan casting lane may carry fable5.
+    # Drive both an escalated and a non-escalated QA fan and assert no branch is
+    # cast with fable5 (claude-측 QA 전부 opus-4-8 xhigh). Re-introducing fable5 on
+    # any QA lens (the mutation) flips this probe RED.
+    for _qa_answers, _qa_task in (
+        (WALKER_COMPLEX_ANSWERS, "walker 인접 엔진 작업 — 심층 구현."),
+        (NONESC_QA_ANSWERS, "간단 정리 작업 — 표준 medium."),
+    ):
+        _qa_draft = draft_graph_declaration(
+            _qa_task, _qa_answers, repo_root=repo, allowed_paths=("support",)
+        )
+        _qa_fable5 = False
+        for _node in _nodes(_qa_draft):
+            if "fan" not in _node:
+                continue
+            for _branch in _node.get("fan", {}).get("branches", []):
+                if str(_branch.get("model_ref") or "").strip() == "model:claude:claude-fable-5":
+                    _qa_fable5 = True
+        if _qa_fable5:
+            out.append(
+                "graph-draft RED: fable5 re-introduced on a QA-fan casting lane (fable5 봉쇄)"
+            )
+            break
+
+    # P52 — normalized wiring behavior pin: temporarily make the QA branch
+    # casting source return fable5, then drive the public draft pipeline. The
+    # emitted QA branches must be rewritten to opus-4-8 and the rationale must
+    # explicitly record the normalization. This catches the exact NOT-RED
+    # mutation from gate M7 (``normalized = _contain_fable5(branches)`` →
+    # ``normalized = False``) because that mutation leaves the live output
+    # carrying fable5 and drops the "재도입 → opus-4-8 정규화" row suffix.
+    _original_qa_branch_casting = _graph_draft._qa_branch_casting
+    try:
+        _graph_draft._qa_branch_casting = lambda _kind: _graph_draft.FABLE5
+        normalized_probe = draft_graph_declaration(
+            "QA fable5 재도입 정규화 프로브",
+            NONESC_QA_ANSWERS,
+            repo_root=repo,
+            allowed_paths=("support",),
+        )
+    finally:
+        _graph_draft._qa_branch_casting = _original_qa_branch_casting
+    normalized_fan: list[Mapping[str, Any]] = []
+    for _node in _nodes(normalized_probe):
+        if "fan" in _node:
+            normalized_fan = list(_node.get("fan", {}).get("branches", []))
+            break
+    if (
+        len(normalized_fan) < 2
+        or any(
+            _branch.get("model_ref") != "model:claude:claude-opus-4-8"
+            or _branch.get("reasoning_effort_ref") != "effort:xhigh"
+            for _branch in normalized_fan
+        )
+    ):
+        out.append(
+            "graph-draft RED: fable5 QA casting input was not normalized to opus-4-8 xhigh in draft output (fable5 containment wiring)"
+        )
+    if not any(
+        _row.get("rule_id") == "rule9-fable5-containment"
+        and "fable5 재도입" in str(_row.get("decision", ""))
+        and "opus-4-8 정규화" in str(_row.get("decision", ""))
+        for _row in normalized_probe.rationale_rows
+    ):
+        out.append(
+            "graph-draft RED: fable5 QA normalization did not emit the rule9 containment rationale row"
+        )
+
+    # P53 — canonical source behavior pin: the live QA-casting source itself
+    # must be opus-4-8 xhigh. P52 proves fable5 input is normalized; this probe
+    # separately prevents the source arm from being silently changed to fable5.
+    for _kind in ("code-attack-qa", "evidence-integrity", "axis-attack-qa"):
+        _casting = _graph_draft._qa_branch_casting(_kind)
+        if (
+            _casting.get("model_ref") != "model:claude:claude-opus-4-8"
+            or _casting.get("reasoning_effort_ref") != "effort:xhigh"
+            or _casting.get("adapter_ref") != "adapter:claude-local"
+        ):
+            out.append(
+                "graph-draft RED: canonical QA branch casting source is not opus-4-8 xhigh (fable5 source-arm reintroduction)"
+            )
+            break
 
     for nodes in (hard_nodes, simple_nodes):
         for index, node in enumerate(nodes):
@@ -1490,7 +1601,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(f"- {line}", file=sys.stderr)
         print(PROOF_LIMIT, file=sys.stderr)
         return 1
-    print("graph_draft_rules passed: 49 probe(s)")
+    print("graph_draft_rules passed: 53 probe(s)")
     print(PROOF_LIMIT)
     return 0
 
