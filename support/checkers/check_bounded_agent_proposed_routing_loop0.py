@@ -56,6 +56,8 @@ from support.checkers.lib.bootstrap import ensure_checker_imports
 
 ensure_checker_imports(_REPO_ROOT)
 
+from support.checkers.lib.checker_temp_vessel import checker_temp_path
+
 from support.checkers.lib.fixture_graph_helpers import (
     fixture_graph_brick_step,
     fixture_graph_link_edge,
@@ -1193,10 +1195,10 @@ def _run(plan: Mapping[str, Any], callable_, repo: Path):
     from brick_protocol.support.operator.run import run_building_plan
     from brick_protocol.support.operator.building_operation import observe_building_frontier
 
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-loop0-") as tmp:
+    with checker_temp_path("bp-bapr-loop0-") as tmp:
         result = run_building_plan(
             plan,
-            output_root=Path(tmp),
+            output_root=tmp,
             overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": callable_},
             adapter_cwd=repo,
@@ -1842,10 +1844,10 @@ def check(repo: Path) -> list[str]:
 
     auto_prefix = "bapr-loop0-g5-1-auto-graph"
     auto_graph_plan, auto_graph_target = _checker_plan(auto_prefix, budget=2)
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-g5-1-auto-") as tmp:
+    with checker_temp_path("bp-bapr-g5-1-auto-") as tmp:
         auto_graph_result = run_building_plan(
             auto_graph_plan,
-            output_root=Path(tmp),
+            output_root=tmp,
             overwrite_existing=True,
             local_callables={
                 "callable:local:agent-invoke0-smoke": _reroute_callable(
@@ -1955,10 +1957,10 @@ def check(repo: Path) -> list[str]:
     plan_g5, b2_g5 = _checker_plan("bapr-loop0-b4-no-disposition", budget=1)
     plan_g5 = dict(plan_g5)
     plan_g5.pop("node_reroute_budgets", None)
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-b4-g5-") as tmp:
+    with checker_temp_path("bp-bapr-b4-g5-") as tmp:
         res_g5 = run_building_plan(
             plan_g5,
-            output_root=Path(tmp),
+            output_root=tmp,
             overwrite_existing=True,
             local_callables={
                 "callable:local:agent-invoke0-smoke": _reroute_callable(
@@ -1999,10 +2001,10 @@ def check(repo: Path) -> list[str]:
     plan_g6, b2_g6 = _checker_plan("bapr-loop0-b4-bad-author", budget=1)
     plan_g6 = dict(plan_g6)
     plan_g6.pop("node_reroute_budgets", None)
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-b4-g6-") as tmp:
+    with checker_temp_path("bp-bapr-b4-g6-") as tmp:
         res_g6 = run_building_plan(
             plan_g6,
-            output_root=Path(tmp),
+            output_root=tmp,
             overwrite_existing=True,
             local_callables={
                 "callable:local:agent-invoke0-smoke": _reroute_callable(
@@ -2043,8 +2045,8 @@ def check(repo: Path) -> list[str]:
     from support.checkers import check_building_lifecycle_path_shape
 
     plan_g7_forward, b2_g7_forward = _checker_plan("bapr-loop0-b4-forward-disposition", budget=1)
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-b4-g7-forward-") as tmp:
-        fake_repo = Path(tmp) / "repo"
+    with checker_temp_path("bp-bapr-b4-g7-forward-") as tmp:
+        fake_repo = tmp / "repo"
         output_root_g7_forward = fake_repo / "project" / "brick-protocol" / "buildings"
         output_root_g7_forward.mkdir(parents=True)
         res_g7_forward = run_building_plan(
@@ -2102,7 +2104,7 @@ def check(repo: Path) -> list[str]:
     # carrying support evidence locators. If the deterministic fixture re-HOLDs,
     # the later pause must explain the bounded-budget disposition semantics.
     plan_g7, b2_g7 = _checker_plan("bapr-loop0-b4-raise-resume", budget=1)
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-b4-g7-") as tmp:
+    with checker_temp_path("bp-bapr-b4-g7-") as tmp:
         callable_g7 = _reroute_callable(
             b2_g7,
             {
@@ -2112,7 +2114,7 @@ def check(repo: Path) -> list[str]:
         )
         res_g7 = run_building_plan(
             plan_g7,
-            output_root=Path(tmp),
+            output_root=tmp,
             overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": callable_g7},
             adapter_cwd=repo,
@@ -2221,14 +2223,14 @@ def check(repo: Path) -> list[str]:
     prefix_exp = "bapr-loop0-expansion-resume"
     plan_exp, old_target_exp, review_brick_exp, new_brick_exp = _expansion_resume_base_plan(prefix_exp)
     new_step_exp = new_brick_exp.removeprefix("brick-")
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-expansion-resume-") as tmp:
+    with checker_temp_path("bp-bapr-expansion-resume-") as tmp:
         callable_exp = _reroute_callable(
             old_target_exp,
             {f"brick-{prefix_exp}-design", review_brick_exp},
         )
         res_exp = run_building_plan(
             plan_exp,
-            output_root=Path(tmp),
+            output_root=tmp,
             overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": callable_exp},
             adapter_cwd=repo,
@@ -2370,10 +2372,10 @@ def check(repo: Path) -> list[str]:
     plan_fan_exp["expansion_budget"] = 1
     new_step_fan_exp = f"{prefix_fan_exp}-lane-c"
     new_brick_fan_exp = f"brick-{new_step_fan_exp}"
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-expansion-fanin-") as tmp:
+    with checker_temp_path("bp-bapr-expansion-fanin-") as tmp:
         res_fan_exp = run_building_plan(
             plan_fan_exp,
-            output_root=Path(tmp),
+            output_root=tmp,
             overwrite_existing=True,
             local_callables={
                 "callable:local:agent-invoke0-smoke": _fan_callable(
@@ -2501,10 +2503,10 @@ def check(repo: Path) -> list[str]:
     new_step_fan_exp_red = f"{prefix_fan_exp_red}-lane-c"
     new_brick_fan_exp_red = f"brick-{new_step_fan_exp_red}"
     join_step_fan_exp_red = f"{prefix_fan_exp_red}-join"
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-expansion-fanin-red-") as tmp:
+    with checker_temp_path("bp-bapr-expansion-fanin-red-") as tmp:
         res_fan_exp_red = run_building_plan(
             plan_fan_exp_red,
-            output_root=Path(tmp),
+            output_root=tmp,
             overwrite_existing=True,
             local_callables={
                 "callable:local:agent-invoke0-smoke": _fan_callable(
@@ -2741,11 +2743,11 @@ def check(repo: Path) -> list[str]:
             "route-policy-fields: preset budgets should suppress yaml default load "
             f"(default_budget={default_budget})"
         )
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-route-policy-yaml-absent-") as tmp:
+    with checker_temp_path("bp-bapr-route-policy-yaml-absent-") as tmp:
         try:
             _materializer_reroute_budget_cascade(
                 {},
-                repo=Path(tmp),
+                repo=tmp,
                 override_reroute_budgets=None,
             )
         except ValueError as exc:
@@ -2851,8 +2853,7 @@ def check(repo: Path) -> list[str]:
     # while the timed fixture proves wall-clock completion order was inverted.
     p6c_prefix = "bapr-loop0-p6c-byte-fanout"
     p6c_plan = _fan_plan(p6c_prefix)
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-p6c-byte-fanout-") as tmp_p6c:
-        tmp_root = Path(tmp_p6c)
+    with checker_temp_path("bp-bapr-p6c-byte-fanout-") as tmp_root:
         pool1_callable = _p6c_timed_fan_callable(prefix=p6c_prefix)
         pool4_callable = _p6c_timed_fan_callable(prefix=p6c_prefix)
         res_p6c_1, fr_p6c_1, _ = _run_with_fanout_pool(
@@ -2966,8 +2967,7 @@ def check(repo: Path) -> list[str]:
             },
         ],
     )
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-p4-resume-fanout-") as tmp_p4:
-        tmp_root = Path(tmp_p4)
+    with checker_temp_path("bp-bapr-p4-resume-fanout-") as tmp_root:
         setup_callable_p4 = _p4_two_stage_timed_callable(prefix=p4_prefix)
         resume_callable_p4 = _p4_two_stage_timed_callable(prefix=p4_prefix)
         res_p4, fr_p4, _ = _run_with_fanout_pool(
@@ -3058,8 +3058,7 @@ def check(repo: Path) -> list[str]:
     shared_plan = _cohort_fan_plan(shared_prefix)
     shared_lane_a = f"brick-{shared_prefix}-lane-a"
     shared_join = f"brick-{shared_prefix}-join"
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-p6c-shared-fanin-") as tmp_shared:
-        tmp_root = Path(tmp_shared)
+    with checker_temp_path("bp-bapr-p6c-shared-fanin-") as tmp_root:
         shared_pool1_callable = _fan_callable(
             held_brick=shared_join,
             reroute_target=shared_lane_a,
@@ -3404,12 +3403,12 @@ def check(repo: Path) -> list[str]:
         build_step_ref=build_step_bug3,
         source_fact_ref=source_ref_bug3,
     )
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-bug3-") as tmp:
+    with checker_temp_path("bp-bapr-bug3-") as tmp:
         res_bug3, fr_bug3, rec_bug3 = _run_to_output_root(
             plan_bug3,
             _reroute_callable(build_bug3, {close_bug3}),
             repo,
-            Path(tmp),
+            tmp,
         )
         root_bug3 = res_bug3.lifecycle_write.root
         if fr_bug3["frontier_kind"] not in {"complete", "closure_pending"}:
@@ -3510,8 +3509,8 @@ def check(repo: Path) -> list[str]:
             "not_proven": ["semantic correctness", "real provider behavior"],
         }
 
-    with tempfile.TemporaryDirectory(prefix="bp-onboard-approve-fire-") as tmp:
-        sandbox = Path(tmp).resolve()
+    with checker_temp_path("bp-onboard-approve-fire-") as tmp:
+        sandbox = tmp.resolve()
         pfx = "onboard-approve-fire"
         plan_oa, pending_oa = _onboard_approve_fire_plan(pfx)
         res_oa = run_building_plan(
@@ -3630,11 +3629,11 @@ def check(repo: Path) -> list[str]:
         original_observe = onboard_module.observe_building_frontier
         onboard_module.observe_building_frontier = lambda *_args, **_kwargs: dict(frontier)
         try:
-            with tempfile.TemporaryDirectory(prefix="bp-onboard-approve-red-") as tmp_red:
-                building_root_red = Path(tmp_red) / "building"
+            with checker_temp_path("bp-onboard-approve-red-") as tmp_red:
+                building_root_red = tmp_red / "building"
                 (building_root_red / "raw").mkdir(parents=True)
                 (building_root_red / "work").mkdir()
-                adapter_cwd_red = Path(tmp_red) / "adapter-cwd"
+                adapter_cwd_red = tmp_red / "adapter-cwd"
                 adapter_cwd_red.mkdir()
                 return run_approve_entry(
                     building_root_red,
@@ -3659,12 +3658,12 @@ def check(repo: Path) -> list[str]:
     )
     if missing_pending_oa.get("error_kind") != "missing_pending_target_ref":
         violations.append("onboard-approve-fire: empty pending_target_ref did not fail closed")
-    with tempfile.TemporaryDirectory(prefix="bp-onboard-approve-budget-red-") as tmp_budget_red:
+    with checker_temp_path("bp-onboard-approve-budget-red-") as tmp_budget_red:
         budget_red_oa = run_approve_entry(
-            Path(tmp_budget_red) / "building",
+            tmp_budget_red / "building",
             action="forward",
             author_ref="coo:smith",
-            adapter_cwd=Path(tmp_budget_red) / "adapter-cwd",
+            adapter_cwd=tmp_budget_red / "adapter-cwd",
             budget_increment=1,
             repo_root=repo,
         )
@@ -3688,8 +3687,8 @@ def check(repo: Path) -> list[str]:
     plan_hr = copy.deepcopy(plan_hr)
     plan_hr["node_reroute_budgets"] = {build_hr: 1, design_hr: 1}
     callable_hr = _multi_ref_concern_callable(review_hr, [build_hr, design_hr])
-    with tempfile.TemporaryDirectory(prefix="bp-human-reroute-fire-") as tmp_hr:
-        sandbox_hr = Path(tmp_hr).resolve()
+    with checker_temp_path("bp-human-reroute-fire-") as tmp_hr:
+        sandbox_hr = tmp_hr.resolve()
         res_hr = run_building_plan(
             plan_hr,
             output_root=sandbox_hr,
@@ -3762,8 +3761,8 @@ def check(repo: Path) -> list[str]:
         bad_review,
         [bad_build, f"brick-{bad_prefix}-design"],
     )
-    with tempfile.TemporaryDirectory(prefix="bp-human-reroute-red-") as tmp_bad:
-        sandbox_bad = Path(tmp_bad).resolve()
+    with checker_temp_path("bp-human-reroute-red-") as tmp_bad:
+        sandbox_bad = tmp_bad.resolve()
         res_bad = run_building_plan(
             bad_plan,
             output_root=sandbox_bad,
@@ -5441,10 +5440,10 @@ def check(repo: Path) -> list[str]:
         continued_brick=review_nr_resume,
         related_boundary_refs=[f"building-boundary:{prefix_nr}-no-reroute"],
     )
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-knot4-resume-nonreroute-") as tmp_nr:
+    with checker_temp_path("bp-bapr-knot4-resume-nonreroute-") as tmp_nr:
         res_nr_resume = run_building_plan(
             plan_nr_resume,
-            output_root=Path(tmp_nr),
+            output_root=tmp_nr,
             overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": callable_nr_resume},
             adapter_cwd=repo,
@@ -5535,8 +5534,7 @@ def check(repo: Path) -> list[str]:
     # adapter-error frontier instead of crashing without a Building root.
     plan_adapter, _ = _checker_plan("bapr-loop0-adapter-frontier", budget=1)
     failing_brick = "brick-bapr-loop0-adapter-frontier-review"
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-adapter-frontier-") as tmp:
-        tmp_path = Path(tmp)
+    with checker_temp_path("bp-bapr-adapter-frontier-") as tmp_path:
         # B2: the dynamic adapter interruption now RETURNS a clean held result
         # (typed AdapterFrontierEvidenceWritten caught by run_building_plan) instead
         # of crashing with a bare RuntimeError. The adapter-error frontier must still
@@ -5992,7 +5990,7 @@ def check(repo: Path) -> list[str]:
     lane_b_e = "brick-bapr-loop0-knot3-cohort-e-lane-b"
     lane_c_e = "brick-bapr-loop0-knot3-cohort-e-lane-c"
     join_e = "brick-bapr-loop0-knot3-cohort-e-join"
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-knot3-cohort-e-") as tmp_e:
+    with checker_temp_path("bp-bapr-knot3-cohort-e-") as tmp_e:
         # join proposes a reroute onto lane-a on every call: the FIRST landing
         # adopts (budget 1 consumed) and triggers the cohort LIVE (lane-b
         # re-verified, lane-c vouched-skipped, join re-runs); the SECOND proposal
@@ -6000,7 +5998,7 @@ def check(repo: Path) -> list[str]:
         callable_e = _reroute_callable(lane_a_e, {join_e})
         res_e = run_building_plan(
             plan_cohort_e,
-            output_root=Path(tmp_e),
+            output_root=tmp_e,
             overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": callable_e},
             adapter_cwd=repo,
@@ -6187,11 +6185,11 @@ def check(repo: Path) -> list[str]:
 
         return _callable
 
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-knot3-cohort-f-") as tmp_f:
+    with checker_temp_path("bp-bapr-knot3-cohort-f-") as tmp_f:
         callable_f = _hold_before_cohort_callable()
         res_f = run_building_plan(
             plan_cohort_f,
-            output_root=Path(tmp_f),
+            output_root=tmp_f,
             overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": callable_f},
             adapter_cwd=repo,
@@ -6379,11 +6377,11 @@ def check(repo: Path) -> list[str]:
 
         return _callable
 
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-knot3-cohort-g-") as tmp_g:
+    with checker_temp_path("bp-bapr-knot3-cohort-g-") as tmp_g:
         callable_g = _nested_hold_before_cohort_callable()
         res_g = run_building_plan(
             plan_nested_g,
-            output_root=Path(tmp_g),
+            output_root=tmp_g,
             overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": callable_g},
             adapter_cwd=repo,
@@ -6751,7 +6749,7 @@ def check(repo: Path) -> list[str]:
     # walker_resume.py makes the human-gate raise proceed (no raise) -> RED. The
     # POSITIVE sub-case (a real budget-exhaustion raise) must STAY GREEN so the fix
     # does not break the legitimate b4-g7/knot raise path.
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-fc-gap4b-pause-") as tmp:
+    with checker_temp_path("bp-bapr-fc-gap4b-pause-") as tmp:
         pfx = "bapr-loop0-fc-gap4b-pause"
         plan4b, b2_4b = _checker_plan(pfx, budget=1)
         plan4b = _with_link_edge_gate(
@@ -6761,7 +6759,7 @@ def check(repo: Path) -> list[str]:
         )
         cb4b = _reroute_callable(b2_4b, {f"brick-{pfx}-review"})
         res4b = run_building_plan(
-            plan4b, output_root=Path(tmp), overwrite_existing=True,
+            plan4b, output_root=tmp, overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": cb4b},
             adapter_cwd=repo, adapter_timeout_seconds=30)
         root4b = res4b.lifecycle_write.root
@@ -7117,7 +7115,7 @@ def check(repo: Path) -> list[str]:
 
     # GAP 5: a replayed step that DECLARED a gate_sequence_policy but has NO recorded
     # gate decision must FAIL CLOSED (not silently treated as no-action).
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-fc-gap5-") as tmp:
+    with checker_temp_path("bp-bapr-fc-gap5-") as tmp:
         pfx = "bapr-loop0-fc-gap5"
         plan5, b2_5 = _checker_plan(pfx, budget=1)
         plan5 = _with_link_edge_gate_sequence_policy(
@@ -7132,7 +7130,7 @@ def check(repo: Path) -> list[str]:
                 "on_sufficient": {"action": "forward"}}])
         cb5 = _reroute_callable(b2_5, {f"brick-{pfx}-design", f"brick-{pfx}-review"})
         res5 = run_building_plan(
-            plan5, output_root=Path(tmp), overwrite_existing=True,
+            plan5, output_root=tmp, overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": cb5},
             adapter_cwd=repo, adapter_timeout_seconds=30)
         root5 = res5.lifecycle_write.root
@@ -7197,10 +7195,10 @@ def check(repo: Path) -> list[str]:
     # normal reroute path, and the same declared Brick must be redispatched. The
     # second attempt flips the observed proof command green so this fixture covers
     # mismatch -> concern -> adoption -> redispatch without exhausting budget.
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-proof-f4-") as tmp:
+    with checker_temp_path("bp-bapr-proof-f4-") as tmp:
         pfx = "bapr-loop0-proof-f4"
         plan_pf4, build_pf4 = _checker_plan(pfx, budget=1)
-        marker_pf4 = Path(tmp) / "proof-state.txt"
+        marker_pf4 = tmp / "proof-state.txt"
         proof_cmd_pf4 = (
             "python3 -c \"from pathlib import Path; import sys; "
             f"sys.exit(0 if Path({str(marker_pf4)!r}).read_text(encoding='utf-8') == 'green' else 1)\""
@@ -7230,7 +7228,7 @@ def check(repo: Path) -> list[str]:
 
         res_pf4 = run_building_plan(
             plan_pf4,
-            output_root=Path(tmp),
+            output_root=tmp,
             overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": _proof_f4_callable},
             adapter_cwd=repo,
@@ -7317,8 +7315,7 @@ def check(repo: Path) -> list[str]:
         ``selected_row_provenance``) or None when nothing matches.
         """
 
-        with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-oracle-") as oracle_tmp:
-            oracle_root = Path(oracle_tmp)
+        with checker_temp_path("bp-bapr-mail-oracle-") as oracle_root:
             (oracle_root / "raw").mkdir(parents=True)
             (oracle_root / "raw" / "link.jsonl").write_text(
                 ledger_snapshot, encoding="utf-8"
@@ -7415,10 +7412,10 @@ def check(repo: Path) -> list[str]:
     captures_m1, callable_m1 = _mail_capture_callable(
         refs_m1["source"], [mail_runtime_marker]
     )
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-1-") as tmp:
+    with checker_temp_path("bp-bapr-mail-1-") as tmp:
         res_m1 = run_building_plan(
             plan_m1,
-            output_root=Path(tmp),
+            output_root=tmp,
             overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": callable_m1},
             adapter_cwd=repo,
@@ -7555,10 +7552,10 @@ def check(repo: Path) -> list[str]:
         refs_m2["source"],
         ["work/step-outputs/mail-repair-missing-attempt-1/step-output.json"],
     )
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-2-") as tmp:
+    with checker_temp_path("bp-bapr-mail-2-") as tmp:
         res_m2 = run_building_plan(
             plan_m2,
-            output_root=Path(tmp),
+            output_root=tmp,
             overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": callable_m2},
             adapter_cwd=repo,
@@ -7608,10 +7605,10 @@ def check(repo: Path) -> list[str]:
             "not_proven": ["semantic correctness"],
         }
 
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-3-") as tmp:
+    with checker_temp_path("bp-bapr-mail-3-") as tmp:
         run_building_plan(
             plan_m3,
-            output_root=Path(tmp),
+            output_root=tmp,
             overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": _clean_callable_m3},
             adapter_cwd=repo,
@@ -7658,10 +7655,10 @@ def check(repo: Path) -> list[str]:
     # stamp; the repaired support stamp omits temp roots entirely.
     plan_m3a, _refs_m3a = _mail_plan()
     captures_m3a, callable_m3a = _mail_capture_callable("brick-none", [])
-    with tempfile.TemporaryDirectory(prefix="scratchpad-bp-bapr-mail-3a-") as tmp:
+    with checker_temp_path("scratchpad-bp-bapr-mail-3a-") as tmp:
         run_building_plan(
             plan_m3a,
-            output_root=Path(tmp),
+            output_root=tmp,
             overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": callable_m3a},
             adapter_cwd=repo,
@@ -7678,10 +7675,10 @@ def check(repo: Path) -> list[str]:
         b2_m4,
         {"brick-bapr-mail-4-resume-design", "brick-bapr-mail-4-resume-review"},
     )
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-4-") as tmp:
+    with checker_temp_path("bp-bapr-mail-4-") as tmp:
         res_m4 = run_building_plan(
             plan_m4,
-            output_root=Path(tmp),
+            output_root=tmp,
             overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": callable_m4},
             adapter_cwd=repo,
@@ -7846,13 +7843,13 @@ def check(repo: Path) -> list[str]:
     captures_m5a, callable_m5a = _mail_capture_callable(
         refs_m5a["source"], [escape_ref_m5]
     )
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-5a-") as tmp:
-        smuggle_m5 = Path(tmp) / "other-building" / "raw" / "secret.json"
+    with checker_temp_path("bp-bapr-mail-5a-") as tmp:
+        smuggle_m5 = tmp / "other-building" / "raw" / "secret.json"
         smuggle_m5.parent.mkdir(parents=True)
         smuggle_m5.write_text("{}", encoding="utf-8")
         res_m5a = run_building_plan(
             plan_m5a,
-            output_root=Path(tmp),
+            output_root=tmp,
             overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": callable_m5a},
             adapter_cwd=repo,
@@ -7894,10 +7891,10 @@ def check(repo: Path) -> list[str]:
     captures_m5b, callable_m5b = _mail_capture_callable(
         refs_m5b["source"], [absolute_ref_m5]
     )
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-5b-") as tmp:
+    with checker_temp_path("bp-bapr-mail-5b-") as tmp:
         res_m5b = run_building_plan(
             plan_m5b,
-            output_root=Path(tmp),
+            output_root=tmp,
             overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": callable_m5b},
             adapter_cwd=repo,
@@ -7937,10 +7934,10 @@ def check(repo: Path) -> list[str]:
     captures_m5c, callable_m5c = _mail_capture_callable(
         refs_m5c["source"], [in_subtree_ref_m5]
     )
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-5c-") as tmp:
+    with checker_temp_path("bp-bapr-mail-5c-") as tmp:
         res_m5c = run_building_plan(
             plan_m5c,
-            output_root=Path(tmp),
+            output_root=tmp,
             overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": callable_m5c},
             adapter_cwd=repo,
@@ -7975,13 +7972,13 @@ def check(repo: Path) -> list[str]:
     captures_m5d, callable_m5d = _mail_capture_callable(
         refs_m5d["source"], [case_escape_ref_m5]
     )
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-5d-") as tmp:
-        smuggle_m5d = Path(tmp) / "other-building" / "raw" / "secret.json"
+    with checker_temp_path("bp-bapr-mail-5d-") as tmp:
+        smuggle_m5d = tmp / "other-building" / "raw" / "secret.json"
         smuggle_m5d.parent.mkdir(parents=True)
         smuggle_m5d.write_text("{}", encoding="utf-8")
         res_m5d = run_building_plan(
             plan_m5d,
-            output_root=Path(tmp),
+            output_root=tmp,
             overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": callable_m5d},
             adapter_cwd=repo,
@@ -8030,10 +8027,10 @@ def check(repo: Path) -> list[str]:
         captures_m5e, callable_m5e = _mail_capture_callable(
             refs_m5e["source"], [escape_ref_m5e]
         )
-        with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-5e-") as tmp:
+        with checker_temp_path("bp-bapr-mail-5e-") as tmp:
             res_m5e = run_building_plan(
                 plan_m5e,
-                output_root=Path(tmp),
+                output_root=tmp,
                 overwrite_existing=True,
                 local_callables={"callable:local:agent-invoke0-smoke": callable_m5e},
                 adapter_cwd=repo,
@@ -8076,10 +8073,10 @@ def check(repo: Path) -> list[str]:
     captures_m5e_in, callable_m5e_in = _mail_capture_callable(
         refs_m5e_in["source"], [dotted_in_subtree_ref_m5e]
     )
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-5e-in-") as tmp:
+    with checker_temp_path("bp-bapr-mail-5e-in-") as tmp:
         res_m5e_in = run_building_plan(
             plan_m5e_in,
-            output_root=Path(tmp),
+            output_root=tmp,
             overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": callable_m5e_in},
             adapter_cwd=repo,
@@ -8122,10 +8119,10 @@ def check(repo: Path) -> list[str]:
         _runtime_handoff_unresolved_address as _mail_live_resolver,
     )
 
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-5f-") as tmp:
-        building_m5f = Path(tmp) / "building"
+    with checker_temp_path("bp-bapr-mail-5f-") as tmp:
+        building_m5f = tmp / "building"
         (building_m5f / "work").mkdir(parents=True)
-        outside_m5f = Path(tmp) / "outside"
+        outside_m5f = tmp / "outside"
         outside_m5f.mkdir()
         (outside_m5f / "x.json").write_text("{}", encoding="utf-8")
         ledger_symlink_m5f = building_m5f / "work" / "step-outputs"
@@ -8150,7 +8147,7 @@ def check(repo: Path) -> list[str]:
                 )
             # Same probe, real directory: the legit form still delivers (the
             # repair is root-anchored containment, not a symlink blacklist).
-            real_building_m5f = Path(tmp) / "building-real"
+            real_building_m5f = tmp / "building-real"
             slug_dir_m5f = (
                 real_building_m5f / "work" / "step-outputs" / "doc-attempt-1"
             )
@@ -8178,8 +8175,8 @@ def check(repo: Path) -> list[str]:
     # mail case. The live code is correct (operator matrix verified); this
     # pin makes a future regression of that line RED. Same tempdir/os.symlink
     # /finally discipline as mail-5f -- the repo tree never carries a symlink.
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-5g-") as tmp:
-        building_m5g = Path(tmp) / "building"
+    with checker_temp_path("bp-bapr-mail-5g-") as tmp:
+        building_m5g = tmp / "building"
         (building_m5g / "work").mkdir(parents=True)
         elsewhere_m5g = building_m5g / "elsewhere"
         elsewhere_m5g.mkdir()
@@ -8223,8 +8220,8 @@ def check(repo: Path) -> list[str]:
     # step-output refs, bare file:line citations, and non-step-output slash
     # paths; standard step-output document paths, step-output manifest refs,
     # and slashless opaque observation tokens still resolve.
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-8-") as tmp:
-        building_m8 = Path(tmp) / "building"
+    with checker_temp_path("bp-bapr-mail-8-") as tmp:
+        building_m8 = tmp / "building"
         step_dir_m8 = building_m8 / "work" / "step-outputs" / "doc-attempt-1"
         step_dir_m8.mkdir(parents=True)
         (step_dir_m8 / "step-output.json").write_text("{}", encoding="utf-8")
@@ -8272,8 +8269,8 @@ def check(repo: Path) -> list[str]:
         _runtime_concern_handoff_from_ledger as _live_concern_mail_from_ledger,
     )
 
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-8b-") as tmp:
-        building_m8b = Path(tmp) / "building"
+    with checker_temp_path("bp-bapr-mail-8b-") as tmp:
+        building_m8b = tmp / "building"
         source_step_m8b = "mail-old-shape"
         source_brick_m8b = "brick-mail-old-shape-source"
         source_dir_m8b = (
@@ -8397,10 +8394,10 @@ def check(repo: Path) -> list[str]:
             "brick-bapr-mail-6-stale-close",
         },
     )
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-6-") as tmp:
+    with checker_temp_path("bp-bapr-mail-6-") as tmp:
         res_m6 = run_building_plan(
             plan_m6,
-            output_root=Path(tmp),
+            output_root=tmp,
             overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": callable_m6},
             adapter_cwd=repo,
@@ -8660,10 +8657,10 @@ def check(repo: Path) -> list[str]:
             "brick-bapr-mail-7-collide-close",
         },
     )
-    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-7-") as tmp:
+    with checker_temp_path("bp-bapr-mail-7-") as tmp:
         res_m7 = run_building_plan(
             plan_m7,
-            output_root=Path(tmp),
+            output_root=tmp,
             overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": callable_m7},
             adapter_cwd=repo,

@@ -21,6 +21,26 @@ from typing import Any
 
 from support.checkers.lib.yaml_subset import ProfileError
 
+@contextlib.contextmanager
+def checker_temp_path(prefix: str) -> Any:
+    """Yield a ``Path`` for a fresh disposable checker temp directory.
+
+    Behavior-equivalent shorthand for the repeated checker idiom::
+
+        with tempfile.TemporaryDirectory(prefix=prefix) as raw:
+            path = Path(raw)
+            ...
+
+    Same ``prefix``, same ``TemporaryDirectory`` create/auto-cleanup
+    semantics; the only difference is that the context variable is already a
+    ``Path`` instead of the raw ``str``. Support evidence scaffolding only:
+    it owns no axis meaning, source truth, quality/success judgment, or
+    Movement, and adds no new fact class or module family.
+    """
+    with tempfile.TemporaryDirectory(prefix=prefix) as raw:
+        yield Path(raw)
+
+
 _TEMP_VESSEL_REPO_ENV = "BRICK_CHECKER_TEMP_VESSEL_REPO"
 _TEMP_VESSEL_SENTINEL_NAME = ".checker-vessel-sentinel.json"
 _TEMP_VESSEL_SENTINELS: dict[Path, str] = {}

@@ -30,6 +30,8 @@ from support.checkers.lib.bootstrap import ensure_checker_imports
 
 ensure_checker_imports(_REPO_ROOT)
 
+from support.checkers.lib.checker_temp_vessel import checker_temp_path
+
 
 def _repo_root_from_arg(repo: str | None) -> Path:
     if repo:
@@ -475,8 +477,7 @@ def check(repo: Path) -> tuple[list[str], Mapping[str, Any]]:
     _ensure_import_path(repo)
     violations: list[str] = []
     summary: dict[str, Any] = {}
-    with tempfile.TemporaryDirectory(prefix="bp-d2-driver0-") as tmp_raw:
-        tmp = Path(tmp_raw)
+    with checker_temp_path("bp-d2-driver0-") as tmp:
 
         # MODE 1: declared two-Building static order, default-transition between
         # closed children, portfolio reaches complete.
@@ -821,8 +822,7 @@ def _fan_dispatch_child_timeout_fire(
     original_floor = walker_kernel._ADAPTER_TIMEOUT_JOIN_MARGIN_FLOOR_SECONDS
     walker_kernel._ADAPTER_TIMEOUT_JOIN_MARGIN_FLOOR_SECONDS = 0.25
     try:
-        with tempfile.TemporaryDirectory(prefix="bp-fan-child-timeout-") as tmp_raw:
-            output_root = Path(tmp_raw)
+        with checker_temp_path("bp-fan-child-timeout-") as output_root:
             started = time.monotonic()
             result = run_building_plan(
                 plan,
@@ -963,8 +963,7 @@ def _fan_dispatch_slow_normal_child_no_false_hold_fire(
     original_floor = walker_kernel._ADAPTER_TIMEOUT_JOIN_MARGIN_FLOOR_SECONDS
     walker_kernel._ADAPTER_TIMEOUT_JOIN_MARGIN_FLOOR_SECONDS = 0.25
     try:
-        with tempfile.TemporaryDirectory(prefix="bp-fan-slow-normal-") as tmp_raw:
-            output_root = Path(tmp_raw)
+        with checker_temp_path("bp-fan-slow-normal-") as output_root:
             started = time.monotonic()
             result = run_building_plan(
                 plan,
@@ -1150,11 +1149,11 @@ def _resume_isolation_disposition_fire(
     original_prepare_cwd = onboard_module._prepare_resume_adapter_cwd
     onboard_module.observe_building_frontier = lambda *_args, **_kwargs: dict(held_frontier)
     try:
-        with tempfile.TemporaryDirectory(prefix="bp-p2-resume-isolation-") as tmp:
-            root = Path(tmp) / "building"
+        with checker_temp_path("bp-p2-resume-isolation-") as tmp:
+            root = tmp / "building"
             (root / "raw").mkdir(parents=True)
             (root / "work").mkdir()
-            auto_cwd = Path(tmp) / "auto-adapter-cwd"
+            auto_cwd = tmp / "auto-adapter-cwd"
             auto_cwd.mkdir()
 
             def _fake_prepare_cwd(*, repo_root, building_id, adapter_cwd):
@@ -1250,8 +1249,7 @@ def _resume_isolation_disposition_fire(
 
     original_observe = onboard_module.observe_building_frontier
     try:
-        with tempfile.TemporaryDirectory(prefix="bp-p2-resume-menu-") as tmp:
-            menu_root = Path(tmp)
+        with checker_temp_path("bp-p2-resume-menu-") as menu_root:
             budget_root = menu_root / "budget"
             adapter_root = menu_root / "adapter"
             write_held_dynamic_manifest(
@@ -1365,8 +1363,7 @@ def _sensitive_write_observation_fire(
     if "ordinary/output.txt" in observed:
         violations.append("sensitive-write-RED: ordinary output path was over-marked sensitive")
 
-    with tempfile.TemporaryDirectory(prefix="bp-sensitive-commit-") as tmp_raw:
-        tmp = Path(tmp_raw)
+    with checker_temp_path("bp-sensitive-commit-") as tmp:
         home = tmp / "home"
         repo = tmp / "repo"
         repo.mkdir()
@@ -1885,8 +1882,7 @@ def _h2a_direct_graph_intake_fire(
     from brick_protocol.support.operator.building_operation import observe_building_frontier
     from brick_protocol.support.operator.primitives import INLINE_TASK_SOURCE_REF
 
-    with tempfile.TemporaryDirectory(prefix="bp-h2a-intake-") as tmp_raw:
-        tmp = Path(tmp_raw)
+    with checker_temp_path("bp-h2a-intake-") as tmp:
 
         # FIRE: compose the no-preset graph + inline task, run it to a frontier.
         result = _h2a_run(repo, tmp / "fire", overwrite=True)
@@ -2314,14 +2310,12 @@ def _w1_worktree_sandbox_fire(
                 encoding="utf-8",
             )
             try:
-                with tempfile.TemporaryDirectory(
-                    prefix="bp-w1-missing-paused-at-"
-                ) as missing_raw:
+                with checker_temp_path("bp-w1-missing-paused-at-") as missing_raw:
                     missing_identity = run_approve_entry(
                         fake_empty_result.evidence_root,
                         action="forward",
                         author_ref="coo:d2-checker",
-                        adapter_cwd=Path(missing_raw),
+                        adapter_cwd=missing_raw,
                         adapter_timeout_seconds=30,
                         repo_root=fake_empty,
                     )
@@ -2355,8 +2349,7 @@ def _w1_worktree_sandbox_fire(
 
             run_module.resume_building_plan = _resume_with_w1_runner
             try:
-                with tempfile.TemporaryDirectory(prefix="bp-w1-fake-resume-") as resume_raw:
-                    resume_cwd = Path(resume_raw)
+                with checker_temp_path("bp-w1-fake-resume-") as resume_cwd:
                     _seed_customer_repo(repo, resume_cwd)
                     resume_target = resume_cwd / _W1_WRITE_REL
                     resume_target.parent.mkdir(parents=True, exist_ok=True)
@@ -2595,12 +2588,12 @@ def _w1_worktree_sandbox_fire(
                 "w1-fake-allowed-outside: declared Link gate consumption evidence was not persisted"
             )
 
-        with tempfile.TemporaryDirectory(prefix="bp-w1-no-diff-forward-") as no_diff_raw:
+        with checker_temp_path("bp-w1-no-diff-forward-") as no_diff_raw:
             no_diff_forward = run_approve_entry(
                 fake_empty_result.evidence_root,
                 action="forward",
                 author_ref="coo:d2-checker",
-                adapter_cwd=Path(no_diff_raw),
+                adapter_cwd=no_diff_raw,
                 adapter_timeout_seconds=30,
                 repo_root=fake_empty,
             )
@@ -2655,12 +2648,12 @@ def _w1_worktree_sandbox_fire(
         original_fake_landing_reader = driver_module._fake_landing_forward_disposition_recorded
         driver_module._fake_landing_forward_disposition_recorded = lambda *_args, **_kwargs: False
         try:
-            with tempfile.TemporaryDirectory(prefix="bp-w1-no-diff-forward-red-") as red_raw:
+            with checker_temp_path("bp-w1-no-diff-forward-red-") as red_raw:
                 no_diff_red = run_approve_entry(
                     fake_variant_result.evidence_root,
                     action="forward",
                     author_ref="coo:d2-checker",
-                    adapter_cwd=Path(red_raw),
+                    adapter_cwd=red_raw,
                     adapter_timeout_seconds=30,
                     repo_root=fake_variant,
                 )
@@ -2711,7 +2704,7 @@ def _w1_worktree_sandbox_fire(
                 f"(reason={fake_undispositioned_result.frontier_reason!r})"
             )
 
-        with tempfile.TemporaryDirectory(prefix="bp-w1-no-diff-reroute-") as reroute_raw:
+        with checker_temp_path("bp-w1-no-diff-reroute-") as reroute_raw:
             no_diff_reroute = run_approve_entry(
                 fake_undispositioned_result.evidence_root,
                 action="reroute",
@@ -2723,7 +2716,7 @@ def _w1_worktree_sandbox_fire(
                     "receiving lane's scope are COO gate items, not re-dispatch."
                 ),
                 author_ref="coo:d2-checker",
-                adapter_cwd=Path(reroute_raw),
+                adapter_cwd=reroute_raw,
                 adapter_timeout_seconds=30,
                 repo_root=fake_undispositioned,
             )
@@ -2761,12 +2754,12 @@ def _w1_worktree_sandbox_fire(
             + "\n",
             encoding="utf-8",
         )
-        with tempfile.TemporaryDirectory(prefix="bp-w1-other-hold-forward-") as other_raw:
+        with checker_temp_path("bp-w1-other-hold-forward-") as other_raw:
             other_hold_forward = run_approve_entry(
                 fake_other_hold_result.evidence_root,
                 action="forward",
                 author_ref="coo:d2-checker",
-                adapter_cwd=Path(other_raw),
+                adapter_cwd=other_raw,
                 adapter_timeout_seconds=30,
                 repo_root=fake_other_hold,
             )
