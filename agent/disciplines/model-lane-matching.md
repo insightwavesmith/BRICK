@@ -27,3 +27,23 @@ work/review defaults.
 
 This discipline records dispatch-aptitude declarations only. It does not judge
 the work, grants no write or Movement authority, and does not choose providers.
+
+## 0707 tier reconciliation (Smith; walk-results-adopted-0707 §K·§G·§I)
+
+The 0705/0706 defaults above stay recorded verbatim; the 0707 casting-tier
+judgments below refine them without deleting any prior clause. They transcribe
+the adopted §K, §G, and §I text and add no new policy.
+
+```text
+development work/repair lane (0707 §K) = codex excluded from development; opus-4.8 xhigh for simple-to-medium work, fugu (codex-fugu-local / model:sakana:fugu-ultra) for complex, entangled, or engine-grade work
+codex development retirement (0707 §K) = codex leaves the work and repair lanes only and finishes walking its current building; QA lens and closure keep codex
+claude QA two-tier (0707 §G) = engine-side or very-important claude QA on claude-fable-5 xhigh; other claude QA on model:claude:claude-opus-4-8 xhigh, replacing the prior sonnet QA default
+claude-local throttle-window rule (0707 §I) = claude-local concurrency 1 is the safe line; route new dispatch onto codex or gemini lenses to avoid it, and attach-QA recovery is the standard salvage
+```
+
+0707 대체: the claude QA two-tier row supersedes the claude-sonnet QA default in
+the 0705/0706 block for the QA-lens case, and the codex development-retirement
+row narrows the codex work/finishing default to code QA and closure only. Both
+superseded clauses are kept above for continuity and are not deleted. These rows
+record 0707 dispatch-aptitude declarations only; they do not judge the work,
+grant no write or Movement authority, and do not choose providers.
