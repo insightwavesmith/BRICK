@@ -53,8 +53,8 @@ LLM_ALIAS_DECLARATIONS = {
         "model_ref": MODEL_REF_CLAUDE_INHERIT,
         "model_aliases": {
             "sonnet": "claude-sonnet-5",
-            "opus": "claude-opus-4.8",
-            "haiku": "claude-haiku-4.5",
+            "opus": "claude-opus-4-8",
+            "haiku": "claude-haiku-4-5-20251001",
         },
     },
     "codex": {

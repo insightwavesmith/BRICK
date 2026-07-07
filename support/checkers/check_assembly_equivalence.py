@@ -2379,6 +2379,41 @@ def _llm_alias_fire(repo: Path) -> tuple[str, ...]:
             adapter="codex-local",
         )
 
+    # Point-version typo guard (0707 field measure: model:claude:opus expanded to
+    # the dot form "claude-opus-4.8" and the claude CLI rejected it with exit 1;
+    # the CLI-native "--model opus" alias passed, so only the expansion output was
+    # broken). These pins lock the resolved literals to CLI-valid hyphen-series
+    # ids. The validator regex admits dots, so a dot-version reintroduction is not
+    # caught upstream — it is caught here (rc=1), and deleting an alias line drives
+    # resolve_model_alias_ref to raise, which also drives this checker RED (rc=1).
+    from brick_protocol.support.operator.provider_registry import (
+        resolve_model_alias_ref as _resolve_model_alias_ref,
+    )
+
+    expected_alias_refs = {
+        "model:claude:sonnet": "model:claude:claude-sonnet-5",
+        "model:claude:opus": "model:claude:claude-opus-4-8",
+        "model:claude:haiku": "model:claude:claude-haiku-4-5-20251001",
+    }
+    for alias_ref, expected_ref in expected_alias_refs.items():
+        resolved_ref = _resolve_model_alias_ref("adapter:claude-local", alias_ref)
+        if resolved_ref != expected_ref:
+            raise AssemblyEquivalenceError(
+                f"llm alias {alias_ref} must expand to {expected_ref}; observed {resolved_ref}"
+            )
+        resolved_id = resolved_ref.removeprefix("model:claude:")
+        if "." in resolved_id:
+            raise AssemblyEquivalenceError(
+                "llm alias expansion produced a dot-version model id (claude CLI rejects it "
+                f"with exit 1): {resolved_ref}"
+            )
+        if not resolved_id.startswith("claude-") or not all(
+            part.isalnum() for part in resolved_id.split("-")
+        ):
+            raise AssemblyEquivalenceError(
+                f"llm alias expansion id must be a claude- hyphen series: {resolved_ref}"
+            )
+
     declaration_name = "LLM" + "_ALIAS_DECLARATIONS"
     declaration_hits: list[str] = []
     for root_name in ("brick", "agent", "support"):
@@ -2403,6 +2438,9 @@ def _llm_alias_fire(repo: Path) -> tuple[str, ...]:
         _assert_raises("brick llm unknown alias", ValueError, unknown_probe),
         _assert_raises("brick llm plus model", ValueError, mixed_model_probe),
         _assert_raises("brick llm plus adapter", ValueError, mixed_adapter_probe),
+        "llm alias green: sonnet expands to model:claude:claude-sonnet-5.",
+        "llm alias green: opus expands to model:claude:claude-opus-4-8 (hyphen series, no dot-version).",
+        "llm alias green: haiku expands to model:claude:claude-haiku-4-5-20251001 (hyphen series, no dot-version).",
         "llm alias green: LLM_ALIAS_DECLARATIONS declaration body is support/operator/provider_registry.py only.",
     )
 
