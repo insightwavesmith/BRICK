@@ -96,14 +96,16 @@ brick doctor
 ## AI-runnable onboarding checklist
 
 Fresh clone부터 첫 Building과 dashboard snapshot까지 운영자 AI가 그대로
-따라갈 수 있는 확인 줄입니다. `{OWNER}`는 (중괄호까지 함께) 실제 GitHub
-org/user로 바꾸세요 (현재 동작 예: insightwavesmith/BRICK).
+따라갈 수 있는 확인 줄입니다. 클론 소유자 자리에는 배포 저장소
+소유자(초대받은 바로 그 저장소, 현재 동작 예: insightwavesmith/BRICK)가
+들어갑니다 — 네 자신의 계정으로 바꾸지 마세요. 자기 계정으로 바꾸면
+미초대·미포크라 not-found로 실패합니다.
 
 ```text
 step: clone + install
-command: gh repo clone {OWNER}/BRICK ~/BRICK && sh ~/BRICK/support/onboarding/install.sh
+command: gh repo clone insightwavesmith/BRICK ~/BRICK && sh ~/BRICK/support/onboarding/install.sh
 expected: "5) 설치 점검 완료" 와 다음 온보딩 명령이 출력된다.
-failure signal: BRICK_REPO={OWNER}/BRICK 요청, gh auth login 요청, python3/uv 진단, 또는 clone/pull 실패.
+failure signal: 설치기가 BRICK_REPO 지정을 요청, gh auth login 요청, python3/uv 진단, 또는 소유자를 네 계정으로 바꿔 미초대·미포크로 인한 not-found 등 clone/pull 실패.
 
 step: doctor
 command: cd ~/BRICK && brick doctor

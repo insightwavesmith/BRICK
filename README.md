@@ -4,16 +4,16 @@ Brick Protocol is a three-axis work protocol for human-agent work: Brick = the w
 
 ## 시작하기 (2분)
 
-아래 명령의 `{OWNER}`를 (중괄호까지 함께) 네 GitHub 계정(org/user)으로
-바꾸세요 — 중괄호를 남겨두면 그대로 실패합니다. BRICK은 포크해서 쓰는
-구조라 계정이 사람마다 다릅니다 (현재 동작 예: insightwavesmith/BRICK).
-기본 위치는 `$HOME/BRICK`입니다. 다른 위치에 받았다면 설치 전에
-`BRICK_HOME=/path/to/clone`을 지정하세요.
+초대를 수락했다면 아래 명령을 **그대로 복사해** 실행하세요. 소유자 자리에는
+언제나 배포 저장소 소유자(초대받은 바로 그 저장소)가 들어갑니다 — 네 자신의
+GitHub 계정이 아닙니다. 소유자를 네 계정으로 바꾸면 미초대·미포크라 clone이
+not-found로 실패합니다. 기본 위치는 `$HOME/BRICK`입니다. 다른 위치에
+받았다면 설치 전에 `BRICK_HOME=/path/to/clone`을 지정하세요.
 
 받기 + 설치:
 
 ```bash
-gh repo clone {OWNER}/BRICK ~/BRICK && sh ~/BRICK/support/onboarding/install.sh
+gh repo clone insightwavesmith/BRICK ~/BRICK && sh ~/BRICK/support/onboarding/install.sh  # 현재 동작 예 — 배포 저장소 소유자, 초대받은 그대로
 ```
 
 준비 상태 진단은 설치된 `brick` 진입점으로 실행합니다.
@@ -42,9 +42,9 @@ AI/운영자가 그대로 확인할 줄입니다. 이 표는 quickstart의 S0~S5
 체크리스트 중 고객 첫 실행에 필요한 축약 부분집합입니다.
 
 ```text
-command: gh repo clone {OWNER}/BRICK ~/BRICK && sh ~/BRICK/support/onboarding/install.sh
+command: gh repo clone insightwavesmith/BRICK ~/BRICK && sh ~/BRICK/support/onboarding/install.sh  # 현재 동작 예 — 배포 저장소 소유자, 초대받은 그대로
 expected: "5) 설치 점검 완료" 와 다음 온보딩 한 줄이 출력된다.
-failure signal: "BRICK_REPO={OWNER}/BRICK" 요청, "gh auth login" 요청, python3/uv 진단, 또는 git clone/pull 실패.
+failure signal: 설치기가 BRICK_REPO 지정을 요청, "gh auth login" 요청, python3/uv 진단, 또는 소유자를 네 계정으로 바꿔 미초대·미포크로 인한 not-found 등 git clone/pull 실패.
 
 command: cd ~/BRICK && brick doctor
 expected: provider별 준비 상태 표와 증상 -> 처방 표가 출력되고 exit 0.
