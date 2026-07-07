@@ -76,6 +76,10 @@ from brick_protocol.support.operator.graph_draft import (
     draft_launch_guidance,
     write_draft_declaration,
 )
+from brick_protocol.support.operator.draft_diff import (
+    run_draft_diff as run_draft_diff_module,
+    THOUGHT_STALL_CANARY,
+)
 from brick_protocol.support.recording.capture import default_buildings_root
 
 
@@ -940,6 +944,130 @@ def _cmd_draft(args: argparse.Namespace) -> int:
     return 0 if packet["composed_ok"] else 1
 
 
+def _default_flip_ledger_path() -> Path:
+    """Return the append-only flip ledger under ``<brick_home>/drafts/``."""
+
+    return _default_drafts_root() / "flip-ledger.jsonl"
+
+
+def _default_preregistration_dir() -> Path:
+    """Return the blind pre-registration dir under ``<brick_home>/drafts/``."""
+
+    return _default_drafts_root() / "preregistration"
+
+
+def _assert_repo_outside(path: Path, repo: Path, *, flag: str) -> Path:
+    """Reject a ledger/prereg destination that lands inside the repo tree.
+
+    The flip ledger and blind pre-registration are ``<brick_home>`` (repo-outside)
+    evidence by contract (repo 안 산출 금지). A caller-supplied ``--ledger`` /
+    ``--prereg-dir`` that resolves under the repo root is refused with a
+    ValueError so the exit code surfaces the misuse; the default paths already
+    live under ``<brick_home>/drafts`` and never trip this guard.
+    """
+
+    resolved = path.expanduser().resolve()
+    repo_resolved = repo.expanduser().resolve()
+    if resolved == repo_resolved or repo_resolved in resolved.parents:
+        raise ValueError(
+            f"{flag} must be outside the repo tree (repo 안 산출 금지): {resolved} is under {repo_resolved}"
+        )
+    return resolved
+
+
+def _run_draft_diff(args: argparse.Namespace) -> dict[str, Any]:
+    # No launch seam is reachable from this path: it calls ONLY the draft_diff
+    # module (run_draft_diff_module), which reads two declaration files and
+    # appends an append-only evidence ledger. It never references the sandbox-run
+    # or goal-approve launch entrypoints and emits no Movement (Rule 3).
+    repo = _repo_from_args(args)
+    before = getattr(args, "draft", "") or ""
+    after = getattr(args, "launched", "") or ""
+    if not before or not after:
+        raise ValueError("draft-diff requires --draft <preserved draft> and --launched <vessel plan>")
+    # The repo-outside guard applies to BOTH the caller-supplied path AND the
+    # default path. A default is derived from <brick_home> (BRICK_HOME or
+    # ~/.brick); if BRICK_HOME is configured INSIDE the repo/worktree, the
+    # default ledger/prereg would land in the repo tree and the earlier
+    # "only guard explicit flags" logic bypassed the guard entirely (0707
+    # attack-QA P8: brick-home-in-repo-default-ledger-guard-bypass). Guarding the
+    # resolved default too closes that bypass — repo 안 산출 금지 holds regardless
+    # of how the path was chosen.
+    ledger = _assert_repo_outside(
+        Path(args.ledger) if getattr(args, "ledger", "") else _default_flip_ledger_path(),
+        repo,
+        flag="--ledger",
+    )
+    prereg_dir = _assert_repo_outside(
+        Path(args.prereg_dir) if getattr(args, "prereg_dir", "") else _default_preregistration_dir(),
+        repo,
+        flag="--prereg-dir",
+    )
+    window = int(getattr(args, "window", 0) or 0) or 10
+    packet = run_draft_diff_module(
+        before_path=Path(before).expanduser().resolve(),
+        after_path=Path(after).expanduser().resolve(),
+        ledger_path=ledger,
+        prereg_dir=prereg_dir,
+        window=window,
+    )
+    return packet
+
+
+def _render_draft_diff(packet: dict[str, Any]) -> str:
+    diff = packet.get("diff", {})
+    window = packet.get("rolling_window", {})
+    prereg = packet.get("preregistration", {})
+    lines = [
+        "Brick draft-diff support evidence",
+        f"building_id: {packet.get('building_id', '')}",
+        f"ledger_path: {packet.get('ledger_path', '')}",
+        f"shape_flip_count: {diff.get('shape_flip_count', 0)}",
+        f"casting_flip_count: {diff.get('casting_flip_count', 0)}",
+        f"total_flip_count: {diff.get('total_flip_count', 0)}",
+        f"flipped: {'yes' if diff.get('flipped') else 'no'}",
+    ]
+    for row in diff.get("shape_flips", []):
+        lines.append(
+            f"- shape-flip {row.get('path', '')}: {row.get('before', '')} -> {row.get('after', '')}"
+        )
+    for row in diff.get("casting_flips", []):
+        lines.append(
+            f"- casting-flip {row.get('path', '')}: {row.get('before', '')} -> {row.get('after', '')}"
+        )
+    lines.append(
+        "rolling_window: "
+        f"sample={window.get('sample')} window={window.get('window')} "
+        f"flip_rate={window.get('flip_rate')} status={window.get('window_status')}"
+    )
+    lines.append(f"preregistration_present: {'yes' if prereg.get('present') else 'no'}")
+    lines.append(f"prereg_order_evidence: {prereg.get('order_evidence', '')}")
+    comparison = prereg.get("comparison")
+    if isinstance(comparison, dict):
+        for row in comparison.get("rows", []):
+            lines.append(
+                f"- prereg-field {row.get('field', '')}: prereg={row.get('prereg')} "
+                f"observed={row.get('observed')} match={row.get('match')}"
+            )
+    if packet.get("canary"):
+        lines.append(f"canary: {packet['canary']}")
+    lines.append("proof_limits: " + "; ".join(packet.get("proof_limits", [])))
+    return "\n".join(lines)
+
+
+def _cmd_draft_diff(args: argparse.Namespace) -> int:
+    # Non-interactive by construction and no launch seam reachable. The exit code
+    # is keyed ONLY to input malformation (run_draft_diff raises ValueError on a
+    # missing/malformed declaration file); a flip, the canary, or an absent
+    # pre-registration are recorded evidence and never fail the run (rc stays 0).
+    packet = _run_draft_diff(args)
+    if args.json:
+        print(_json_dump(packet))
+    else:
+        print(_render_draft_diff(packet))
+    return 0
+
+
 def _cmd_verify(args: argparse.Namespace) -> int:
     repo = _repo_from_args(args)
     if args.self_test:
@@ -1530,6 +1658,38 @@ def build_parser() -> argparse.ArgumentParser:
     draft.add_argument("--source-fact", action="append", default=[], help="Verified source fact path (repeatable).")
     draft.add_argument("--declared-by", default=DEFAULT_DECLARED_BY, help="Caller/COO declaration ref.")
     draft.set_defaults(func=_cmd_draft)
+
+    draft_diff = subparsers.add_parser(
+        "draft-diff",
+        help=(
+            "Diff a preserved draft against the launched vessel plan: shape-flip "
+            "vs casting-flip separated aggregates, append-only flip ledger, "
+            "rolling flip-rate window (N=10), blind pre-registration cross-check, "
+            "and the operator-thought-stall canary. Never launches."
+        ),
+        allow_abbrev=False,
+    )
+    _add_common(draft_diff)
+    draft_diff.add_argument("--draft", default="", help="Preserved draft graph-decl (before).")
+    draft_diff.add_argument("--launched", default="", help="Launched vessel plan / specified decl (after).")
+    draft_diff.add_argument(
+        "--ledger",
+        default="",
+        help="Append-only flip ledger path. Defaults under <brick_home>/drafts/flip-ledger.jsonl.",
+    )
+    draft_diff.add_argument(
+        "--prereg-dir",
+        dest="prereg_dir",
+        default="",
+        help="Blind pre-registration dir. Defaults under <brick_home>/drafts/preregistration/.",
+    )
+    draft_diff.add_argument(
+        "--window",
+        type=int,
+        default=10,
+        help="Rolling flip-rate window size (default 10; the canary needs a full window).",
+    )
+    draft_diff.set_defaults(func=_cmd_draft_diff)
 
     resume = subparsers.add_parser(
         "resume",

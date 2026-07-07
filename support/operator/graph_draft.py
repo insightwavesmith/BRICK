@@ -19,6 +19,7 @@ operator's job.
 from __future__ import annotations
 
 import json
+import hashlib
 import re
 import subprocess
 from dataclasses import dataclass
@@ -39,6 +40,8 @@ __all__ = [
     "draft_launch_guidance",
     "draft_rule_violations",
     "write_draft_declaration",
+    "answer_fingerprint",
+    "ANSWER_FINGERPRINT_PREFIX",
 ]
 
 PROOF_LIMITS: tuple[str, ...] = (
@@ -81,6 +84,27 @@ GEMINI_REVIEW = {"adapter_ref": "adapter:gemini-local"}
 DEEP_TIMEOUT_SECONDS = 10800
 ISOLATION_ONCE_SENTENCE = "격리 --all은 /tmp 로그로 1회만."
 NO_COMMIT_SENTENCE = "git commit 금지."
+
+# D3 — 답-지문 (answer fingerprint). A draft stamps ONE canonical answer
+# sha256 + UTC timestamp line onto the EXISTING rationale output (no new vessel:
+# the rationale markdown home is reused). The fingerprint is a deterministic
+# digest of the canonical (normalized) sizing answers — it lets ``draft-diff``
+# prove which answer set produced a given rationale without a second store.
+# Support evidence only: the digest chooses no Movement, route, or verdict.
+ANSWER_FINGERPRINT_PREFIX = "answer_fingerprint"
+
+
+def answer_fingerprint(sizing_answers: Mapping[str, Any]) -> str:
+    """Return the canonical sha256 hex digest of a normalized sizing-answer map.
+
+    The digest is computed over ``json.dumps(..., sort_keys=True)`` of the
+    string-coerced answer map, so it is stable across dict ordering and Python
+    runs. Support evidence only — a content digest, not a verdict or route.
+    """
+
+    canonical = {str(k): str(v) for k, v in dict(sizing_answers).items()}
+    payload = json.dumps(canonical, ensure_ascii=False, sort_keys=True)
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 # ---------------------------------------------------------------------------
 # §A3 draft-time rule table (walk-results-adopted-0707.md). These RED/WARN
@@ -1339,6 +1363,15 @@ def _rationale_markdown(result: GraphDraftResult) -> str:
     for qid in SIZING_QUESTION_IDS:
         lines.append(f"- {qid}: {result.sizing_answers.get(qid, '')}")
     lines.append(f"- {WIDTH_SIGNALS_KEY}: {result.sizing_answers.get(WIDTH_SIGNALS_KEY, '0')}")
+    lines.append("")
+    # D3 — 답-지문: one canonical answer sha256 + UTC line, reusing this existing
+    # rationale home (no new vessel). draft-diff reads this line to bind a
+    # rationale to the exact answer set that produced it.
+    from datetime import datetime, timezone
+
+    fp = answer_fingerprint(result.sizing_answers)
+    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    lines.append(f"- {ANSWER_FINGERPRINT_PREFIX}: sha256:{fp} @ {stamp}")
     lines.append("")
     lines.append("## rationale rows")
     lines.append("")

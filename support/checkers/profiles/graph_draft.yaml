@@ -8,6 +8,7 @@ path_exists:
   - support/checkers/check_graph_draft_rules.py
   - support/checkers/profiles/graph_draft.yaml
   - support/operator/cli.py
+  - support/operator/draft_diff.py
 text_contains:
   - path: support/operator/graph_draft.py
     texts:
@@ -36,10 +37,34 @@ text_contains:
       - "발사는 운영자 몫"
       - "brick build --graph-decl"
       - "--forward"
+      - "answer_fingerprint"
+      - "ANSWER_FINGERPRINT_PREFIX"
   - path: support/operator/cli.py
     texts:
       - "_cmd_draft"
       - "Draft a graph-decl candidate"
+      - "_cmd_draft_diff"
+      - "draft-diff"
+      - "_assert_repo_outside"
+      - "repo 안 산출 금지"
+  - path: support/operator/draft_diff.py
+    texts:
+      - "operator-thought-stall canary"
+      - "THOUGHT_STALL_CANARY"
+      - "shape_flips"
+      - "casting_flips"
+      - "CASTING_LEAF_KEYS"
+      - "append_flip_record"
+      - "rolling_flip_rate"
+      - "compare_preregistration"
+      - "prereg-first"
+      - "does not prove a pre-registration was not forged"
+      - "records_for_building"
+      - "building_scoped"
+      - "ledger-record provenance is NOT authenticated"
+      - "_typed_scalar"
+      - "_flatten_typed"
+      - "typed scalar tokens"
   - path: support/checkers/check_graph_draft_rules.py
     texts:
       - "graph-draft RED: walker-adjacent answers drafted a codex-solo work node (rule 1/2/8 violated)"
@@ -82,6 +107,25 @@ text_contains:
       - "graph-draft RED: verified source_facts were not propagated to every work-fan branch/merge lane (D1)"
       - "graph-draft RED: verified source_facts were not propagated to every design-fan branch (D1)"
       - "graph-draft RED: ceiling-truncated partitions were not recorded on a residual_owner row (D2②)"
+      - "graph-draft RED: draft-diff shape/casting aggregates collapsed (분리집계 중화, D1)"
+      - "graph-draft RED: draft-diff flip ledger is not append-only-by-one (D1)"
+      - "graph-draft RED: full zero-flip window did not surface the operator-thought-stall canary (D1)"
+      - "graph-draft RED: emitted canary line drifted from the exact literal (D4 literal pin)"
+      - "graph-draft RED: sub-window zero-flip sample wrongly fired the canary (미실측 기본 태그, D1)"
+      - "graph-draft RED: a flipped record in the window did not suppress the canary (D1)"
+      - "graph-draft RED: malformed draft-diff input did not raise (rc=1 surface absent, D1)"
+      - "graph-draft RED: blind pre-registration cross-check absent or missing the forge proof-limit (D2)"
+      - "graph-draft RED: drafted rationale is missing the canonical answer_fingerprint line (D3)"
+      - "graph-draft RED: casting classification used ancestor-token collision instead of the leaf key (D1)"
+      - "graph-draft RED: a structural sub-field under a casting-named ancestor was aggregated as a casting flip (D1 ancestor-token collision)"
+      - "graph-draft RED: draft-diff ledger/prereg repo-outside guard missing (repo 안 산출 금지, D2)"
+      - "graph-draft RED: cross-building flipped records masked building-A's canary (D1 window not building-scoped)"
+      - "graph-draft RED: building-B window absorbed cross-building records instead of scoping by building_id (D1)"
+      - "graph-draft RED: a real leaf equal to the absent sentinel was diffed as unchanged (D1 sentinel-collision)"
+      - "graph-draft RED: a scalar type flip (int/bool/null) was invisible to the diff (D1 type-flip-invisible)"
+      - "graph-draft RED: a blank building_id window absorbed named-Building records (D1 blank-id absorption)"
+      - "graph-draft RED: a non-positive rolling window clamped to 1 and fired the canary at sample=1 (D1 negative-window)"
+      - "graph-draft RED: the default <brick_home> ledger/prereg path bypassed the repo-outside guard when BRICK_HOME was inside the repo (repo 안 산출 금지, D2)"
 text_absent:
   - path: support/operator/graph_draft.py
     texts:
@@ -91,6 +135,13 @@ text_absent:
       - "os.system"
       - "eval("
       - "exec("
+  - path: support/operator/draft_diff.py
+    texts:
+      - "run_customer_building_in_sandbox"
+      - "run_goal_approve_entry"
+      - "from brick_protocol.support.operator.driver"
+      - "os.system"
+      - "\"action\": \"forward\""
 proof_limits:
   - support evidence only
   - not source truth

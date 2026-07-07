@@ -494,6 +494,16 @@ GRAPH_DRAFT0_TARGETS = {
     "support/operator/graph_draft.py",
 }
 
+# anchoring-defense (#draft-diff): the draft->launched flip diff surface. Pure
+# support operator mechanics: it reads two graph-decl files, splits shape-flip vs
+# casting-flip aggregates, appends an append-only flip ledger under <brick_home>,
+# reads a rolling flip-rate window, cross-checks a blind pre-registration, and
+# surfaces the operator-thought-stall canary. Owns no crossing, casts no agent,
+# chooses no Movement, and reaches no launch seam (Rule 3).
+DRAFT_DIFF0_TARGETS = {
+    "support/operator/draft_diff.py",
+}
+
 PLAN_EXPANSION0_TARGETS = {
     "support/operator/plan_expansion.py",
 }
@@ -2044,6 +2054,9 @@ def allowed_path(path: str) -> bool:
         return True
 
     if clean in GRAPH_DRAFT0_TARGETS:
+        return True
+
+    if clean in DRAFT_DIFF0_TARGETS:
         return True
 
     if clean in PLAN_EXPANSION0_TARGETS:
