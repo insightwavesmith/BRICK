@@ -41,7 +41,7 @@ from brick_protocol.support.operator.plan_graph import (
     _validate_graph_plan_topology,
 )
 from brick_protocol.support.recording.contracts import require_positive_int
-from support.recording.declaration_packets import _pure_declared_plan_copy
+from brick_protocol.support.recording.declaration_packets import _pure_declared_plan_copy
 
 _EXPANSION_FRAGMENT_KEYS = frozenset(
     {

@@ -27,7 +27,7 @@ SURFACE_EXPECTATIONS: dict[str, tuple[str, ...]] = {
         "bool is not admitted",
     ),
     "support/operator/auto_repair_replay.py": (
-        "from support.recording.contracts import require_positive_int",
+        "from brick_protocol.support.recording.contracts import require_positive_int",
         "return require_positive_int(value, label)",
     ),
     "support/operator/route_materialization.py": (

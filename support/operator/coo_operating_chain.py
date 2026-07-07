@@ -12,8 +12,8 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
-from support.connection.agent_resources import AgentResourceError, render_agent_packet
-from support.connection.building_design_toolkit import (
+from brick_protocol.support.connection.agent_resources import AgentResourceError, render_agent_packet
+from brick_protocol.support.connection.building_design_toolkit import (
     BuildingDesignToolkitError,
     render_building_design_context,
 )

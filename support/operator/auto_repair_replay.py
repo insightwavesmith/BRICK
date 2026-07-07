@@ -12,11 +12,11 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-from support.operator.plan_graph import _linear_plan_from_graph_plan
-from support.operator.plan_validation import validate_declared_building_plan
-from support.operator.route_materialization import materialize_route_transition
-from support.operator.run import run_building_plan
-from support.recording.contracts import require_positive_int
+from brick_protocol.support.operator.plan_graph import _linear_plan_from_graph_plan
+from brick_protocol.support.operator.plan_validation import validate_declared_building_plan
+from brick_protocol.support.operator.route_materialization import materialize_route_transition
+from brick_protocol.support.operator.run import run_building_plan
+from brick_protocol.support.recording.contracts import require_positive_int
 
 
 PROOF_LIMITS = (

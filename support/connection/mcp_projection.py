@@ -30,7 +30,7 @@ if __package__ in {None, ""}:
         if str(_direct_script_path) not in sys.path:
             sys.path.insert(0, str(_direct_script_path))
 
-from support.connection.agent_resources import (
+from brick_protocol.support.connection.agent_resources import (
     AgentResourceError,
     list_agent_object_refs,
     render_agent_packet,
@@ -38,11 +38,11 @@ from support.connection.agent_resources import (
     render_claude_projection_seed,
     render_codex_projection_seed,
 )
-from support.connection.building_design_toolkit import (
+from brick_protocol.support.connection.building_design_toolkit import (
     BuildingDesignToolkitError,
     render_building_design_context,
 )
-from support.connection.coo_sync import render_agent_projection_sync_context
+from brick_protocol.support.connection.coo_sync import render_agent_projection_sync_context
 
 
 _DEFAULT_REPO_ROOT = Path(__file__).resolve().parents[2]

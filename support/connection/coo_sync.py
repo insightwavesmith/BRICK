@@ -11,7 +11,7 @@ import hashlib
 from pathlib import Path
 from typing import Any
 
-from support.connection.agent_resources import (
+from brick_protocol.support.connection.agent_resources import (
     list_agent_object_refs,
     render_claude_projection_seed,
     render_codex_projection_seed,
