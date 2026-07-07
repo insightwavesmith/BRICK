@@ -18,6 +18,7 @@ kernel_checks:
   - building_lifecycle_path_shape
   - building_map_graph
   - project_declaration
+  - rule13_durable_evidence_ref
   - building_declaration_integrity
   - building_plans_boundary_sweep
   - axis_crossing_elegance
@@ -30,6 +31,7 @@ kernel_checks:
   - plan_revision_chain
   - mutation_red_manifest
   - checker_progress_observability
+  - checker_profile_exception_isolation
 path_exists:
   - AGENTS.md
   - support/checkers/check_profile.py
@@ -50,6 +52,7 @@ path_exists:
   - support/checkers/check_building_lifecycle_path_shape.py
   - support/checkers/check_building_map_graph.py
   - support/checkers/check_project_declaration.py
+  - support/checkers/check_rule13_durable_evidence_ref.py
   - support/checkers/check_building_declaration_integrity.py
   - support/checkers/check_axis_crossing_elegance.py
   - support/checkers/check_link_gate_measurement_separation.py

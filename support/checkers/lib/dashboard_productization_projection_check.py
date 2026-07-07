@@ -44,7 +44,7 @@ _DASHBOARD_PRODUCTIZATION_TEXT_SUFFIXES = {
     ".yml",
     ".yaml",
 }
-_DASHBOARD_PRODUCTIZATION_SKIP_PARTS = {"dist", "node_modules"}
+_DASHBOARD_PRODUCTIZATION_SKIP_PARTS = {".DS_Store", "dist", "node_modules"}
 _DASHBOARD_PRODUCTIZATION_SKIP_RELATIVES = {
     "support/dashboard/package-lock.json",
     "support/dashboard/public/dashboard-data.json",
@@ -212,12 +212,17 @@ def _dashboard_productization_text_paths(repo: Path) -> list[Path]:
     return paths
 
 
-def _dashboard_productization_forbidden_literal_violations(repo: Path) -> tuple[list[str], int]:
+def _dashboard_productization_forbidden_literal_violations(repo: Path) -> tuple[list[str], int, list[str]]:
     violations: list[str] = []
+    skipped_non_utf8: list[str] = []
     inspected = 0
     for path in _dashboard_productization_text_paths(repo):
         rel = to_posix(path.relative_to(repo))
-        text = path.read_text(encoding="utf-8")
+        try:
+            text = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            skipped_non_utf8.append(rel)
+            continue
         inspected += 1
         for lineno, line in enumerate(text.splitlines(), start=1):
             for match in _DASHBOARD_ABSOLUTE_URL_RE.finditer(line):
@@ -239,7 +244,39 @@ def _dashboard_productization_forbidden_literal_violations(repo: Path) -> tuple[
                 violations.append(f"{rel}:{lineno}: hardcoded organization literal")
             if _DASHBOARD_USER_HOME_RE.search(line):
                 violations.append(f"{rel}:{lineno}: hardcoded user-home path literal")
-    return violations, inspected
+    return violations, inspected, skipped_non_utf8
+
+
+def _dashboard_productization_assert_non_utf8_skip_probe() -> int:
+    """D1 FIRE fixture: non-UTF8 dashboard dotfiles are skipped, not crashy."""
+
+    with tempfile.TemporaryDirectory(prefix="bp-dashboard-nonutf8-fire-") as tmp:
+        probe_repo = Path(tmp)
+        dashboard = probe_repo / "support" / "dashboard"
+        dashboard.mkdir(parents=True)
+        (dashboard / "DEPLOY.md").write_text("stable deploy note\n", encoding="utf-8")
+        (dashboard / ".DS_Store").write_bytes(b"\xff\xfe\x00bp")
+        (dashboard / "binary.md").write_bytes(b"\xff\xfe\x00bp")
+        violations, inspected, skipped_non_utf8 = (
+            _dashboard_productization_forbidden_literal_violations(probe_repo)
+        )
+        if violations:
+            raise ProfileError(
+                "dashboard_productization_projection non-UTF8 FIRE probe "
+                f"over-fired on skipped fixture: {violations[:3]}"
+            )
+        if inspected != 1:
+            raise ProfileError(
+                "dashboard_productization_projection non-UTF8 FIRE probe "
+                f"expected exactly one UTF-8 fixture inspection, observed {inspected}"
+            )
+        if skipped_non_utf8 != ["support/dashboard/binary.md"]:
+            raise ProfileError(
+                "dashboard_productization_projection non-UTF8 FIRE probe did "
+                "not record the UTF-8 decode skip for the text-suffix fixture: "
+                f"{skipped_non_utf8!r}"
+            )
+    return 1
 
 
 def _dashboard_productization_assert_literal_fire_probe() -> int:
@@ -260,7 +297,7 @@ def _dashboard_productization_assert_literal_fire_probe() -> int:
             target = probe_repo / probe_dir
             target.parent.mkdir(parents=True)
             target.write_text(line + "\n", encoding="utf-8")
-            violations, _ = _dashboard_productization_forbidden_literal_violations(probe_repo)
+            violations, _, _ = _dashboard_productization_forbidden_literal_violations(probe_repo)
             if not violations:
                 raise ProfileError(
                     "dashboard_productization_projection literal FIRE probe did "
@@ -1222,7 +1259,9 @@ def run_dashboard_productization_projection(repo: Path) -> KernelResult:
     inspected += 1
     inspected += _dashboard_productization_assert_mutated_server_rejects(server_text)
 
-    literal_violations, literal_inspected = _dashboard_productization_forbidden_literal_violations(repo)
+    literal_violations, literal_inspected, skipped_non_utf8 = (
+        _dashboard_productization_forbidden_literal_violations(repo)
+    )
     inspected += literal_inspected
     if literal_violations:
         raise ProfileError(
@@ -1230,6 +1269,7 @@ def run_dashboard_productization_projection(repo: Path) -> KernelResult:
             + "\n".join(f"- {violation}" for violation in literal_violations)
         )
     inspected += _dashboard_productization_assert_literal_fire_probe()
+    inspected += _dashboard_productization_assert_non_utf8_skip_probe()
     inspected += _dashboard_productization_assert_bake_shape_probe(repo)
     inspected += _dashboard_productization_assert_openssl_subprocess_scope(repo)
     inspected += _dashboard_productization_assert_iap_passport_probe()
@@ -1246,6 +1286,7 @@ def run_dashboard_productization_projection(repo: Path) -> KernelResult:
             "literals are rejected with FIRE probes, and bake_dashboard_data_json "
             "round-tripped a source_truth false packet with buildings list while "
             "a mutated source_truth true packet fired RED. "
+            f"Non-UTF8 dashboard text skip observation count: {len(skipped_non_utf8)}. "
             f"{seed_observation} "
             "The dashboard IAP "
             "passport pin observed Authorization only when BRICK_DASHBOARD_SA_KEY_PATH "
