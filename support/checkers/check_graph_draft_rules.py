@@ -44,6 +44,29 @@ Probes:
   P33 D1     source_facts propagate to every work-fan write lane (branches + merge)
   P34 D1     source_facts propagate to every design-fan branch
   P35 D2     ceiling-truncated partitions are recorded on a residual_owner row
+  P36 D1     draft-diff shape-flip vs casting-flip are SEPARATE aggregates
+  P37 D1     the flip ledger is append-only-by-one and the window reads it
+  P38 D1     a full zero-flip window fires the operator-thought-stall canary; a
+             sub-window sample does not; a flipped record suppresses it
+  P39 D1     malformed draft-diff input raises (rc=1 surface); a valid pair does not
+  P40 D2     a blind pre-registration is compared field-by-field with a forge proof-limit
+  P41 D3     the drafted rationale carries the canonical answer_fingerprint line
+  P42 D1     casting classification keys on the LEAF key only (ancestor-token
+             collision — nodes[0].model.training_corpus — stays a shape flip)
+  P43 D2     the flip ledger / blind pre-registration are repo-outside evidence;
+             a repo-internal --ledger/--prereg-dir is refused (repo 안 산출 금지)
+  P44 D1     the rolling flip-rate window is scoped to the current building_id;
+             cross-building ledger records never mask or fire another building's canary
+  P45 D1     a real leaf equal to the absent render sentinel still diffs as a
+             real add/removal (sentinel-collision-zero-flip closed)
+  P46 D1     a scalar type flip (int/bool/null -> str) is recorded, never
+             absorbed by a bare-string diff (type-flip-invisible closed)
+  P47 D1     a blank building_id window scopes to blank-id records only and
+             never absorbs named-Building records (blank-id absorption closed)
+  P48 D1     a non-positive rolling window falls back to the default window and
+             never fires the canary at sample=1 (negative-window clamp closed)
+  P49 D2     the repo-outside guard applies to the DEFAULT ledger/prereg path
+             too; a BRICK_HOME resolving inside the repo is refused
 
 P4 runs before P3 so mutation M3 (deleting the convergence emission) hits the
 P4 literal first.
@@ -75,6 +98,11 @@ from brick_protocol.support.operator.graph_draft import (
     WARN1_XHIGH_BURST,
     WARN2_LOW_TIER_WORK,
 )
+from brick_protocol.support.operator.graph_draft import (
+    answer_fingerprint,
+    ANSWER_FINGERPRINT_PREFIX,
+)
+from brick_protocol.support.operator import draft_diff as _draft_diff
 
 PROOF_LIMIT = "support evidence only; not source truth / success / quality / Movement"
 
@@ -929,6 +957,7 @@ def _violations(repo: Path) -> list[str]:
     if reached_seam:
         out.append("graph-draft RED: draft surface reaches a launch seam (Rule 3)")
 
+    out.extend(_draft_diff_violations(repo))
     return out
 
 
@@ -936,8 +965,9 @@ def _extract_draft_bodies(cli_src: str) -> str:
     """Return only the draft-related CLI function bodies for the Rule 3 scan.
 
     The rest of cli.py legitimately imports the launch driver; we scan only the
-    ``_run_draft`` / ``_cmd_draft`` / ``_render_draft`` bodies so the check
-    fires exactly when a launch seam is wired into the draft path.
+    ``_run_draft`` / ``_cmd_draft`` / ``_render_draft`` (and the ``draft-diff``
+    sibling) bodies so the check fires exactly when a launch seam is wired into
+    the draft path.
     """
 
     lines = cli_src.splitlines()
@@ -946,17 +976,501 @@ def _extract_draft_bodies(cli_src: str) -> str:
     for line in lines:
         if line.startswith("def "):
             capture = line.startswith(
-                ("def _run_draft", "def _cmd_draft", "def _render_draft")
+                (
+                    "def _run_draft",
+                    "def _cmd_draft",
+                    "def _render_draft",
+                    "def _run_draft_diff",
+                    "def _cmd_draft_diff",
+                    "def _render_draft_diff",
+                )
             )
         if capture:
             body.append(line)
     return "\n".join(body)
 
 
+# CANARY-LITERAL-PIN — the exact advisory literal, hardcoded here so a drift of
+# the module constant (graph_draft draft_diff.THOUGHT_STALL_CANARY) is caught by
+# the emitted-line pin below rather than silently tracking the drifted constant.
+_CANARY_LITERAL_PIN = "operator-thought-stall canary"
+
+
+def _draft_diff_violations(repo: Path) -> list[str]:
+    """D4 — draft-diff (shape/casting split + flip ledger + canary + D3 지문) probes.
+
+    P36  D1  shape-flip vs casting-flip are SEPARATE aggregates (a casting-only
+             change lands only in casting_flips; a shape-only change only in
+             shape_flips) — the 분리집계 is load-bearing.
+    P37  D1  the append-only flip ledger GROWS by exactly one line per run and
+             the rolling window reads the appended record (append-only, no rewrite).
+    P38  D1  a full window (N) of zero-flip records surfaces the exact
+             ``operator-thought-stall canary`` literal; a sub-window sample does
+             NOT (미실측 기본 태그) — variant-RED for a canary-literal drift.
+    P39  D1  malformed input raises ValueError (rc=1 surface); a valid pair does
+             not — the exit code is keyed only to input malformation.
+    P40  D2  a present blind pre-registration is compared field-by-field and the
+             prereg-first ordering is recorded with its forge proof-limit.
+    P41  D3  the drafted rationale carries the canonical answer_fingerprint line
+             (sha256 + UTC); removing it is a variant-RED.
+    P42  D1  casting classification keys on the LEAF key only; a structural
+             sub-field under a casting-named ancestor
+             (nodes[0].model.training_corpus) stays a shape flip — an
+             ancestor-token-collision regression flips this RED.
+    P43  D2  the flip ledger and blind pre-registration are repo-outside
+             (<brick_home>) evidence; a caller --ledger/--prereg-dir that
+             resolves inside the repo tree is refused (repo 안 산출 금지).
+    P44  D1  the rolling flip-rate window is scoped to the current building_id:
+             a shared append-only ledger polluted with another Building's flipped
+             records must not mask this Building's zero-flip canary, and a
+             Building's own window must not absorb cross-building records.
+
+    P45  D1  a real leaf whose value equals the absent render sentinel still
+             diffs as a real add/removal (presence is decided by key membership,
+             not by a sentinel default — sentinel-collision-zero-flip closed).
+    P46  D1  a scalar type flip (int->str, bool->str, null->"") is recorded; a
+             bare-string diff would be blind to it (type-flip-invisible closed).
+    P47  D1  a blank building_id window scopes to blank-id records ONLY and never
+             absorbs named-Building records (blank-id absorption closed).
+    P48  D1  a non-positive rolling window falls back to the default window and
+             never fires the canary at sample=1 (negative-window clamp closed).
+
+    P49  D2  the repo-outside guard applies to the DEFAULT <brick_home>
+             ledger/prereg path too (not only explicit --ledger/--prereg-dir);
+             a BRICK_HOME resolving inside the repo tree is refused (repo 안
+             산출 금지 default-path bypass closed).
+    """
+    import json as _json
+    import tempfile as _tempfile
+
+    out: list[str] = []
+    dd = _draft_diff
+
+    # Two minimal declarations that differ ONLY in casting (adapter_ref/model_ref).
+    base_decl = {
+        "building_id": "dd-bld",
+        "task": "t",
+        "nodes": [{"kind": "work", "adapter_ref": "adapter:codex-local"}],
+    }
+    casting_only = {
+        "building_id": "dd-bld",
+        "task": "t",
+        "nodes": [{"kind": "work", "adapter_ref": "adapter:claude-local"}],
+    }
+    shape_only = {
+        "building_id": "dd-bld",
+        "task": "t-changed",
+        "nodes": [{"kind": "work", "adapter_ref": "adapter:codex-local"}],
+    }
+
+    # P36 — separated aggregates.
+    cast_diff = dd.diff_declarations(base_decl, casting_only)
+    shape_diff = dd.diff_declarations(base_decl, shape_only)
+    if (
+        cast_diff["casting_flip_count"] < 1
+        or cast_diff["shape_flip_count"] != 0
+        or shape_diff["shape_flip_count"] < 1
+        or shape_diff["casting_flip_count"] != 0
+    ):
+        out.append(
+            "graph-draft RED: draft-diff shape/casting aggregates collapsed (분리집계 중화, D1)"
+        )
+
+    with _tempfile.TemporaryDirectory(prefix="bp-draft-diff-") as tmp:
+        root = Path(tmp)
+        before_p = root / "before.json"
+        after_cast_p = root / "after-cast.json"
+        same_p = root / "same.json"
+        before_p.write_text(_json.dumps(base_decl), encoding="utf-8")
+        after_cast_p.write_text(_json.dumps(casting_only), encoding="utf-8")
+        same_p.write_text(_json.dumps(base_decl), encoding="utf-8")
+        ledger = root / "flip-ledger.jsonl"
+        prereg_dir = root / "preregistration"
+
+        # P37 — append-only ledger grows by exactly one line and window reads it.
+        r1 = dd.run_draft_diff(
+            before_path=before_p, after_path=after_cast_p,
+            ledger_path=ledger, prereg_dir=prereg_dir, window=dd.DEFAULT_FLIP_WINDOW,
+        )
+        after_first = len(ledger.read_text(encoding="utf-8").splitlines())
+        r2 = dd.run_draft_diff(
+            before_path=before_p, after_path=after_cast_p,
+            ledger_path=ledger, prereg_dir=prereg_dir, window=dd.DEFAULT_FLIP_WINDOW,
+        )
+        after_second = len(ledger.read_text(encoding="utf-8").splitlines())
+        if after_first != 1 or after_second != 2 or r2["rolling_window"]["sample"] != 2:
+            out.append(
+                "graph-draft RED: draft-diff flip ledger is not append-only-by-one (D1)"
+            )
+
+        # P38 — canary: a full window of zero-flip records surfaces the literal;
+        # a sub-window sample must NOT (미실측 기본 태그). Also a variant-RED on
+        # the exact canary literal.
+        canary_ledger = root / "canary-ledger.jsonl"
+        last = None
+        for _ in range(dd.DEFAULT_FLIP_WINDOW):
+            last = dd.run_draft_diff(
+                before_path=same_p, after_path=same_p,
+                ledger_path=canary_ledger, prereg_dir=prereg_dir,
+                window=dd.DEFAULT_FLIP_WINDOW,
+            )
+        if last is None or last["canary"] is None or dd.THOUGHT_STALL_CANARY not in str(last["canary"]):
+            out.append(
+                "graph-draft RED: full zero-flip window did not surface the operator-thought-stall canary (D1)"
+            )
+        # variant-RED: the emitted canary must carry the EXACT hardcoded literal
+        # (a drift of the module constant is caught here, not silently tracked).
+        if last is not None and last["canary"] is not None and _CANARY_LITERAL_PIN not in str(last["canary"]):
+            out.append(
+                "graph-draft RED: emitted canary line drifted from the exact literal (D4 literal pin)"
+            )
+        # sub-window: the very first record must not fire the canary.
+        early_ledger = root / "early-ledger.jsonl"
+        early = dd.run_draft_diff(
+            before_path=same_p, after_path=same_p,
+            ledger_path=early_ledger, prereg_dir=prereg_dir,
+            window=dd.DEFAULT_FLIP_WINDOW,
+        )
+        if early["canary"] is not None or early["rolling_window"]["measured"]:
+            out.append(
+                "graph-draft RED: sub-window zero-flip sample wrongly fired the canary (미실측 기본 태그, D1)"
+            )
+        # variant-RED: a flipped record inside the window suppresses the canary.
+        mixed_ledger = root / "mixed-ledger.jsonl"
+        for i in range(dd.DEFAULT_FLIP_WINDOW - 1):
+            dd.run_draft_diff(
+                before_path=same_p, after_path=same_p,
+                ledger_path=mixed_ledger, prereg_dir=prereg_dir,
+                window=dd.DEFAULT_FLIP_WINDOW,
+            )
+        mixed = dd.run_draft_diff(
+            before_path=before_p, after_path=after_cast_p,
+            ledger_path=mixed_ledger, prereg_dir=prereg_dir,
+            window=dd.DEFAULT_FLIP_WINDOW,
+        )
+        if mixed["canary"] is not None:
+            out.append(
+                "graph-draft RED: a flipped record in the window did not suppress the canary (D1)"
+            )
+
+        # P39 — malformed input raises ValueError; a valid pair does not.
+        bad_p = root / "bad.json"
+        bad_p.write_text("not json{", encoding="utf-8")
+        raised = False
+        try:
+            dd.run_draft_diff(
+                before_path=bad_p, after_path=after_cast_p,
+                ledger_path=ledger, prereg_dir=prereg_dir, window=dd.DEFAULT_FLIP_WINDOW,
+            )
+        except ValueError:
+            raised = True
+        if not raised:
+            out.append(
+                "graph-draft RED: malformed draft-diff input did not raise (rc=1 surface absent, D1)"
+            )
+
+        # P40 — blind pre-registration cross-check + prereg-first proof limit.
+        prereg_dir.mkdir(parents=True, exist_ok=True)
+        (prereg_dir / "dd-bld.json").write_text(
+            _json.dumps({"width": 1, "kind_family": ["work"], "gates": []}),
+            encoding="utf-8",
+        )
+        pr = dd.run_draft_diff(
+            before_path=before_p, after_path=same_p,
+            ledger_path=ledger, prereg_dir=prereg_dir, window=dd.DEFAULT_FLIP_WINDOW,
+        )
+        prereg = pr.get("preregistration", {})
+        comparison = prereg.get("comparison")
+        obs = prereg.get("prereg_first_observation", {})
+        if (
+            not prereg.get("present")
+            or not isinstance(comparison, Mapping)
+            or comparison.get("compared_field_count", 0) < 1
+            or "forged" not in str(obs.get("proof_limit", ""))
+        ):
+            out.append(
+                "graph-draft RED: blind pre-registration cross-check absent or missing the forge proof-limit (D2)"
+            )
+
+    # P41 — D3: the drafted rationale carries the answer_fingerprint line.
+    with _tempfile.TemporaryDirectory(prefix="bp-draft-fp-") as tmp:
+        res = draft_graph_declaration(
+            SIMPLE_TASK, SIMPLE_DOC_ANSWERS, repo_root=repo,
+            allowed_paths=("support/operator/**",),
+        )
+        decl_path = write_draft_declaration(res, Path(tmp) / "fp-decl.json")
+        rationale = decl_path.with_name(decl_path.stem + "-rationale.md").read_text(encoding="utf-8")
+        fp = answer_fingerprint(res.sizing_answers)
+        if ANSWER_FINGERPRINT_PREFIX not in rationale or f"sha256:{fp}" not in rationale:
+            out.append(
+                "graph-draft RED: drafted rationale is missing the canonical answer_fingerprint line (D3)"
+            )
+
+    # P42 — D1: casting classification keys on the LEAF key only, never on an
+    # ancestor token. A structural sub-field beneath an ancestor named like a
+    # casting key (nodes[0].model.training_corpus — ``model`` is a CONTAINER,
+    # ``training_corpus`` is the changed leaf) must classify as a SHAPE flip, and
+    # a structural change to it must land in shape_flips, never casting_flips.
+    # Regressing classify_flip to ancestor-token matching (the 0707 collision
+    # gap) flips this probe RED. The performer-selection leaves stay casting.
+    _shape_leaves = (
+        "nodes[0].model.training_corpus",
+        "nodes[0].model.provider",
+        "nodes[0].work.model_family_notes",
+        "adapter_refs[1]",
+    )
+    _casting_leaves = (
+        "nodes[0].model",
+        "nodes[0].adapter_ref",
+        "branches[2].casting.model",
+        "nodes[0].fan.branches[0].effort",
+    )
+    if any(dd.classify_flip(p) != "shape" for p in _shape_leaves) or any(
+        dd.classify_flip(p) != "casting" for p in _casting_leaves
+    ):
+        out.append(
+            "graph-draft RED: casting classification used ancestor-token collision instead of the leaf key (D1)"
+        )
+    # End-to-end: a structural change to a sub-field under a casting-named ancestor
+    # must aggregate as a shape flip, not a casting flip.
+    ancestor_before = {
+        "building_id": "dd-anc",
+        "nodes": [{"kind": "work", "model": {"training_corpus": "c-v1"}}],
+    }
+    ancestor_after = {
+        "building_id": "dd-anc",
+        "nodes": [{"kind": "work", "model": {"training_corpus": "c-v2"}}],
+    }
+    anc_diff = dd.diff_declarations(ancestor_before, ancestor_after)
+    if anc_diff["shape_flip_count"] != 1 or anc_diff["casting_flip_count"] != 0:
+        out.append(
+            "graph-draft RED: a structural sub-field under a casting-named ancestor was aggregated as a casting flip (D1 ancestor-token collision)"
+        )
+
+    # P43 — D2/law: the flip ledger and blind pre-registration are repo-outside
+    # (<brick_home>) evidence (repo 안 산출 금지). A caller-supplied --ledger /
+    # --prereg-dir that resolves inside the repo tree must be refused with a
+    # ValueError; a repo-outside path must pass. Regressing the guard flips RED.
+    from brick_protocol.support.operator import cli as _cli
+    import tempfile as _tf2
+
+    _inside = repo / "support" / "operator" / "leaked-ledger.jsonl"
+    _refused_inside = False
+    try:
+        _cli._assert_repo_outside(_inside, repo, flag="--ledger")
+    except ValueError:
+        _refused_inside = True
+    _outside_ok = True
+    with _tf2.TemporaryDirectory(prefix="bp-repo-outside-") as _outdir:
+        try:
+            _cli._assert_repo_outside(Path(_outdir) / "led.jsonl", repo, flag="--ledger")
+        except ValueError:
+            _outside_ok = False
+    if not _refused_inside or not _outside_ok:
+        out.append(
+            "graph-draft RED: draft-diff ledger/prereg repo-outside guard missing (repo 안 산출 금지, D2)"
+        )
+
+    # P44 — D1: the rolling flip-rate window is SCOPED to the current building_id.
+    # A shared append-only ledger may carry other Buildings' records; this
+    # Building's canary must never be masked or fired by them (0707 attack-QA
+    # cross-building pollution gap). Fill a full zero-flip window for building A,
+    # then pollute the SAME ledger with flipped records for building B: A's canary
+    # must still fire (B's flips don't mask it), and B's own window must NOT fire
+    # the canary (A's zero-flip records don't leak into B's sample). Regressing to
+    # an unfiltered whole-ledger window flips this probe RED.
+    with _tempfile.TemporaryDirectory(prefix="bp-draft-scope-") as tmp:
+        root = Path(tmp)
+        shared_ledger = root / "shared-ledger.jsonl"
+        prereg_dir = root / "preregistration"
+        a_same = root / "a-same.json"
+        b_before = root / "b-before.json"
+        b_after = root / "b-after.json"
+        a_same.write_text(
+            _json.dumps({"building_id": "bld-A", "nodes": [{"kind": "work"}]}),
+            encoding="utf-8",
+        )
+        b_before.write_text(
+            _json.dumps(
+                {"building_id": "bld-B", "nodes": [{"kind": "work", "adapter_ref": "adapter:codex-local"}]}
+            ),
+            encoding="utf-8",
+        )
+        b_after.write_text(
+            _json.dumps(
+                {"building_id": "bld-B", "nodes": [{"kind": "work", "adapter_ref": "adapter:claude-local"}]}
+            ),
+            encoding="utf-8",
+        )
+        # Full zero-flip window for building A on the shared ledger.
+        a_last = None
+        for _ in range(dd.DEFAULT_FLIP_WINDOW):
+            a_last = dd.run_draft_diff(
+                before_path=a_same, after_path=a_same,
+                ledger_path=shared_ledger, prereg_dir=prereg_dir,
+                window=dd.DEFAULT_FLIP_WINDOW,
+            )
+        if a_last is None or a_last["canary"] is None:
+            out.append(
+                "graph-draft RED: building-A zero-flip canary did not fire on the shared ledger (D1 window scope)"
+            )
+        # Pollute the SAME ledger with flipped building-B records; A's canary must
+        # still fire on a re-diff (B's flips must not mask A's zero-flip window).
+        for _ in range(dd.DEFAULT_FLIP_WINDOW):
+            dd.run_draft_diff(
+                before_path=b_before, after_path=b_after,
+                ledger_path=shared_ledger, prereg_dir=prereg_dir,
+                window=dd.DEFAULT_FLIP_WINDOW,
+            )
+        a_recheck = dd.run_draft_diff(
+            before_path=a_same, after_path=a_same,
+            ledger_path=shared_ledger, prereg_dir=prereg_dir,
+            window=dd.DEFAULT_FLIP_WINDOW,
+        )
+        if a_recheck["canary"] is None:
+            out.append(
+                "graph-draft RED: cross-building flipped records masked building-A's canary (D1 window not building-scoped)"
+            )
+        # Building B's own window is all flips → its canary must NOT fire, and its
+        # scoped sample must exclude A's records.
+        b_last = dd.run_draft_diff(
+            before_path=b_before, after_path=b_after,
+            ledger_path=shared_ledger, prereg_dir=prereg_dir,
+            window=dd.DEFAULT_FLIP_WINDOW,
+        )
+        if (
+            b_last["canary"] is not None
+            or b_last["rolling_window"].get("sample", 0) != dd.DEFAULT_FLIP_WINDOW
+            or b_last["rolling_window"].get("ledger_total_records", 0) <= b_last["rolling_window"].get("building_records", 0)
+        ):
+            out.append(
+                "graph-draft RED: building-B window absorbed cross-building records instead of scoping by building_id (D1)"
+            )
+
+    # P45 — D1: a real leaf value equal to the absent render sentinel must still
+    # diff as a real add/removal. Presence is decided by key membership, never by
+    # a sentinel default, so a leaf whose value literally equals the missing
+    # marker cannot be laundered as "unchanged" (0707 attack-QA P1:
+    # sentinel-collision-zero-flip). Regressing to a sentinel-default diff (``
+    # flat.get(path, SENTINEL)``) flips this probe RED.
+    _sentinel_before = {"building_id": "dd-sc", "a": "\u2205"}
+    _sentinel_after = {"building_id": "dd-sc"}
+    _sc_diff = dd.diff_declarations(_sentinel_before, _sentinel_after)
+    if _sc_diff["total_flip_count"] < 1:
+        out.append(
+            "graph-draft RED: a real leaf equal to the absent sentinel was diffed as unchanged (D1 sentinel-collision)"
+        )
+
+    # P46 — D1: a scalar TYPE flip (int->str, bool->str, null->"") must be
+    # recorded. A bare ``str(value)`` diff is blind to a type change (``str(1)
+    # == str("1")``), an invisible edit an operator could launder past the
+    # ledger (0707 attack-QA P2: type-flip-invisible-zero-flip). The diff keys on
+    # typed tokens, so each type flip is a real flip; regressing to a bare-string
+    # diff flips this probe RED. Equal-typed values still diff as unchanged.
+    _type_pairs = (
+        ({"building_id": "dd-tp", "n": 1}, {"building_id": "dd-tp", "n": "1"}),
+        ({"building_id": "dd-tp", "b": True}, {"building_id": "dd-tp", "b": "True"}),
+        ({"building_id": "dd-tp", "z": None}, {"building_id": "dd-tp", "z": ""}),
+    )
+    _type_ok = all(
+        dd.diff_declarations(bef, aft)["total_flip_count"] >= 1 for bef, aft in _type_pairs
+    )
+    _same_typed = dd.diff_declarations(
+        {"building_id": "dd-tp", "n": 1}, {"building_id": "dd-tp", "n": 1}
+    )
+    if not _type_ok or _same_typed["total_flip_count"] != 0:
+        out.append(
+            "graph-draft RED: a scalar type flip (int/bool/null) was invisible to the diff (D1 type-flip-invisible)"
+        )
+
+    # P47 — D1: the rolling window is scoped by EXACT building_id, and a
+    # blank/absent target scopes to blank-id records ONLY — it must NOT absorb
+    # every named Building's records (0707 attack-QA P10: blank-building_id-
+    # window-absorbs-cross-building-records). Regressing ``records_for_building``
+    # to "blank returns all" flips this probe RED.
+    _mixed_records = [
+        {"building_id": "A", "flipped": True},
+        {"building_id": "B", "flipped": True},
+        {"building_id": "", "flipped": False},
+    ]
+    _blank_scope = dd.records_for_building(_mixed_records, "")
+    if len(_blank_scope) != 1 or _blank_scope[0].get("building_id") not in ("", None):
+        out.append(
+            "graph-draft RED: a blank building_id window absorbed named-Building records (D1 blank-id absorption)"
+        )
+
+    # P48 — D1: a non-positive rolling window is invalid input and must fall back
+    # to the full default window, NOT clamp to 1. Clamping ``<=0`` to 1 let a
+    # single zero-flip record satisfy ``sample >= window`` and fire the canary at
+    # sample=1 (0707 attack-QA: negative-window-canary-sample-one). A single
+    # zero-flip record under a negative window must stay unmeasured (no canary).
+    _neg_rate = dd.rolling_flip_rate([{"flipped": False}], window=-5)
+    _zero_rate = dd.rolling_flip_rate([{"flipped": False}], window=0)
+    if (
+        _neg_rate.get("measured")
+        or _neg_rate.get("window") != dd.DEFAULT_FLIP_WINDOW
+        or dd.thought_stall_canary_line(_neg_rate) is not None
+        or _zero_rate.get("measured")
+        or _zero_rate.get("window") != dd.DEFAULT_FLIP_WINDOW
+    ):
+        out.append(
+            "graph-draft RED: a non-positive rolling window clamped to 1 and fired the canary at sample=1 (D1 negative-window)"
+        )
+
+    # P49 — D2/law: the repo-outside guard applies to the DEFAULT ledger/prereg
+    # path too, not only caller-supplied --ledger/--prereg-dir. If BRICK_HOME
+    # resolves inside the repo/worktree the default <brick_home>/drafts path lands
+    # in the repo tree; the earlier "guard only explicit flags" logic bypassed the
+    # guard entirely (0707 attack-QA P8: brick-home-in-repo-default-ledger-guard-
+    # bypass). Driving _run_draft_diff with BRICK_HOME set INSIDE the repo and no
+    # explicit ledger flag must be refused with a ValueError; regressing to guard
+    # only the explicit flags flips this probe RED.
+    import os as _os
+    import argparse as _argparse
+    import tempfile as _tf3
+    from brick_protocol.support.operator import cli as _cli3
+
+    _default_guarded = False
+    with _tf3.TemporaryDirectory(prefix="bp-default-guard-") as _outdir:
+        # Use a THROWAWAY repo dir as both the --repo arg and BRICK_HOME so the
+        # default <brick_home>/drafts path resolves INSIDE that fake repo. A
+        # regressed guard would then write into this temp dir (auto-cleaned),
+        # never the real checkout — the probe fires RED without leaking a repo
+        # artifact. A working guard raises before any write.
+        _fake_repo = Path(_outdir) / "fake-repo"
+        _fake_repo.mkdir(parents=True, exist_ok=True)
+        _draft_p = _fake_repo / "d.json"
+        _launch_p = _fake_repo / "l.json"
+        _draft_p.write_text(_json.dumps({"building_id": "dg", "nodes": []}), encoding="utf-8")
+        _launch_p.write_text(_json.dumps({"building_id": "dg", "nodes": []}), encoding="utf-8")
+        _ns = _argparse.Namespace(
+            repo=str(_fake_repo), draft=str(_draft_p), launched=str(_launch_p),
+            ledger="", prereg_dir="", window=10,
+        )
+        _prev_home = _os.environ.get("BRICK_HOME")
+        _os.environ["BRICK_HOME"] = str(_fake_repo)  # brick_home INSIDE the (fake) repo tree
+        try:
+            _cli3._run_draft_diff(_ns)
+        except ValueError:
+            _default_guarded = True
+        except Exception:
+            _default_guarded = False
+        finally:
+            if _prev_home is None:
+                _os.environ.pop("BRICK_HOME", None)
+            else:
+                _os.environ["BRICK_HOME"] = _prev_home
+    if not _default_guarded:
+        out.append(
+            "graph-draft RED: the default <brick_home> ledger/prereg path bypassed the repo-outside guard when BRICK_HOME was inside the repo (repo 안 산출 금지, D2)"
+        )
+
+    return out
+
+
 def run(repo: Path) -> list[str]:
     violations = _violations(repo)
     return violations
-
 
 def parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -976,7 +1490,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(f"- {line}", file=sys.stderr)
         print(PROOF_LIMIT, file=sys.stderr)
         return 1
-    print("graph_draft_rules passed: 35 probe(s)")
+    print("graph_draft_rules passed: 49 probe(s)")
     print(PROOF_LIMIT)
     return 0
 
