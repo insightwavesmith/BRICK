@@ -72,6 +72,14 @@ text_contains:
       - raise ValueError(_RAISE_TARGET_NOT_NODE_REFUSAL)
       - enforce_raise_budget_increment
       - adapter_error_stop_short_circuit
+      # RESUME-ADMISSION-BYPASS-PINS 0707 (D3): the live resume firing point keeps
+      # a DECLARED RESIDUAL not-held/applied-resume guard before
+      # _read_disposition_row that must raise the SHARED module constants (so its
+      # literal cannot drift from the delegated sequence). The AST residual-guard
+      # pin rides check_resume_admission_single_source.py; these text needles are
+      # the complementary presence anchors (no new kernel_checks entry).
+      - raise ValueError(_NOT_HELD_REFUSAL)
+      - raise ValueError(_APPLIED_RESUME_REFUSAL)
   # PROCGROUP-HARDENING (B3): the adapter's single provider chokepoint
   # (_run_command) spawns codex/claude in its OWN process group
   # (start_new_session=True) and on timeout SIGKILLs the whole group
