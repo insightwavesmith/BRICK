@@ -32,11 +32,13 @@ text_contains:
       - "model:claude:claude-opus-4-8"
       - "RULE-WIDTH-FAN-PROPOSAL"
       - "RULE-WIDTH-CEILING"
+      - "def draft_launch_guidance"
+      - "발사는 운영자 몫"
+      - "brick build --graph-decl"
+      - "--forward"
   - path: support/operator/cli.py
     texts:
       - "_cmd_draft"
-      - "발사는 운영자 몫"
-      - "brick build --graph-decl"
       - "Draft a graph-decl candidate"
   - path: support/checkers/check_graph_draft_rules.py
     texts:

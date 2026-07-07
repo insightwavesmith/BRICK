@@ -60,12 +60,12 @@ from brick_protocol.support.operator import onboard
 from brick_protocol.support.operator import resume_declaration
 from brick_protocol.support.operator.assembly import (
     assemble_graph_declaration,
-    graph_declaration_action,
     graph_declaration_author_ref,
     graph_declaration_output_root,
     graph_declaration_timeout,
     load_graph_declaration,
     persist_proposed_building_graph,
+    resolve_build_action,
 )
 from brick_protocol.support.operator.driver import (
     run_customer_building_in_sandbox,
@@ -73,6 +73,7 @@ from brick_protocol.support.operator.driver import (
 from brick_protocol.support.operator.onboard import run_goal_approve_entry
 from brick_protocol.support.operator.graph_draft import (
     draft_graph_declaration,
+    draft_launch_guidance,
     write_draft_declaration,
 )
 from brick_protocol.support.recording.capture import default_buildings_root
@@ -553,7 +554,13 @@ def _run_graph_declaration_build(args: argparse.Namespace, *, repo: Path) -> dic
         output_root,
         overwrite=bool(args.overwrite_existing),
     )
-    action = graph_declaration_action(declaration)
+    action_resolution = resolve_build_action(
+        cli_forward=bool(getattr(args, "forward", False)),
+        cli_action=getattr(args, "action", None),
+        declaration=declaration,
+    )
+    action = action_resolution["action"]
+    action_basis = action_resolution["basis"]
     timeout = graph_declaration_timeout(declaration, args.timeout)
     approval = run_goal_approve_entry(
         proposal_path,
@@ -578,6 +585,7 @@ def _run_graph_declaration_build(args: argparse.Namespace, *, repo: Path) -> dic
         "proposal_ref": str(proposal_path),
         "approval_result": approval,
         "action": action,
+        "action_basis": action_basis,
         "ran": bool(approval.get("ran")),
         "plan_path": str(proposal_path),
         "plan_shape": composed.composed_plan.get("plan_shape", "graph"),
@@ -626,6 +634,8 @@ def _render_build(packet: dict[str, Any]) -> str:
         lines.append(f"proposal_ref: {packet['proposal_ref']}")
     if packet.get("action"):
         lines.append(f"action: {packet['action']}")
+    if packet.get("action_basis"):
+        lines.append(f"action_basis: {packet['action_basis']}")
     for warning in packet.get("repo_root_warnings", []):
         lines.append(f"warning: {warning}")
     if packet.get("materialized_step_adapters"):
@@ -874,11 +884,10 @@ def _run_draft(args: argparse.Namespace) -> dict[str, Any]:
     )
     draft_path = write_draft_declaration(result, out)
     rationale_path = draft_path.with_name(draft_path.stem + "-rationale.md")
-    launch_guidance = (
-        "발사는 운영자 몫: 초안을 검토한 뒤 직접 실행하세요 → "
-        f"brick build --graph-decl {draft_path} "
-        "(선언 action 기본값 stop; 이 표면에는 자동발사 경로가 없습니다)"
-    )
+    # Launch guidance text is owned by the draft module (graph_draft), the
+    # draft-surface producer; the CLI only renders it. The text names the
+    # ``--forward`` flag as the edit-free launch path (표22 발사 이중 열쇠).
+    launch_guidance = draft_launch_guidance(draft_path)
     packet: dict[str, Any] = {
         "command": "draft",
         "draft_path": str(draft_path),
@@ -1462,6 +1471,21 @@ def build_parser() -> argparse.ArgumentParser:
             "Declaration action defaults to stop, which writes only work/proposed-building-graph.json; "
             "set action=forward to run the declared Building."
         ),
+    )
+    build.add_argument(
+        "--action",
+        choices=("forward", "stop"),
+        default=None,
+        help=(
+            "Override the graph-decl file action for THIS launch (priority: CLI > file > stop). "
+            "Lets an operator launch a stop-defaulted declaration edit-free. Omit to honor the "
+            "declaration file action. Auto-fire stays forbidden: no flag + no forward file action = stop."
+        ),
+    )
+    build.add_argument(
+        "--forward",
+        action="store_true",
+        help="Shorthand for --action forward: launch the declared Building without editing the file.",
     )
     build.add_argument("--declared-by", default=DEFAULT_DECLARED_BY, help="Caller/COO declaration ref.")
     build.add_argument("--output-root", default=None, help="Evidence output root.")

@@ -36,6 +36,7 @@ from brick_protocol.brick.spec import derived_worktree_write_scope
 __all__ = [
     "GraphDraftResult",
     "draft_graph_declaration",
+    "draft_launch_guidance",
     "draft_rule_violations",
     "write_draft_declaration",
 ]
@@ -1355,6 +1356,30 @@ def _rationale_markdown(result: GraphDraftResult) -> str:
         lines.append(f"- reject_evidence: {result.precheck['reject_evidence']}")
     lines.append("")
     return "\n".join(lines)
+
+
+def draft_launch_guidance(draft_path: Path | str) -> str:
+    """Operator-facing launch guidance for a drafted graph-decl (표22 발사 이중 열쇠).
+
+    A drafted declaration carries no ``action`` key, so the assemble default
+    (``stop``) governs — the draft is a frozen preview. An operator launches it
+    WITHOUT editing the declaration file by passing the CLI ``--forward`` flag,
+    which the build surface resolves with priority CLI > file > default stop. The
+    flag is only the surface of an explicit human launch act; Rule 3 (자동발사
+    금지) stays law — no ``--forward`` and a stop/omitted file action still means
+    no launch (this surface has no auto-fire path).
+
+    This is draft-surface messaging only; it reaches no launch seam, chooses no
+    Movement/route, and is not source truth, success/quality judgment, or
+    Movement authority.
+    """
+
+    return (
+        "발사는 운영자 몫: 초안을 검토한 뒤 직접 실행하세요 → "
+        f"brick build --graph-decl {draft_path} "
+        "(선언 action 기본값 stop = 동결 미리보기; 파일 편집 없이 바로 발사하려면 "
+        "--forward 를 붙이세요; 이 표면에는 자동발사 경로가 없습니다)"
+    )
 
 
 def write_draft_declaration(result: GraphDraftResult, out_path: Path | str) -> Path:
