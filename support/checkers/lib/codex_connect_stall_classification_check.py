@@ -10,6 +10,7 @@ from __future__ import annotations
 import importlib
 import json
 import os
+import re
 import subprocess
 import tempfile
 from collections.abc import Mapping
@@ -419,9 +420,18 @@ def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
                 "codex_connect_stall_classification F: adapter error kind did not "
                 "map nonzero content-policy classification to content_policy"
             )
+    # content_policy is now signalled by TWO independent detectors: the TEXT signature
+    # (_content_policy_signature_present) AND a STANDALONE HTTP 451 status code (matched
+    # via _STANDALONE_STATUS_CODE_RE, so an embedded "451" inside a larger number can no
+    # longer false-fire). The content-policy sentence carries BOTH ("content policy" +
+    # "(451)"), so this mutation-RED neuters BOTH signals to prove the WHOLE
+    # content-policy detection is load-bearing -- neutering only the text detector would
+    # leave the standalone-451 signal firing and the probe would be vacuous.
     removed_signature = adapter_local_cli._content_policy_signature_present
+    removed_status_re = adapter_local_cli._STANDALONE_STATUS_CODE_RE
     try:
         adapter_local_cli._content_policy_signature_present = lambda _text: False
+        adapter_local_cli._STANDALONE_STATUS_CODE_RE = re.compile(r"(?!)")
         mutated = adapter.LocalCliCompleted(
             args=("codex", "exec", "--json"),
             return_code=1,
@@ -435,6 +445,7 @@ def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
             )
     finally:
         adapter_local_cli._content_policy_signature_present = removed_signature
+        adapter_local_cli._STANDALONE_STATUS_CODE_RE = removed_status_re
     inspected += 1
 
     return KernelResult(
