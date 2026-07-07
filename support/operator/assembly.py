@@ -885,6 +885,39 @@ def graph_declaration_action(declaration: Mapping[str, Any]) -> str:
     return action
 
 
+def resolve_build_action(
+    *,
+    cli_forward: bool = False,
+    cli_action: str | None = None,
+    declaration: Mapping[str, Any] | None = None,
+) -> dict[str, str]:
+    """Resolve the effective build action with priority CLI > file > default stop.
+
+    An operator may launch a stop-defaulted declaration edit-free by passing the
+    CLI ``--forward`` (or ``--action forward``) flag; the declaration file action
+    remains an honored fallback when no CLI flag is present. Auto-fire stays
+    forbidden: with no CLI flag and no forward file action the resolved action is
+    ``stop`` (the flag is only the surface of an explicit human launch act).
+
+    Support evidence only; not source truth, success judgment, quality judgment,
+    or Movement authority.
+    """
+
+    cli_choice: str | None = None
+    if cli_action is not None:
+        normalized = str(cli_action).strip().lower()
+        if normalized not in {"forward", "stop"}:
+            raise ValueError("--action must be forward or stop")
+        cli_choice = normalized
+    if cli_forward:
+        if cli_choice == "stop":
+            raise ValueError("--forward conflicts with --action stop")
+        cli_choice = "forward"
+    if cli_choice is not None:
+        return {"action": cli_choice, "basis": "cli"}
+    return {"action": graph_declaration_action(declaration or {}), "basis": "file"}
+
+
 def graph_declaration_author_ref(declaration: Mapping[str, Any]) -> str:
     author = str(declaration.get("author_ref") or "coo:graph-decl").strip()
     if not author:
@@ -2613,5 +2646,6 @@ __all__ = [
     "lower_route",
     "persist_proposed_building_graph",
     "reroute",
+    "resolve_build_action",
     "stamp_profile_gates",
 ]
