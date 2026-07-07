@@ -341,6 +341,18 @@ def _run_package_path_admission(repo: Path) -> KernelResult:
     )
 
 
+# A4 pure-kernel memoization (compress-ladder W1). KERNEL_PURE names the kernel
+# checks that are repo-read-only and leave no process state behind, so a second
+# call for the same (check_id, repo) is a pure function of the repo tree and can
+# reuse the first KernelResult. This wave admits EXACTLY ONE pure kernel; any
+# expansion is a separate admission with attached evidence. The cache is support
+# evidence only: it changes no verdict, chooses no Movement, and (see
+# run_kernel_check) is GREEN-only because a rejecting kernel raises ProfileError
+# before the cache-store line is reached, so a RED is always re-measured.
+KERNEL_PURE: frozenset[str] = frozenset({"package_path_admission"})
+_KERNEL_MEMO: dict[tuple[str, str], KernelResult] = {}
+
+
 KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
     "axis_vocab_drift": run_axis_vocab_drift,
     # package_path_admission intentionally keeps the inline inspected-count body;
@@ -1212,6 +1224,14 @@ def assert_registry_closure(repo: Path) -> None:
         raise ProfileError(f"self-test failed: profile kernel_checks not in KERNEL_DISPATCH: {unknown_checks}")
     if unknown_rules:
         raise ProfileError(f"self-test failed: profile rule keys not in RULE_RUNNERS: {unknown_rules}")
+    # A4: KERNEL_PURE must name only admitted kernel checks. This runs at
+    # self-test/runtime after the module-tail KERNEL_DISPATCH merge, so the
+    # closure is measured against the full dispatch table.
+    missing_pure = sorted(KERNEL_PURE - set(KERNEL_DISPATCH))
+    if missing_pure:
+        raise ProfileError(
+            f"self-test failed: KERNEL_PURE kernel id(s) not in KERNEL_DISPATCH: {missing_pure}"
+        )
 
 
 def read_profile(path: Path) -> Mapping[str, Any]:
@@ -1284,6 +1304,9 @@ def run_kernel_check(
     *,
     profile_id: str = "<unknown>",
 ) -> KernelResult:
+    memo_key = (check_id, str(repo.resolve()))
+    if check_id in KERNEL_PURE and memo_key in _KERNEL_MEMO:
+        return _KERNEL_MEMO[memo_key]
     try:
         runner = KERNEL_DISPATCH[check_id]
     except KeyError as exc:
@@ -1291,7 +1314,13 @@ def run_kernel_check(
     with _profile_progress_guard(
         _ProfileProgressScope(profile_id, "kernel_check", check_id)
     ):
-        return runner(repo)
+        result = runner(repo)
+    # GREEN-only cache: a rejecting pure kernel raises ProfileError inside
+    # runner(repo) above (e.g. _run_package_path_admission :331-333), so this
+    # store line is unreachable on RED and a violation is always re-measured.
+    if check_id in KERNEL_PURE:
+        _KERNEL_MEMO[memo_key] = result
+    return result
 
 
 def _run_profile_rule(
@@ -1706,6 +1735,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         try:
             with _checker_profile_sweep_env():
+                # A4: cache lifetime = one sweep. Clear the pure-kernel memo at
+                # sweep entry so a reused process (e.g. an in-process caller that
+                # invokes main() twice) never serves a stale KernelResult across
+                # sweeps. Within one sweep, repeated pure kernels reuse the cache.
+                _KERNEL_MEMO.clear()
                 total = len(paths)
                 for index, path in enumerate(paths, start=1):
                     if args.all:
