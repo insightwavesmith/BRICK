@@ -129,3 +129,44 @@ resume-rootfix-design-0707a 발주에서 `brick draft`에 준 8답과 초안기 
 **compress-s1b 1차 게이트 실측(0707)**: VERDICT NEEDS-OPERATOR — ①격리 --all rc=1: `import_identity_modes parents[N] registry mismatch` — 접기가 29파일에 심은 `parents[2]` 신규 사이트가 바인딩 레지스트리(check_import_identity_modes.py 내 하드코딩 dict) 미등재. **원인 = 발주 계약이 그 레지스트리 파일을 do-not-touch로 봉인(레인-불가능 D 배정 클래스, 0703 #14 동족)** — 접기류 수리는 바인딩 레지스트리 등재까지가 한 몸이다. ②QA의 "--all rc=0" 자기보고를 격리 게이트가 반증(codex green 불신 규율 재실증). ③COO 변이 M1(module_registry 행 제거→admission RED 기대)도 NOT RED — 실 지킴이 식별을 C2의 D3로 이관. M2 관찰: ensure_checker_imports no-op에 표본 3체커 무플립(belt-and-suspenders). 처분 = 수리 재발주 compress-s1b-fix-0707a(승계: 앵커 87719e15 diff 적용 + 레지스트리 등재, 재발주 승격 캐스팅). 1차 앵커는 C2 랜딩 시 대체.
 
 판독: 현행 초안기는 분할 가능성을 **감지**(note-split-candidate)하되 **제안하지 않는다** — 폭 계산(min 규칙)·병렬 설계/시공 팬·2단 표준형 1단 그래프의 자동 제안이 전부 부재(제안측 갭). 거부측(안티패턴 RED-2~6·WARN-1~2)은 gt-checker-slice-0707a 계약분. 수리처 = #15 규칙표 증분 후속 발주(방아쇠 = gt-checker-slice 랜딩): 폭 신호용 9번째 답 + min() 폭 계산 + fan 자동 제안 행. 인체공학 표 등재 = operator-ergonomics-wave-0705.md 행 20.
+
+## M. 캐스팅 개정 — fable5 기획 전용 (Smith 0707 오후 판정, §G1 대체)
+
+**판정(Smith 원문)**: "지금 페이블로 QA 따는 건 중지하고 오푸스 4.8 xhigh로 변경한다. 페이블은 디자인에만 사용한다."
+
+의미론:
+1. **claude-측 QA = 전부 opus-4.8 xhigh** (`model:claude:claude-opus-4-8`), 엔진급 여부 불문 — §G1 2티어(엔진쪽=fable5) 폐지.
+2. **fable5 유일 사용처 = 기획 레인**(deep-design/design-lead, xhigh). 0704 "fable5 렌즈 예외 선례"(Smith 지시 시 QA 투입 허용)도 닫힘.
+3. 복잡 work 상위-두뇌 승격 = **푸구 단독** (0706 야간 "푸구+페이블" 중 페이블 축 재봉쇄).
+4. 코드 잔여: 초안기 §G1 상수(graph_draft.py:80 캐스팅 규칙표 + rule ⑨ fable5-burst)가 폐지된 2티어를 조언함 — 소형 증분 빌딩 필요(X3 착지 후 발주, 같은 파일 충돌 회피). 그 전까지 초안기 캐스팅 조언 중 fable5-QA 행은 발주 시 COO 재캐스팅으로 무력화.
+5. 부수 효과: fable5 스로틀 버스트 클래스(0706 야간 레인 사망 4건) 자연 소멸 — QA 풀이 opus 단일화.
+
+**§M 보강(Smith 재확인, 같은 날)**: "워크도 마찬가지로 오푸스 4.8 xhigh를 쓴다. 푸구, 클로드 2개를 사용" — 시공(work) 풀 = **opus-4.8 xhigh(기본) + 푸구(복잡·얽힘·엔진급)** 2하네스로 확정, work에도 fable5 부재. 전 레인 최종형: 기획=fable5 / work·QA=opus-4.8 xhigh(+복잡 work만 푸구) / code QA·closure=codex 렌즈 유지 / review=gemini.
+
+## N. 고객 배포 경계 결함 (Smith 라이브 설치 실측, 0707 오후) — 등재
+
+**증상(Smith 원문)**: "프로젝트-브릭프로토콜이 있으니까 애초에 이거 이어서 작업하려고 하더라. 고객 측면에서 이런 거 매우 많이 덜어내야 할 듯" — 신선한 고객 머신의 에이전트가 클론에 동승한 우리 내부 작업사(project/brick-protocol/)를 보고 **자기 일로 착각해 이어서 작업 시도**.
+
+**실측**: 추적 파일 5,130 중 project/ = 4,598(90%), 242MB — 원장·빌딩 증거·인계문서·inbox 이벤트 전부 고객 클론에 동승. install.sh = clone-first(전체 클론). 과거 릴리즈 정리 흔적 존재(0613 release-v010-clean-repo 이벤트들, .github/workflows/release-gate.yaml)하나 현행 설치 경로와 미연결.
+
+**판정 방향(Smith)**: 고객 측 대량 덜어내기. 경계는 구조적이어야 함(파일 부재) — 조언성 경계(README "무시해라")는 에이전트 착각을 못 막는다(라이브 실증).
+
+**처분**: 설계-우선 클래스(P3, 배포 아키텍처 갈림: 클린 배포 repo/export vs 설치측 sparse-checkout vs 내부작업 별도 repo 이관) — deep-design 발주(fable5 xhigh, §M 캐스팅), 착지 열차 소진 후. 조사 함대(폴더 신뢰·프리셋 하드코딩)와 같은 "고객-측 결함" 가족 — 설계 입력에 스카웃 결과 동봉.
+
+## O. 고객-측 결함 2건 정찰 결과 채택 (스카웃 2 + 교차검증 1, 0707 오후) — COO 처분 (위임 하)
+
+**P2 프리셋 하드코딩 = CONFIRMED (결정적, 코드로 완결 증명)**:
+- 근본원인 2중: ①캐스팅 해석 사다리의 스텝-명시 rung은 fail-closed 헌법("support는 어댑터를 대신 정하지 않는다", composition_intent)에 따라 registry 무참조 통과 — 그런데 플릿 프리셋 8종이 그 슬롯에 우리 환경의 codex/gemini 리터럴 49행을 데이터로 박아 배포됨 → 고객 등록(providers.yaml)이 반영될 해석 경로 자체가 없음. ②brick init 기본 host=codex 고정(cli.py:1538) + install.sh가 --host 없이 non-interactive 호출 → claude-only 머신은 providers.yaml이 비어 비-플릿 프리셋조차 codex-preferred 레인에서 local_cli_missing HOLD.
+- 증상: 등록을 다 마쳐도 플릿 프리셋은 1번 노드에서 매번 HOLD 사망, resume 동일 재발.
+- **처분 (2단 분리)**: (a) 소형 즉시 — init 기본 host를 first-ready 자동감지로(기존 REAL_PROVIDER_SELECTION_ORDER 재사용) + pre-walk fail-fast(발사 전 전 스텝 어댑터 가용성 대조, not-ready 시 발사 거부+교체 안내) = preset-host-autodetect 빌딩. (b) 엔진급 설계 — 프리셋 리터럴 49행 제거+티어 어휘(행 23 처방의 프리셋 적용, fail-closed 헌법 경계 검토 포함) = deep-design(fable5, §M 캐스팅).
+
+**P1 claude 폴더 신뢰 = PARTIAL (구조 공백 실증, 차단 발화 조건은 미재현)**:
+- 실증된 것: claude 어댑터에 신뢰 처리 전무(gemini는 --skip-trust+env로 명시 우회하는 것과 비대칭), 온보딩 전 표면에 claude 핸드셰이크 0, 신뢰는 ~/.claude.json 경로-단위 저장 + 레인은 stdin=DEVNULL 헤드리스(응답 불가), 미신뢰 경로 기동이 trust=False 엔트리 생성.
+- 반박된 것(교차검증): "무인 레인이 막힌다"는 웜 머신 프로브 3종 전부 green이라 미재현 — 미신뢰 워크스페이스의 실증 효과는 **권한 드롭**(project-scoped 권한 축소)이며, 하드 차단 조건(신선 글로벌 상태/버전)은 프레시-상태 실측 1건이 선행 게이트.
+- **처분**: 2단 빌딩(recon 실측 → 수리) — recon: HOME 격리로 신선 상태 재현, 헤드리스 차단 여부 + 부모경로(~/.brick/worktrees 루트) 신뢰 상속 여부 실측 → 수리 옵션 갈림(경로별 기입 vs 부모 1회 승인 vs 온보딩 대화형 스텝+preflight_claude). P2 먼저(온보딩 3파일 공유 표면은 순서로 해소, 교차검증 판정).
+
+**발주 대기열(착지 열차 소진 후)**: ① graph_draft §M 캐스팅 상수 증분(소형) ② P2-(a) preset-host-autodetect(소형) ③ P1 recon→수리 2단 ④ §N 배포 경계 deep-design(fable5) ⑤ P2-(b) 티어 어휘 deep-design(fable5) — ④⑤ fable5 설계는 시차 발사(스로틀 안전선).
+
+**§N 판정(Smith, 0707 오후)**: 배포 경계 = **클린배포 repo 채택** ("1. 클린배포") — 릴리즈 시점에 제품 파일만 별도 repo/브랜치로 export, install.sh는 클린 repo를 클론. 우리 작업 repo는 그대로. deep-design 입력에 방향 고정: 설계 범위 = 제품 파일 매니페스트(in/out 경계), export 메커니즘(0613 release-v010-clean-repo 흔적·release-gate.yaml 재활용 검토), 버전·고객 업데이트 경로, 온보딩 문서의 클론 대상 전환.
+
+**§O-P1 재분류(Smith 실측 답변)**: 고객 설치서 뜬 팝업 = **macOS 시스템 창(TCC 폴더 접근권한)** — claude CLI 신뢰 다이얼로그가 아니었다. 재분류: ①주 결함 = 설치/첫 빌딩 흐름 중 TCC-보호 경로 접근(어느 단계·어느 경로인지 recon 필요 — tccutil reset으로 우리 머신 재현 가능) → 수리 = 선검사에 설치 경로 지침(보호 폴더 회피) + "권한 창 뜨면 허용" 온보딩 문구 + 보호-경로 접근 제거. TCC는 프로그램 우회 불가(OS 설계)이므로 회피+안내가 정공법. ②부 결함 = claude 미신뢰 워크스페이스 권한 드롭(구조 공백 실증분) — 소형 위생 수리로 별도 유지(온보딩 신뢰 스텝), 우선순위 강등. P1 recon의 질문 교체: "claude가 언제 막히나" → "TCC를 누가 언제 건드리나".
