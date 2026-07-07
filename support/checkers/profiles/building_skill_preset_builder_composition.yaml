@@ -714,7 +714,7 @@ materialize_building_intent_case:
         - adapter:gemini-local
         - adapter:claude-local
       selected_model_refs_by_step:
-        - model:claude:claude-fable-5
+        - model:claude:claude-opus-4-8
         - model:claude:claude-opus-4-8
         - model:gemini:default
         - model:gemini:default

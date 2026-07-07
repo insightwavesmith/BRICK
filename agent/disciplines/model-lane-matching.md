@@ -7,7 +7,7 @@ Declared model-aptitude policy for lane dispatch (Smith, 0702; reconciled
 codex = default implementation, finishing, and code QA lane
 claude sonnet (xhigh effort) = default investigation, axis analysis, and evidence QA lane
 gemini = default low-risk review lens; never assign heavy work by default
-claude-fable-5 = admitted design-lead default for design/synthesis depth, not an absolute lane-model ban
+claude-fable-5 = admitted design/synthesis casting when explicitly cast, not an absolute lane-model ban; design-lead default is now model:claude:claude-opus-4-8 xhigh (0708 fable5 토큰 소진 — 기본만 opus 전환, fable5 클래스 명시 캐스팅은 유지)
 codex-fugu-local / model:sakana:fugu-ultra = admitted high-depth work/design tier when explicitly cast
 ```
 

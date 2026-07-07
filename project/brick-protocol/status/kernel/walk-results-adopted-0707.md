@@ -218,3 +218,70 @@ resume-rootfix-design-0707a 발주에서 `brick draft`에 준 8답과 초안기 
 **처분(설계-우선)**: deep-design(fable5) 발주로 마이그레이션 설계 먼저 — 경계 매니페스트(뭐가 brick_protocol/ 밑으로), 철거 순서(셔임·finder·allowlist·bootstrap 어느 것부터), 경로 체커 26,800 검사 이동, 헌법·AGENTS 개정안, 롤백 안전선, partition_plan. 이전 세션이 잡은 Phase 0(게이트 .DS_Store 수리·Rule13 체커) 등 소형 필수는 이 개헌과 **분리**해 선행 가능(별건). Smith 동행 안건(개헌은 헌법 개정 권한 사항).
 
 **미해결 꼬리**: preset-tier-single 착지 스윕 RED(gemini/.DS_Store 환경모드 추정, 이중신원 무관 — provider_preflight 등 개별 프로파일은 passed) → 재착지 부검 필요(별건).
+
+## S. 공통 Route/HOLD 아키텍처 설계서 — Smith 채택 판정 (codex 기획, 0708)
+
+**출처**: `/Users/smith/Downloads/BRICK_common_route_architecture.md` (codex 작성, 21장). Smith 제출.
+
+**핵심**: "QA 반려 시 fan-in cohort 전체 재실행 → 토큰 낭비" 문제(Smith 0707night 신규 제기)의 구조 답안. QA 전용이 아니라 **모든 레인(dev/design/closure/QA)이 공통 `route_concern_evidence`만 발화 → Link route policy가 `route_scope` 산출 → walker가 부분 실행(live_retry / carry_forward / delta-QA / join recompute) → 불충분하면 HOLD → COO disposition**. 팬아웃 금지(단일 선형) 규율의 **해제 열쇠** = 근거 기반 부분 재실행으로 fan-out을 안전하게 되살림.
+
+**코드 정합 실측(이 세션, 라이브 앵커 3곳 대조)**:
+- `link/route_policies/basic_qa_repair.yaml`: 문서의 coarse scope(qa_only/implementation_only/design_gap) 인용 정확, verification_gap 제외 원칙 유지.
+- `support/operator/walker_fan_in.py:275-288`: "Brick은 movement topology만 모델링 — **node-to-node data-dependency graph 없음** → 형제 stale을 기계가 못 앎 → SAFE = 전체 cohort 재검증" 인용 정확. **이게 토큰 낭비의 코드 원인.**
+- `agent/return_fact.py:10-21`: 기존 concern_kind **8종 봉인**(design_gap/implementation_gap/upstream_gap/boundary_mismatch/insufficient_input/replay_needed/verification_gap/unknown) + NON_REROUTE={verification_gap}. 문서 제안 12종과 6종만 겹침.
+
+**헌법 정합**: 3축·support 무판단·Link Movement 소유·fail-closed HOLD 전부 확장(무손상). no_lane_authors_movement 등 체커 7종 동반 설계 = checker-companion 원칙 준수.
+
+**COO 소견 — 채택 권고 + 발주 전 확정 4핀**:
+1. **자동화 상한 낮음(실측 근거)**: walker_fan_in 자인대로 data-dependency graph 부재 → 문서의 impact resolver("dev-B가 design-plan-1 소비하나?")는 계산 기질 자체가 없음. HOLD 폴백이 있어 설계는 안 무너지나, **초기 효과 = COO 승인 부분범위 재실행이지 전자동 아님**. Phase 4 자동승인은 산출물 소비 추적이라는 별도 공사 선행.
+2. **concern_kind = 봉인 enum 이주**: 신규 6종 추가는 sealed vocabulary 확장 → reader/writer 패리티(Rule 11)·단일소스 체커·§1-7(reroute 자격 파티션 축 거처 미선언, arch-3axis-review-0707.md) 동시 해결 필요. 문서가 스키마 거처를 "agent 또는 shared"로 미정 남김 = 확정할 구멍.
+3. **delta QA = 검증력 vs 토큰 트레이드**: diff 밖 회귀·상호작용 결함 miss 리스크(0702 가짜 랜딩 계열). **머지 직전 빌딩은 full-QA 백스톱** 정책 한 줄 추가 권고.
+4. **개헌과 순서**: Phase 3(walker v2)는 walker_kernel/walker_resume = arch 검수의 13모듈 SCC 한복판. **개헌(§R) 이주 착지 → route v2 시공** 순서. 현재 팬아웃 금지 규율로 낭비 억제 중이라 긴급도 낮음 → 이주 후 첫 엔진급 안건 적격.
+
+**§S 판정(Smith, 0708)**: **채택.** 코덱스 공통 route/HOLD 아키텍처를 resume 근본 트랙의 구조 답안으로 확정. 4핀(자동화 상한·concern_kind enum 이주·delta QA 백스톱·개헌과의 순서)은 시공 설계 입력에 동봉. 모양 = Phase 1~2(공통 concern schema + HOLD-first route policy, 소형) / Phase 3(walker v2 부분 실행 queue, 엔진급) 분리. §D/§F resume 근본 트랙과 통합.
+
+**발주 시점(미확정, 개헌 진행하며 판단 — Smith 0708)**: §R 개헌 설계 진행 중에 판단. 원칙 = Phase 3(walker v2)가 walker_kernel/walker_resume(13모듈 SCC)을 만지므로 §R 이주 시공과 충돌 → 이주 착지 후가 안전선. Phase 1~2(스키마)는 이주와 파일 비충돌이면 선행 검토 여지.
+
+**fable5 최종 사용 메모(Smith 0708)**: fable5 토큰 소진 임박 — §R 개헌 설계(import-unify-design-0708a)가 **fable5 마지막 설계**. 이후 기획 레인 캐스팅은 재지정 필요(fable5 부재). §M 캐스팅 정책의 "기획=fable5" 조항이 다음 세션 판정 대기 꼬리.
+
+## T. 발주 아키텍처 마스터플랜 — COO 검토→승인, 페이즈 편입 (codex 기획, Smith 위임 하 0708)
+
+**출처**: `/Users/smith/Downloads/BRICK_order_architecture_implementation_plan.md` (codex, 13장). Smith: "검토 후 이 방향대로 승인해서 페이즈에 넣어서 간다."
+
+**COO 승인 판정(위임 하)**: **채택.** 근거 3 — ①"새 엔진 금지, build/fan/compose/walker 재사용" 명시 + 기존 자산 위 정식화(프리셋 카탈로그→profile, check_fan_out_sibling_evidence_independence→blind fan, TRANSITION_CONCERN_KINDS→route_concern, check_support_no_axis_judgment→verdict 봉인 — 전부 실존 확인). ②축 경계 정확(Brick=구조선언/Agent=verifier·concern 생산/Link=Movement·route_scope/support=실행·팩·요약) = arch-3axis-review 원칙 정합. ③AI 앵커링을 입력 격리(Blind Pack)로 차단 = Smith CLAUDE.md "네 결과를 네가 검증 마라" 구조화.
+
+**§S 흡수**: 이 문서 Phase 6~7(Common Route Policy + COO Disposition/HOLD) = §S(코덱스 route 설계)와 동일 대상 → **§S를 §T Phase 6~7로 흡수**. concern_kind enum·walker v2를 한 번만 건드리게. §S의 4핀(자동화 상한·enum 이주·delta QA 백스톱·개헌 순서)은 그대로 Phase 6~7 시공 입력에 승계.
+
+**전체 페이즈 (문서 §9 그대로 + 순서 제약):**
+- P1 Schema (brick/order·plan_card·plan_lock·profile, agent/verification·route_concern, link/route_scope) — 신규 파일, 개헌 비충돌
+- P2 Profile Registry + Shape Compiler (support/operator/workflow_profiles·building_shape_compiler)
+- P3 Plan Card + Plan Lock
+- P4 Blind Pack Builder (support/operator/blind_pack)
+- P5 Gate Digest Builder (support/operator/gate_digest·coo_gate_view)
+- **P6 Common Route Policy (=§S 흡수)** — link/route_policy·default_common_route·default_targeted_repair
+- **P7 COO Disposition + HOLD 연결** — link/transition·walker_resume·walker_kernel 수정 = **13모듈 SCC 접촉**
+- P8 Checkers (8종: blind_pack_no_anchor·gate_digest_blocker_first·verification_return_no_verdict·plan_lock_integrity·route_concern_shape·route_scope_authority·no_dev_reroute_on_verification_gap·no_new_building_on_qa_reject)
+
+**순서 제약(실측 근거)**: P7이 walker_resume/walker_kernel(arch 검수의 13모듈 SCC) 접촉 → **§R import 이주 착지 후**가 P6~P7 안전선. P1~P5는 신규 파일 위주라 개헌과 파일충돌 적음 → 개헌 시공과 병행 가능(단 P4~P5는 support/operator 만지므로 겹침 점검). 시공 캐스팅 = work=fugu/opus-4.8(§K·§M).
+
+**연속 시공 골 (Smith 0708: "지금 있는 작업들 빌딩으로 쭉 이어서, 골로 잡고 완료될 때까지"):** 아래 GOAL을 단일 연속 트랙으로. 각 빌딩 착지 후 다음 발주, origin 착지·격차0 확인하며 진행.
+
+## U. 푸구 레인 timeout 규율 (Smith 0708)
+
+**Smith 원문**: "푸구가 들어간 건 3시간은 줘야 한다 (좋지만 느림)."
+
+**규율**: work·설계 등 어느 노드든 `adapter:codex-fugu-local`(푸구)가 캐스팅된 레인이 하나라도 있는 빌딩은 `adapter_timeout_seconds` **최소 10800(3시간)** 확보. one-call build() 기본 120초는 물론, 통상 설계 timeout도 푸구엔 짧다. 푸구는 품질 상위-두뇌지만 느린 하네스라 성급한 timeout이 레인 사망(스톨 오판)을 만든다. §M 캐스팅(복잡 work·엔진급=푸구)과 한 몸 — 푸구 캐스팅 = 3시간 timeout 세트로 발주.
+
+## V. 병렬 시공 전략 — 파일 충돌 매트릭스 판정 (Smith 0708 "비충돌은 병렬" 지시 집행)
+
+**Smith 지시**: 푸구 느림 대응 — 파일 비충돌 작업은 병렬 발사해 벽시계 시간 확보.
+
+**실측 판정 (0708)**: 현 대기 작업들은 대부분 **checker-companion 원칙**(헌법 강제 — 모든 실질 변경은 support/checkers/ 핀 동반) 때문에 `support/checkers/`에서 서로 겹친다. 진행 중 ⑥ fable5-to-opus가 `support/checkers/**` 전체를 write_scope로 잡아, 지금 시점 비충돌 병렬 후보 = 사실상 0:\n- 개헌 이주(§R): brick/agent/link/support 전체 git mv → 모든 것과 충돌(단독 필수)\n- ④ preset-host-autodetect: pre-walk 검문 체커 신설 → support/checkers/ 겹침\n- ① cleanrepo(§P): release_export_lint 체커 → 겹침\n\n**병렬의 진짜 창 = §T Phase 1~5** (개헌 착지 후): brick/order.py·agent/verification.py·link/route_scope.py 등 **신규 파일**이 서로 다른 축에 흩어져 있고 각자 신규 체커도 비충돌 → 격리 워크트리 3~5개 동시 발사 가능. 여기서 푸구 느림을 크게 회수. **착지는 push 직렬화라 병렬 시공해도 착지는 한 줄** — 병렬은 시공 벽시계만 절약, 착지 순서는 순차 유지.\n\n**규율**: 병렬 발사 전 write_scope 교집합 실측 필수(support/checkers/ 겹침이 최빈 충돌). 겹치면 순차. 억지 병렬은 착지 게이트 지문 오염(0702 실측: 병행 아카이브로 같은 프로파일 실패 6→1→0) 리스크가 이득 초과.\n\n**현 연속 골 순서 (0708)**: ①정리✓ → ②소형필수✓(03b6588c4 착지) → ③⑥fable5→opus(진행중, 단독) → ④개헌 이주(단독) → ⑤§T Phase1~5(★병렬) → ⑥§T Phase6~8(walker v2, =§S 흡수).
+
+## W. 기획 캐스팅 fable5→opus-4.8 전환 (Smith 0708, COO 직접 편집 — 빌딩 불요)
+
+**Smith 판정**: fable5 토큰 소진 임박 → design·deep-design 기본 캐스팅을 opus-4.8 xhigh로. **후자 해석 채택**: fable5 완전 은퇴 아님 — **design-lead 기본값만 opus로 전환, fable5 클래스는 명시 캐스팅 시 여전히 허용**. §M "기획=fable5" 조항은 "기획 기본=opus-4.8, fable5는 명시 캐스팅 클래스"로 정밀화(정책 삭제 아닌 기본값 이동).
+
+**Smith 지적(정당)**: "fable5를 opus로 바꾸는 걸 왜 빌딩을 태워?" — 리터럴 편집 몇 분 작업을 빌딩(fugu 3h)으로 발주한 건 과잉. 발주한 fable5-to-opus-casting-0708a 빌딩 중단·워크트리 정리 후 COO 직접 편집으로 전환. **교훈: 리터럴/문구 치환은 직접 편집, 빌딩은 설계·판단 필요한 것만.**
+
+**변경(7파일, 직접)**: ①provider_registry.py casting-tier:plan model_ref→opus(핵심 한 줄 — 실측: 이제 design/deep-design 전부 opus 해석) ②design-lead.yaml preferred_model_ref→opus ③postmortem-deep.json design·closure 리터럴→opus ④model-lane-matching.md 규율 문구를 "default=opus, fable5 클래스는 명시 캐스팅" 정밀화 ⑤check_model_lane_matching_discipline.py 하드검증+문구 동기화 ⑥프로파일 yaml 2종(model_lane·building_skill_preset review-fleet design 스텝) 기대값 동기화. **유지(안 건드림)**: fable5 봉쇄 P50/P51(work/QA 금지), _contain_fable5 방어, 어댑터 배선·malformed-ref 테스트 — fable5가 유효 모델로 남으므로 정합. 격리 --all 55 green.

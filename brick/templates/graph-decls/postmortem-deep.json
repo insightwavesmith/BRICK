@@ -20,10 +20,10 @@
     ]}},
     {"kind": "review", "work_statement": "관찰 병합: 8렌즈 반환을 축×(관찰/반증) 지도로 병합. 중복 제거, 상충은 상충으로 표기(해소 금지), 교차-사건 반복 후보를 클래스 후보 표로 정리. 판단 무권한.", "adapter_ref": "adapter:claude-local", "model_ref": "model:claude:sonnet", "reasoning_effort_ref": "effort:xhigh"},
     {"fan": {"branches": [
-      {"kind": "design", "work_statement": "독립 진단 A: 병합 지도만 입력으로 근본원인 후보·축 귀속·처방 후보·'다른 두 진단자가 놓쳤을 것'을 반환. 대조 사건(기지-원인)의 원인을 반드시 자력 회수하라. 채택 권한 없음, 전 주장에 지도 항목 인용.", "adapter_ref": "adapter:claude-local", "model_ref": "model:claude:claude-fable-5", "reasoning_effort_ref": "effort:xhigh"},
+      {"kind": "design", "work_statement": "독립 진단 A: 병합 지도만 입력으로 근본원인 후보·축 귀속·처방 후보·'다른 두 진단자가 놓쳤을 것'을 반환. 대조 사건(기지-원인)의 원인을 반드시 자력 회수하라. 채택 권한 없음, 전 주장에 지도 항목 인용.", "adapter_ref": "adapter:claude-local", "model_ref": "model:claude:claude-opus-4-8", "reasoning_effort_ref": "effort:xhigh"},
       {"kind": "design", "work_statement": "독립 진단 B: 병합 지도만 입력으로 근본원인 후보·축 귀속·처방 후보·상호맹점을 반환. 대조 사건 원인 자력 회수 필수. 채택 권한 없음, 지도 인용.", "adapter_ref": "adapter:codex-local", "reasoning_effort_ref": "effort:xhigh"},
       {"kind": "design", "work_statement": "독립 진단 C: 병합 지도만 입력으로 근본원인 후보·축 귀속·처방 후보·상호맹점을 반환. 대조 사건 원인 자력 회수 필수. 채택 권한 없음, 지도 인용.", "adapter_ref": "adapter:codex-fugu-local", "model_ref": "model:sakana:fugu-ultra", "reasoning_effort_ref": "effort:xhigh"}
     ]}},
-    {"kind": "closure", "work_statement": "종합: 3진단의 합의/충돌/고유발견 분리 + 반복 패턴 표(클래스별 사건 목록·축 귀속 후보) + 유령/실재 분리 + 대조-사건 회수율 명시(미회수 진단자의 신규 주장 할인 표기) + 처방 후보를 인체공학 표 행·골 문서 행 후보 형태로. 억지 클래스화 금지(단독 사건은 단독으로). 성공/품질/채택 판정 금지 — 미해결은 transition_concern_evidence로.", "adapter_ref": "adapter:claude-local", "model_ref": "model:claude:claude-fable-5", "reasoning_effort_ref": "effort:xhigh"}
+    {"kind": "closure", "work_statement": "종합: 3진단의 합의/충돌/고유발견 분리 + 반복 패턴 표(클래스별 사건 목록·축 귀속 후보) + 유령/실재 분리 + 대조-사건 회수율 명시(미회수 진단자의 신규 주장 할인 표기) + 처방 후보를 인체공학 표 행·골 문서 행 후보 형태로. 억지 클래스화 금지(단독 사건은 단독으로). 성공/품질/채택 판정 금지 — 미해결은 transition_concern_evidence로.", "adapter_ref": "adapter:claude-local", "model_ref": "model:claude:claude-opus-4-8", "reasoning_effort_ref": "effort:xhigh"}
   ]
 }

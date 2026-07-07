@@ -45,7 +45,7 @@ CASTING_TIER_DECLARATIONS: Mapping[str, Mapping[str, Any]] = {
         "adapter_ladder": (
             {
                 "adapter_ref": ADAPTER_CLAUDE_LOCAL,
-                "model_ref": "model:claude:claude-fable-5",
+                "model_ref": "model:claude:claude-opus-4-8",
                 "selected_reasoning_effort_ref": CASTING_REASONING_EFFORT_XHIGH,
             },
         ),
