@@ -146,6 +146,286 @@ def _delegation_violations() -> list[str]:
 
 
 # ---------------------------------------------------------------------------
+# P1b: residual pre-delegation guard pin (D3)
+# ---------------------------------------------------------------------------
+
+# The live resume firing point (``_resume_dynamic_graph_walker``) MUST keep a
+# residual not-held / applied-resume guard that runs BEFORE
+# ``_read_disposition_row`` -- that reader needs the ``hold_record`` mapping,
+# which is only present on a HELD record, so the not-held / already-applied cases
+# must be refused first. ``resume_admission_decision`` re-checks the SAME two
+# conditions inside the delegated sequence, but the live path cannot delegate
+# them first because it must read the disposition row before delegating. So this
+# guard is a MEASURED DECLARED RESIDUAL, not a duplicate to fold away (0707: the
+# not-held branch reaches ``_read_disposition_row(root, hold_record)`` before the
+# delegation call, so the guard cannot move without breaking the live path).
+#
+# Being a declared residual, it must raise the SHARED module-constant literals
+# (``_NOT_HELD_REFUSAL`` / ``_APPLIED_RESUME_REFUSAL``) so its accept/refuse
+# literal can never drift away from the delegated sequence (invariant I2). The
+# delegation pin above does NOT cover this: it only forbids the banned SEQUENCE
+# validators and counts the delegating call; it says nothing about these two
+# refusal constants. Without this pin the residual guard could drift to an inline
+# string, or vanish entirely, while the checker stayed green (0707 measured gap:
+# both a literal drift and a full removal of the residual guard stayed rc=0).
+#
+# 0707 QA follow-up (M3/M4/M5/M6 closure): a NAME-PRESENCE-ONLY pin (does the
+# constant appear inside ANY raise anywhere in the function body?) is NOT
+# enough. Code-attack-QA measured four bypass forms that all kept the constant
+# names somewhere in the body and stayed rc=0:
+#   M3 (position): move the guard AFTER the ``_read_disposition_row`` call, so a
+#       not-held / already-applied record reaches the disposition reader first.
+#   M4 (dead code): keep the ``raise`` statements but under a branch that can
+#       never execute (e.g. ``if False:`` / an unreachable else), so the names
+#       survive but never fire.
+#   M5 (condition inversion): invert the guard predicate (``if evidence.get(
+#       "held")`` instead of ``if not evidence.get("held")``), so the refusals
+#       fire on the HELD case and a not-held record slips through.
+#   M6 (compound): any combination of the above.
+# So the pin below is STRUCTURAL, not name-presence: it locates the guard as an
+# ``if`` statement whose test is the not-held predicate (``not <held-read>``),
+# asserts BOTH refusal constants are raised on that not-held branch (reachably,
+# at guard nesting depth -- not merely somewhere in the function), and asserts
+# the guard STATEMENT precedes the first ``_read_disposition_row`` call in the
+# function body. Each of M3/M4/M5/M6 flips at least one of these facts, so each
+# now reddens. Name-presence remains a fallback error only when no structural
+# guard is found at all.
+_RESIDUAL_GUARD_FUNCTION = "_resume_dynamic_graph_walker"
+_RESIDUAL_GUARD_CONSTANTS = ("_NOT_HELD_REFUSAL", "_APPLIED_RESUME_REFUSAL")
+_DISPOSITION_READER = "_read_disposition_row"
+# The evidence read the not-held predicate must consult. The live guard is
+# ``if not evidence.get("held"):`` -- the guard predicate MUST be a boolean-NOT
+# over a read of the ``held`` flag, otherwise M5 (condition inversion) or a
+# predicate swap could let a not-held record through while the names survive.
+_HELD_FLAG_KEY = "held"
+
+
+def _raised_name_ids_in(node: ast.AST) -> set[str]:
+    """Every ``ast.Name`` id appearing inside a ``raise ...`` statement in node.
+
+    A residual guard that raises ``ValueError(_NOT_HELD_REFUSAL)`` exposes the
+    constant as a ``Name`` inside the ``Raise`` expression; a drift to
+    ``ValueError("inline string")`` or an outright removal of the guard makes the
+    constant name disappear from the raised set, which is the D3 violation.
+    """
+
+    names: set[str] = set()
+    for inner in ast.walk(node):
+        if isinstance(inner, ast.Raise) and inner.exc is not None:
+            for sub in ast.walk(inner.exc):
+                if isinstance(sub, ast.Name):
+                    names.add(sub.id)
+    return names
+
+
+def _static_bool(test: ast.expr) -> bool | None:
+    """Static truthiness of ``test`` when it is a literal constant, else None.
+
+    ``if False:`` / ``if 0:`` / ``if None:`` are statically-dead branches; ``if
+    True:`` / ``if 1:`` are statically-live. Anything non-constant returns None
+    (unknown -- treated as reachable). This lets the reachable-raise collector
+    prune a dead-code branch (M4: raises kept under ``if False:`` so their names
+    survive an ``ast.walk`` but can never fire).
+    """
+
+    if isinstance(test, ast.Constant):
+        return bool(test.value)
+    return None
+
+
+def _reachable_raised_name_ids_in(node: ast.AST) -> set[str]:
+    """Raised ``ast.Name`` ids reachable in ``node``, pruning statically-dead
+    ``if`` branches.
+
+    Unlike :func:`_raised_name_ids_in` (a flat ``ast.walk``), this walks the
+    statement tree and, at every ``ast.If``, drops the dead side when the test is
+    a literal constant: a constant-false test prunes the ``body`` (M4 dead code),
+    a constant-true test prunes the ``orelse``. A raise buried under ``if
+    False:`` therefore no longer counts as a guard refusal, so M4 reddens.
+    """
+
+    names: set[str] = set()
+
+    def _visit(n: ast.AST) -> None:
+        if isinstance(n, ast.Raise):
+            if n.exc is not None:
+                for sub in ast.walk(n.exc):
+                    if isinstance(sub, ast.Name):
+                        names.add(sub.id)
+            return
+        if isinstance(n, ast.If):
+            truth = _static_bool(n.test)
+            branches: list[list[ast.stmt]] = []
+            if truth is None:
+                branches = [n.body, n.orelse]
+            elif truth:
+                branches = [n.body]
+            else:
+                branches = [n.orelse]
+            for branch in branches:
+                for stmt in branch:
+                    _visit(stmt)
+            return
+        for child in ast.iter_child_nodes(n):
+            _visit(child)
+
+    _visit(node)
+    return names
+
+
+def _reads_held_flag(node: ast.AST) -> bool:
+    """True when ``node`` reads the ``held`` flag off the evidence mapping.
+
+    Matches both ``evidence.get("held")`` (a ``Call`` to a ``.get`` attribute
+    with the ``held`` string as first arg) and ``evidence["held"]`` (a
+    ``Subscript`` with the ``held`` constant). This is how the not-held guard
+    predicate consults the HELD flag; requiring it inside the guard test blocks a
+    predicate swap (M5-adjacent) that keeps the raises but tests something else.
+    """
+
+    for inner in ast.walk(node):
+        if (
+            isinstance(inner, ast.Call)
+            and isinstance(inner.func, ast.Attribute)
+            and inner.func.attr == "get"
+            and inner.args
+            and isinstance(inner.args[0], ast.Constant)
+            and inner.args[0].value == _HELD_FLAG_KEY
+        ):
+            return True
+        if isinstance(inner, ast.Subscript):
+            key = inner.slice
+            if isinstance(key, ast.Constant) and key.value == _HELD_FLAG_KEY:
+                return True
+    return False
+
+
+def _is_not_held_test(test: ast.expr) -> bool:
+    """True when ``test`` is a boolean-NOT over a read of the ``held`` flag.
+
+    The live guard is ``if not evidence.get("held"):``. Requiring the ``not``
+    (``ast.UnaryOp`` with ``ast.Not``) directly over a HELD-flag read means M5
+    (inverting to ``if evidence.get("held"):`` -- dropping the ``not``) no longer
+    matches this guard shape, so no structural guard is found on the not-held
+    branch and the pin reddens.
+    """
+
+    if not (isinstance(test, ast.UnaryOp) and isinstance(test.op, ast.Not)):
+        return False
+    return _reads_held_flag(test.operand)
+
+
+def _first_disposition_reader_index(body: list[ast.stmt]) -> int | None:
+    """Index of the first top-level statement in ``body`` that calls
+    ``_read_disposition_row``; ``None`` when it is never called at top level."""
+
+    for index, stmt in enumerate(body):
+        for inner in ast.walk(stmt):
+            if (
+                isinstance(inner, ast.Call)
+                and isinstance(inner.func, ast.Name)
+                and inner.func.id == _DISPOSITION_READER
+            ):
+                return index
+    return None
+
+
+def _residual_guard_violations() -> list[str]:
+    with open(_WALKER_RESUME_PATH, encoding="utf-8") as handle:
+        tree = ast.parse(handle.read(), filename=_WALKER_RESUME_PATH)
+    target: ast.FunctionDef | None = None
+    for node in ast.walk(tree):
+        if (
+            isinstance(node, ast.FunctionDef)
+            and node.name == _RESIDUAL_GUARD_FUNCTION
+        ):
+            target = node
+            break
+    violations: list[str] = []
+    if target is None:
+        violations.append(
+            "resume-admission residual-guard violated: firing function "
+            f"{_RESIDUAL_GUARD_FUNCTION} not found in walker_resume.py"
+        )
+        return violations
+
+    # Locate the STRUCTURAL guard: the FIRST top-level ``if not <held-read>:``
+    # statement in the function body. Searching only top-level statements (not
+    # ast.walk) pins the guard at guard nesting depth -- a raise buried inside an
+    # unrelated nested branch does not qualify, and neither does a dead-code
+    # (``if False:``) block, because its test is not the not-held predicate.
+    guard_index: int | None = None
+    guard_stmt: ast.If | None = None
+    for index, stmt in enumerate(target.body):
+        if isinstance(stmt, ast.If) and _is_not_held_test(stmt.test):
+            guard_index = index
+            guard_stmt = stmt
+            break
+
+    if guard_stmt is None:
+        # No structural not-held guard. Report the name-presence gap too so the
+        # message names exactly which constant(s) are missing when someone has
+        # simply deleted the guard (M4 full removal) or inverted the predicate
+        # (M5) so the ``not <held-read>`` shape disappeared.
+        raised = _raised_name_ids_in(target)
+        missing = [c for c in _RESIDUAL_GUARD_CONSTANTS if c not in raised]
+        detail = (
+            f" (constants absent from all raises: {', '.join(missing)})"
+            if missing
+            else " (constants present but not on an `if not evidence.get(\"held\")` "
+            "guard branch -- position/condition/reachability drift)"
+        )
+        violations.append(
+            "resume-admission residual-guard violated: "
+            f"{_RESIDUAL_GUARD_FUNCTION} must keep an "
+            "`if not evidence.get(\"held\"): ... raise` pre-delegation guard that "
+            "refuses the not-held / applied-resume cases before "
+            f"{_DISPOSITION_READER}" + detail
+        )
+        return violations
+
+    # The guard exists and tests the not-held predicate. Both refusal constants
+    # must be raised REACHABLY on this guard branch (its body / nested orelse),
+    # not merely somewhere in the function -- this blocks M4 (dead-code raises
+    # elsewhere) because those raises are outside the guard statement.
+    #
+    # ``_reachable_raised_name_ids_in`` prunes statically-dead ``if False:``
+    # branches, so a raise kept under a constant-false test INSIDE the guard body
+    # (M4 dead-code inside the guard) no longer counts and reddens too.
+    guard_raised = _reachable_raised_name_ids_in(guard_stmt)
+    for constant in _RESIDUAL_GUARD_CONSTANTS:
+        if constant not in guard_raised:
+            violations.append(
+                "resume-admission residual-guard violated: "
+                f"{_RESIDUAL_GUARD_FUNCTION} must raise the shared module constant "
+                f"{constant} INSIDE its `if not evidence.get(\"held\")` guard branch "
+                "(the not-held / applied-resume refusal) -- a raise moved outside "
+                "the guard, dropped, or drifted to an inline literal is not admitted"
+            )
+
+    # Position: the guard STATEMENT must precede the first _read_disposition_row
+    # call in the function body. This blocks M3 (guard moved after the reader):
+    # the disposition reader needs the hold_record mapping that only a HELD record
+    # carries, so a not-held record must be refused BEFORE it is read.
+    reader_index = _first_disposition_reader_index(target.body)
+    if reader_index is None:
+        violations.append(
+            "resume-admission residual-guard violated: "
+            f"{_RESIDUAL_GUARD_FUNCTION} no longer calls {_DISPOSITION_READER} at "
+            "top level -- the pre-delegation guard ordering can no longer be pinned"
+        )
+    elif guard_index >= reader_index:
+        violations.append(
+            "resume-admission residual-guard violated: "
+            f"the not-held guard in {_RESIDUAL_GUARD_FUNCTION} must precede the "
+            f"first {_DISPOSITION_READER} call (guard at statement {guard_index}, "
+            f"reader at statement {reader_index}) -- refusing not-held/applied-resume "
+            "records only AFTER reading the disposition row is not admitted"
+        )
+    return violations
+
+
+# ---------------------------------------------------------------------------
 # P2: behavioral refusal probes (drive the shared function in-process)
 # ---------------------------------------------------------------------------
 
@@ -310,6 +590,44 @@ def _refusal_probe_count() -> int:
         completed_step_frontier_loader=_loader_must_not_fire,
         returned_claims_present_loader=_loader_must_not_fire,
         enforce_raise_budget_increment=False,
+        adapter_error_stop_short_circuit=False,
+    )
+    fired += 1
+
+    # D2 refusal pin: action=raise with a missing budget_increment must refuse
+    # before any ledger read when the resume firing point enforces the
+    # budget-increment clause. This is the malformed/absent half of D2; the
+    # positive-path coercion probe below pins the accepted string->int half.
+    _assert_refuses(
+        walker,
+        "raise-budget-increment-absent",
+        "transition_lifecycle.budget_increment must be a positive integer",
+        evidence=gate_pause_evidence,
+        disposition={"disposition_action": "raise"},
+        declared_plan=plan,
+        recorded_returns_loader=_loader_must_not_fire,
+        completed_step_frontier_loader=_loader_must_not_fire,
+        returned_claims_present_loader=_loader_must_not_fire,
+        enforce_raise_budget_increment=True,
+        adapter_error_stop_short_circuit=False,
+    )
+    fired += 1
+
+    # D2 refusal pin: malformed budget_increment values must also refuse at the
+    # same pre-ledger sequence point. A mutation that loosens or removes
+    # ``_required_disposition_action`` / ``require_positive_int`` now reddens
+    # directly instead of being covered only by the accepted-path coercion probe.
+    _assert_refuses(
+        walker,
+        "raise-budget-increment-malformed",
+        "transition_lifecycle.budget_increment must be a positive integer",
+        evidence=gate_pause_evidence,
+        disposition={"disposition_action": "raise", "budget_increment": "nope"},
+        declared_plan=plan,
+        recorded_returns_loader=_loader_must_not_fire,
+        completed_step_frontier_loader=_loader_must_not_fire,
+        returned_claims_present_loader=_loader_must_not_fire,
+        enforce_raise_budget_increment=True,
         adapter_error_stop_short_circuit=False,
     )
     fired += 1
@@ -496,6 +814,7 @@ def _short_circuit_probe() -> None:
 def main() -> int:
     try:
         violations = _delegation_violations()
+        violations += _residual_guard_violations()
         if violations:
             for line in violations:
                 print(line)
@@ -509,6 +828,7 @@ def main() -> int:
     print(
         "resume-admission single-source: OK "
         f"(2 firing points delegate, no inline/alias sequence-validator reference; "
+        "residual not-held/applied-resume guard raises shared constants; "
         f"{fired} refusal probes fired; "
         "raise budget increment coerces to int; "
         "paper-stop short-circuit precedes ledger reads)"
