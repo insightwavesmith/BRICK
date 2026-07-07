@@ -2,18 +2,20 @@
 # Brick Protocol installer (rustup / uv style steps, clone-first).
 #
 # Usage (on a fresh machine) -- there is NO hosted installer URL; get the
-# script from the repository first, with your own gh/git login:
-#   gh repo clone {OWNER}/BRICK ~/BRICK
+# script from the clean distribution repository first (product files only;
+# the internal project/ ledger and build artifacts are excluded), with your
+# own gh/git login:
+#   gh repo clone {OWNER}/BRICK-dist ~/BRICK
 #   sh ~/BRICK/support/onboarding/install.sh
 # Replace {OWNER} with your GitHub org/user, e.g.:
-#   gh repo clone {OWNER}/BRICK ~/BRICK
-# (or: git clone https://github.com/{OWNER}/BRICK.git, then run
+#   gh repo clone {OWNER}/BRICK-dist ~/BRICK
+# (or: git clone https://github.com/{OWNER}/BRICK-dist.git, then run
 #  support/onboarding/install.sh from the checkout)
 # Cloned somewhere other than $HOME/BRICK? Set BRICK_HOME to that path
 # first (e.g. BRICK_HOME=/path/to/your/clone sh install.sh) -- the default
 # target is $HOME/BRICK.
 # Running the script before the target checkout exists? Set BRICK_REPO first
-# (e.g. BRICK_REPO={OWNER}/BRICK sh install.sh).
+# (e.g. BRICK_REPO={OWNER}/BRICK-dist sh install.sh).
 #
 # WHAT IT DOES (each step is plain and idempotent):
 #   0. PREFLIGHT FIRST: diagnose EVERY precondition (pipx, git, uv, a
@@ -205,7 +207,7 @@ preflight_gh() {
     fi
     if [ -z "$repo_slug" ]; then
         printf '%s\n' \
-            "  ✗ 받을 저장소 미지정 — 지금 치세요: BRICK_REPO={OWNER}/BRICK sh support/onboarding/install.sh" >&2
+            "  ✗ 받을 저장소 미지정 — 지금 치세요: BRICK_REPO={OWNER}/BRICK-dist sh support/onboarding/install.sh" >&2
         return 1
     fi
     if ! command -v gh >/dev/null 2>&1; then
@@ -248,7 +250,8 @@ main() {
                 "하는 일: 선검사(pipx·git·uv·python3.11+·디스크·gh 로그인 일괄 진단, 부족분 자동 설치) -> 저장소 받기 -> uv sync -> 진입점/점검 -> 다음 안내" \
                 "" \
                 "설치 위치는 BRICK_HOME 환경변수로 바꿀 수 있어요 (기본값: \$HOME/BRICK)." \
-                "새 org/user 포크라면 BRICK_REPO={OWNER}/BRICK 로 받을 저장소를 바꿀 수 있어요." \
+                "받는 곳은 제품 파일만 담긴 클린 배포 저장소(예: {OWNER}/BRICK-dist)예요." \
+                "새 org/user 포크라면 BRICK_REPO={OWNER}/BRICK-dist 로 받을 저장소를 바꿀 수 있어요." \
                 "토큰이나 비밀번호는 이 스크립트에 들어 있지 않아요. 내 gh/git 로그인을 그대로 씁니다." \
                 "" \
                 "그냥 실행하려면 옵션 없이 다시 실행하세요."

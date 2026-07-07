@@ -19,11 +19,11 @@ or approve any Building outcome.
 2. Smith sends the repository invitation through GitHub repository access
    settings.
 3. The customer accepts the GitHub invitation with their own account.
-4. The customer clones the invited repository with their own GitHub
-   authentication. The owner is always the deploy repository owner they were
-   invited to (currently `insightwavesmith`), never the customer's own account;
-   a non-invited or wrong-owner clone returns a not-found error:
-   `gh repo clone insightwavesmith/BRICK ~/BRICK`.
+4. The customer clones the invited clean distribution repository with their own
+   GitHub authentication. The owner is always the deploy repository owner they
+   were invited to (for example, `{OWNER}/BRICK-dist`), never the customer's own
+   account; a non-invited or wrong-owner clone returns a not-found error:
+   `gh repo clone {OWNER}/BRICK-dist ~/BRICK`.
 5. The customer runs `sh ~/BRICK/support/onboarding/install.sh`.
 6. The installer performs its local installation check and prints
    `5) 설치 점검 완료` only after that check exits cleanly.

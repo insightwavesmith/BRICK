@@ -37,5 +37,5 @@ jobs:
       - name: Install dependencies
         run: uv sync --locked
 
-      - name: Run release gate (compileall, check_profile, brick verify --self-test, dashboard build, release_export negative probe)
+      - name: Run release gate (compileall, check_profile, brick verify --self-test, dashboard build, release_export negative probe, clean-boundary output scan, release_product_manifest negative probe leak-scan dry-run only)
         run: sh support/onboarding/release_gate.sh

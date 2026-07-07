@@ -8,7 +8,8 @@
 #   4. wheel smoke: build wheel and verify installed brick console entry
 #   5. support/dashboard npm ci + build
 #   6. release_export.sh negative denylist probe
-#   7. release_export.sh into a temporary dry-run tree
+#   7. release_export.sh into a temporary dry-run tree + clean-boundary output scan
+#   8. release_product_manifest negative probe when the manifest is present
 #
 # This script does not tag, push, choose Movement, judge quality, or change
 # GitHub repository settings. It exits non-zero on the first failed command.
@@ -19,7 +20,7 @@ usage() {
     printf '%s\n' \
         "Usage: sh support/onboarding/release_gate.sh" \
         "" \
-        "Runs compileall, check_profile.py --all, brick verify --self-test, wheel smoke, dashboard build, release_export negative probe, and a release-export dry-run."
+        "Runs compileall, check_profile.py --all, brick verify --self-test, wheel smoke, dashboard build, release_export negative probe, a release-export dry-run with clean-boundary output scan, and the release_product_manifest leak-scan dry-run when the manifest is present."
 }
 
 main() {
@@ -58,6 +59,8 @@ main() {
         rm -rf "$repo_root/build"
         rm -rf "${export_dir:-}"
         rm -rf "${negative_export_dir:-}"
+        rm -rf "${manifest_negative_export_dir:-}"
+        rm -rf "${manifest_probe_repo:-}"
         rm -f "${deny_probe_path:-}"
     }
     trap cleanup EXIT HUP INT TERM
@@ -117,8 +120,83 @@ main() {
     rm -f "$deny_probe_path"
     printf '%s\n' "release_export negative probe rejected forbidden file as expected"
 
-    printf '%s\n' "7) release export dry-run"
-    ( cd "$repo_root" && sh support/onboarding/release_export.sh --output "$export_dir/export" )
+    printf '%s\n' "7) release export dry-run + clean-boundary output scan"
+    if ! (
+        cd "$repo_root" &&
+        sh support/onboarding/release_export.sh --output "$export_dir/export"
+    ) > "$export_dir/stdout.log" 2> "$export_dir/stderr.log"; then
+        printf '%s\n' "release_gate: release_export dry-run failed" >&2
+        cat "$export_dir/stdout.log" >&2
+        cat "$export_dir/stderr.log" >&2
+        return 1
+    fi
+    cat "$export_dir/stdout.log"
+    if [ -s "$export_dir/stderr.log" ]; then
+        cat "$export_dir/stderr.log" >&2
+    fi
+    if [ -e "$export_dir/export/project" ]; then
+        printf '%s\n' "release_gate: release_export dry-run created forbidden project/ path" >&2
+        return 1
+    fi
+    if [ ! -f "$export_dir/export/support/onboarding/release_product_manifest.json" ]; then
+        printf '%s\n' "release_gate: release_export dry-run did not ship the product manifest" >&2
+        return 1
+    fi
+    if ! grep -Fq "manifest violations: 0" "$export_dir/stdout.log"; then
+        printf '%s\n' "release_gate: release_export dry-run did not report manifest violations: 0" >&2
+        return 1
+    fi
+    if ! grep -Fq "git remote add origin git@github.com:{OWNER}/BRICK-dist.git" "$export_dir/stdout.log"; then
+        printf '%s\n' "release_gate: release_export dry-run did not report the BRICK-dist follow-up target" >&2
+        return 1
+    fi
+    if grep -Fq "git remote add origin git@github.com:{OWNER}/BRICK.git" "$export_dir/stdout.log"; then
+        printf '%s\n' "release_gate: release_export dry-run reported the legacy BRICK follow-up target" >&2
+        return 1
+    fi
+
+    manifest_path="$repo_root/support/onboarding/release_product_manifest.json"
+    manifest_negative_export_dir="$(mktemp -d "$tmp_parent/brick-release-gate-manifest-negative.XXXXXX")"
+    manifest_probe_repo="$(mktemp -d "$tmp_parent/brick-release-gate-manifest-probe-repo.XXXXXX")"
+
+    # Clean-boundary manifest probing stays a local dry-run leak scan only; it
+    # uses a disposable temp git repo rather than writing byproducts into the
+    # live checkout root. It does not publish, tag, push, or mutate GitHub settings.
+    printf '%s\n' "8) release_product_manifest negative probe: leak-scan dry-run only"
+    if [ ! -f "$manifest_path" ]; then
+        printf '%s\n' "release_product_manifest negative probe skipped: manifest not present"
+    else
+        mkdir -p "$manifest_probe_repo/support/onboarding"
+        cp "$repo_root/support/onboarding/release_export.sh" "$manifest_probe_repo/support/onboarding/release_export.sh"
+        cp "$manifest_path" "$manifest_probe_repo/support/onboarding/release_product_manifest.json"
+        cp "$repo_root/README.md" "$manifest_probe_repo/README.md"
+        (
+            cd "$manifest_probe_repo" &&
+            git init -q &&
+            git checkout -q -B main &&
+            git config user.name "Brick Protocol Release Gate Probe" &&
+            git config user.email "release-gate-probe@example.invalid" &&
+            git add README.md support/onboarding/release_export.sh support/onboarding/release_product_manifest.json &&
+            git commit -q -m "manifest negative probe base"
+        )
+        printf '%s\n' "synthetic probe path: release_product_manifest non-whitelisted input" > "$manifest_probe_repo/internal-notes.release-manifest-probe.txt"
+        if (
+            cd "$manifest_probe_repo" &&
+            sh support/onboarding/release_export.sh --output "$manifest_negative_export_dir/export" --include-untracked --allow-dirty
+        ) > "$manifest_negative_export_dir/stdout.log" 2> "$manifest_negative_export_dir/stderr.log"; then
+            printf '%s\n' "release_gate: release_product_manifest negative probe unexpectedly passed" >&2
+            cat "$manifest_negative_export_dir/stdout.log" >&2
+            cat "$manifest_negative_export_dir/stderr.log" >&2
+            return 1
+        fi
+        if ! grep -Fq "release product manifest violation: export input outside whitelist" "$manifest_negative_export_dir/stderr.log"; then
+            printf '%s\n' "release_gate: release_product_manifest negative probe failed for the wrong reason" >&2
+            cat "$manifest_negative_export_dir/stdout.log" >&2
+            cat "$manifest_negative_export_dir/stderr.log" >&2
+            return 1
+        fi
+        printf '%s\n' "release_product_manifest negative probe rejected non-whitelisted file as expected"
+    fi
 
     printf '%s\n' \
         "release gate passed as support evidence only." \

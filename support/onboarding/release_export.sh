@@ -65,6 +65,7 @@ python3 - "$source_root" "$output_dir" "$include_untracked" "$allow_dirty" <<'PY
 from __future__ import annotations
 
 import fnmatch
+import json
 import os
 import shutil
 import subprocess
@@ -99,6 +100,10 @@ DENY_PATH_PATTERNS = (
     "sessions/**",
 )
 
+MANIFEST_PATH = "support/onboarding/release_product_manifest.json"
+MANIFEST_SCHEMA = "release-product-manifest/v1"
+MANIFEST_VIOLATION_LITERAL = "release product manifest violation: export input outside whitelist"
+
 INITIAL_COMMIT_MESSAGE = "Initial clean Brick Protocol v0.1.0 export"
 
 
@@ -129,6 +134,49 @@ def denied_path_pattern(rel: str) -> str | None:
         if fnmatch.fnmatchcase(clean, pattern):
             return pattern
     return None
+
+
+def load_release_product_manifest(source: Path) -> dict[str, object]:
+    manifest_file = source / MANIFEST_PATH
+    try:
+        data = json.loads(manifest_file.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        fail(f"release product manifest missing: {MANIFEST_PATH}")
+    except json.JSONDecodeError as exc:
+        fail(f"release product manifest is not valid JSON: {exc}")
+    if not isinstance(data, dict):
+        fail("release product manifest root must be a JSON object")
+    if data.get("schema") != MANIFEST_SCHEMA:
+        fail(f"release product manifest schema must be {MANIFEST_SCHEMA!r}")
+    for key in ("allowed_roots", "allowed_files", "allowed_globs"):
+        value = data.get(key)
+        if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+            fail(f"release product manifest {key} must be a list of strings")
+    return data
+
+
+def manifest_allowed_path(rel: str, manifest: dict[str, object]) -> bool:
+    clean = rel.strip("/")
+    allowed_roots = manifest["allowed_roots"]
+    allowed_files = manifest["allowed_files"]
+    allowed_globs = manifest["allowed_globs"]
+    assert isinstance(allowed_roots, list)
+    assert isinstance(allowed_files, list)
+    assert isinstance(allowed_globs, list)
+    for root in allowed_roots:
+        assert isinstance(root, str)
+        root = root.strip("/")
+        if clean == root or clean.startswith(root + '/'):
+            return True
+    for filename in allowed_files:
+        assert isinstance(filename, str)
+        if clean == filename.strip("/"):
+            return True
+    for pattern in allowed_globs:
+        assert isinstance(pattern, str)
+        if fnmatch.fnmatchcase(clean, pattern):
+            return True
+    return False
 
 
 def safe_rel_path(raw: str) -> Path:
@@ -172,13 +220,20 @@ if include_untracked:
     ls_files_cmd.extend(["--others", "--exclude-standard"])
 raw_files = run(ls_files_cmd).stdout
 rel_files = [item for item in raw_files.split("\0") if item]
+if MANIFEST_PATH not in rel_files and (source / MANIFEST_PATH).is_file():
+    # The manifest is the release boundary contract itself. In normal clean
+    # release commits it is tracked and already present in git ls-files; the
+    # fallback keeps dirty support-evidence dry-runs from exporting a tree that
+    # cannot re-run its own manifest-governed release verb.
+    rel_files.append(MANIFEST_PATH)
 if not rel_files:
     fail("git reported no files to export")
 
-copied = 0
+manifest = load_release_product_manifest(source)
+export_rel_files: list[str] = []
 excluded = 0
 denied: list[str] = []
-skipped_missing = 0
+manifest_violations: list[str] = []
 for raw_rel in rel_files:
     if is_excluded(raw_rel):
         excluded += 1
@@ -187,6 +242,27 @@ for raw_rel in rel_files:
     if deny_pattern is not None:
         denied.append(f"{raw_rel} (matched {deny_pattern})")
         continue
+    if not manifest_allowed_path(raw_rel, manifest):
+        manifest_violations.append(raw_rel)
+        continue
+    export_rel_files.append(raw_rel)
+
+if denied:
+    fail(
+        "secret/local/provider/session path denylist matched export input:\n"
+        + "\n".join(f"- {item}" for item in denied)
+    )
+
+if manifest_violations:
+    fail(
+        MANIFEST_VIOLATION_LITERAL
+        + ":\n"
+        + "\n".join(f"- {item}" for item in manifest_violations)
+    )
+
+copied = 0
+skipped_missing = 0
+for raw_rel in export_rel_files:
     rel = safe_rel_path(raw_rel)
     src = source / rel
     dst = output / rel
@@ -206,12 +282,6 @@ for raw_rel in rel_files:
     elif src.is_file():
         shutil.copy2(src, dst)
     copied += 1
-
-if denied:
-    fail(
-        "secret/local/provider/session path denylist matched export input:\n"
-        + "\n".join(f"- {item}" for item in denied)
-    )
 
 for forbidden in EXCLUDE_PATHS:
     if (output / forbidden).exists():
@@ -238,13 +308,15 @@ print(f"excluded paths matched: {excluded}")
 print("excluded roots: " + ", ".join(root + "/" for root in EXCLUDE_PATHS))
 print("denylist roots/patterns: " + ", ".join(DENY_PATH_PATTERNS))
 print("denylist matches: 0")
+print("manifest: support/onboarding/release_product_manifest.json")
+print("manifest violations: 0")
 print(f"skipped missing inputs: {skipped_missing}")
 print(f"initial commit: {head}")
 print("project scaffold: omitted; first onboard run creates project/")
 print("")
 print("Follow-up commands for the operator, after creating the new public repo:")
 print(f"  cd {output}")
-print("  git remote add origin git@github.com:{OWNER}/BRICK.git")
+print("  git remote add origin git@github.com:{OWNER}/BRICK-dist.git")
 print("  git tag v0.1.0")
 print("  git push -u origin main")
 print("  git push origin v0.1.0")

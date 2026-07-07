@@ -26,6 +26,7 @@ _SMITH_GITHUB_REPO_LITERAL = _SMITH_GITHUB_ORG_LITERAL + "/BRICK"
 _NO_SMITH_RESIDUE_SURFACES = (
     "README.md",
     "support/docs/spec",
+    "support/docs/references",
     "agent/prompts",
     "agent/skills",
     "brick/templates/skills",
@@ -111,6 +112,12 @@ def _no_smith_residue_fire_probe(repo: Path) -> int:
             f"synthetic probe clone: gh repo clone {_SMITH_GITHUB_REPO_LITERAL} ~/BRICK\n",
             "hardcoded Smith GitHub org",
         ),
+        (
+            "references-org",
+            Path("support/docs/references/repo-invite-issuance.md"),
+            f"synthetic probe clone: gh repo clone {_SMITH_GITHUB_REPO_LITERAL} ~/BRICK\n",
+            "hardcoded Smith GitHub org",
+        ),
     )
     inspected = 0
     for label, target_rel, line, expected in probes:
@@ -139,9 +146,11 @@ def run_product_no_smith_residue(repo: Path) -> KernelResult:
     """Product-surface lint for Smith local residue.
 
     Scans the shipped newcomer-facing surfaces named by ONBOARDING-LEGACY-SCRUB:
-    root README, support/docs/spec, agent/prompts, agent/skills,
-    brick/templates/skills, and the onboarding install verb. The only admitted concrete Smith-org BRICK occurrence there is the
-    root README's explicit working-example note next to the parameterized ``{OWNER}/BRICK`` command.
+    root README, support/docs/spec, support/docs/references, agent/prompts,
+    agent/skills, brick/templates/skills, and the onboarding install verb. The
+    only admitted concrete Smith-org BRICK occurrence there is the root README's
+    explicit working-example note next to the parameterized ``{OWNER}/BRICK``
+    command.
     """
 
     violations, inspected = _collect_no_smith_residue_violations(repo)
@@ -156,10 +165,11 @@ def run_product_no_smith_residue(repo: Path) -> KernelResult:
         inspected=inspected,
         output=(
             "product no-Smith-residue scan passed: README.md, support/docs/spec, "
-            "agent/prompts, agent/skills, brick/templates/skills, and "
-            "support/onboarding/install.sh carry no Smith user-home literal and no "
-            "hardcoded Smith GitHub org outside the README working-example "
-            "allowance; temp-copy FIRE probes for both forbidden families and "
-            "both skill surfaces fired RED."
+            "support/docs/references, agent/prompts, agent/skills, "
+            "brick/templates/skills, and support/onboarding/install.sh carry no "
+            "Smith user-home literal and no hardcoded Smith GitHub org outside "
+            "the README working-example allowance; temp-copy FIRE probes for "
+            "both forbidden families, both skill surfaces, and support docs "
+            "references fired RED."
         ),
     )

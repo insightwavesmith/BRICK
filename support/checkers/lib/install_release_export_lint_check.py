@@ -12,6 +12,7 @@ module header and the imports differ.
 
 from __future__ import annotations
 
+import json
 import re
 import os
 import shutil
@@ -30,6 +31,30 @@ from support.checkers.lib.yaml_subset import (
 _INSTALL_SCRIPT_REL = "support/onboarding/install.sh"
 _RELEASE_EXPORT_REL = "support/onboarding/release_export.sh"
 _RELEASE_GATE_REL = "support/onboarding/release_gate.sh"
+_RELEASE_PRODUCT_MANIFEST_REL = "support/onboarding/release_product_manifest.json"
+_RELEASE_PRODUCT_MANIFEST_SCHEMA = "release-product-manifest/v1"
+_RELEASE_PRODUCT_MANIFEST_VIOLATION_LITERAL = (
+    "release product manifest violation: export input outside whitelist"
+)
+_RELEASE_PRODUCT_MANIFEST_REPORT_LINES = (
+    f"manifest: {_RELEASE_PRODUCT_MANIFEST_REL}",
+    "manifest violations: 0",
+)
+_RELEASE_PRODUCT_MANIFEST_REQUIRED_ROOTS = (
+    ".github",
+    "agent",
+    "brick",
+    "link",
+    "support",
+)
+_RELEASE_PRODUCT_MANIFEST_REQUIRED_FILES = (
+    ".gitignore",
+    "AGENTS.md",
+    "BRICK-CONSTITUTION.md",
+    "README.md",
+    "pyproject.toml",
+    "uv.lock",
+)
 _WHEEL_SMOKE_REQUIRED_PACKAGE_PATHS = {
     "operator": "brick_protocol/support/operator/",
     "checkers": "brick_protocol/support/checkers/",
@@ -208,6 +233,44 @@ def _release_export_deny_patterns(text: str) -> set[str]:
     return set(re.findall(r"""["']([^"']+)["']""", match.group("body")))
 
 
+def _release_product_manifest_data_violations(manifest_text: str) -> list[str]:
+    violations: list[str] = []
+    try:
+        data = json.loads(manifest_text)
+    except json.JSONDecodeError as exc:
+        return [f"release product manifest is not parseable JSON: {exc}"]
+
+    if not isinstance(data, dict):
+        return ["release product manifest root must be a JSON object"]
+
+    if data.get("schema") != _RELEASE_PRODUCT_MANIFEST_SCHEMA:
+        violations.append(
+            "release product manifest schema must be "
+            f"{_RELEASE_PRODUCT_MANIFEST_SCHEMA!r}"
+        )
+
+    for key in ("allowed_roots", "allowed_files", "allowed_globs"):
+        value = data.get(key)
+        if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+            violations.append(f"release product manifest {key} must be a list of strings")
+
+    allowed_roots = set(data.get("allowed_roots", []))
+    for required in _RELEASE_PRODUCT_MANIFEST_REQUIRED_ROOTS:
+        if required not in allowed_roots:
+            violations.append(
+                f"release product manifest missing allowed root: {required}"
+            )
+
+    allowed_files = set(data.get("allowed_files", []))
+    for required in _RELEASE_PRODUCT_MANIFEST_REQUIRED_FILES:
+        if required not in allowed_files:
+            violations.append(
+                f"release product manifest missing allowed file: {required}"
+            )
+
+    return violations
+
+
 def _release_export_exclusion_violations(text: str) -> list[str]:
     exclusions = _release_export_exclusions(text)
     deny_patterns = _release_export_deny_patterns(text)
@@ -230,10 +293,27 @@ def _release_export_exclusion_violations(text: str) -> list[str]:
         violations.append("release input must default to tracked files via git ls-files --cached")
     if 'ls_files_cmd.extend(["--others", "--exclude-standard"])' not in text:
         violations.append("untracked files must only be added behind include_untracked")
+    if "if MANIFEST_PATH not in rel_files and (source / MANIFEST_PATH).is_file():" not in text:
+        violations.append("required product manifest must be added to export input when present")
     if '"status", "--porcelain", "--untracked-files=all"' not in text:
         violations.append("missing dirty-checkout status probe")
     if "if dirty_entries and not allow_dirty:" not in text:
         violations.append("dirty checkout must fail closed unless --allow-dirty is set")
+    if f'MANIFEST_PATH = "{_RELEASE_PRODUCT_MANIFEST_REL}"' not in text:
+        violations.append("missing release product manifest path literal")
+    if "load_release_product_manifest(source)" not in text:
+        violations.append("release export must load the product manifest")
+    if "manifest_allowed_path(raw_rel, manifest)" not in text:
+        violations.append("export inputs must pass the product manifest before copy")
+    if _RELEASE_PRODUCT_MANIFEST_VIOLATION_LITERAL not in text:
+        violations.append("missing product manifest whitelist violation literal")
+    for report_line in _RELEASE_PRODUCT_MANIFEST_REPORT_LINES:
+        if report_line not in text:
+            violations.append(f"missing product manifest report line: {report_line}")
+    if "clean == root or clean.startswith(root + '/')" not in text:
+        violations.append("manifest root matching must use explicit dir-prefix semantics")
+    if "fnmatch.fnmatchcase(clean, pattern)" not in text:
+        violations.append("manifest globs must use fnmatchcase")
     if "denied_path_pattern(raw_rel)" not in text:
         violations.append("export inputs must pass the denylist before copy")
     if "secret/local/provider/session path denylist matched export input" not in text:
@@ -253,7 +333,7 @@ def _release_export_exclusion_violations(text: str) -> list[str]:
     ):
         if report_line not in text:
             violations.append(f"missing exclusion/export report line: {report_line}")
-    if "git remote add origin git@github.com:{OWNER}/BRICK.git" not in text:
+    if "git remote add origin git@github.com:{OWNER}/BRICK-dist.git" not in text:
         violations.append("missing placeholder remote follow-up command")
     if "git tag v0.1.0" not in text:
         violations.append("missing v0.1.0 tag follow-up command")
@@ -310,6 +390,43 @@ def _release_export_exclusion_fire_probe(text: str) -> int:
         )
     fired += 1
 
+    without_manifest_call = text.replace(
+        "manifest_allowed_path(raw_rel, manifest)", "True", 1
+    )
+    violations = _release_export_exclusion_violations(without_manifest_call)
+    if not any("product manifest" in violation for violation in violations):
+        raise ProfileError(
+            "release_export_exclusion FIRE probe did NOT fire when the product "
+            "manifest copy-time check was removed"
+        )
+    fired += 1
+
+    without_manifest_input_fallback = text.replace(
+        "if MANIFEST_PATH not in rel_files and (source / MANIFEST_PATH).is_file():",
+        "if False:",
+        1,
+    )
+    violations = _release_export_exclusion_violations(without_manifest_input_fallback)
+    if not any("required product manifest" in violation for violation in violations):
+        raise ProfileError(
+            "release_export_exclusion FIRE probe did NOT fire when the product "
+            "manifest export-input fallback was removed"
+        )
+    fired += 1
+
+    without_manifest_violation_literal = text.replace(
+        _RELEASE_PRODUCT_MANIFEST_VIOLATION_LITERAL,
+        "release product manifest drifted message",
+        1,
+    )
+    violations = _release_export_exclusion_violations(without_manifest_violation_literal)
+    if not any("whitelist violation literal" in violation for violation in violations):
+        raise ProfileError(
+            "release_export_exclusion FIRE probe did NOT fire when the product "
+            "manifest violation literal was changed"
+        )
+    fired += 1
+
     return fired
 
 
@@ -328,8 +445,19 @@ def run_release_export_exclusion(repo: Path) -> KernelResult:
         raise ProfileError(
             f"release_export_exclusion: export verb missing: {_RELEASE_EXPORT_REL}"
         )
+    manifest_path = repo / _RELEASE_PRODUCT_MANIFEST_REL
+    if not manifest_path.is_file():
+        raise ProfileError(
+            "release_export_exclusion: product manifest missing: "
+            f"{_RELEASE_PRODUCT_MANIFEST_REL}"
+        )
     text = script_path.read_text(encoding="utf-8")
     violations = _release_export_exclusion_violations(text)
+    violations.extend(
+        _release_product_manifest_data_violations(
+            manifest_path.read_text(encoding="utf-8")
+        )
+    )
     if violations:
         raise ProfileError(
             "release_export_exclusion rejected export verb:\n"
@@ -345,10 +473,12 @@ def run_release_export_exclusion(repo: Path) -> KernelResult:
             "defaults to tracked-only input with explicit --include-untracked, "
             "fails closed on dirty checkout unless --allow-dirty is recorded, "
             "carries a secret/local/provider/session path denylist, resolves "
-            "symlink targets inside the checkout, prints an exclusion/export "
-            "report plus manual remote/tag/push follow-up commands with {OWNER}, "
-            "and FIRE probes for exclusion, dirty guard, denylist, and symlink "
-            "containment fired RED. PROOF LIMIT: this is "
+            "symlink targets inside the checkout, loads the product manifest "
+            f"{_RELEASE_PRODUCT_MANIFEST_REL} as a default-deny whitelist after "
+            "exclusion/denylist filters, prints manifest/exclusion/export report "
+            "lines plus manual remote/tag/push follow-up commands with {OWNER}, "
+            "and FIRE probes for exclusion, dirty guard, denylist, symlink "
+            "containment, and manifest governance fired RED. PROOF LIMIT: this is "
             "support evidence only; it does not run publication, choose Movement, "
             "or judge release quality."
         ),
@@ -633,6 +763,17 @@ def run_release_gate_contract(repo: Path) -> KernelResult:
         ".env.release-export-deny-probe",
         "--include-untracked --allow-dirty",
         "secret/local/provider/session path denylist matched export input",
+        "release export dry-run + clean-boundary output scan",
+        "release_export dry-run did not ship the product manifest",
+        "manifest violations: 0",
+        "git remote add origin git@github.com:{OWNER}/BRICK-dist.git",
+        "release_product_manifest negative probe: leak-scan dry-run only",
+        "brick-release-gate-manifest-probe-repo",
+        "release_product_manifest non-whitelisted input",
+        "git commit -q -m \"manifest negative probe base\"",
+        "release product manifest violation: export input outside whitelist",
+        "uses a disposable temp git repo rather than writing byproducts into the",
+        "does not publish, tag, push, or mutate GitHub settings",
         "mktemp -d",
         "trap cleanup EXIT HUP INT TERM",
         "does not prove source truth, success, quality, Movement authority, "
@@ -661,6 +802,11 @@ def run_release_gate_contract(repo: Path) -> KernelResult:
                 "release gate contains forbidden publish/settings verb: "
                 f"{forbidden!r}"
             )
+    if 'manifest_probe_path="$repo_root/' in text:
+        violations.append(
+            "release gate manifest negative probe must not write byproducts into "
+            "the live checkout root"
+        )
 
     required_workflow_texts = (
         "actions/setup-node@v4",
@@ -670,6 +816,8 @@ def run_release_gate_contract(repo: Path) -> KernelResult:
         "brick verify --self-test",
         "dashboard build",
         "release_export negative probe",
+        "clean-boundary output scan",
+        "release_product_manifest negative probe",
         "sh support/onboarding/release_gate.sh",
         "permissions:",
         "contents: read",
@@ -694,7 +842,8 @@ def run_release_gate_contract(repo: Path) -> KernelResult:
             "release gate contract passed: support/onboarding/release_gate.sh "
             "runs compileall, check_profile.py --all, brick verify --self-test, "
             "a hard-fail dashboard npm ci/build, a release-export negative probe, "
-            "and a release-export dry-run; "
+            "a release-export dry-run with clean-boundary output scan, and a "
+            "release_product_manifest negative leak-scan dry-run; "
             "the GitHub workflow invokes that local gate after uv sync --locked "
             "with read-only contents permission and an explicit Node setup for the "
             "dashboard build. PROOF LIMIT: support evidence "

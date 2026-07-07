@@ -323,11 +323,13 @@ ONBOARD_INSTALL_SCRIPT0_TARGETS = {
 }
 
 # RELEASE-EXPORT-0: the operator-run clean public release export verb plus the
-# local release gate that dry-runs it after compileall + check_profile.py --all.
-# These are inert onboarding support artifacts: they may prepare local evidence
-# and print follow-up commands, but do not change repository settings, publish,
-# choose Movement, or judge success/quality.
+# product manifest whitelist and the local release gate that dry-runs it after
+# compileall + check_profile.py --all. These are inert onboarding support
+# artifacts: they may prepare local evidence and print follow-up commands, but
+# do not change repository settings, publish, choose Movement, or judge
+# success/quality.
 ONBOARD_RELEASE_EXPORT0_TARGETS = {
+    "support/onboarding/release_product_manifest.json",
     "support/onboarding/release_export.sh",
     "brick/templates/graph-decls/postmortem-deep.json",
     "support/onboarding/coo_gate_runner.sh",
