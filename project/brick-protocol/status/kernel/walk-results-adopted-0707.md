@@ -170,3 +170,51 @@ resume-rootfix-design-0707a 발주에서 `brick draft`에 준 8답과 초안기 
 **§N 판정(Smith, 0707 오후)**: 배포 경계 = **클린배포 repo 채택** ("1. 클린배포") — 릴리즈 시점에 제품 파일만 별도 repo/브랜치로 export, install.sh는 클린 repo를 클론. 우리 작업 repo는 그대로. deep-design 입력에 방향 고정: 설계 범위 = 제품 파일 매니페스트(in/out 경계), export 메커니즘(0613 release-v010-clean-repo 흔적·release-gate.yaml 재활용 검토), 버전·고객 업데이트 경로, 온보딩 문서의 클론 대상 전환.
 
 **§O-P1 재분류(Smith 실측 답변)**: 고객 설치서 뜬 팝업 = **macOS 시스템 창(TCC 폴더 접근권한)** — claude CLI 신뢰 다이얼로그가 아니었다. 재분류: ①주 결함 = 설치/첫 빌딩 흐름 중 TCC-보호 경로 접근(어느 단계·어느 경로인지 recon 필요 — tccutil reset으로 우리 머신 재현 가능) → 수리 = 선검사에 설치 경로 지침(보호 폴더 회피) + "권한 창 뜨면 허용" 온보딩 문구 + 보호-경로 접근 제거. TCC는 프로그램 우회 불가(OS 설계)이므로 회피+안내가 정공법. ②부 결함 = claude 미신뢰 워크스페이스 권한 드롭(구조 공백 실증분) — 소형 위생 수리로 별도 유지(온보딩 신뢰 스텝), 우선순위 강등. P1 recon의 질문 교체: "claude가 언제 막히나" → "TCC를 누가 언제 건드리나".
+
+**§O-P1 recon 결과 채택(워크플로 3인, 0707 저녁) — COO 처분**: TCC 창은 "책임 앱×보호 폴더 조합당 최초 1회" — 창이 떴다는 것 자체가 그 순간 그 폴더 최초 실접근이라는 뜻. 원인 후보 순위: ①보호 폴더(Downloads/Desktop) 체크아웃에서 install.sh 실행(배너 전 발화) ②brick init의 `claude mcp add`가 고객 cwd 상속(onboard.py:1211 subprocess.run cwd 무지정 + connect.py --scope 미지정=local) — **부수 기능버그 동시 발견**: 고객이 서 있던 엉뚱한 프로젝트에 local 스코프 MCP 등록됨 ③첫 발사의 git rev-parse cwd 탐색(cli.py:187) ④BRICK_HOME 보호 경로 지정 ⑤키체인 창 오인. 증폭기: iTerm2 등 비-Terminal 앱은 승인 미이전(앱 단위 어트리뷰션). 수리 5종 채택(우선순위 ②1줄 cwd 고정 > ①preflight 보호구역 경고 > ④TCC 진단 처방 > ③발사 전 cwd 프로브 가드 > ⑤문서 지침, 합계 ~50줄) — 범인 미확정과 무관하게 전부 심층방어로 유효, 확정은 다음 리허설 체크리스트(창 문구 3요소·직전 배너·상태 4종)로. **발주 순서 조정: P1-fix는 P2a와 같은 파일(cli.py·install.sh)을 만지므로 P2a 착지 후 발주**(병행 금지). not_proven 8항 정직 반환 — 실제 범인, mcp add의 cwd 내용 실접근 여부 등은 리허설/신규 계정 실험으로.
+
+## P. 클린배포 설계 완결 (cleanrepo-design-0707b, fable5∥푸구 2인 이종, 0707 저녁) — Smith 판독 대기
+
+**핵심 실측**: `support/onboarding/release_export.sh`(7/1작, 7,573B)가 **이미 존재** — project/·egg-info를 뺀 클린 트리를 만들 줄 알고, in/out 필터(EXCLUDE project/, DENY 12패턴)와 "첫 onboard가 project/를 로컬 생성" 설계까지 있다. **그러나 install.sh는 release_export를 0회 참조** — 도구는 있는데 배선이 안 됨. §N 결함의 정확한 정체 = "export 존재하나 미연결".
+
+**두 설계 합의(narrowly_proven)**: 클린 배포 repo/export 경계, 내부 project/ 무변경, release_export.sh를 producer로 유지, 자동 발행 금지, 체커 동반 커버리지 — 방향 전원 일치.
+
+**갈림 5점(Smith 판독)**:
+1. **매니페스트 중심성**: 신규 `release_product_manifest.json`(제품 파일 화이트리스트)을 도입할까(푸구: 명시 매니페스트 선호) vs release_export.sh의 기존 EXCLUDE/DENY 필터 확장으로 충분(fable5: 기존 자산 재활용). — 화이트리스트=미래 파일 안전(누출 기본거부), 블랙리스트=현행 유지 저비용.
+2. **클론 대상 문구**: 공개 클린 repo 슬러그 확정 vs 플레이스홀더 정책.
+3. **release_export.sh 책임 폭**: export만 vs export+검증+배선까지.
+4. **누출 스캔 범위**: project/ 경로만 vs 원장 어휘·세션ID·절대경로까지.
+5. **AGENTS.md 처리**: v1은 그대로 두기 vs 고객-안전 재작성 슬라이스 후속.
+
+**COO 소견(위임 하 집행 준비)**: 갈림 1이 유일한 실제 아키텍처 판단 — 나머지 4는 1이 정해지면 따라온다. 매니페스트(화이트리스트) 방식을 권한다: "미래에 새로 만든 파일이 자동으로 고객에게 새어나가지 않음"이 §N 결함의 재발 방지 본질이고, 블랙리스트는 새 내부 디렉토리가 생길 때마다 DENY 추가를 잊으면 뚫린다(§N이 딱 그 사고). partition_plan 양측 확보 — 채택 방향만 서면 시공 발주 가능.
+
+**§P 판정(Smith, 0707 저녁)**: 갈림 1 = **화이트리스트(매니페스트) 채택**. 신규 release_product_manifest.json에 제품 파일 명시, 목록에 없으면 기본 제외 — 미래 파일 누출 기본거부(§N 재발 구조 차단). 따라오는 세부 결정: 갈림 2=슬러그는 플레이스홀더 정책(공개 repo명 미확정 시 {OWNER}/BRICK-dist 자리표시), 갈림 3=release_export.sh 책임 폭 = export+매니페스트 검증(배선은 install.sh 몫으로 분리), 갈림 4=누출 스캔 = 매니페스트 위반(화이트리스트 밖 파일 export 시도) + project/ 경로 + 세션ID/절대경로 어휘까지(누출 기본거부와 정합), 갈림 5=AGENTS.md는 v1 그대로(고객-안전 재작성은 후속 슬라이스). 시공 = 푸구 설계의 매니페스트-중심 partition_plan 기반 발주(cleanrepo 시공 빌딩), 방아쇠 = 현행 착지 열차(M7r·P2a) 소진 후.
+
+## Q. 프리셋 티어 어휘 설계 완결 (preset-tier-design-0707b, fable5∥푸구, 0707 저녁) — Smith 판독 대기
+
+**두 설계 합의(narrowly_proven)**: ①프리셋이 우리 머신의 어댑터/모델 리터럴(49행)을 그만 싣고 provider-중립 **캐스팅 티어**(`casting_tier_ref: casting-tier:{plan|deep|standard|light}`)를 발화 ②티어는 **1회만** 해석 — 기존 preset-step→row 복사 이음새(composition_graph_emit 캐스팅 복사 + plan_rendering CASTING_FIELDS emit)에서 provider_registry.py 신규 resolver가 fail-closed 사다리로 실 어댑터 확정 ③기존 리터럴 selected_* 선언은 **하위호환 그대로 유효**(registry 우회 = 오늘과 동일, fail-closed 헌법 무손상) ④신규 티어-프리셋은 codex/gemini/fable/fugu 리터럴 명명 금지.
+
+**핵심 성과**: 헌법 충돌 회피 논증 성공 — "선언을 support가 바꾼다"가 아니라 "티어 선언 자체가 해석 위임을 명시 선언"이라 fail-closed와 양립. §M 정책(기획=fable5, 시공·QA=opus-4.8, 복잡 work=푸구)을 티어→모델 매핑으로 표현 가능.
+
+**갈림 3점(Smith 판독)**:
+1. **렌즈 의도 표현**: 렌즈(code-attack/axis/evidence/review)를 authoring 행에 **명시**할까(푸구: lens+tier 요청쌍) vs 티어+다양성 메타(`casting_diversity_key`)로 **함축**할까(fable5). — 명시=교차검증 의도가 선언에 남아 감사 쉬움, 함축=행 간결.
+2. **시공 슬라이스 범위**: 이번 시공이 graph_draft/draft_diff를 지금 건드릴까 vs 별도 선언 빌딩으로 분리.
+3. **헌법 주석**: composition_intent 법-주석에 티어 위임 노트를 이 슬라이스에서 달까.
+
+**COO 소견(위임 하)**: 갈림 1 = **명시(푸구안) 권장** — 플릿의 설계 의도가 "이종 렌즈 교차검증"인데 그게 선언에 안 남으면(함축) 미래에 왜 이 캐스팅인지 추적 불가, §Q의 감사성이 §L 앵커링 방어 철학(차이를 장부에 남긴다)과 한 가족. 갈림 2 = **분리**(graph_draft는 M7r가 방금 만진 파일 — 충돌·범위 폭발 회피). 갈림 3 = 이 슬라이스에서 주석만(코드 무변경). 시공 방아쇠 = 착지 열차 소진 후. cleanrepo 시공과 파일 비충돌(이쪽=provider_registry/presets, 저쪽=release_export/install) → 병행 가능.
+
+**§Q 판정(Smith, 0707 저녁)**: 갈림 1 = **명시(푸구안, lens+tier 요청쌍) 채택** — 렌즈 의도가 authoring 행에 남아 감사성 확보(§L 앵커링 방어 철학과 정합). 따라오는 세부: 갈림 2=시공 슬라이스는 graph_draft/draft_diff **미접촉**(별도 선언 빌딩 — M7r가 방금 만진 파일 충돌 회피), 갈림 3=composition_intent 법-주석에 티어 위임 노트만(코드 무변경). 시공 = 푸구의 lens+tier partition_plan 기반 발주(preset-tier 시공 빌딩), cleanrepo 시공과 파일 비충돌(provider_registry/presets ↔ release_export/install)이라 병행 가능, 방아쇠 = 착지 열차(M7r·P2a) 소진 후.
+
+## R. import 이중 신원 근본 해결 판정 (Smith 0707 심야, GPT 검수 교차확인 후) — 수준3 채택
+
+**Smith 판정 원문**: "땜빵 하지 말자. import가 문제면 나중에 또 문제가 된다." → 앨리어싱(수준1 땜빵) 거부, **물리구조=패키지구조 통일(수준3)** 채택.
+
+**실측 재현(이 세션)**: `import link.movement` vs `import brick_protocol.link.movement` — 같은 파일(True)이나 같은 모듈(False) = 이중 신원 확정. 다른 세션 GPT-5.5 검수와 교차확인된 5건(이중신원·brick→agent private import·Agent 어휘 support 상주·Rule13 체커 부재·no_axis_judgment 협소커버) + support materialization 클러스터(native_dispatch:284·plan_rendering:217-218·composition_route_policy).
+
+**정당화 조건 충족**: Smith "이제 다른 고객들이 써야 하거든" + "리포 클론으로 우선 쓰게 된다" → 수준3의 정당화 조건(외부 소비·클론 배포)이 이미 성립. 클론 고객은 이중신원 환경을 통째 물려받음.
+
+**수준3 = 개헌급**: 축 폴더(brick/agent/link)를 실제 brick_protocol/ 루트 밑으로 이동 → 재매핑·셔임(import_identity)·editable finder·이중 sys.path 전면 철거. 모든 import·경로기반 체커·AGENTS.md 물리루트 조항·헌법 물리루트 선언까지 이동. **가장 큰 위험 = 마이그레이션 자체가 "for now" 다리를 또 낳는 것**(이 리포 4세대 이사 연혁이 증거) → 설계-우선 필수, 단발 시공 금지.
+
+**처분(설계-우선)**: deep-design(fable5) 발주로 마이그레이션 설계 먼저 — 경계 매니페스트(뭐가 brick_protocol/ 밑으로), 철거 순서(셔임·finder·allowlist·bootstrap 어느 것부터), 경로 체커 26,800 검사 이동, 헌법·AGENTS 개정안, 롤백 안전선, partition_plan. 이전 세션이 잡은 Phase 0(게이트 .DS_Store 수리·Rule13 체커) 등 소형 필수는 이 개헌과 **분리**해 선행 가능(별건). Smith 동행 안건(개헌은 헌법 개정 권한 사항).
+
+**미해결 꼬리**: preset-tier-single 착지 스윕 RED(gemini/.DS_Store 환경모드 추정, 이중신원 무관 — provider_preflight 등 개별 프로파일은 passed) → 재착지 부검 필요(별건).
