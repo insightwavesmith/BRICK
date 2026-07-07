@@ -22,6 +22,7 @@ text_contains:
       - "5) 설치 점검 완료"
       - "5) 설치 점검 실패"
       - '"$brick_entry" verify'
+      - "선검사 (preflight):"
   - path: support/checkers/check_onboarding_success_literal.py
     texts:
       - 'SUCCESS_LITERAL = "5) 설치 점검 완료"'
@@ -29,6 +30,7 @@ text_contains:
       - 'STALE_VERIFY_STEP_LITERAL = "7) 설치 점검"'
       - 'STALE_ENTRYPOINT_STEP_LITERAL = "5) brick 진입점"'
       - 'STALE_INIT_STEP_LITERAL = "6) brick init"'
+      - "PREFLIGHT_NEEDLES = ("
       - "onboarding_success_literal"
 text_absent:
   - path: support/onboarding/install.sh
