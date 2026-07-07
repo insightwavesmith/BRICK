@@ -167,6 +167,20 @@ EFFORT_LEVELS: frozenset[str] = frozenset(
     {"none", "minimal", "low", "medium", "high", "xhigh"}
 )
 
+# Tier/lens casting authoring keys are Agent-axis WHO-intent vocabulary, but they
+# are NOT casting dials. They declare an explicit provider-neutral interpretation
+# delegation that support executes once at materialization time into the concrete
+# selected_* dials above. Keeping them out of CASTING_FIELDS preserves the
+# fail-closed selected_adapter_ref invariant and prevents resume/replay/spawn from
+# consulting hidden tier state.
+CASTING_TIER_REF_KEY = "casting_tier_ref"
+CASTING_LENS_REF_KEY = "casting_lens_ref"
+CASTING_TIER_PROVENANCE_KEY = "casting_tier_provenance"
+CASTING_AUTHORING_REF_FIELDS: tuple[str, ...] = (
+    CASTING_TIER_REF_KEY,
+    CASTING_LENS_REF_KEY,
+)
+
 
 def _effort_level(value: str) -> str:
     """Strip the dial's own ``effort:`` ref prefix to the bare level.
@@ -550,6 +564,24 @@ _CASTING_KWARG_BY_NAME: Mapping[str, tuple[str, str]] = {
     for descriptor in CASTING_FIELDS
 }
 
+_CASTING_AUTHORING_KWARG_BY_NAME: Mapping[str, tuple[str, str]] = {
+    "tier": (CASTING_TIER_REF_KEY, "casting-tier"),
+    "casting_tier": (CASTING_TIER_REF_KEY, "casting-tier"),
+    "casting_tier_ref": (CASTING_TIER_REF_KEY, "casting-tier"),
+    "lens": (CASTING_LENS_REF_KEY, "casting-lens"),
+    "casting_lens": (CASTING_LENS_REF_KEY, "casting-lens"),
+    "casting_lens_ref": (CASTING_LENS_REF_KEY, "casting-lens"),
+}
+# Back-compat import contract: brick/spec.py partitions kwargs by
+# _CASTING_KWARG_BY_NAME before it calls _build_casting_bag. Include the tier/lens
+# authoring keys in that public partition map while keeping them out of
+# CASTING_FIELDS / NODE_CASTING_FIELDS, so they remain materialization-time
+# declarations rather than runtime dials.
+_CASTING_KWARG_BY_NAME = {
+    **_CASTING_KWARG_BY_NAME,
+    **_CASTING_AUTHORING_KWARG_BY_NAME,
+}
+
 
 def _build_casting_bag(label: str, kwargs: Mapping[str, Any]) -> dict[str, str]:
     """Validate friendly casting kwargs and project to the ``selected_<base>`` bag.
@@ -564,6 +596,8 @@ def _build_casting_bag(label: str, kwargs: Mapping[str, Any]) -> dict[str, str]:
     bag: dict[str, str] = {}
     for name, raw_value in kwargs.items():
         mapping = _CASTING_KWARG_BY_NAME.get(name)
+        if mapping is None:
+            mapping = _CASTING_AUTHORING_KWARG_BY_NAME.get(name)
         if mapping is None:
             raise TypeError(f"{label} got unexpected casting argument: {name}")
         node_key, prefix = mapping
@@ -601,7 +635,7 @@ def _expand_llm_alias(
 
 _ADMITTED_CASTING_PREFIXES: frozenset[str] = frozenset(
     f"{_casting_ref_prefix(descriptor)}:" for descriptor in CASTING_FIELDS
-) | frozenset({"agent-object:"})
+) | frozenset({"agent-object:", "casting-tier:", "casting-lens:"})
 
 _ADMITTED_CASTING_PREFIX_TEXT = ", ".join(sorted(_ADMITTED_CASTING_PREFIXES))
 

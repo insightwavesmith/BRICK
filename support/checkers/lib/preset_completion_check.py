@@ -6,8 +6,10 @@ Pure relocation sibling of case_runners; support evidence only.
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 from collections.abc import Callable, Mapping
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
@@ -23,6 +25,48 @@ from support.checkers.lib.yaml_subset import (
     require_string_list,
     rule_items,
 )
+
+
+@contextmanager
+def _fixture_provider_registry_ladder() -> Any:
+    """Open a temp BRICK_HOME with a ready providers.yaml so provider-neutral
+    casting_tier_ref/casting_lens_ref presets resolve during preset completion.
+
+    Fixture-only: the ready rows carry no credentials and the completion loop
+    dispatches through the fixture command runner, never a real provider."""
+
+    previous_home = os.environ.get("BRICK_HOME")
+    previous_ladder = os.environ.get("BRICK_PROVIDER_LADDER")
+    with tempfile.TemporaryDirectory(prefix="bp-preset-completion-registry-") as tmp:
+        home = Path(tmp)
+        (home / "providers.yaml").write_text(
+            """version: 1
+providers:
+  - adapter_ref: adapter:claude-local
+    registered_at: "2026-07-01T00:00:00Z"
+    last_preflight: {status: ready, checked_at: "2026-07-01T00:00:00Z"}
+  - adapter_ref: adapter:gemini-local
+    registered_at: "2026-07-01T00:00:00Z"
+    last_preflight: {status: ready, checked_at: "2026-07-01T00:00:00Z"}
+  - adapter_ref: adapter:codex-fugu-local
+    registered_at: "2026-07-01T00:00:00Z"
+    last_preflight: {status: ready, checked_at: "2026-07-01T00:00:00Z"}
+""",
+            encoding="utf-8",
+        )
+        os.environ["BRICK_HOME"] = str(home)
+        os.environ.pop("BRICK_PROVIDER_LADDER", None)
+        try:
+            yield
+        finally:
+            if previous_home is None:
+                os.environ.pop("BRICK_HOME", None)
+            else:
+                os.environ["BRICK_HOME"] = previous_home
+            if previous_ladder is None:
+                os.environ.pop("BRICK_PROVIDER_LADDER", None)
+            else:
+                os.environ["BRICK_PROVIDER_LADDER"] = previous_ladder
 
 
 def run_preset_building_completion_case(repo: Path, profile: Mapping[str, Any]) -> int:
@@ -97,7 +141,7 @@ def run_preset_building_completion_case(repo: Path, profile: Mapping[str, Any]) 
         portfolio_refs: list[str] = []
         with tempfile.TemporaryDirectory(
             prefix="bp-preset-building-completion-"
-        ) as tmpdir, _fixture_gemini_api_key():
+        ) as tmpdir, _fixture_gemini_api_key(), _fixture_provider_registry_ladder():
             tmp = Path(tmpdir)
             output_root = tmp / "buildings"
             for preset_ref in preset_refs:

@@ -89,6 +89,9 @@ from brick_protocol.support.recording.step_outputs import _step_output_manifest_
 # coercers they used (``_prefixed_ref``/``_bare_token``/``_non_empty_text``/
 # ``_optional_text``/``_optional_bare_token``) STAY below for the graph wiring and
 # are duplicated into the axis files so an axis module never imports this builder.
+CASTING_TIER_REF_KEY = "casting_tier_ref"
+CASTING_LENS_REF_KEY = "casting_lens_ref"
+CASTING_AUTHORING_REF_FIELDS = (CASTING_TIER_REF_KEY, CASTING_LENS_REF_KEY)
 _DEFAULT_BOUNDARY_REF = "building-boundary:closed"
 _PROPOSED_BUILDING_GRAPH_FILENAME = "proposed-building-graph.json"
 # DERIVED_WORKTREE_WRITE_SCOPE default moved to the BRICK axis (brick/spec.py) at
@@ -992,6 +995,12 @@ def _graph_decl_node_options(item: Mapping[str, Any]) -> dict[str, Any]:
         "reasoning_effort",
         "reasoning_effort_ref",
         "effort",
+        "tier",
+        "casting_tier",
+        "casting_tier_ref",
+        "lens",
+        "casting_lens",
+        "casting_lens_ref",
         "source_facts",
         "node_write_scope",
         "write_scope",
@@ -1012,6 +1021,10 @@ def _graph_decl_node_options(item: Mapping[str, Any]) -> dict[str, Any]:
             opts[key] = value
         elif key == "reasoning_effort_ref":
             opts["reasoning_effort"] = value
+        elif key in {"tier", "casting_tier", "casting_tier_ref"}:
+            opts[CASTING_TIER_REF_KEY] = _prefixed_ref("casting-tier", str(value))
+        elif key in {"lens", "casting_lens", "casting_lens_ref"}:
+            opts[CASTING_LENS_REF_KEY] = _prefixed_ref("casting-lens", str(value))
         elif key == "write_scope":
             opts["node_write_scope"] = _graph_decl_mapping(value, key)
             opts["write"] = True
@@ -2213,16 +2226,14 @@ def _lower_node(
         node["required_return_shape"] = source_shape
     if spec.agent is not None:
         node["agent_object_ref"] = _prefixed_ref("agent-object", spec.agent.role)
-    # Stamp EVERY declared casting dial generically (E2/§6 M15): loop the
-    # single-source NODE_CASTING_FIELDS projection, node-casting overriding the
-    # lane's, so a new dial (effort) flows from the builder onto the lowered node
-    # with NO per-dial code. The bag values are already ref-prefixed. An omitted
-    # dial is simply absent here; compose_building's resolver fills its default
-    # (e.g. selected_reasoning_effort_ref=effort:default) so the assemble +
-    # compose paths agree. Byte-identical to the prior adapter+model stamping for
-    # those two dials.
+    # Stamp EVERY declared concrete casting dial generically (E2/§6 M15) plus the
+    # provider-neutral tier/lens authoring refs. The selected_* dials remain the
+    # concrete runtime carry; casting_tier_ref/casting_lens_ref are an explicit
+    # materialization-time interpretation delegation that plan_rendering resolves
+    # once into selected_* and provenance. They are not CASTING_FIELDS and are not
+    # consulted at spawn/resume/replay time.
     lane_casting = spec.agent.casting if spec.agent is not None else {}
-    for field_name in NODE_CASTING_FIELDS:
+    for field_name in (*NODE_CASTING_FIELDS, *CASTING_AUTHORING_REF_FIELDS):
         value = spec.casting.get(field_name) or (lane_casting.get(field_name) if lane_casting else None)
         if value:
             node[field_name] = value

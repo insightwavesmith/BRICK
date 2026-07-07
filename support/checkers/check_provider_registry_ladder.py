@@ -129,6 +129,323 @@ def _unknown_registry_adapter_refs(repo: Path, registry: Mapping[str, Any]) -> l
     return unknown
 
 
+
+def _assert_raises(label: str, fn: Any, contains: str) -> None:
+    try:
+        fn()
+    except Exception as exc:  # noqa: BLE001 - checker wants the exact rejection text
+        if contains not in str(exc):
+            raise ProviderRegistryLadderError(
+                f"{label}: expected rejection containing {contains!r}, got {exc!r}"
+            ) from exc
+        return
+    raise ProviderRegistryLadderError(f"{label}: expected rejection containing {contains!r}")
+
+
+def _tier_declared_plan_step() -> Mapping[str, Any]:
+    return {
+        "step_ref": "tier-step",
+        "casting_tier_ref": "casting-tier:standard",
+        "casting_lens_ref": "casting-lens:qa",
+        "brick": {
+            "row_ref": "tier-step:brick",
+            "brick_work_ref": "brick-work:tier",
+            "brick_instance_ref": "brick-tier",
+            "work_statement": "tier fixture",
+            "comparison_rule": "fixture only",
+            "required_return_shape": "observed_evidence,not_proven",
+        },
+        "agent": {
+            "row_ref": "tier-step:agent",
+            "agent_object_ref": "agent-object:qa",
+        },
+        "link": {
+            "row_ref": "tier-step:link",
+            "movement": "forward",
+            "target_ref": "brick-next",
+        },
+    }
+
+
+def _tier_declared_plan_intent(step: Mapping[str, Any]) -> Mapping[str, Any]:
+    return {
+        "plan_ref": "building-plan:tier-fixture",
+        "building_id": "tier-fixture",
+        "selected_adapter_ref": "adapter:local",
+        "selected_model_ref": "model:default",
+        "proof_limits": ["checker fixture only"],
+        "not_proven": ["live provider runtime"],
+        "steps": [step],
+    }
+
+
+def _render_tier_declared_step() -> Mapping[str, Any]:
+    from brick_protocol.support.operator.plan_rendering import render_declared_building_plan
+
+    plan = render_declared_building_plan(_tier_declared_plan_intent(_tier_declared_plan_step()))
+    steps = plan.get("steps")
+    if not isinstance(steps, list) or len(steps) != 1 or not isinstance(steps[0], Mapping):
+        raise ProviderRegistryLadderError("tier declared plan fixture did not render one step")
+    return steps[0]
+
+
+def _run_tier_resolution_cases(repo: Path, home: Path) -> None:
+    from brick_protocol.support.operator.provider_registry import resolve_casting_tier
+
+    _write_registry(
+        home,
+        """
+version: 1
+preferred_adapter_ref: adapter:claude-local
+providers:
+  - adapter_ref: adapter:claude-local
+    registered_at: "2026-07-01T00:00:00Z"
+    last_preflight: {status: ready, checked_at: "2026-07-01T00:00:00Z"}
+    model_ref: model:claude:inherit
+    reasoning_tier: xhigh
+""",
+    )
+    step = _render_tier_declared_step()
+    _assert_selection(
+        step,
+        adapter_ref="adapter:claude-local",
+        model_ref="model:claude:claude-opus-4-8",
+        label="declared casting tier resolves once through ready providers.yaml",
+    )
+    from brick_protocol.support.operator.plan_rendering import _resolve_casting_selection
+
+    _assert_selection(
+        _resolve_casting_selection(
+            repo,
+            raw_step={
+                "casting_tier_ref": "casting-tier:standard",
+                "casting_lens_ref": "casting-lens:qa",
+            },
+            agent_object_ref="agent-object:qa",
+            plan_casting={
+                "selected_adapter_ref": "adapter:local",
+                "selected_model_ref": "model:default",
+            },
+            label="tier internal selection fixture",
+            is_verdict_bearing_node=False,
+        ),
+        adapter_ref="adapter:claude-local",
+        model_ref="model:claude:claude-opus-4-8",
+        label="internal casting selection tier resolves through ready providers.yaml",
+    )
+    if step.get("selected_reasoning_effort_ref") != "effort:xhigh":
+        raise ProviderRegistryLadderError(
+            "declared casting tier did not stamp selected_reasoning_effort_ref=effort:xhigh"
+        )
+    provenance = step.get("casting_tier_provenance")
+    if not isinstance(provenance, Mapping) or provenance.get("casting_tier_ref") != "casting-tier:standard":
+        raise ProviderRegistryLadderError("declared casting tier did not stamp tier provenance")
+    if provenance.get("casting_lens_ref") != "casting-lens:qa":
+        raise ProviderRegistryLadderError("declared casting tier did not stamp lens provenance")
+
+    _assert_selection(
+        resolve_casting_tier(
+            {
+                "version": 1,
+                "providers": [
+                    {
+                        "adapter_ref": "adapter:codex-fugu-local",
+                        "last_preflight": {"status": "ready"},
+                    }
+                ],
+            },
+            "casting-tier:deep",
+            "casting-lens:work",
+        ),
+        adapter_ref="adapter:codex-fugu-local",
+        model_ref="model:sakana:fugu-ultra",
+        label="deep tier maps to fugu-ultra policy row",
+    )
+
+    literal_bypass_step = {
+        **_tier_declared_plan_step(),
+        "selected_adapter_ref": "adapter:claude-local",
+    }
+    _assert_raises(
+        "tier plus selected_* literal bypass",
+        lambda: __import__(
+            "brick_protocol.support.operator.plan_rendering",
+            fromlist=["render_declared_building_plan"],
+        ).render_declared_building_plan(_tier_declared_plan_intent(literal_bypass_step)),
+        "exclusive with concrete selected_*",
+    )
+
+    (home / "providers.yaml").unlink()
+    _assert_raises(
+        "tier without providers.yaml",
+        _render_tier_declared_step,
+        "requires a providers.yaml registry",
+    )
+
+    _write_registry(
+        home,
+        """
+version: 1
+enabled: false
+providers:
+  - adapter_ref: adapter:claude-local
+    registered_at: "2026-07-01T00:00:00Z"
+    last_preflight: {status: ready, checked_at: "2026-07-01T00:00:00Z"}
+""",
+    )
+    _assert_raises(
+        "tier with disabled ladder",
+        _render_tier_declared_step,
+        "requires the provider registry ladder to be enabled",
+    )
+
+    _write_registry(
+        home,
+        """
+version: 1
+providers:
+  - adapter_ref: adapter:gemini-local
+    registered_at: "2026-07-01T00:00:00Z"
+    last_preflight: {status: ready, checked_at: "2026-07-01T00:00:00Z"}
+""",
+    )
+    _assert_raises(
+        "tier with no ready adapter in declared ladder",
+        _render_tier_declared_step,
+        "no ready provider in declared tier ladder",
+    )
+
+    from brick_protocol.support.operator.assembly import brick, build
+
+    authored = brick("work", "tier authoring fixture", tier="standard", lens="qa")
+    if authored.casting.get("casting_tier_ref") != "casting-tier:standard":
+        raise ProviderRegistryLadderError("brick(tier=) did not carry casting_tier_ref")
+    if authored.casting.get("casting_lens_ref") != "casting-lens:qa":
+        raise ProviderRegistryLadderError("brick(lens=) did not carry casting_lens_ref")
+    compact = build([["work", "tier compact fixture", {"tier": "standard", "lens": "qa"}]])
+    compact_node = compact.nodes[0]
+    if compact_node.casting.get("casting_tier_ref") != "casting-tier:standard":
+        raise ProviderRegistryLadderError("build(... tier=) did not carry casting_tier_ref")
+
+
+def _run_preset_tier_resolution_cases(repo: Path, home: Path) -> None:
+    from brick_protocol.support.operator.composition_intent import (
+        _materializer_preset_step_with_selection_override,
+    )
+
+    _write_registry(
+        home,
+        """
+version: 1
+providers:
+  - adapter_ref: adapter:claude-local
+    registered_at: "2026-07-01T00:00:00Z"
+    last_preflight: {status: ready, checked_at: "2026-07-01T00:00:00Z"}
+  - adapter_ref: adapter:gemini-local
+    registered_at: "2026-07-01T00:00:00Z"
+    last_preflight: {status: ready, checked_at: "2026-07-01T00:00:00Z"}
+  - adapter_ref: adapter:codex-fugu-local
+    registered_at: "2026-07-01T00:00:00Z"
+    last_preflight: {status: ready, checked_at: "2026-07-01T00:00:00Z"}
+""",
+    )
+
+    raw_tier_step = {
+        "step_template_ref": "building-step-template:code-attack-qa",
+        "casting_tier_ref": "casting-tier:standard",
+        "casting_lens_ref": "casting-lens:code-attack",
+    }
+    resolved_raw = _materializer_preset_step_with_selection_override(
+        raw_tier_step,
+        "building-step-template:code-attack-qa",
+        {},
+    )
+    _assert_selection(
+        resolved_raw,
+        adapter_ref="adapter:claude-local",
+        model_ref="model:claude:claude-opus-4-8",
+        label="preset raw tier/lens step resolves before graph copy seam",
+    )
+    if resolved_raw.get("selected_reasoning_effort_ref") != "effort:xhigh":
+        raise ProviderRegistryLadderError(
+            "preset raw tier/lens step did not carry selected_reasoning_effort_ref"
+        )
+    if "casting_tier_ref" in resolved_raw or "casting_lens_ref" in resolved_raw:
+        raise ProviderRegistryLadderError(
+            "preset tier/lens authoring refs leaked past graph copy resolution seam"
+        )
+
+    resolved_override = _materializer_preset_step_with_selection_override(
+        {"step_template_ref": "building-step-template:axis-attack-qa"},
+        "building-step-template:axis-attack-qa",
+        {
+            "building-step-template:axis-attack-qa": {
+                "casting_tier_ref": "casting-tier:light",
+                "casting_lens_ref": "casting-lens:axis-attack",
+            }
+        },
+    )
+    _assert_selection(
+        resolved_override,
+        adapter_ref="adapter:gemini-local",
+        model_ref="model:gemini:default",
+        label="step_selection_overrides tier/lens resolves before graph copy seam",
+    )
+
+    literal_step = _materializer_preset_step_with_selection_override(
+        {
+            "step_template_ref": "building-step-template:code-attack-qa",
+            "selected_adapter_ref": "adapter:codex-local",
+            "selected_model_ref": "model:codex:default",
+        },
+        "building-step-template:code-attack-qa",
+        {},
+    )
+    _assert_selection(
+        literal_step,
+        adapter_ref="adapter:codex-local",
+        model_ref="model:codex:default",
+        label="legacy selected_* literal preset step remains accepted",
+    )
+
+    _assert_raises(
+        "preset tier plus selected_* literal bypass",
+        lambda: _materializer_preset_step_with_selection_override(
+            {
+                "step_template_ref": "building-step-template:code-attack-qa",
+                "casting_tier_ref": "casting-tier:standard",
+                "selected_adapter_ref": "adapter:codex-local",
+            },
+            "building-step-template:code-attack-qa",
+            {},
+        ),
+        "exclusive with concrete selected_*",
+    )
+    _assert_raises(
+        "preset lens without tier",
+        lambda: _materializer_preset_step_with_selection_override(
+            {
+                "step_template_ref": "building-step-template:code-attack-qa",
+                "casting_lens_ref": "casting-lens:code-attack",
+            },
+            "building-step-template:code-attack-qa",
+            {},
+        ),
+        "casting_lens_ref requires casting_tier_ref",
+    )
+
+    for path in sorted((repo / "brick" / "templates" / "presets").glob("*fleet*.md")):
+        text = path.read_text(encoding="utf-8")
+        if "selected_adapter_ref:" in text or "selected_model_ref:" in text:
+            raise ProviderRegistryLadderError(
+                f"fleet preset still carries concrete selected_* literal: {path.relative_to(repo)}"
+            )
+        if "casting_tier_ref:" not in text or "casting_lens_ref:" not in text:
+            raise ProviderRegistryLadderError(
+                f"fleet preset does not carry tier/lens authoring refs: {path.relative_to(repo)}"
+            )
+
+
 def run(repo: Path) -> None:
     import json as _json
 
@@ -284,6 +601,9 @@ providers:
         )
         os.environ.pop("BRICK_PROVIDER_LADDER", None)
 
+        _run_tier_resolution_cases(repo, home)
+        _run_preset_tier_resolution_cases(repo, home)
+
     unknown = _unknown_registry_adapter_refs(
         repo,
         {"providers": [{"adapter_ref": "adapter:not-admitted-anywhere"}]},
@@ -312,8 +632,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"provider_registry_ladder rejected evidence: {exc}")
         return 1
     print(
-        "provider_registry_ladder green: fixture-only registry ladder cases "
-        "and Agent Object allow-list validation passed"
+        "provider_registry_ladder green: fixture-only registry ladder, "
+        "casting-tier resolution, and Agent Object allow-list validation passed"
     )
     return 0
 

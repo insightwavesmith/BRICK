@@ -8,20 +8,23 @@ steps:
   - step_template_ref: building-step-template:inspect
     brick_spec_ref: brick/templates/bricks/inspect/brick.md
     target_word: parallel_recon
-    selected_adapter_ref: adapter:codex-local
+    casting_tier_ref: casting-tier:standard
+    casting_lens_ref: casting-lens:review
   - step_template_ref: building-step-template:code-attack-qa
     brick_spec_ref: brick/templates/bricks/code-attack-qa/brick.md
     target_word: fan_in_final_gate
-    selected_adapter_ref: adapter:codex-local
+    casting_tier_ref: casting-tier:standard
+    casting_lens_ref: casting-lens:code-attack
   - step_template_ref: building-step-template:axis-attack-qa
     brick_spec_ref: brick/templates/bricks/axis-attack-qa/brick.md
     target_word: fan_in_final_gate
-    selected_adapter_ref: adapter:gemini-local
-    selected_model_ref: model:gemini:default
+    casting_tier_ref: casting-tier:light
+    casting_lens_ref: casting-lens:axis-attack
   - step_template_ref: building-step-template:closure
     brick_spec_ref: brick/templates/bricks/closure/brick.md
     target_word: closure
-    selected_adapter_ref: adapter:codex-local
+    casting_tier_ref: casting-tier:standard
+    casting_lens_ref: casting-lens:closure
 gate_concept_profile:
   - strict-evidence
   - fan-in-wait-all
@@ -36,7 +39,7 @@ closure_transition_target_policy:
 proof_limits:
   - read-only survey fleet only
   - two-lens fan-in closure synthesis is support evidence, not success or quality judgment
-  - per-step provider/model selection is a swappable launch knob, not a provider availability proof
+  - per-step tier/lens selection is a swappable launch knob, not a provider availability proof
   - preset is not runtime parallel execution
 anti_hint: Do not use when evidence integrity is a separate risk or when more than two read-only attack surfaces exist.
 blocks:
@@ -48,4 +51,4 @@ blocks:
 
 ## Route
 
-Lightweight read-only reconnaissance route: inspect the survey boundary, fan out a Codex code-attack lens and a Gemini axis-attack lens, then fan in to Codex closure synthesis. This is the two-lens (correctness + conformance) recon for narrow surfaces where the evidence-integrity lens is overkill; fan-in width is the cost knob, so dropping that third lens is the genuinely smaller config. The fleet declares graph shape only; the engine may still walk the declared graph sequentially. The provider selections are declared per-step defaults, swappable at launch via step_selection_overrides, not a provider availability proof.
+Lightweight read-only reconnaissance route: inspect the survey boundary, fan out a code-attack lens and an axis-attack lens, then fan in to closure synthesis. This is the two-lens (correctness + conformance) recon for narrow surfaces where the evidence-integrity lens is overkill; fan-in width is the cost knob, so dropping that third lens is the genuinely smaller config. The fleet declares graph shape only; the engine may still walk the declared graph sequentially. The tier/lens selections are declared per-step defaults, swappable at launch via step_selection_overrides, not a provider availability proof.

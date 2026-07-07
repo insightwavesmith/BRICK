@@ -22,6 +22,7 @@ import json
 import hashlib
 import re
 import subprocess
+import copy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping, Sequence
@@ -59,33 +60,53 @@ NOT_PROVEN: tuple[str, ...] = (
 )
 
 # ---------------------------------------------------------------------------
-# H1 casting table — one dict per casting; every row appended to ``rows``
-# becomes a rationale.md line. (decision_ledger #6/#9; model-lane discipline.)
+# H1 provider-neutral casting table — graph_draft proposes tier/lens intent only.
+#
+# The provider/model literals that used to live here are deliberately absent from
+# these casting dict VALUES. A later materialization seam resolves
+# ``casting_tier_ref`` exactly once; this proposal surface records only the
+# operator-declared delegation intent plus a lens for auditability. Legacy
+# model-literal fallback remains in the RED/WARN scanners below so old drafts
+# are still measurable, but new graph_draft emissions use tier/lens tokens.
 # ---------------------------------------------------------------------------
-FUGU = {
-    "adapter_ref": "adapter:codex-fugu-local",
-    "model_ref": "model:sakana:fugu-ultra",
-    "reasoning_effort_ref": "effort:xhigh",
+CASTING_TIER_PLAN = "casting-tier:plan"
+CASTING_TIER_DEEP = "casting-tier:deep"
+CASTING_TIER_STANDARD = "casting-tier:standard"
+CASTING_TIER_LIGHT = "casting-tier:light"
+
+# Lens tokens are audit vocabulary only; every value here must be a member of
+# provider_registry.CASTING_LENS_DECLARATIONS (the single admitted lens set).
+CASTING_LENS_DESIGN = "casting-lens:deep-design"
+CASTING_LENS_WORK = "casting-lens:work"
+CASTING_LENS_REVIEW = "casting-lens:review"
+CASTING_LENS_CLOSURE = "casting-lens:closure"
+CASTING_LENS_QA = "casting-lens:qa"
+
+# QA-lens kind -> admitted lens tail. A drafted QA branch kind (e.g.
+# ``code-attack-qa``) is NOT itself an admitted lens token; it maps to one.
+_QA_KIND_LENS: Mapping[str, str] = {
+    "code-attack-qa": "casting-lens:code-attack",
+    "evidence-integrity": "casting-lens:evidence-integrity",
+    "axis-attack-qa": "casting-lens:axis-attack",
 }
-FABLE5 = {
-    "adapter_ref": "adapter:claude-local",
-    "model_ref": "model:claude:claude-fable-5",
-    "reasoning_effort_ref": "effort:xhigh",
-}
-OPUS48_QA = {
-    "adapter_ref": "adapter:claude-local",
-    "model_ref": "model:claude:claude-opus-4-8",
-    "reasoning_effort_ref": "effort:xhigh",
-}
-# 캐스팅 정본 (Smith 0707 오후 판정, this Building work_statement Context): claude-측
-# QA 캐스팅은 전부 model:claude:claude-opus-4-8 xhigh — 종전 §G1 두-티어(엔진급 QA=
-# fable5)를 승계(대체)한다. fable5의 유일 사용처는 기획 라인(design/deep-design);
-# QA·work 제안 경로에는 fable5 금지 (§K: codex 개발 제외·work=opus/fugu 와 정합).
-# NOTE(source basis): 이 판정은 walk-results-adopted-0707.md에 별도 §M 섹션으로는
-# 미반영이다 — 같은 문서 §M은 부재(실측: 채택 섹션 = A,B,C,D,G,H,I,J,K,L,E,F).
-# 근거 정본은 §G1(승계 대상)·§K + 이 Building work_statement 이다.
-CODEX = {"adapter_ref": "adapter:codex-local"}
-GEMINI_REVIEW = {"adapter_ref": "adapter:gemini-local"}
+
+
+def _tier_lens(tier_ref: str, lens_ref: str) -> dict[str, str]:
+    return {"casting_tier_ref": tier_ref, "casting_lens_ref": lens_ref}
+
+
+FABLE5 = _tier_lens(CASTING_TIER_PLAN, CASTING_LENS_DESIGN)
+FUGU = _tier_lens(CASTING_TIER_DEEP, CASTING_LENS_WORK)
+FUGU_DESIGN = _tier_lens(CASTING_TIER_DEEP, CASTING_LENS_DESIGN)
+CODEX = _tier_lens(CASTING_TIER_STANDARD, CASTING_LENS_WORK)
+CODEX_DESIGN = _tier_lens(CASTING_TIER_STANDARD, CASTING_LENS_DESIGN)
+CODEX_CLOSURE = _tier_lens(CASTING_TIER_STANDARD, CASTING_LENS_CLOSURE)
+GEMINI_REVIEW = _tier_lens(CASTING_TIER_LIGHT, CASTING_LENS_REVIEW)
+OPUS48_QA = _tier_lens(CASTING_TIER_STANDARD, "casting-lens:qa")
+
+_XHIGH_TIER_REFS = frozenset(
+    {CASTING_TIER_PLAN, CASTING_TIER_DEEP, CASTING_TIER_STANDARD}
+)
 
 DEEP_TIMEOUT_SECONDS = 10800
 ISOLATION_ONCE_SENTENCE = "격리 --all은 /tmp 로그로 1회만."
@@ -192,7 +213,7 @@ _RULE4_FAN_CONVERGENCE = "RULE4-FAN-CONVERGENCE"
 # SIZING_QUESTION_IDS (the required-8 contract stays exactly 8) and NOT added to
 # SIZING_ANSWER_ENUMS. Absent → 0 → width 1 (safe default). (§A1.2/§A2/§E.)
 WIDTH_SIGNALS_KEY = "width_signals"
-_DESIGN_FAN_LADDER: tuple[Mapping[str, str], ...] = (FABLE5, FUGU, CODEX)
+_DESIGN_FAN_LADDER: tuple[Mapping[str, str], ...] = (FABLE5, FUGU_DESIGN, CODEX_DESIGN)
 _DESIGN_FAN_CONCERN_TAILS: tuple[str, ...] = (
     "design-fable5",
     "design-fugu",
@@ -525,25 +546,36 @@ def _fan_width(width_signals: int, *, partition_count: int | None = None) -> int
 
 
 # ---------------------------------------------------------------------------
-# fable5 봉쇄 — fable5는 기획(design/deep-design) 노드 제안에만 허용한다. QA·work
-# 제안 경로에 fable5 casting이 등장하면 opus-4-8 xhigh로 정규화한다. Support evidence
-# only — no launch, no verdict. (Smith 0707 오후 판정 — §G1 승계·§K 정합.)
+# plan-tier 봉쇄 — planning tier is legal only on design/deep-design node
+# proposals. If that tier (or a legacy fable5 model literal) appears on a QA/work
+# proposal path, normalize it to the standard QA tier. Support evidence only —
+# no launch, no verdict. (Smith 0707 오후 판정 — §G1 승계·§K 정합.)
 # ---------------------------------------------------------------------------
 def _contain_fable5(branches: Sequence[Mapping[str, Any]]) -> bool:
-    """Normalize any fable5 casting on a QA/work-lane branch to opus-4-8 xhigh.
+    """Normalize any planning-tier/fable5 casting on a QA/work branch to standard tier.
 
-    Returns True when at least one branch was normalized. fable5 stays legal only
-    on design/deep-design node proposals; on a QA/work proposal lane it is a
-    mis-cast and is rewritten to :data:`OPUS48_QA` (claude-측 QA 전부 opus-4-8).
+    Returns True when at least one branch was normalized. The plan tier stays
+    legal only on design/deep-design node proposals; on a QA/work proposal lane
+    it is a mis-cast and is rewritten to the standard tier plus that branch's
+    lens. The legacy model-ref check remains as backward-compat evidence.
     """
     hit = False
     for branch in branches:
         if not isinstance(branch, dict):
             continue
-        if str(branch.get("model_ref") or "").strip() == FABLE5["model_ref"]:
-            branch.update(OPUS48_QA)
+        if (
+            str(branch.get("casting_tier_ref") or branch.get("casting_tier") or "").strip()
+            == CASTING_TIER_PLAN
+            or str(branch.get("model_ref") or "").strip() == "model:claude:claude-fable-5"
+        ):
+            branch.update(_standard_qa_casting(str(branch.get("kind") or "qa")))
             hit = True
     return hit
+
+
+def _standard_qa_casting(kind: str) -> Mapping[str, str]:
+    lens = _QA_KIND_LENS.get(str(kind or "").strip(), CASTING_LENS_QA)
+    return _tier_lens(CASTING_TIER_STANDARD, lens)
 
 
 def _qa_branch_casting(kind: str) -> Mapping[str, str]:
@@ -551,11 +583,11 @@ def _qa_branch_casting(kind: str) -> Mapping[str, str]:
 
     The private helper keeps the QA-casting source behavior-probeable without
     changing the public draft contract: check_graph_draft_rules temporarily
-    substitutes a fable5 casting here, then verifies the live draft pipeline
+    substitutes a plan-tier casting here, then verifies the live draft pipeline
     normalizes it back through ``_contain_fable5``. Support evidence only.
     """
 
-    return OPUS48_QA
+    return _standard_qa_casting(kind)
 
 
 # ---------------------------------------------------------------------------
@@ -607,12 +639,12 @@ def _qa_fan_branches(
         {
             "rule_id": "rule9-fable5-containment",
             "decision": (
-                "QA 캐스팅 전부 opus-4-8 xhigh"
-                + ("; fable5 재도입 → opus-4-8 정규화" if normalized else "")
+                "QA 캐스팅 전부 casting-tier:standard"
+                + ("; plan-tier 재도입 → standard tier 정규화" if normalized else "")
             ),
             "basis": (
-                "fable5는 기획(design/deep-design) 라인 전용 — QA·work 제안 경로 fable5 봉쇄 "
-                "(Smith 0707 오후 판정 — §G1 두-티어 승계·§K 정합: claude-측 QA 전부 opus-4.8 xhigh)"
+                "planning tier는 기획(design/deep-design) 라인 전용 — QA·work 제안 경로 plan-tier 봉쇄 "
+                "(Smith 0707 오후 판정 — §G1 승계·§K 정합을 provider-neutral tier/lens로 기록)"
             ),
         }
     )
@@ -693,7 +725,7 @@ def _shape_nodes(
             )
             return [
                 {"fan": {"branches": branches}},
-                {"kind": "closure", "work_statement": CLOSURE_STMT, **CODEX},  # RULE4-FAN-CONVERGENCE (design-fan arm)
+                {"kind": "closure", "work_statement": CLOSURE_STMT, **CODEX_CLOSURE},  # RULE4-FAN-CONVERGENCE (design-fan arm)
             ]
         branches = [
             {
@@ -756,7 +788,7 @@ def _shape_nodes(
                 "write_scope": dict(write_scope),
             },  # RULE4-FAN-CONVERGENCE (work-fan merge convergence)
             {"fan": {"branches": qa_branches}},
-            {"kind": "closure", "work_statement": CLOSURE_STMT, **CODEX},  # RULE4-FAN-CONVERGENCE (work-fan QA arm)
+            {"kind": "closure", "work_statement": CLOSURE_STMT, **CODEX_CLOSURE},  # RULE4-FAN-CONVERGENCE (work-fan QA arm)
         ]
 
     if deep:
@@ -766,7 +798,7 @@ def _shape_nodes(
         rows.append(
             {
                 "rule_id": "rule3-deep-design-inserted",
-                "decision": "prepend fable5 deep-design node",
+                "decision": "prepend plan-tier deep-design node",
                 "basis": "escalated or difficulty in {complex, entangled}",
             }
         )
@@ -775,8 +807,8 @@ def _shape_nodes(
     rows.append(
         {
             "rule_id": "rule2-work-casting",
-            "decision": f"work → {work_cast['adapter_ref']}",
-            "basis": "difficulty/escalation-proportional casting (Smith 0706)",
+            "decision": f"work → {work_cast['casting_tier_ref']} + {work_cast['casting_lens_ref']}",
+            "basis": "difficulty/escalation-proportional tier/lens casting (Smith 0707 §M)",
         }
     )
     nodes.append(
@@ -794,7 +826,7 @@ def _shape_nodes(
         rows.append(
             {
                 "rule_id": "shape-light-chain",
-                "decision": "work → review(gemini) → closure",
+                "decision": "work → light-review tier → closure",
                 "basis": "simple + not escalated + size==small",
             }
         )
@@ -813,7 +845,7 @@ def _shape_nodes(
 
     # Rule ④ — the sole convergence node this drafter emits. The marker comment
     # is mutation M3's target (deleting it must leave no convergence node).
-    nodes.append({"kind": "closure", "work_statement": CLOSURE_STMT, **CODEX})  # RULE4-FAN-CONVERGENCE
+    nodes.append({"kind": "closure", "work_statement": CLOSURE_STMT, **CODEX_CLOSURE})  # RULE4-FAN-CONVERGENCE
     return nodes
 
 
@@ -953,6 +985,14 @@ def _casting_model(casting: Mapping[str, Any]) -> str:
     return ""
 
 
+def _casting_tier(casting: Mapping[str, Any]) -> str:
+    for key in ("casting_tier_ref", "casting_tier", "tier"):
+        val = str(casting.get(key) or "").strip()
+        if val:
+            return val if val.startswith("casting-tier:") else f"casting-tier:{val}"
+    return ""
+
+
 def _is_deep_tier_model(model: str) -> bool:
     # Fail-open #3 closure: a deep-tier model ref authored with a case variant
     # (e.g. "model:sakana:FUGU-ULTRA") must NOT slip past the RED-3 timeout gate.
@@ -961,6 +1001,14 @@ def _is_deep_tier_model(model: str) -> bool:
     if not model:
         return False
     return model in DEEP_TIER_MODEL_REFS or model in DEEP_TIER_MODEL_TAILS
+
+
+def _is_deep_tier_entry(entry: Mapping[str, Any]) -> bool:
+    # Provider-neutral tier detection is primary for new drafts; legacy model
+    # literal fallback remains so old draft/partition evidence is still measured.
+    return _casting_tier(entry) == CASTING_TIER_DEEP or _is_deep_tier_model(
+        _casting_model(entry)
+    )
 
 
 def _declared_deep_tier(
@@ -973,16 +1021,14 @@ def _declared_deep_tier(
         if "fan" in node:
             fan_block = node.get("fan") or {}
             for branch in (fan_block.get("branches", ()) if isinstance(fan_block, Mapping) else ()):
-                if isinstance(branch, Mapping) and _is_deep_tier_model(
-                    str(branch.get("model_ref") or branch.get("model") or "")
-                ):
+                if isinstance(branch, Mapping) and _is_deep_tier_entry(branch):
                     return True
             continue
-        if _is_deep_tier_model(str(node.get("model_ref") or node.get("model") or "")):
+        if _is_deep_tier_entry(node):
             return True
     for branch in partition_branches:
         casting = branch.get("casting")
-        if isinstance(casting, Mapping) and _is_deep_tier_model(_casting_model(casting)):
+        if isinstance(casting, Mapping) and _is_deep_tier_entry(casting):
             return True
     return False
 
@@ -994,7 +1040,7 @@ def _partition_has_deep_tier(partition_plan: Mapping[str, Any] | None) -> bool:
         if not isinstance(branch, Mapping):
             continue
         casting = branch.get("casting")
-        if isinstance(casting, Mapping) and _is_deep_tier_model(_casting_model(casting)):
+        if isinstance(casting, Mapping) and _is_deep_tier_entry(casting):
             return True
     return False
 
@@ -1008,7 +1054,7 @@ def _branch_timeout_below(partition_branches: Sequence[Mapping[str, Any]]) -> bo
         casting = branch.get("casting")
         if not isinstance(casting, Mapping):
             continue
-        if not _is_deep_tier_model(_casting_model(casting)):
+        if not _is_deep_tier_entry(casting):
             continue
         if _timeout_below(casting.get("timeout_seconds")):
             return True
@@ -1019,11 +1065,10 @@ def _declaration_local_timeout_below(declaration: Mapping[str, Any]) -> bool:
     """True when a deep-tier declaration node/branch declares a local low timeout."""
 
     def _entry_low(entry: Mapping[str, Any]) -> bool:
-        model = str(entry.get("model_ref") or entry.get("model") or "")
-        if _is_deep_tier_model(model) and "timeout_seconds" in entry:
+        if _is_deep_tier_entry(entry) and "timeout_seconds" in entry:
             return _timeout_below(entry.get("timeout_seconds"))
         casting = entry.get("casting")
-        if isinstance(casting, Mapping) and _is_deep_tier_model(_casting_model(casting)):
+        if isinstance(casting, Mapping) and _is_deep_tier_entry(casting):
             if "timeout_seconds" in casting and _timeout_below(casting.get("timeout_seconds")):
                 return True
         return False
@@ -1172,30 +1217,47 @@ def draft_rule_violations(
                 reds.append(RED6_BUDGET_MODE)
 
     # RULE-WARN1-XHIGH-BURST — more than 2 xhigh siblings in any single fan block
-    # or the partition casting cohort (advisory only; literal ceiling of 2).
-    def _xhigh_count(effort_refs: Sequence[str]) -> int:
-        return sum(1 for e in effort_refs if str(e or "").strip() in _XHIGH_EFFORT_REFS)
+    # or the partition casting cohort (advisory only; literal ceiling of 2). An
+    # xhigh sibling is one whose declared effort ref is xhigh OR whose declared
+    # casting tier resolves to an xhigh lane (plan/deep/standard). The legacy
+    # effort-ref path is retained as backward-compat evidence.
+    def _is_xhigh(entry: Mapping[str, Any]) -> bool:
+        effort = str(
+            entry.get("reasoning_effort_ref")
+            or entry.get("reasoning_effort")
+            or entry.get("effort")
+            or ""
+        ).strip()
+        if effort in _XHIGH_EFFORT_REFS:
+            return True
+        tier = str(entry.get("casting_tier_ref") or entry.get("casting_tier") or "").strip()
+        return tier in _XHIGH_TIER_REFS
+
+    def _xhigh_count(entries: Sequence[Mapping[str, Any]]) -> int:
+        return sum(1 for e in entries if isinstance(e, Mapping) and _is_xhigh(e))
 
     for branches in fan_branch_lists:
-        efforts = [str(b.get("reasoning_effort_ref") or b.get("reasoning_effort") or b.get("effort") or "") for b in branches]
-        if _xhigh_count(efforts) > 2:
+        if _xhigh_count(branches) > 2:
             warns.append(WARN1_XHIGH_BURST)
             break
     if WARN1_XHIGH_BURST not in warns:
-        p_efforts = [
-            str((b.get("casting") or {}).get("effort") or "") if isinstance(b.get("casting"), Mapping) else ""
+        p_castings = [
+            b.get("casting") if isinstance(b.get("casting"), Mapping) else {}
             for b in p_branches
         ]
-        if _xhigh_count(p_efforts) > 2:
+        if _xhigh_count(p_castings) > 2:
             warns.append(WARN1_XHIGH_BURST)
 
     # RULE-WARN2-LOW-TIER — entangled/walker-adjacent surface (from answers) with a
-    # low-tier codex work node casting (advisory only; answer-gated).
+    # low-tier work node casting (advisory only; answer-gated). Low tier now = a
+    # non-deep casting tier on the work node (``casting-tier:standard``); the
+    # legacy ``adapter:codex-local`` literal is retained as backward-compat
+    # evidence so old drafts stay measurable.
     # Fail-open #4 closure: ``walker_adjacent==yes`` and a hard difficulty both
-    # force escalation → the drafted work node is fugu, never codex-local, so those
-    # two signals alone left WARN-2 structurally unreachable through the drafter.
+    # force escalation → the drafted work node is deep tier, never standard tier,
+    # so those two signals alone left WARN-2 structurally unreachable through the drafter.
     # ``file_conflict==yes`` ("work 병렬화 금지" — an entanglement signal) does NOT
-    # force escalation, so it leaves a codex-local work node on a risky surface —
+    # force escalation, so it leaves a standard-tier work node on a risky surface —
     # the exact 얽힘+저티어 case WARN-2 exists to surface (advisory only).
     if isinstance(answers, Mapping):
         surface_risk = (
@@ -1205,16 +1267,116 @@ def draft_rule_violations(
         )
         if surface_risk:
             for node in declaration.get("nodes", ()) or ():
-                if isinstance(node, Mapping) and node.get("kind") == "work" and str(node.get("adapter_ref") or "").strip() == "adapter:codex-local":
+                if not isinstance(node, Mapping) or node.get("kind") != "work":
+                    continue
+                node_tier = str(node.get("casting_tier_ref") or node.get("casting_tier") or "").strip()
+                legacy_low = str(node.get("adapter_ref") or "").strip() == "adapter:codex-local"
+                if node_tier == CASTING_TIER_STANDARD or (not node_tier and legacy_low):
                     warns.append(WARN2_LOW_TIER_WORK)
                     break
 
     return _dedupe_texts(reds), _dedupe_texts(warns)
 
 
+def _synthetic_ready_registry_for_precheck() -> Mapping[str, Any]:
+    """All-ready provider registry derived from the admitted tier declarations.
+
+    This is in-memory precheck scaffolding only. It imports the existing
+    provider-registry declaration table so graph_draft does not re-author any
+    provider ladder, model, or adapter mapping. No credential/session/provider
+    runtime state is read or written.
+    """
+
+    from brick_protocol.support.operator.provider_registry import (  # noqa: PLC0415
+        CASTING_TIER_DECLARATIONS,
+    )
+
+    providers: dict[str, Mapping[str, Any]] = {}
+    for declaration in CASTING_TIER_DECLARATIONS.values():
+        ladder = declaration.get("adapter_ladder") if isinstance(declaration, Mapping) else ()
+        for row in ladder or ():
+            if not isinstance(row, Mapping):
+                continue
+            adapter_ref = str(row.get("adapter_ref") or "").strip()
+            if not adapter_ref:
+                continue
+            providers[adapter_ref] = {
+                "adapter_ref": adapter_ref,
+                "last_preflight": {
+                    "status": "ready",
+                    "checked_at": "precheck-synthetic",
+                },
+            }
+    return {"version": 1, "enabled": True, "providers": list(providers.values())}
+
+
+def _resolve_casting_tokens_for_precheck(declaration: Mapping[str, Any]) -> Mapping[str, Any]:
+    """Return an assemble-only copy with tier/lens authoring resolved.
+
+    The public draft remains provider-neutral. This copy is used solely by
+    ``_precheck`` so the existing assembler can still prove graph-shape validity
+    before the core materializer branch resolves tier tokens on persisted plans.
+    """
+
+    from brick_protocol.support.operator.provider_registry import (  # noqa: PLC0415
+        resolve_casting_tier,
+    )
+
+    resolved = copy.deepcopy(dict(declaration))
+    registry = _synthetic_ready_registry_for_precheck()
+
+    def _resolve_entry(entry: Any) -> None:
+        if not isinstance(entry, dict):
+            return
+        tier = entry.get("casting_tier_ref") or entry.get("casting_tier")
+        lens = entry.get("casting_lens_ref") or entry.get("casting_lens")
+        if tier:
+            selected = resolve_casting_tier(registry, str(tier), str(lens) if lens else None)
+            if selected.get("selected_adapter_ref"):
+                entry["adapter_ref"] = selected["selected_adapter_ref"]
+            if selected.get("selected_model_ref"):
+                entry["model_ref"] = selected["selected_model_ref"]
+            if selected.get("selected_reasoning_effort_ref"):
+                entry["reasoning_effort_ref"] = selected["selected_reasoning_effort_ref"]
+            # Remove authoring tokens from the precheck copy only; the real draft
+            # declaration returned by draft_graph_declaration keeps them.
+            for key in ("casting_tier_ref", "casting_tier", "casting_lens_ref", "casting_lens"):
+                entry.pop(key, None)
+
+    for node in resolved.get("nodes", ()) or ():
+        if not isinstance(node, dict):
+            continue
+        if "fan" in node:
+            fan_block = node.get("fan")
+            branches = fan_block.get("branches", ()) if isinstance(fan_block, Mapping) else ()
+            for branch in branches or ():
+                _resolve_entry(branch)
+        else:
+            _resolve_entry(node)
+    return resolved
+
+
 def _precheck(declaration: Mapping[str, Any], repo_root: Path) -> dict[str, Any]:
+    # Provider-neutral drafts carry ``casting_tier_ref``/``casting_lens_ref`` tokens.
+    # The compose path (plan_rendering._resolve_step_casting_tier_authoring) resolves
+    # a tier token fail-closed against the on-disk providers.yaml — which is absent
+    # in the offline draft/precheck environment. To PROVE the drafted graph SHAPE
+    # assembles without pinning a machine's provider readiness, the precheck resolves
+    # each node's tier token ONCE against an all-ready synthetic registry (built from
+    # the single-source provider_registry.CASTING_TIER_DECLARATIONS, never a literal
+    # here) and hands assemble concrete selected_* casting. The RETURNED/persisted
+    # ``declaration`` is untouched and stays provider-neutral; this resolution is
+    # in-memory precheck evidence only — not a launch, route, or verdict.
     try:
-        composed = assemble_graph_declaration(declaration, repo_root=repo_root)
+        precheck_declaration = _resolve_casting_tokens_for_precheck(declaration)
+    except Exception as exc:  # unknown tier/lens token, empty ladder, etc.
+        return {
+            "composed_ok": False,
+            "literal": "",
+            "reject_evidence": f"{type(exc).__name__}: {exc}",
+        }
+    try:
+        composed = assemble_graph_declaration(precheck_declaration, repo_root=repo_root)
     except Exception as exc:  # CompositionError / ValueError / TypeError — surfaced, not judged
         return {
             "composed_ok": False,

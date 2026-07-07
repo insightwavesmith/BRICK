@@ -29,6 +29,9 @@ from brick_protocol.support.operator.primitives import (
 from brick_protocol.support.operator.project_declaration import load_project_declaration
 from brick_protocol.support.recording.capture import buildings_root_for
 from brick_protocol.support.operator.plan_rendering import (
+    CASTING_AUTHORING_REF_FIELDS,
+    CASTING_LENS_REF_KEY,
+    CASTING_TIER_REF_KEY,
     _clean_selected_adapter_ref,
     _declared_step_from_step_template,
     _is_caller_or_coo_declaration,
@@ -42,6 +45,10 @@ from brick_protocol.support.operator.composition_common import (
 )
 from brick_protocol.support.operator.composition_graph_emit import (
     _materializer_graph_plan,
+)
+from brick_protocol.support.operator.provider_registry import (
+    load_provider_registry,
+    resolve_casting_tier,
 )
 
 
@@ -82,6 +89,11 @@ def materialize_building_intent(
     # human/COO NEED<->CAPABILITY declaration. An OMITTED or BLANK selected_adapter_ref
     # must HARD-FAIL here, once, at the entry -- support does NOT default the adapter
     # (a concrete adapter choice would be support deciding the Agent's performer).
+    # A provider-neutral casting_tier_ref elsewhere is lawful only because the caller
+    # explicitly delegates interpretation to a declared providers.yaml tier ladder;
+    # materialization must resolve that delegation ONCE into concrete selected_* rows
+    # before this invariant is consumed. It is not an adapter default, hidden runtime
+    # state, or support-selected performer. Blank selected_adapter_ref stays RED.
     # NOTE: selected_model_ref is NOT fail-closed: model:default is a SENTINEL meaning
     # "let the already-declared adapter pick its own default model" (see
     # agent_adapter._normalize_selected_model_ref -> spec.default_model_ref), not a
@@ -604,13 +616,16 @@ def _materializer_write_scope(intent: Mapping[str, Any]) -> Mapping[str, Any] | 
 
 
 # The per-template override row admits the override-map KEY (``step_template_ref``)
-# plus the node-level ``selected_*`` casting keys. The casting half is NOT
-# re-enumerated here: it derives from the single-source ``NODE_CASTING_FIELDS``
-# projection (primitives.py, the ``selected_<rest>`` twin of ``CASTING_FIELDS``),
-# so a new casting field is admitted as an override with ZERO edit here. Only the
-# non-casting map-key ``step_template_ref`` is named locally.
+# plus the node-level concrete ``selected_*`` casting keys AND the provider-neutral
+# tier/lens authoring keys. The concrete half is NOT re-enumerated here: it derives
+# from the single-source ``NODE_CASTING_FIELDS`` projection (primitives.py, the
+# ``selected_<rest>`` twin of ``CASTING_FIELDS``), so a new concrete casting field
+# is admitted as an override with ZERO edit here. The tier/lens keys derive from
+# the Agent-axis ``CASTING_AUTHORING_REF_FIELDS`` constants and are resolved once
+# in _materializer_preset_step_with_selection_override before the graph-node copy
+# seam consumes the concrete selected_* bag.
 _STEP_SELECTION_OVERRIDE_KEYS = frozenset(
-    {"step_template_ref", *NODE_CASTING_FIELDS}
+    {"step_template_ref", *NODE_CASTING_FIELDS, *CASTING_AUTHORING_REF_FIELDS}
 )
 
 
@@ -635,8 +650,9 @@ def _materializer_step_selection_overrides(
         extra = sorted(set(row) - _STEP_SELECTION_OVERRIDE_KEYS)
         if extra:
             raise ValueError(
-                "step_selection_overrides may declare only step_template_ref, "
-                f"selected_adapter_ref, and selected_model_ref; observed {extra}"
+                "step_selection_overrides may declare only step_template_ref and "
+                f"casting fields ({', '.join((*NODE_CASTING_FIELDS, *CASTING_AUTHORING_REF_FIELDS))}); "
+                f"observed {extra}"
             )
         declared_ref = row.get("step_template_ref")
         if declared_ref is not None and _clean_text(
@@ -648,10 +664,13 @@ def _materializer_step_selection_overrides(
         # NODE_CASTING_FIELDS (E2/S6★) instead of naming adapter/model by hand, so a
         # NEW dial (effort) is an admissible override with no edit here. Byte-identical
         # to the prior adapter/model check (those are the first two members).
-        if not any(field_name in row for field_name in NODE_CASTING_FIELDS):
+        if not any(
+            field_name in row
+            for field_name in (*NODE_CASTING_FIELDS, *CASTING_AUTHORING_REF_FIELDS)
+        ):
             raise ValueError(
-                "step_selection_overrides row must declare at least one casting dial: "
-                + ", ".join(NODE_CASTING_FIELDS)
+                "step_selection_overrides row must declare at least one casting field: "
+                + ", ".join((*NODE_CASTING_FIELDS, *CASTING_AUTHORING_REF_FIELDS))
             )
         if step_template_ref in overrides:
             raise ValueError(
@@ -740,16 +759,62 @@ def _materializer_preset_step_with_selection_override(
     overrides: Mapping[str, Mapping[str, Any]],
 ) -> Mapping[str, Any]:
     override = overrides.get(step_template_ref)
-    if not override:
-        return raw_preset_step
     merged = dict(raw_preset_step)
     # Merge EVERY overridden casting dial generically (E2/S6★): loop the single-source
     # NODE_CASTING_FIELDS rather than naming adapter/model, so a NEW dial (effort)
-    # merges onto the preset step with no edit. Byte-identical for adapter/model.
+    # merges onto the preset step with no edit. Also merge the Agent-axis tier/lens
+    # authoring refs, then resolve them ONCE to concrete selected_* values before
+    # composition_graph_emit copies the node casting bag.
+    if override:
+        if any(key in override for key in NODE_CASTING_FIELDS):
+            for key in CASTING_AUTHORING_REF_FIELDS:
+                merged.pop(key, None)
+        if any(key in override for key in CASTING_AUTHORING_REF_FIELDS):
+            for key in NODE_CASTING_FIELDS:
+                merged.pop(key, None)
+        for key in (*NODE_CASTING_FIELDS, *CASTING_AUTHORING_REF_FIELDS):
+            if key in override:
+                merged[key] = override[key]
+    return _materializer_resolve_preset_step_casting_tier(
+        merged,
+        label=f"chain preset step {step_template_ref}",
+    )
+
+
+def _materializer_resolve_preset_step_casting_tier(
+    raw_step: Mapping[str, Any],
+    *,
+    label: str,
+) -> Mapping[str, Any]:
+    tier_ref = raw_step.get(CASTING_TIER_REF_KEY)
+    lens_ref = raw_step.get(CASTING_LENS_REF_KEY)
+    has_tier = tier_ref is not None and str(tier_ref).strip()
+    has_lens = lens_ref is not None and str(lens_ref).strip()
+    if not has_tier:
+        if has_lens:
+            raise ValueError(f"{label}: casting_lens_ref requires casting_tier_ref")
+        return raw_step
+    declared_selected = [key for key in NODE_CASTING_FIELDS if raw_step.get(key) is not None]
+    if declared_selected:
+        raise ValueError(
+            f"{label}: casting_tier_ref is exclusive with concrete selected_* casting keys: "
+            + ", ".join(declared_selected)
+        )
+    selection = resolve_casting_tier(
+        load_provider_registry(),
+        str(tier_ref),
+        str(lens_ref) if has_lens else None,
+    )
+    resolved = {
+        key: value
+        for key, value in raw_step.items()
+        if key not in CASTING_AUTHORING_REF_FIELDS
+    }
     for key in NODE_CASTING_FIELDS:
-        if key in override:
-            merged[key] = override[key]
-    return merged
+        value = selection.get(key)
+        if value is not None:
+            resolved[key] = value
+    return resolved
 
 
 def _materializer_task_summary(task_body: str, task_source_ref: str) -> str:
