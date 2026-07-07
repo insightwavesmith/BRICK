@@ -23,6 +23,7 @@ from brick_protocol.support.connection.adapter_constants import (
     MODEL_REF_CODEX_DEFAULT,
     MODEL_REF_GEMINI_DEFAULT,
     MODEL_REF_SAKANA_FUGU,
+    MODEL_REF_SAKANA_FUGU_ULTRA,
 )
 from brick_protocol.support.connection.adapter_model_casting import (
     _validate_model_ref_for_adapter,
@@ -32,6 +33,65 @@ from brick_protocol.support.connection.adapter_model_casting import (
 PROVIDERS_FILENAME = "providers.yaml"
 PROVIDER_LADDER_ENV = "BRICK_PROVIDER_LADDER"
 PROVIDER_REGISTRY_SCHEMA_VERSION = 1
+
+CASTING_TIER_PREFIX = "casting-tier:"
+CASTING_LENS_PREFIX = "casting-lens:"
+CASTING_REASONING_EFFORT_DEFAULT = "effort:default"
+CASTING_REASONING_EFFORT_XHIGH = "effort:xhigh"
+# Policy-visible concrete model refs include model:sakana:fugu-ultra for deep tier.
+
+CASTING_TIER_DECLARATIONS: Mapping[str, Mapping[str, Any]] = {
+    "casting-tier:plan": {
+        "adapter_ladder": (
+            {
+                "adapter_ref": ADAPTER_CLAUDE_LOCAL,
+                "model_ref": "model:claude:claude-fable-5",
+                "selected_reasoning_effort_ref": CASTING_REASONING_EFFORT_XHIGH,
+            },
+        ),
+    },
+    "casting-tier:deep": {
+        "adapter_ladder": (
+            {
+                "adapter_ref": ADAPTER_CODEX_FUGU_LOCAL,
+                "model_ref": MODEL_REF_SAKANA_FUGU_ULTRA,
+                "selected_reasoning_effort_ref": CASTING_REASONING_EFFORT_XHIGH,
+            },
+        ),
+    },
+    "casting-tier:standard": {
+        "adapter_ladder": (
+            {
+                "adapter_ref": ADAPTER_CLAUDE_LOCAL,
+                "model_ref": "model:claude:claude-opus-4-8",
+                "selected_reasoning_effort_ref": CASTING_REASONING_EFFORT_XHIGH,
+            },
+        ),
+    },
+    "casting-tier:light": {
+        "adapter_ladder": (
+            {
+                "adapter_ref": ADAPTER_GEMINI_LOCAL,
+                "model_ref": MODEL_REF_GEMINI_DEFAULT,
+                "selected_reasoning_effort_ref": CASTING_REASONING_EFFORT_DEFAULT,
+            },
+        ),
+    },
+}
+
+CASTING_LENS_DECLARATIONS: Mapping[str, Mapping[str, Any]] = {
+    "casting-lens:plan": {},
+    "casting-lens:deep-design": {},
+    "casting-lens:work": {},
+    "casting-lens:repair": {},
+    "casting-lens:review": {},
+    "casting-lens:code-attack": {},
+    "casting-lens:axis-attack": {},
+    "casting-lens:evidence-integrity": {},
+    "casting-lens:qa": {},
+    "casting-lens:closure": {},
+    "casting-lens:implementation": {},
+}
 
 DEFAULT_MODEL_REF_BY_ADAPTER = {
     ADAPTER_CLAUDE_LOCAL: MODEL_REF_CLAUDE_INHERIT,
@@ -241,6 +301,97 @@ def model_ref_for_adapter(
             return model_ref
     return default_ref
 
+
+
+def _required_ref_token(label: str, value: str, *, prefix: str, admitted: Mapping[str, Any]) -> str:
+    text = str(value or "").strip()
+    if not text:
+        raise ValueError(f"{label} must be non-empty")
+    if not text.startswith(prefix):
+        if ":" in text:
+            raise ValueError(f"{label} must use {prefix}<token>")
+        text = f"{prefix}{text}"
+    tail = text.removeprefix(prefix)
+    if not tail or any(part in tail for part in ("/", "#")):
+        raise ValueError(f"{label} must be a bare {prefix}<token> ref")
+    if text not in admitted:
+        allowed = ", ".join(sorted(admitted))
+        raise ValueError(f"{label} is not admitted: {text}; admitted refs: {allowed}")
+    return text
+
+
+def _optional_lens_ref(value: str | None) -> str | None:
+    if value is None or not str(value).strip():
+        return None
+    return _required_ref_token(
+        "casting_lens_ref",
+        str(value),
+        prefix=CASTING_LENS_PREFIX,
+        admitted=CASTING_LENS_DECLARATIONS,
+    )
+
+
+def resolve_casting_tier(
+    registry: Mapping[str, Any] | None,
+    tier_ref: str,
+    lens_ref: str | None = None,
+) -> dict[str, str | None]:
+    """Resolve one declared casting tier through the provider registry ladder.
+
+    A tier declaration is an explicit provider-neutral interpretation delegation,
+    not a support default. Therefore resolution is fail-closed: no registry, a
+    disabled ladder, an unknown tier/lens token, or no ready adapter in the
+    tier's declared ladder raises loudly. The returned concrete selected_* values
+    are the only runtime casting data consumers should persist or execute.
+    """
+
+    tier = _required_ref_token(
+        "casting_tier_ref",
+        tier_ref,
+        prefix=CASTING_TIER_PREFIX,
+        admitted=CASTING_TIER_DECLARATIONS,
+    )
+    lens = _optional_lens_ref(lens_ref)
+    if not isinstance(registry, Mapping):
+        raise ValueError(
+            "casting_tier_ref requires a providers.yaml registry; run brick onboard "
+            "or declare concrete selected_* values explicitly"
+        )
+    if not provider_ladder_enabled(registry):
+        raise ValueError(
+            "casting_tier_ref requires the provider registry ladder to be enabled; "
+            "BRICK_PROVIDER_LADDER=0 or enabled: false cannot execute a tier delegation"
+        )
+
+    declaration = CASTING_TIER_DECLARATIONS[tier]
+    rows = declaration.get("adapter_ladder")
+    if not isinstance(rows, Sequence) or isinstance(rows, (str, bytes)) or not rows:
+        raise ValueError(f"{tier}: adapter_ladder declaration is empty")
+    checked: list[str] = []
+    for row in rows:
+        if not isinstance(row, Mapping):
+            raise ValueError(f"{tier}: adapter_ladder rows must be mappings")
+        adapter_ref = str(row.get("adapter_ref") or "").strip()
+        model_ref = str(row.get("model_ref") or "").strip()
+        effort_ref = str(row.get("selected_reasoning_effort_ref") or "").strip()
+        if not adapter_ref or not model_ref:
+            raise ValueError(f"{tier}: adapter_ladder row missing adapter_ref/model_ref")
+        _validate_model_ref_for_adapter(adapter_ref, model_ref)
+        checked.append(adapter_ref)
+        if not provider_entry_ready(provider_entry(registry, adapter_ref)):
+            continue
+        return {
+            "selected_adapter_ref": adapter_ref,
+            "selected_model_ref": model_ref,
+            "selected_reasoning_effort_ref": effort_ref or CASTING_REASONING_EFFORT_DEFAULT,
+            "casting_tier_ref": tier,
+            "casting_lens_ref": lens,
+        }
+    checked_text = ", ".join(checked)
+    raise ValueError(
+        f"{tier}: no ready provider in declared tier ladder ({checked_text}); "
+        "run brick onboard or declare concrete selected_* values explicitly"
+    )
 
 def _utc_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")

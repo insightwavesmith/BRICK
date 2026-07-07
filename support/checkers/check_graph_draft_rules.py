@@ -75,6 +75,10 @@ Probes:
              and emits the normalization rationale row (normalized wiring pin)
   P53 0707pm the canonical QA branch casting source is opus-4-8 xhigh, not
              fable5; replacing the source arm with fable5 is a variant-RED
+  P54 B       graph_draft's new tier/lens casting constants carry no provider
+             literals; reintroducing adapter/model/provider names is RED
+  P55 B       graph_draft's public draft nodes/branches carry tier/lens
+             authoring keys, not legacy literal casting fields
 
 P4 runs before P3 so mutation M3 (deleting the convergence emission) hits the
 P4 literal first.
@@ -111,6 +115,16 @@ from brick_protocol.support.operator.graph_draft import (
     ANSWER_FINGERPRINT_PREFIX,
 )
 from brick_protocol.support.operator.graph_draft import DEEP_TIER_MODEL_REFS
+from brick_protocol.support.operator.graph_draft import (
+    CASTING_TIER_PLAN,
+    CASTING_TIER_DEEP,
+    CASTING_TIER_STANDARD,
+    CASTING_TIER_LIGHT,
+    CASTING_LENS_DESIGN,
+    CASTING_LENS_WORK,
+    CASTING_LENS_REVIEW,
+    CASTING_LENS_CLOSURE,
+)
 from brick_protocol.support.operator import graph_draft as _graph_draft
 from brick_protocol.support.operator import draft_diff as _draft_diff
 
@@ -312,7 +326,8 @@ def _violations(repo: Path) -> list[str]:
     hard_work = _first_kind(hard_nodes, "work")
     if (
         hard_work is None
-        or hard_work.get("adapter_ref") != "adapter:codex-fugu-local"
+        or hard_work.get("casting_tier_ref") != CASTING_TIER_DEEP
+        or hard_work.get("casting_lens_ref") != CASTING_LENS_WORK
         or not _has_kind(hard_nodes, "deep-design")
         or hard.declaration.get("adapter_timeout_seconds") != 10800
     ):
@@ -330,7 +345,8 @@ def _violations(repo: Path) -> list[str]:
     simple_work = _first_kind(simple_nodes, "work")
     if (
         simple_work is None
-        or simple_work.get("adapter_ref") != "adapter:codex-local"
+        or simple_work.get("casting_tier_ref") != CASTING_TIER_STANDARD
+        or simple_work.get("casting_lens_ref") != CASTING_LENS_WORK
         or _has_kind(simple_nodes, "deep-design")
         or simple.declaration.get("adapter_timeout_seconds") == 10800
     ):
@@ -367,7 +383,7 @@ def _violations(repo: Path) -> list[str]:
 
     # P9 — RED-3: deep-tier casting below 10800s must be rejected.
     deep_decl = _decl(
-        [{"kind": "work", "model_ref": "model:sakana:fugu-ultra"}],
+        [{"kind": "work", "casting_tier_ref": CASTING_TIER_DEEP}],
         adapter_timeout_seconds=3600,
     )
     reds, _ = draft_rule_violations(deep_decl)
@@ -384,9 +400,7 @@ def _violations(repo: Path) -> list[str]:
                             "kind": "design",
                             "concern_key": "deep",
                             "objective": "deep",
-                            # 0707pm: fable5 is no longer a deep-tier model, so a
-                            # branch-local low timeout is exercised via fugu.
-                            "model_ref": "model:sakana:fugu-ultra",
+                            "casting_tier_ref": CASTING_TIER_DEEP,
                             "timeout_seconds": 3600,
                         }
                     ]
@@ -633,10 +647,13 @@ def _violations(repo: Path) -> list[str]:
     if (
         len(sd_nodes) != 2
         or len(fan0) != 3
-        or [b.get("adapter_ref") for b in fan0]
-        != ["adapter:claude-local", "adapter:codex-fugu-local", "adapter:codex-local"]
+        or [b.get("casting_tier_ref") for b in fan0]
+        != [CASTING_TIER_PLAN, CASTING_TIER_DEEP, CASTING_TIER_STANDARD]
+        or [b.get("casting_lens_ref") for b in fan0]
+        != [CASTING_LENS_DESIGN, CASTING_LENS_DESIGN, CASTING_LENS_DESIGN]
         or any(b.get("kind") != "design" or not str(b.get("concern_key") or "").strip() for b in fan0)
         or sd_nodes[1].get("kind") != "closure"
+        or sd_nodes[1].get("casting_lens_ref") != CASTING_LENS_CLOSURE
         or split_deep.declaration.get("adapter_timeout_seconds") != 10800
         or not str(split_deep.precheck.get("literal", "")).startswith("COMPOSED OK")
     ):
@@ -712,7 +729,10 @@ def _violations(repo: Path) -> list[str]:
     # on a width-fan draft (the exact 1st-pass QA observation: 폭-팬이 QA 팬을
     # gemini 단일 review로 강등).
     if any(
-        "fan" not in n and n.get("kind") == "review" and n.get("adapter_ref") == "adapter:gemini-local"
+        "fan" not in n
+        and n.get("kind") == "review"
+        and n.get("casting_tier_ref") == CASTING_TIER_LIGHT
+        and n.get("casting_lens_ref") == CASTING_LENS_REVIEW
         for n in sw_nodes
     ):
         out.append(
@@ -817,10 +837,11 @@ def _violations(repo: Path) -> list[str]:
     ei = g1_by_kind.get("evidence-integrity")
     if (
         code_qa is None
-        or code_qa.get("model_ref") != "model:claude:claude-opus-4-8"
-        or code_qa.get("adapter_ref") != "adapter:claude-local"
+        or code_qa.get("casting_tier_ref") != CASTING_TIER_STANDARD
+        or code_qa.get("casting_lens_ref") != "casting-lens:code-attack"
         or ei is None
-        or ei.get("model_ref") != "model:claude:claude-opus-4-8"
+        or ei.get("casting_tier_ref") != CASTING_TIER_STANDARD
+        or ei.get("casting_lens_ref") != "casting-lens:evidence-integrity"
     ):
         # NOTE: literal string kept verbatim — the graph_draft.yaml profile
         # text_contains rule (line 104, outside this Brick's write_scope) pins it.
@@ -850,10 +871,11 @@ def _violations(repo: Path) -> list[str]:
     ne_ei = nonesc_by_kind.get("evidence-integrity")
     if (
         ne_code_qa is None
-        or ne_code_qa.get("model_ref") != "model:claude:claude-opus-4-8"
-        or ne_code_qa.get("adapter_ref") != "adapter:claude-local"
+        or ne_code_qa.get("casting_tier_ref") != CASTING_TIER_STANDARD
+        or ne_code_qa.get("casting_lens_ref") != "casting-lens:code-attack"
         or ne_ei is None
-        or ne_ei.get("model_ref") != "model:claude:claude-opus-4-8"
+        or ne_ei.get("casting_tier_ref") != CASTING_TIER_STANDARD
+        or ne_ei.get("casting_lens_ref") != "casting-lens:evidence-integrity"
     ):
         out.append(
             "graph-draft RED: non-escalated code-attack-qa arm did not fire opus-4-8 casting (G1 else arm)"
@@ -961,7 +983,10 @@ def _violations(repo: Path) -> list[str]:
             if "fan" not in _node:
                 continue
             for _branch in _node.get("fan", {}).get("branches", []):
-                if str(_branch.get("model_ref") or "").strip() == "model:claude:claude-fable-5":
+                if (
+                    str(_branch.get("casting_tier_ref") or "").strip() == CASTING_TIER_PLAN
+                    or str(_branch.get("model_ref") or "").strip() == "model:claude:claude-fable-5"
+                ):
                     _qa_fable5 = True
         if _qa_fable5:
             out.append(
@@ -995,8 +1020,13 @@ def _violations(repo: Path) -> list[str]:
     if (
         len(normalized_fan) < 2
         or any(
-            _branch.get("model_ref") != "model:claude:claude-opus-4-8"
-            or _branch.get("reasoning_effort_ref") != "effort:xhigh"
+            _branch.get("casting_tier_ref") != CASTING_TIER_STANDARD
+            or str(_branch.get("casting_lens_ref") or "").strip() not in {
+                "casting-lens:code-attack",
+                "casting-lens:evidence-integrity",
+                "casting-lens:axis-attack",
+                "casting-lens:qa",
+            }
             for _branch in normalized_fan
         )
     ):
@@ -1005,8 +1035,8 @@ def _violations(repo: Path) -> list[str]:
         )
     if not any(
         _row.get("rule_id") == "rule9-fable5-containment"
-        and "fable5 재도입" in str(_row.get("decision", ""))
-        and "opus-4-8 정규화" in str(_row.get("decision", ""))
+        and "plan-tier 재도입" in str(_row.get("decision", ""))
+        and "standard tier 정규화" in str(_row.get("decision", ""))
         for _row in normalized_probe.rationale_rows
     ):
         out.append(
@@ -1019,12 +1049,99 @@ def _violations(repo: Path) -> list[str]:
     for _kind in ("code-attack-qa", "evidence-integrity", "axis-attack-qa"):
         _casting = _graph_draft._qa_branch_casting(_kind)
         if (
-            _casting.get("model_ref") != "model:claude:claude-opus-4-8"
-            or _casting.get("reasoning_effort_ref") != "effort:xhigh"
-            or _casting.get("adapter_ref") != "adapter:claude-local"
+            _casting.get("casting_tier_ref") != CASTING_TIER_STANDARD
+            or str(_casting.get("casting_lens_ref") or "").strip()
+            not in {
+                "casting-lens:code-attack",
+                "casting-lens:evidence-integrity",
+                "casting-lens:axis-attack",
+            }
         ):
             out.append(
                 "graph-draft RED: canonical QA branch casting source is not opus-4-8 xhigh (fable5 source-arm reintroduction)"
+            )
+            break
+
+    # P54 — B branch provider-neutrality pin: the emitted casting constants are
+    # tier/lens authoring tokens only. Legacy provider/model literals are still
+    # admitted in fallback scanners (DEEP_TIER_MODEL_REFS, old draft probes), but
+    # they must not re-enter the NEW tier/lens casting constants.
+    _provider_literal_needles = (
+        "adapter:",
+        "model:",
+        "codex",
+        "gemini",
+        "fable",
+        "fugu",
+        "claude",
+        "sakana",
+    )
+    for _name in (
+        "FABLE5",
+        "FUGU",
+        "FUGU_DESIGN",
+        "CODEX",
+        "CODEX_DESIGN",
+        "CODEX_CLOSURE",
+        "GEMINI_REVIEW",
+        "OPUS48_QA",
+    ):
+        _row = getattr(_graph_draft, _name)
+        if not isinstance(_row, Mapping):
+            out.append(
+                "graph-draft RED: tier/lens casting constants reintroduced provider literals (provider-neutral B branch)"
+            )
+            break
+        _values = [str(v).strip().lower() for v in _row.values()]
+        if any(any(_needle in _value for _needle in _provider_literal_needles) for _value in _values):
+            out.append(
+                "graph-draft RED: tier/lens casting constants reintroduced provider literals (provider-neutral B branch)"
+            )
+            break
+
+    # P55 — output-shape companion: provider-neutral graph_draft declarations
+    # must not leak legacy literal casting fields on emitted nodes/branches. The
+    # precheck copy may resolve tiers in memory; the public draft declaration
+    # remains tier/lens authoring evidence only.
+    _legacy_casting_keys = {
+        "adapter_ref",
+        "model_ref",
+        "reasoning_effort_ref",
+        "selected_adapter_ref",
+        "selected_model_ref",
+        "selected_reasoning_effort_ref",
+    }
+
+    def _iter_mappings(_value: Any) -> list[Mapping[str, Any]]:
+        if isinstance(_value, Mapping):
+            _out = [_value]
+            for _child in _value.values():
+                _out.extend(_iter_mappings(_child))
+            return _out
+        if isinstance(_value, Sequence) and not isinstance(_value, (str, bytes, bytearray)):
+            _out: list[Mapping[str, Any]] = []
+            for _child in _value:
+                _out.extend(_iter_mappings(_child))
+            return _out
+        return []
+
+    for _draft in (
+        hard,
+        simple,
+        split_deep,
+        wide_work,
+        split_work,
+        g1,
+        nonesc,
+        sf_work,
+        sf_deep,
+        residual,
+        normalized_probe,
+    ):
+        _nodes_doc = _draft.declaration.get("nodes", ())
+        if any(_legacy_casting_keys & set(_mapping) for _mapping in _iter_mappings(_nodes_doc)):
+            out.append(
+                "graph-draft RED: emitted graph_draft nodes leaked literal provider casting keys (provider-neutral B branch)"
             )
             break
 
@@ -1601,7 +1718,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(f"- {line}", file=sys.stderr)
         print(PROOF_LIMIT, file=sys.stderr)
         return 1
-    print("graph_draft_rules passed: 53 probe(s)")
+    print("graph_draft_rules passed: 55 probe(s)")
     print(PROOF_LIMIT)
     return 0
 

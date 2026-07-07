@@ -708,17 +708,17 @@ materialize_building_intent_case:
         - materialize-review-fleet-provider-ladder-evidence-integrity
         - materialize-review-fleet-provider-ladder-closure
       selected_adapter_refs_by_step:
-        - adapter:codex-local
-        - adapter:codex-local
+        - adapter:claude-local
+        - adapter:claude-local
         - adapter:gemini-local
         - adapter:gemini-local
-        - adapter:codex-local
+        - adapter:claude-local
       selected_model_refs_by_step:
-        - model:default
-        - model:codex:default
+        - model:claude:claude-fable-5
+        - model:claude:claude-opus-4-8
         - model:gemini:default
         - model:gemini:default
-        - model:default
+        - model:claude:claude-opus-4-8
       target_refs:
         - brick-materialize-review-fleet-provider-ladder-code-attack-qa
         - brick-materialize-review-fleet-provider-ladder-axis-attack-qa
@@ -794,26 +794,26 @@ materialize_building_intent_case:
       plan_shape: graph
       step_refs:
         - materialize-postmortem-fleet-alias-smoke-inspect
-        - materialize-postmortem-fleet-alias-smoke-code-lens-codex
-        - materialize-postmortem-fleet-alias-smoke-axis-lens-gemini
-        - materialize-postmortem-fleet-alias-smoke-evidence-lens-gemini
+        - materialize-postmortem-fleet-alias-smoke-code-attack-lens
+        - materialize-postmortem-fleet-alias-smoke-axis-attack-lens
+        - materialize-postmortem-fleet-alias-smoke-evidence-integrity-lens
         - materialize-postmortem-fleet-alias-smoke-closure
       selected_adapter_refs_by_step:
-        - adapter:codex-local
-        - adapter:codex-local
+        - adapter:claude-local
+        - adapter:claude-local
         - adapter:gemini-local
         - adapter:gemini-local
-        - adapter:codex-local
+        - adapter:claude-local
       selected_model_refs_by_step:
-        - model:default
-        - model:default
+        - model:claude:claude-opus-4-8
+        - model:claude:claude-opus-4-8
         - model:gemini:default
         - model:gemini:default
-        - model:default
+        - model:claude:claude-opus-4-8
       target_refs:
-        - brick-materialize-postmortem-fleet-alias-smoke-code-lens-codex
-        - brick-materialize-postmortem-fleet-alias-smoke-axis-lens-gemini
-        - brick-materialize-postmortem-fleet-alias-smoke-evidence-lens-gemini
+        - brick-materialize-postmortem-fleet-alias-smoke-code-attack-lens
+        - brick-materialize-postmortem-fleet-alias-smoke-axis-attack-lens
+        - brick-materialize-postmortem-fleet-alias-smoke-evidence-integrity-lens
         - brick-materialize-postmortem-fleet-alias-smoke-closure
         - brick-materialize-postmortem-fleet-alias-smoke-closure
         - brick-materialize-postmortem-fleet-alias-smoke-closure

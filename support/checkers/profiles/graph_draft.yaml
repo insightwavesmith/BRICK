@@ -13,8 +13,11 @@ text_contains:
   - path: support/operator/graph_draft.py
     texts:
       - "COMPOSED OK"
-      - "adapter:codex-fugu-local"
-      - "model:claude:claude-fable-5"
+      - "casting-tier:plan"
+      - "casting-tier:deep"
+      - "casting-tier:standard"
+      - "casting-tier:light"
+      - "casting-lens:code-attack"
       - "10800"
       - "격리 --all"
       - "## Deliverables"
@@ -30,7 +33,8 @@ text_contains:
       - "graph-draft WARN-1: more than 2 concurrent xhigh fan siblings"
       - "graph-draft WARN-2: entangled/walker-adjacent surface with low-tier work casting"
       - "width_signals"
-      - "model:claude:claude-opus-4-8"
+      - "casting_tier_ref"
+      - "casting_lens_ref"
       - "RULE-WIDTH-FAN-PROPOSAL"
       - "RULE-WIDTH-CEILING"
       - "def draft_launch_guidance"
@@ -54,6 +58,8 @@ text_contains:
       - "shape_flips"
       - "casting_flips"
       - "CASTING_LEAF_KEYS"
+      - "casting_tier_ref"
+      - "casting_lens_ref"
       - "append_flip_record"
       - "rolling_flip_rate"
       - "compare_preregistration"
@@ -126,6 +132,8 @@ text_contains:
       - "graph-draft RED: a blank building_id window absorbed named-Building records (D1 blank-id absorption)"
       - "graph-draft RED: a non-positive rolling window clamped to 1 and fired the canary at sample=1 (D1 negative-window)"
       - "graph-draft RED: the default <brick_home> ledger/prereg path bypassed the repo-outside guard when BRICK_HOME was inside the repo (repo 안 산출 금지, D2)"
+      - "graph-draft RED: tier/lens casting constants reintroduced provider literals (provider-neutral B branch)"
+      - "graph-draft RED: emitted graph_draft nodes leaked literal provider casting keys (provider-neutral B branch)"
 text_absent:
   - path: support/operator/graph_draft.py
     texts:

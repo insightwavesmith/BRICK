@@ -6,8 +6,10 @@ Pure relocation sibling of case_runners; support evidence only.
 from __future__ import annotations
 
 import hashlib
+import os
 import tempfile
 from collections.abc import Mapping
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
@@ -36,6 +38,59 @@ from support.checkers.lib.materialize_reject_scaffold import (
     _patched_chain_preset_steps,
     _stripped_chain_preset_keys,
 )
+
+
+_TIER_PRESET_REFS = frozenset(
+    {
+        "building-chain-preset:postmortem-fleet",
+        "building-chain-preset:recon-fleet",
+        "building-chain-preset:recon-fleet-light",
+        "building-chain-preset:review-fleet",
+    }
+)
+
+
+@contextmanager
+def _materialize_provider_registry_fixture(enabled: bool) -> Any:
+    if not enabled:
+        yield
+        return
+    previous_home = os.environ.get("BRICK_HOME")
+    previous_ladder = os.environ.get("BRICK_PROVIDER_LADDER")
+    with tempfile.TemporaryDirectory(prefix="bp-materialize-tier-registry-") as tmp:
+        home = Path(tmp)
+        (home / "providers.yaml").write_text(
+            """version: 1
+providers:
+  - adapter_ref: adapter:claude-local
+    registered_at: "2026-07-01T00:00:00Z"
+    last_preflight: {status: ready, checked_at: "2026-07-01T00:00:00Z"}
+  - adapter_ref: adapter:gemini-local
+    registered_at: "2026-07-01T00:00:00Z"
+    last_preflight: {status: ready, checked_at: "2026-07-01T00:00:00Z"}
+  - adapter_ref: adapter:codex-fugu-local
+    registered_at: "2026-07-01T00:00:00Z"
+    last_preflight: {status: ready, checked_at: "2026-07-01T00:00:00Z"}
+""",
+            encoding="utf-8",
+        )
+        os.environ["BRICK_HOME"] = str(home)
+        os.environ.pop("BRICK_PROVIDER_LADDER", None)
+        try:
+            yield
+        finally:
+            if previous_home is None:
+                os.environ.pop("BRICK_HOME", None)
+            else:
+                os.environ["BRICK_HOME"] = previous_home
+            if previous_ladder is None:
+                os.environ.pop("BRICK_PROVIDER_LADDER", None)
+            else:
+                os.environ["BRICK_PROVIDER_LADDER"] = previous_ladder
+
+
+def _uses_tier_preset(case: Mapping[str, Any]) -> bool:
+    return str(case.get("chain_preset_ref") or "").strip() in _TIER_PRESET_REFS
 
 
 def _split_ref_row(value: Any) -> list[str]:
@@ -69,22 +124,23 @@ def run_materialize_building_intent_case(repo: Path, profile: Mapping[str, Any])
             else {}
         )
         strip_keys = _materialize_reject_strip_preset_keys(mapping)
-        if strip_keys:
-            strip_preset_ref = require_string(
-                mapping.get("strip_preset_ref"),
-                "materialize_building_intent_case.strip_preset_ref",
-            )
-            with _stripped_chain_preset_keys(
-                materialize_building_intent, strip_preset_ref, strip_keys
-            ) as strip_probe:
+        with _materialize_provider_registry_fixture(_uses_tier_preset(case)):
+            if strip_keys:
+                strip_preset_ref = require_string(
+                    mapping.get("strip_preset_ref"),
+                    "materialize_building_intent_case.strip_preset_ref",
+                )
+                with _stripped_chain_preset_keys(
+                    materialize_building_intent, strip_preset_ref, strip_keys
+                ) as strip_probe:
+                    plan = materialize_building_intent(case, repo_root=repo)
+                    if not strip_probe:
+                        raise ProfileError(
+                            "materialize_building_intent_case strip_preset_ref not in "
+                            f"catalog: {strip_preset_ref} ({relative})"
+                        )
+            else:
                 plan = materialize_building_intent(case, repo_root=repo)
-                if not strip_probe:
-                    raise ProfileError(
-                        "materialize_building_intent_case strip_preset_ref not in "
-                        f"catalog: {strip_preset_ref} ({relative})"
-                    )
-        else:
-            plan = materialize_building_intent(case, repo_root=repo)
         graph_context = None
         validation_plan = plan
         if plan.get("plan_shape") == "graph":
@@ -576,6 +632,11 @@ def run_materialize_building_intent_rejects(repo: Path, profile: Mapping[str, An
         mapping = require_mapping(item, "materialize_building_intent_rejects item")
         case, relative = _profile_case_document(repo, mapping, "materialize_building_intent_rejects")
         expected_message = str(mapping.get("expected_message", "") or "")
+
+        def _materialize_case() -> Mapping[str, Any]:
+            with _materialize_provider_registry_fixture(_uses_tier_preset(case)):
+                return materialize_building_intent(case, repo_root=repo)
+
         # Anti-false-green guard (Deliverable A/B): drop a DECLARED graph-preset
         # route field from the resolved preset, then assert the materializer fails
         # closed instead of synthesizing it. The strip is applied to a COPY of the
@@ -593,7 +654,7 @@ def run_materialize_building_intent_rejects(repo: Path, profile: Mapping[str, An
                 materialize_building_intent, patch_preset_ref, patched_steps
             ) as patch_probe:
                 try:
-                    materialize_building_intent(case, repo_root=repo)
+                    _materialize_case()
                 except (TypeError, ValueError) as exc:
                     if not patch_probe:
                         raise ProfileError(
@@ -626,7 +687,7 @@ def run_materialize_building_intent_rejects(repo: Path, profile: Mapping[str, An
                 materialize_building_intent, strip_preset_ref, strip_keys
             ) as strip_probe:
                 try:
-                    materialize_building_intent(case, repo_root=repo)
+                    _materialize_case()
                 except (TypeError, ValueError) as exc:
                     if not strip_probe:
                         raise ProfileError(
@@ -651,7 +712,7 @@ def run_materialize_building_intent_rejects(repo: Path, profile: Mapping[str, An
                 )
         if mapping.get("mutate_materialized_task_source_hash"):
             try:
-                plan = dict(materialize_building_intent(case, repo_root=repo))
+                plan = dict(_materialize_case())
                 plan["task_source_hash"] = "sha256-mismatch-fixture"
                 with tempfile.TemporaryDirectory(prefix="bp-materialize-building-intent-reject-") as tmpdir:
                     _write_declaration_work_evidence(
@@ -681,7 +742,7 @@ def run_materialize_building_intent_rejects(repo: Path, profile: Mapping[str, An
                 f"materialize_building_intent_rejects expected hash rejection but passed: {relative}"
             )
         try:
-            materialize_building_intent(case, repo_root=repo)
+            _materialize_case()
         except (TypeError, ValueError) as exc:
             if expected_message and expected_message not in str(exc):
                 raise ProfileError(

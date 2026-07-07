@@ -1,6 +1,6 @@
 schema: checker-profile/v1
 profile_id: provider-registry-ladder
-description: Fixture-only provider registry persistence and adapter-resolution ladder guard.
+description: Fixture-only provider registry persistence, adapter-resolution ladder, and casting-tier fail-closed guard.
 kernel_checks:
   - provider_registry_ladder
 path_exists:
@@ -20,6 +20,16 @@ text_contains:
       - 'malformed registry model_ref falls back to adapter default'
       - 'must be byte-identical for all Agent Objects'
       - 'BRICK_PROVIDER_LADDER=0 forces legacy behavior'
+      - 'declared casting tier resolves once through ready providers.yaml'
+      - 'tier plus selected_* literal bypass'
+      - 'tier without providers.yaml'
+      - 'tier with disabled ladder'
+      - 'tier with no ready adapter in declared ladder'
+      - 'brick(tier=) did not carry casting_tier_ref'
+      - 'preset raw tier/lens step resolves before graph copy seam'
+      - 'step_selection_overrides tier/lens resolves before graph copy seam'
+      - 'legacy selected_* literal preset step remains accepted'
+      - 'fleet preset still carries concrete selected_* literal'
   - path: support/operator/provider_registry.py
     texts:
       - 'PROVIDERS_FILENAME = "providers.yaml"'
@@ -28,6 +38,11 @@ text_contains:
       - 'register_ready_provider'
       - 'last_preflight'
       - '_validate_model_ref_for_adapter'
+      - 'CASTING_TIER_DECLARATIONS'
+      - 'resolve_casting_tier'
+      - 'casting-tier:standard'
+      - 'model:claude:claude-opus-4-8'
+      - 'model:sakana:fugu-ultra'
 text_absent:
   - path: support/checkers/check_provider_registry_ladder.py
     texts:
@@ -36,12 +51,14 @@ text_absent:
 proof_limits:
   - support evidence only
   - fixture-only provider registry checker
+  - casting-tier resolution checker
   - not source truth
   - not success judgment
   - not quality judgment
   - not Movement authority
 not_proven:
   - real provider preflight execution or model availability outside the fixture registry
+  - live customer providers.yaml readiness outside temp BRICK_HOME fixtures
   - persistence behavior in a live user BRICK_HOME or ~/.brick directory
   - provider credential validity, provider session state, or adapter runtime quality
   - source truth

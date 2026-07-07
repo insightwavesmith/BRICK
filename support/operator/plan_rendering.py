@@ -43,6 +43,7 @@ from brick_protocol.support.operator.provider_registry import (
     model_ref_for_adapter,
     provider_ladder_enabled,
     registry_static_preference_ready,
+    resolve_casting_tier,
 )
 
 
@@ -79,6 +80,11 @@ PRESET_DOGFOOD_SCOPE = "brick_protocol_dogfood"
 
 
 CALLER_OR_COO_DECLARATION_MARKERS = frozenset({"caller", "coo"})
+CASTING_TIER_REF_KEY = "casting_tier_ref"
+CASTING_LENS_REF_KEY = "casting_lens_ref"
+CASTING_TIER_PROVENANCE_KEY = "casting_tier_provenance"
+CASTING_AUTHORING_REF_FIELDS = (CASTING_TIER_REF_KEY, CASTING_LENS_REF_KEY)
+
 _RETIRED_WRITE_ADAPTER_REFS = frozenset(
     {
         "adapter:codex-write-local",
@@ -241,6 +247,18 @@ def _declared_step_from_step_template(
             declared_override=declared_override,
                         )
 
+    tier_selection = _resolve_step_casting_tier_authoring(f"steps[{index}]", raw_step)
+    raw_step_for_casting: Mapping[str, Any] = raw_step
+    if tier_selection:
+        raw_step_for_casting = {
+            **{
+                key: value
+                for key, value in raw_step.items()
+                if key not in CASTING_AUTHORING_REF_FIELDS
+            },
+            **{key: tier_selection.get(key) for key in NODE_CASTING_FIELDS},
+        }
+
     # Building-wide plan casting defaults (adapter:local / model:default parity with
     # the prior named-param defaults) when the caller supplies no bag.
     resolved_plan_casting = dict(plan_casting or {})
@@ -248,12 +266,12 @@ def _declared_step_from_step_template(
     resolved_plan_casting.setdefault("selected_model_ref", "model:default")
     casting_selection = _resolve_casting_selection(
         repo,
-        raw_step=raw_step,
+        raw_step=raw_step_for_casting,
         agent_object_ref=agent_object_ref,
         plan_casting=resolved_plan_casting,
         label=f"steps[{index}]",
         is_verdict_bearing_node=_is_verdict_bearing_node(
-            raw_step,
+            raw_step_for_casting,
             step_template=step_template,
         ),
     )
@@ -283,7 +301,7 @@ def _declared_step_from_step_template(
     )
     if template_capability_class and not author_has_capability_class:
         declared_brick = {**declared_brick, "capability_class": str(template_capability_class)}
-    return {
+    rendered_step = {
         "step_ref": step_ref,
         "step_template_ref": step_template["step_template_ref"],
         # Every casting dial's selected_<base> value (E2/S6★ generic output): the
@@ -297,6 +315,9 @@ def _declared_step_from_step_template(
         },
         "link": link,
     }
+    if tier_selection:
+        rendered_step[CASTING_TIER_PROVENANCE_KEY] = _casting_tier_provenance(tier_selection)
+    return rendered_step
 
 
 def _parse_compact_link_expression(index: int, value: str) -> Mapping[str, Any]:
@@ -352,6 +373,39 @@ _STEP_ADAPTER_SOURCE_PROVIDER_REGISTRY_FALLBACK = "provider-registry-fallback"
 _STEP_ADAPTER_SOURCE_VERDICT_FLOOR = "verdict-non-local-floor"
 
 
+def _resolve_step_casting_tier_authoring(
+    label: str,
+    raw_step: Mapping[str, Any],
+) -> dict[str, str | None]:
+    tier_ref = raw_step.get(CASTING_TIER_REF_KEY)
+    lens_ref = raw_step.get(CASTING_LENS_REF_KEY)
+    has_tier = tier_ref is not None and str(tier_ref).strip()
+    has_lens = lens_ref is not None and str(lens_ref).strip()
+    if not has_tier:
+        if has_lens:
+            raise ValueError(f"{label}: casting_lens_ref requires casting_tier_ref")
+        return {}
+    declared_selected = [key for key in NODE_CASTING_FIELDS if raw_step.get(key) is not None]
+    if declared_selected:
+        raise ValueError(
+            f"{label}: casting_tier_ref is exclusive with concrete selected_* casting keys: "
+            + ", ".join(declared_selected)
+        )
+    return resolve_casting_tier(
+        load_provider_registry(),
+        str(tier_ref),
+        str(lens_ref) if has_lens else None,
+    )
+
+
+def _casting_tier_provenance(selection: Mapping[str, Any]) -> Mapping[str, str]:
+    provenance = {CASTING_TIER_REF_KEY: str(selection.get(CASTING_TIER_REF_KEY) or "")}
+    lens_ref = selection.get(CASTING_LENS_REF_KEY)
+    if lens_ref:
+        provenance[CASTING_LENS_REF_KEY] = str(lens_ref)
+    return provenance
+
+
 def _resolve_casting_selection(
     repo: Path,
     *,
@@ -378,6 +432,17 @@ def _resolve_casting_selection(
     plan-level value rather than re-stamp it on the step) is applied generically
     to whichever dial resolved from the building-level fallback.
     """
+
+    tier_selection = _resolve_step_casting_tier_authoring(label, raw_step)
+    if tier_selection:
+        raw_step = {
+            **{
+                key: value
+                for key, value in raw_step.items()
+                if key not in CASTING_AUTHORING_REF_FIELDS
+            },
+            **{key: tier_selection.get(key) for key in NODE_CASTING_FIELDS},
+        }
 
     # Plan-level default per casting dial, DERIVED generically from the single-source
     # CASTING_FIELDS (E2/S6★) over the building-wide ``plan_casting`` bag keyed by the
@@ -1445,10 +1510,15 @@ def _validate_declared_plan_projection(plan: Mapping[str, Any]) -> None:
 
 def _render_declared_step(index: int, raw_step: Mapping[str, Any]) -> Mapping[str, Any]:
     step_ref = _clean_text(f"steps[{index}].step_ref", raw_step.get("step_ref", ""))
-    # Read EVERY casting dial generically (E2/S6★): loop the single-source
+    # Read EVERY concrete casting dial generically (E2/S6★): loop the single-source
     # NODE_CASTING_FIELDS rather than naming adapter/model, so a NEW dial (effort)
-    # passes through this declared-step renderer with no edit. None == undeclared.
+    # passes through this declared-step renderer with no edit. A provider-neutral
+    # casting_tier_ref/casting_lens_ref pair, when present, is resolved once below
+    # into this same concrete selected_* bag. None == undeclared.
     raw_step_casting = {key: raw_step.get(key) for key in NODE_CASTING_FIELDS}
+    tier_selection = _resolve_step_casting_tier_authoring(f"steps[{index}]", raw_step)
+    if tier_selection:
+        raw_step_casting.update({key: tier_selection.get(key) for key in NODE_CASTING_FIELDS})
     brick = _mapping_value(f"steps[{index}].brick", raw_step.get("brick"))
     agent = _mapping_value(f"steps[{index}].agent", raw_step.get("agent"))
     link = _mapping_value(f"steps[{index}].link", raw_step.get("link"))
@@ -1601,6 +1671,8 @@ def _render_declared_step(index: int, raw_step: Mapping[str, Any]) -> Mapping[st
             rendered[key] = _clean_selected_adapter_ref(f"steps[{index}].{key}", value)
         else:
             rendered[key] = _clean_text(f"steps[{index}].{key}", value)
+    if tier_selection:
+        rendered[CASTING_TIER_PROVENANCE_KEY] = _casting_tier_provenance(tier_selection)
     if raw_step.get("step_template_ref") is not None:
         rendered["step_template_ref"] = _clean_text(
             f"steps[{index}].step_template_ref",

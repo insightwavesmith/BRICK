@@ -8,23 +8,28 @@ steps:
   - step_template_ref: building-step-template:inspect
     brick_spec_ref: brick/templates/bricks/inspect/brick.md
     target_word: parallel_recon
-    selected_adapter_ref: adapter:codex-local
+    casting_tier_ref: casting-tier:standard
+    casting_lens_ref: casting-lens:review
   - step_template_ref: building-step-template:code-attack-qa
     brick_spec_ref: brick/templates/bricks/code-attack-qa/brick.md
     target_word: fan_in_final_gate
-    selected_adapter_ref: adapter:codex-local
+    casting_tier_ref: casting-tier:standard
+    casting_lens_ref: casting-lens:code-attack
   - step_template_ref: building-step-template:axis-attack-qa
     brick_spec_ref: brick/templates/bricks/axis-attack-qa/brick.md
     target_word: fan_in_final_gate
-    selected_adapter_ref: adapter:codex-local
+    casting_tier_ref: casting-tier:standard
+    casting_lens_ref: casting-lens:axis-attack
   - step_template_ref: building-step-template:evidence-integrity
     brick_spec_ref: brick/templates/bricks/evidence-integrity/brick.md
     target_word: fan_in_final_gate
-    selected_adapter_ref: adapter:codex-local
+    casting_tier_ref: casting-tier:standard
+    casting_lens_ref: casting-lens:evidence-integrity
   - step_template_ref: building-step-template:closure
     brick_spec_ref: brick/templates/bricks/closure/brick.md
     target_word: closure
-    selected_adapter_ref: adapter:codex-local
+    casting_tier_ref: casting-tier:standard
+    casting_lens_ref: casting-lens:closure
 gate_concept_profile:
   - strict-evidence
   - fan-in-wait-all
@@ -39,7 +44,7 @@ closure_transition_target_policy:
 proof_limits:
   - read-only survey fleet only
   - fan-in closure synthesis is support evidence, not success or quality judgment
-  - provider/model selection remains declared data, not provider availability proof
+  - tier/lens selection remains declared data, not provider availability proof
   - preset is not runtime parallel execution
 anti_hint: Do not use when the read boundary is a single narrow target or when sibling zone boundaries cannot be declared.
 blocks:

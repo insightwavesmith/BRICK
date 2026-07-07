@@ -77,6 +77,10 @@ CASTING_LEAF_KEYS = frozenset(
         "preferred_adapter_ref",
         "selected_model_ref",
         "selected_adapter_ref",
+        "casting_tier",
+        "casting_tier_ref",
+        "casting_lens",
+        "casting_lens_ref",
     }
 )
 
