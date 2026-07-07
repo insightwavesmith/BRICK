@@ -16,16 +16,22 @@
 # (e.g. BRICK_REPO={OWNER}/BRICK sh install.sh).
 #
 # WHAT IT DOES (each step is plain and idempotent):
-#   1. checks python3 (>= 3.11) is present
-#   2. ensures `uv` is present (installs it via the official astral.sh script)
-#   3. clones the private repo using YOUR OWN gh login (no token in here);
-#      before a FRESH clone it preflights `gh auth status` so the most likely
-#      fresh-machine failure becomes a one-line Korean prescription, not a raw
-#      git error
-#   4. runs `uv sync` in the checkout
+#   0. PREFLIGHT FIRST: diagnose EVERY precondition (pipx, git, uv, a
+#      Python >= 3.11, disk headroom, and -- for a fresh clone -- gh login)
+#      BEFORE the project payload is fetched (the repo clone and `uv sync`).
+#      Missing TOOLCHAIN prerequisites are auto-installed in place as bounded
+#      remediation (uv via its official standalone script; a too-old / missing
+#      Python is resolved through uv's managed Python, so no brew/system Python
+#      is required). Those bootstrap fetches are the ONLY network calls preflight
+#      may make, and they are toolchain acquisition -- NOT the project download;
+#      the repo clone / uv sync never starts until the whole checklist is green.
+#      Anything that cannot be auto-fixed prints one exact Korean "치라"
+#      (run-this-now) line and the run stops before the repo clone / sync.
+#   3. clones the private repo using YOUR OWN gh login (no token in here).
+#   4. runs `uv sync` in the checkout.
 #   5. installs the `brick` entrypoint, runs first-use init, and verifies the
-#      checkout before printing the required success signal
-#   6. prints the next step commands
+#      checkout before printing the required success signal.
+#   6. prints the next step commands.
 #
 # SAFETY / LIMITS (read this honestly):
 #   - This script is HTTPS-only and carries NO secret / token. It relies on the
@@ -71,6 +77,167 @@ print_install_splash() {
     fi
 }
 
+# --- PREFLIGHT BLOCK START -------------------------------------------------
+# Removing this block MUST turn the onboarding literal checker RED
+# (check_onboarding_success_literal.py pins "선검사 (preflight):",
+# "preflight_all", and "uv python install"). Each helper prints a single ✓
+# line on success or ONE exact Korean "지금 치세요" prescription on failure,
+# and every helper runs BEFORE the repo clone / uv sync payload -- the project
+# download never starts until the whole checklist is green. Preflight MAY make
+# bounded toolchain-bootstrap fetches here (installing uv and a uv-managed
+# Python); those are prerequisite acquisition, not the project payload. pipx is
+# checked first so the ordering lint (pipx before python3 / clone / sync) holds.
+
+preflight_pipx() {
+    if command -v pipx >/dev/null 2>&1; then
+        printf '%s\n' "  ✓ pipx"
+        return 0
+    fi
+    printf '%s\n' \
+        "  ✗ pipx 없음 — 지금 치세요: brew install pipx && pipx ensurepath (그 뒤 새 터미널에서 다시 실행)" >&2
+    return 1
+}
+
+preflight_git() {
+    if command -v git >/dev/null 2>&1; then
+        printf '%s\n' "  ✓ git"
+        return 0
+    fi
+    printf '%s\n' \
+        "  ✗ git 없음 — 지금 치세요: brew install git (또는 OS 패키지 매니저로 git 설치)" >&2
+    return 1
+}
+
+# Overridable seam: actually bootstrap uv via the official standalone
+# installer. Unit tests override this to avoid network / system change.
+_bootstrap_uv() {
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    # The uv installer puts uv under ~/.local/bin (or ~/.cargo/bin); add the
+    # common locations to PATH for the rest of THIS run so the next steps can
+    # find it without a new shell.
+    PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+    export PATH
+}
+
+preflight_uv() {
+    if ! command -v uv >/dev/null 2>&1; then
+        printf '%s\n' \
+            "  … uv 없음 — astral.sh 공식 스탠드얼론 스크립트로 설치합니다 (HTTPS curl|sh, repo 안에서 digest pin 미검증)"
+        _bootstrap_uv
+    fi
+    if command -v uv >/dev/null 2>&1; then
+        printf '%s\n' "  ✓ uv"
+        return 0
+    fi
+    printf '%s\n' \
+        "  ✗ uv 설치 후에도 이번 셸에서 못 찾음 — 지금 치세요: source \$HOME/.local/bin/env (그 뒤 다시 실행)" >&2
+    return 1
+}
+
+_python_is_supported() {
+    command -v python3 >/dev/null 2>&1 || return 1
+    python3 -c 'import sys; raise SystemExit(0 if sys.version_info[:2] >= (3, 11) else 1)' >/dev/null 2>&1
+}
+
+# Overridable seam: acquire a uv-managed CPython (>= 3.11) and echo its bin
+# directory on stdout. Returns non-zero when uv cannot install a managed
+# Python (e.g. offline). Unit tests override this to reproduce that failure.
+_uv_python_provision() {
+    uv python install >/dev/null 2>&1 || return 1
+    managed_bin="$(uv python find 2>/dev/null)" || return 1
+    [ -n "$managed_bin" ] || return 1
+    dirname "$managed_bin"
+}
+
+preflight_python() {
+    if _python_is_supported; then
+        printf '%s\n' "  ✓ python3 (>= 3.11)"
+        return 0
+    fi
+    # python3 missing or < 3.11: acquire a uv-managed CPython so no brew /
+    # system Python is required (uv installs Python standalone).
+    printf '%s\n' \
+        "  … python3 3.11+ 미확보 — uv 관리 파이썬으로 자동 확보합니다 (uv python install)"
+    if managed_dir="$(_uv_python_provision)" && [ -n "$managed_dir" ]; then
+        PATH="$managed_dir:$PATH"
+        export PATH
+        printf '%s\n' "  ✓ python3 (>= 3.11, uv 관리 파이썬 사용: $managed_dir)"
+        return 0
+    fi
+    printf '%s\n' \
+        "  ✗ 파이썬 자동 확보 실패 — 지금 치세요: uv python install 3.12 (네트워크 확인 후 다시 실행)" >&2
+    return 1
+}
+
+preflight_disk() {
+    # Require a modest free-space floor (~500MB) on the clone target's nearest
+    # existing parent so a big clone + uv sync does not die mid-download with a
+    # cryptic ENOSPC. Unmeasurable environments pass with a note (never a hard
+    # stop on a measurement gap).
+    parent="$1"
+    while [ -n "$parent" ] && [ "$parent" != "/" ] && [ ! -d "$parent" ]; do
+        parent="$(dirname "$parent")"
+    done
+    avail_kb="$(df -Pk "$parent" 2>/dev/null | awk 'NR==2 {print $4}')"
+    case "$avail_kb" in
+        '' | *[!0-9]*)
+            printf '%s\n' "  ✓ 디스크 여유 (측정 불가 — 건너뜀)"
+            return 0
+            ;;
+    esac
+    if [ "$avail_kb" -ge 512000 ]; then
+        printf '%s\n' "  ✓ 디스크 여유"
+        return 0
+    fi
+    printf '%s\n' \
+        "  ✗ 디스크 공간 부족 (약 500MB 필요) — 지금 치세요: 디스크를 정리하거나 BRICK_HOME=여유있는경로 로 다시 실행" >&2
+    return 1
+}
+
+preflight_gh() {
+    # gh + auth are only needed for a FRESH clone; an existing checkout uses git
+    # credentials on pull, so skip the gh gate when the target already exists.
+    target="$1"
+    repo_slug="$2"
+    if [ -d "$target/.git" ]; then
+        printf '%s\n' "  ✓ gh 로그인 (이미 받은 저장소 — 생략)"
+        return 0
+    fi
+    if [ -z "$repo_slug" ]; then
+        printf '%s\n' \
+            "  ✗ 받을 저장소 미지정 — 지금 치세요: BRICK_REPO={OWNER}/BRICK sh support/onboarding/install.sh" >&2
+        return 1
+    fi
+    if ! command -v gh >/dev/null 2>&1; then
+        printf '%s\n' \
+            "  ✗ gh CLI 없음 — 지금 치세요: https://cli.github.com 에서 설치 후 gh auth login" >&2
+        return 1
+    fi
+    if ! gh auth status >/dev/null 2>&1; then
+        printf '%s\n' \
+            "  ✗ GitHub 로그인 안 됨 — 지금 치세요: gh auth login" >&2
+        return 1
+    fi
+    printf '%s\n' "  ✓ gh 로그인"
+    return 0
+}
+
+preflight_all() {
+    target="$1"
+    repo_slug="$2"
+    printf '%s\n' \
+        "선검사 (preflight): 어떤 네트워크 다운로드/동기화보다 먼저 전제조건을 모두 확인합니다."
+    preflight_pipx || return 1
+    preflight_git || return 1
+    preflight_uv || return 1
+    preflight_python || return 1
+    preflight_disk "$target" || return 1
+    preflight_gh "$target" "$repo_slug" || return 1
+    printf '%s\n' "0) 선검사 통과 — 모든 전제조건 충족 ✅"
+    return 0
+}
+# --- PREFLIGHT BLOCK END ---------------------------------------------------
+
 main() {
     # --help / -h: print the friendly guide and stop.
     case "${1:-}" in
@@ -78,7 +245,7 @@ main() {
             printf '%s\n' \
                 "Brick Protocol 설치 스크립트" \
                 "" \
-                "하는 일: pipx 확인 -> python3 확인 -> uv 준비 -> 내 gh/git 로그인으로 저장소 받기 -> uv sync -> 다음 안내" \
+                "하는 일: 선검사(pipx·git·uv·python3.11+·디스크·gh 로그인 일괄 진단, 부족분 자동 설치) -> 저장소 받기 -> uv sync -> 진입점/점검 -> 다음 안내" \
                 "" \
                 "설치 위치는 BRICK_HOME 환경변수로 바꿀 수 있어요 (기본값: \$HOME/BRICK)." \
                 "새 org/user 포크라면 BRICK_REPO={OWNER}/BRICK 로 받을 저장소를 바꿀 수 있어요." \
@@ -91,79 +258,21 @@ main() {
 
     target="${BRICK_HOME:-$HOME/BRICK}"
 
-    # --- upfront: pipx present before clone/dependency work ----------------
-    if ! command -v pipx >/dev/null 2>&1; then
-        printf '%s\n' \
-            "pipx 가 없어요. 'brick' 한 단어 진입점을 PATH에 놓기 위해 pipx가 필요해요." \
-            "  - macOS: brew install pipx && pipx ensurepath" \
-            "  - 그 다음 터미널을 새로 열고 이 설치 스크립트를 다시 실행해 주세요." >&2
+    # --- step 0: PREFLIGHT -- diagnose every precondition BEFORE any network
+    # download or sync. On any failure the helper already printed the exact
+    # one-line prescription, so stop here without touching the network.
+    if ! preflight_all "$target" "$REPO_SLUG"; then
         return 1
     fi
-    printf '%s\n' "0) pipx 확인 완료 ✅"
-
-    # --- step 1: python3 present and >= 3.11 -------------------------------
-    if ! command -v python3 >/dev/null 2>&1; then
-        printf '%s\n' \
-            "python3 가 없어요. 먼저 Python 3.11 이상을 설치한 뒤 다시 실행해 주세요." \
-            "  - macOS: https://www.python.org/downloads/ 또는 'brew install python'" \
-            "  - 설치 후 'python3 --version' 이 3.11 이상이면 됩니다." >&2
-        return 1
-    fi
-    if ! python3 -c 'import sys; raise SystemExit(0 if sys.version_info[:2] >= (3, 11) else 1)' >/dev/null 2>&1; then
-        printf '%s\n' \
-            "python3 버전이 너무 낮아요. 3.11 이상이 필요합니다." \
-            "  - 'python3 --version' 으로 확인하고, 3.11 이상으로 올린 뒤 다시 실행해 주세요." >&2
-        return 1
-    fi
-    printf '%s\n' "1) python3 확인 완료 ✅"
-
-    # --- step 2: ensure uv -------------------------------------------------
-    if ! command -v uv >/dev/null 2>&1; then
-        printf '%s\n' \
-            "2) uv 가 없어서 설치할게요 (astral.sh 공식 스크립트)..." \
-            "   신뢰 한계: 이 경로는 HTTPS curl|sh 이며 이 repo 안에서 digest pin을 검증하지 않습니다."
-        curl -LsSf https://astral.sh/uv/install.sh | sh
-        # The uv installer puts uv under ~/.local/bin (or ~/.cargo/bin); add the
-        # common locations to PATH for the rest of THIS run so the next steps
-        # can find it without a new shell.
-        PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
-        export PATH
-    fi
-    if ! command -v uv >/dev/null 2>&1; then
-        printf '%s\n' \
-            "uv 설치를 끝냈지만 이번 셸에서 바로 찾지 못했어요." \
-            "  - 터미널을 새로 열거나 'source ~/.local/bin/env' 후 다시 실행해 주세요." >&2
-        return 1
-    fi
-    printf '%s\n' "2) uv 준비 완료 ✅"
 
     # --- step 3: clone via the user's OWN auth (idempotent) ----------------
-    # No token lives here. If the checkout already exists, fast-forward pull
-    # instead of cloning, so re-running is safe. Before a FRESH clone we
-    # preflight gh login: the repo is private, so an unauthed clone is the most
-    # likely fresh-machine failure -- catch it with a one-line prescription
-    # instead of a raw git error.
+    # No token lives here. Preflight already confirmed gh login / repo slug for
+    # a fresh clone; if the checkout already exists, fast-forward pull instead
+    # of cloning so re-running is safe.
     if [ -d "$target/.git" ]; then
         printf '%s\n' "3) 이미 받아둔 저장소가 있어서 최신으로 갱신할게요 (fast-forward)..."
         git -C "$target" pull --ff-only
     else
-        if [ -z "$REPO_SLUG" ]; then
-            printf '%s\n' \
-                "받을 저장소를 모르겠어요. 먼저 BRICK_REPO={OWNER}/BRICK 를 지정해 주세요." \
-                "  - 예: BRICK_REPO={OWNER}/BRICK sh support/onboarding/install.sh" >&2
-            return 1
-        fi
-        if ! command -v gh >/dev/null 2>&1; then
-            printf '%s\n' \
-                "gh CLI가 없어요. 비공개 저장소라 gh 로그인이 필요해요." \
-                "  - https://cli.github.com 에서 설치하고 'gh auth login' 한 뒤 다시 실행해 주세요." >&2
-            return 1
-        fi
-        if ! gh auth status >/dev/null 2>&1; then
-            printf '%s\n' \
-                "GitHub 로그인이 안 돼 있어요. 'gh auth login' 을 실행한 뒤 다시 실행해 주세요." >&2
-            return 1
-        fi
         printf '%s\n' "3) 저장소를 받을게요 (내 gh 로그인 사용: $REPO_SLUG)..."
         gh repo clone "$REPO_SLUG" "$target"
     fi
