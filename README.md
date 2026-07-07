@@ -43,8 +43,8 @@ AI/운영자가 그대로 확인할 줄입니다. 이 표는 quickstart의 S0~S5
 
 ```text
 command: gh repo clone {OWNER}/BRICK ~/BRICK && sh ~/BRICK/support/onboarding/install.sh
-expected: "5) 설치 점검 완료" 와 다음 온보딩 한 줄이 출력된다.
-failure signal: "BRICK_REPO={OWNER}/BRICK" 요청, "gh auth login" 요청, python3/uv 진단, 또는 git clone/pull 실패.
+expected: 먼저 "선검사 (preflight):" 체크리스트가 전부 ✓로 출력되고, 이어 "5) 설치 점검 완료" 와 다음 온보딩 한 줄이 출력된다.
+failure signal: 선검사 단계에서 나오는 "지금 치세요" 한 줄 처방(pipx/git/uv/python3.11+/디스크/gh 로그인 중 하나) 또는 이후 git clone/pull 실패.
 
 command: cd ~/BRICK && brick doctor
 expected: provider별 준비 상태 표와 증상 -> 처방 표가 출력되고 exit 0.

@@ -102,8 +102,8 @@ org/user로 바꾸세요 (현재 동작 예: insightwavesmith/BRICK).
 ```text
 step: clone + install
 command: gh repo clone {OWNER}/BRICK ~/BRICK && sh ~/BRICK/support/onboarding/install.sh
-expected: "5) 설치 점검 완료" 와 다음 온보딩 명령이 출력된다.
-failure signal: BRICK_REPO={OWNER}/BRICK 요청, gh auth login 요청, python3/uv 진단, 또는 clone/pull 실패.
+expected: 먼저 "선검사 (preflight):" 체크리스트가 전부 ✓로 나온 뒤 "5) 설치 점검 완료" 와 다음 온보딩 명령이 출력된다.
+failure signal: 선검사 단계의 "지금 치세요" 한 줄 처방(pipx/git/uv/python3.11+/디스크/gh 로그인 중 하나) 또는 이후 clone/pull 실패.
 
 step: doctor
 command: cd ~/BRICK && brick doctor

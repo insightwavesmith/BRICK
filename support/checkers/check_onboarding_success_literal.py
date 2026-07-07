@@ -19,6 +19,16 @@ STALE_VERIFY_STEP_LITERAL = "7) 설치 점검"
 STALE_ENTRYPOINT_STEP_LITERAL = "5) brick 진입점"
 STALE_INIT_STEP_LITERAL = "6) brick init"
 
+# Preflight-first contract: every precondition must be diagnosed (and, where
+# possible, auto-resolved -- including a uv-managed Python for a too-old/missing
+# system Python) BEFORE any network download/sync. These needles pin that block
+# in the installer; removing the preflight block turns this checker RED.
+PREFLIGHT_NEEDLES = (
+    "선검사 (preflight):",
+    "preflight_all",
+    "uv python install",
+)
+
 TARGETS = (
     "README.md",
     "support/docs/references/quickstart.md",
@@ -74,6 +84,15 @@ def check_repo(repo: Path) -> None:
             "installer still carries stale or competing install labels: "
             + ", ".join(repr(needle) for needle in stale_label_hits)
         )
+    missing_preflight_needles = [
+        needle for needle in PREFLIGHT_NEEDLES if needle not in install_text
+    ]
+    if missing_preflight_needles:
+        raise OnboardingSuccessLiteralError(
+            "installer dropped the preflight-first block (all preconditions must "
+            "be diagnosed before any download/sync): "
+            + ", ".join(repr(needle) for needle in missing_preflight_needles)
+        )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -100,6 +119,8 @@ def main(argv: list[str] | None = None) -> int:
         "It does not carry stale or competing install labels "
         f"{STALE_VERIFY_STEP_LITERAL!r}, {STALE_ENTRYPOINT_STEP_LITERAL!r}, "
         f"or {STALE_INIT_STEP_LITERAL!r}. "
+        "It also carries the preflight-first block "
+        f"({', '.join(repr(needle) for needle in PREFLIGHT_NEEDLES)}). "
         "PROOF LIMIT: this checker does not execute install.sh or prove a fresh "
         "machine install; it pins the declared docs/script literal contract only."
     )
