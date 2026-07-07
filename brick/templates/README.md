@@ -1,14 +1,15 @@
 # brick/templates — Brick 축의 물리 양식 선반 (a stranger's map)
 
-- `bricks/` — 10 Brick kinds, one folder each: `<kind>/brick.md` = 사람이 쓴 작업
+- `bricks/` — 11 Brick kinds, one folder each: `<kind>/brick.md` = 사람이 쓴 작업
   지시서 (frontmatter는 Builder가 읽는 구조), `<kind>/return.yaml` = 그 kind의 기계
-  보고양식. Kind discovery is folder-based: exactly these 10 directories, never a
-  root file.
+  보고양식. Kind discovery is folder-based: exactly these 11 directories, never a
+  root file. The `development` kind is a Brick-Protocol-change work contract; it
+  does NOT write code — writing code is the `work` kind.
 - `bricks/transition-concern-return.yaml` — the ONE shared, non-binding complaint
   form (`transition_concern_evidence`) every brick carries as its second return
-  ref. Lives at the family root because all 10 kinds share it; it is NOT an 11th
+  ref. Lives at the family root because all 11 kinds share it; it is NOT a 12th
   kind. Link owns Movement; this form never moves anything.
-- `presets/` — 17 chain presets (`<name>.md`): frontmatter = declared step chain,
+- `presets/` — 29 chain presets (`<name>.md`): frontmatter = declared step chain,
   `## Route` prose = author intent. The Builder expands these into Building plans.
 - `tasks/` — automation-path task-source templates. Humans normally SPEAK tasks
   (`task_statement` at intake); these sheets serve the file-based automation path.

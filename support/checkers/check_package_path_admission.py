@@ -85,6 +85,18 @@ ROOT_FILES = {
     "uv.lock",
 }
 
+# AXIS-README-MAP-0707: the per-axis stranger's-map README shipped at each axis
+# root (Brick/Agent/Link) plus the support surface README. Navigational support
+# docs only (no crossing, no judgment); admitted as an exact-file registration
+# so the axis roots may carry a fresh-clone map. The .md extension keeps them
+# outside the axis code/yaml admission branch.
+AXIS_README_TARGETS = {
+    "brick/README.md",
+    "agent/README.md",
+    "link/README.md",
+    "support/README.md",
+}
+
 PACKAGE_MARKERS = {
     "support/import_identity/brick_protocol/__init__.py",
     "brick/__init__.py",
@@ -1942,6 +1954,9 @@ def allowed_path(path: str) -> bool:
         or clean in AGENT_SPEC0_TARGETS
         or clean in BRICK_SPEC0_TARGETS
     ):
+        return True
+
+    if clean in AXIS_README_TARGETS:
         return True
 
     if clean in SIMPLE_RUN0_RUN_TARGETS:
