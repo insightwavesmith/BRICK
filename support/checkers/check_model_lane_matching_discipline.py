@@ -35,6 +35,13 @@ _REQUIRED_TEXT = (
     "investigation/evidence QA start on Claude Sonnet",
     "broad low-risk review\nstays Gemini-shaped",
     "explicit\ncode-attack-QA / closure elevation",
+    # 0707 tier reconciliation rows (walk-results-adopted-0707 K/G/I).
+    "codex excluded from development; opus-4.8 xhigh for simple-to-medium work",
+    "codex leaves the work and repair lanes only and finishes walking its current building",
+    "engine-side or very-important claude QA on claude-fable-5 xhigh",
+    "other claude QA on model:claude:claude-opus-4-8 xhigh, replacing the prior sonnet QA default",
+    "claude-local concurrency 1 is the safe line",
+    "attach-QA recovery is the standard salvage",
 )
 _PROOF_LIMIT = (
     "proof limit: model-lane matching checker support evidence only; it proves "
