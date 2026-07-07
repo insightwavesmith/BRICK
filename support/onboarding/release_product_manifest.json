@@ -1,0 +1,19 @@
+{
+  "schema": "release-product-manifest/v1",
+  "allowed_roots": [
+    ".github",
+    "agent",
+    "brick",
+    "link",
+    "support"
+  ],
+  "allowed_files": [
+    ".gitignore",
+    "AGENTS.md",
+    "BRICK-CONSTITUTION.md",
+    "README.md",
+    "pyproject.toml",
+    "uv.lock"
+  ],
+  "allowed_globs": []
+}

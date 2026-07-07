@@ -14,6 +14,9 @@ quickstart material. For getting started, see [quickstart](quickstart.md) and
 릴리스용 공개 repo는 이 checkout에서 `project/` 동네와
 `brick_protocol.egg-info/` 빌드 산출물을 빼고 새로 만듭니다. export는 새
 output dir 안에서만 initial commit을 만들고, remote/push/tag는 출력만 합니다.
+이 export 트리가 고객이 클론하는 **클린 배포 저장소**(`{OWNER}/BRICK-dist`)가
+됩니다. 내부 작업 checkout(원장·빌딩 증거를 담은 이 repo)은 그대로 두고, 신규
+고객 온보딩만 클린 배포 저장소를 가리킵니다.
 
 ```bash
 sh support/onboarding/release_export.sh --output /tmp/BRICK-v0.1.0

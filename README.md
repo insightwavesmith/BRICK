@@ -4,17 +4,21 @@ Brick Protocol is a three-axis work protocol for human-agent work: Brick = the w
 
 ## 시작하기 (2분)
 
-초대를 수락했다면 아래 명령을 **그대로 복사해** 실행하세요. 소유자 자리에는
-언제나 배포 저장소 소유자(초대받은 바로 그 저장소)가 들어갑니다 — 네 자신의
-GitHub 계정이 아닙니다. 소유자를 네 계정으로 바꾸면 미초대·미포크라 clone이
-not-found로 실패합니다. 기본 위치는 `$HOME/BRICK`입니다. 다른 위치에
-받았다면 설치 전에 `BRICK_HOME=/path/to/clone`을 지정하세요.
+초대를 수락했다면 아래 명령을 **그대로 복사해** 실행하세요. 신규 고객이 받는
+곳은 제품 파일만 담긴 **클린 배포 저장소**(`{OWNER}/BRICK-dist` — 내부 `project/`
+원장과 빌딩 산출물이 빠진 릴리스 트리)입니다. 소유자 자리에는 언제나 배포
+저장소 소유자(초대받은 바로 그 저장소)가 들어갑니다 — 네 자신의 GitHub 계정이
+아닙니다. 소유자를 네 계정으로 바꾸면 미초대·미포크라 clone이 not-found로
+실패합니다. 기본 위치는 `$HOME/BRICK`입니다. 다른 위치에 받았다면 설치 전에
+`BRICK_HOME=/path/to/clone`을 지정하세요.
 
 받기 + 설치:
 
 ```bash
-gh repo clone insightwavesmith/BRICK ~/BRICK && sh ~/BRICK/support/onboarding/install.sh  # 현재 동작 예 — 배포 저장소 소유자, 초대받은 그대로
+gh repo clone {OWNER}/BRICK-dist ~/BRICK && sh ~/BRICK/support/onboarding/install.sh  # 클린 배포 저장소 예 — 배포 저장소 소유자, 초대받은 그대로
 ```
+
+기존 작업-repo를 이미 클론한 사용자는 그대로 동작하고, 신규 고객은 위 클린 배포 저장소(`{OWNER}/BRICK-dist`)를 클론합니다.
 
 준비 상태 진단은 설치된 `brick` 진입점으로 실행합니다.
 
@@ -42,7 +46,7 @@ AI/운영자가 그대로 확인할 줄입니다. 이 표는 quickstart의 S0~S5
 체크리스트 중 고객 첫 실행에 필요한 축약 부분집합입니다.
 
 ```text
-command: gh repo clone insightwavesmith/BRICK ~/BRICK && sh ~/BRICK/support/onboarding/install.sh  # 현재 동작 예 — 배포 저장소 소유자, 초대받은 그대로
+command: gh repo clone {OWNER}/BRICK-dist ~/BRICK && sh ~/BRICK/support/onboarding/install.sh  # 클린 배포 저장소 예 — 배포 저장소 소유자, 초대받은 그대로
 expected: 먼저 "선검사 (preflight):" 체크리스트가 전부 ✓로 출력되고, 이어 "5) 설치 점검 완료" 와 다음 온보딩 한 줄이 출력된다.
 failure signal: 선검사 단계에서 나오는 "지금 치세요" 한 줄 처방(pipx/git/uv/python3.11+/디스크/gh 로그인 중 하나), 소유자를 네 계정으로 바꿔 미초대·미포크로 인한 not-found, 또는 이후 git clone/pull 실패.
 

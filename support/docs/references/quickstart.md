@@ -96,14 +96,15 @@ brick doctor
 ## AI-runnable onboarding checklist
 
 Fresh clone부터 첫 Building과 dashboard snapshot까지 운영자 AI가 그대로
-따라갈 수 있는 확인 줄입니다. 클론 소유자 자리에는 배포 저장소
-소유자(초대받은 바로 그 저장소, 현재 동작 예: insightwavesmith/BRICK)가
-들어갑니다 — 네 자신의 계정으로 바꾸지 마세요. 자기 계정으로 바꾸면
-미초대·미포크라 not-found로 실패합니다.
+따라갈 수 있는 확인 줄입니다. 신규 고객이 받는 곳은 제품 파일만 담긴 클린 배포
+저장소(`{OWNER}/BRICK-dist` — 내부 `project/` 원장이 빠진 릴리스 트리)이고,
+클론 소유자 자리에는 배포 저장소 소유자(초대받은 바로 그 저장소, 현재 동작
+예: {OWNER}/BRICK-dist)가 들어갑니다 — 네 자신의 계정으로 바꾸지 마세요.
+자기 계정으로 바꾸면 미초대·미포크라 not-found로 실패합니다.
 
 ```text
 step: clone + install
-command: gh repo clone insightwavesmith/BRICK ~/BRICK && sh ~/BRICK/support/onboarding/install.sh
+command: gh repo clone {OWNER}/BRICK-dist ~/BRICK && sh ~/BRICK/support/onboarding/install.sh
 expected: 먼저 "선검사 (preflight):" 체크리스트가 전부 ✓로 나온 뒤 "5) 설치 점검 완료" 와 다음 온보딩 명령이 출력된다.
 failure signal: 선검사 단계의 "지금 치세요" 한 줄 처방(pipx/git/uv/python3.11+/디스크/gh 로그인 중 하나), 소유자를 네 계정으로 바꿔 미초대·미포크로 인한 not-found, 또는 이후 clone/pull 실패.
 
