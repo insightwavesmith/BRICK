@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import json
 import os
 import shutil
 import subprocess
@@ -497,6 +498,542 @@ def _assert_mutation_red_missing_error_classification() -> str:
     raise AdapterUsageMeterError(
         "mutation RED failed: a nonzero CLI message lacking classification/timestamp "
         "markers was accepted"
+    )
+
+
+_CLAUDE_OBITUARY_PROVIDER_SENTENCE = "Claude usage limit reached; try again later"
+
+
+def _claude_obituary_error_stdout() -> str:
+    """A claude ``--output-format json`` result object reporting its own failure.
+
+    Claude flags a failed run with ``is_error`` + an ``error*`` subtype (not a
+    top-level ``error`` key), and carries the free-text reason in ``result``. The
+    ``session_id`` is present precisely so the excerpt path is proven NOT to lift
+    it (the obituary carries the error text only)."""
+
+    return json.dumps(
+        {
+            "type": "result",
+            "subtype": "error_during_execution",
+            "is_error": True,
+            "result": _CLAUDE_OBITUARY_PROVIDER_SENTENCE,
+            "session_id": "claude-obituary-probe-session-id",
+        }
+    )
+
+
+def _assert_claude_obituary_stdout_excerpt() -> str:
+    """CLAUDE OBITUARY (R4 follow-up): a claude-local nonzero death records its
+    provider stdout error excerpt + classification in the adapter-error message,
+    same shape as the codex JSONL obituary, with the secret scrub boundary and the
+    session-id non-leak preserved (0707 pre-dawn line deaths were obituary-less)."""
+
+    from brick_protocol.support.connection import agent_adapter as adapter
+    from brick_protocol.support.connection import adapter_constants
+    from brick_protocol.support.connection import adapter_local_cli
+
+    error_stdout = _claude_obituary_error_stdout()
+    noisy_stderr = "warning: unrelated client noise before useful provider JSON"
+
+    excerpt = adapter_local_cli._stdout_error_excerpt(error_stdout)
+    if _CLAUDE_OBITUARY_PROVIDER_SENTENCE not in excerpt:
+        raise AdapterUsageMeterError(
+            "claude obituary: claude result-JSON stdout error text was not preserved "
+            f"in the stdout excerpt (got {excerpt!r})"
+        )
+
+    completed = adapter.LocalCliCompleted(("claude", "-p"), 1, error_stdout, noisy_stderr)
+    if adapter_local_cli._local_cli_nonzero_classification(completed) != "spend_limit":
+        raise AdapterUsageMeterError(
+            "claude obituary: a claude usage-limit death did not classify as spend_limit"
+        )
+
+    request = adapter.AgentAdapterRequest(
+        building_id="claude-obituary-probe",
+        agent_object_ref="agent-object:dev",
+        adapter_ref=adapter_constants.ADAPTER_CLAUDE_LOCAL,
+        brick_instance_ref="brick-work",
+        next_brick_instance_ref="brick-closure",
+        casting={"selected_model_ref": "model:claude:sonnet"},
+    )
+    spec = adapter._local_cli_spec(adapter_constants.ADAPTER_CLAUDE_LOCAL)
+    message = adapter_local_cli._local_cli_nonzero_error_message(request, spec, completed)
+    stdout_at = message.find("stdout_error_excerpt=")
+    stderr_at = message.find("stderr_excerpt=")
+    if stdout_at < 0 or _CLAUDE_OBITUARY_PROVIDER_SENTENCE not in message:
+        raise AdapterUsageMeterError(
+            "claude obituary: adapter-error message carried no provider stdout error "
+            f"excerpt for a claude result-JSON death: {message!r}"
+        )
+    if stderr_at >= 0 and stdout_at > stderr_at:
+        raise AdapterUsageMeterError(
+            "claude obituary: provider stdout error did not precede noisy stderr in "
+            "the message_excerpt source text"
+        )
+    if "claude-obituary-probe-session-id" in message:
+        raise AdapterUsageMeterError(
+            "claude obituary: the claude session id leaked into the obituary message"
+        )
+
+    # HONEST-UNKNOWN: a claude success/no-signal result must not fabricate an excerpt.
+    success_stdout = json.dumps(
+        {"type": "result", "subtype": "success", "is_error": False, "result": "done"}
+    )
+    if adapter_local_cli._stdout_error_excerpt(success_stdout) != "":
+        raise AdapterUsageMeterError(
+            "claude obituary: a successful claude result fabricated a stdout excerpt"
+        )
+
+    # SCRUB boundary: a credential-looking token in the provider text is redacted,
+    # never emitted verbatim into the excerpt.
+    secret_token = "sk-ant-api03-" + "A" * 40
+    secret_stdout = json.dumps(
+        {"subtype": "error", "is_error": True, "result": f"auth failed {secret_token}"}
+    )
+    if secret_token in adapter_local_cli._stdout_error_excerpt(secret_stdout):
+        raise AdapterUsageMeterError(
+            "claude obituary: a credential-looking token leaked through the stdout "
+            "excerpt scrub"
+        )
+
+    return (
+        "claude obituary: a claude-local nonzero death records its provider stdout "
+        "error excerpt (ahead of noisy stderr, session id + secrets scrubbed) with a "
+        "spend_limit classification, and a successful result fabricates no excerpt"
+    )
+
+
+def _assert_mutation_red_claude_obituary_excerpt_dropped() -> str:
+    """Mutation RED: neutering the claude result-error detector drops the claude
+    obituary stdout excerpt (proves the detector is load-bearing, not decorative)."""
+
+    from brick_protocol.support.connection import agent_adapter as adapter
+    from brick_protocol.support.connection import adapter_constants
+    from brick_protocol.support.connection import adapter_local_cli
+
+    error_stdout = _claude_obituary_error_stdout()
+    completed = adapter.LocalCliCompleted(
+        ("claude", "-p"), 1, error_stdout, "noisy client stderr only"
+    )
+    request = adapter.AgentAdapterRequest(
+        building_id="claude-obituary-mutation-probe",
+        agent_object_ref="agent-object:dev",
+        adapter_ref=adapter_constants.ADAPTER_CLAUDE_LOCAL,
+        brick_instance_ref="brick-work",
+        next_brick_instance_ref="brick-closure",
+        casting={"selected_model_ref": "model:claude:sonnet"},
+    )
+    spec = adapter._local_cli_spec(adapter_constants.ADAPTER_CLAUDE_LOCAL)
+    original = adapter_local_cli._claude_result_error_present
+    try:
+        adapter_local_cli._claude_result_error_present = lambda _payload: False
+        mutated_excerpt = adapter_local_cli._stdout_error_excerpt(error_stdout)
+        mutated_message = adapter_local_cli._local_cli_nonzero_error_message(
+            request, spec, completed
+        )
+    finally:
+        adapter_local_cli._claude_result_error_present = original
+    if _CLAUDE_OBITUARY_PROVIDER_SENTENCE in mutated_excerpt or (
+        _CLAUDE_OBITUARY_PROVIDER_SENTENCE in mutated_message
+    ):
+        raise AdapterUsageMeterError(
+            "mutation RED failed: removing the claude result-error detector still "
+            "produced a claude stdout error excerpt"
+        )
+    return (
+        "mutation RED observed: neutering the claude result-error detector drops the "
+        "claude obituary stdout excerpt (the detector is load-bearing)"
+    )
+
+
+_CLAUDE_OBITUARY_UUID_SESSION = "550e8400-e29b-41d4-a716-446655440000"
+
+
+def _assert_claude_obituary_edge_cases() -> str:
+    """CLAUDE OBITUARY edge cases (closure QA follow-up): the obituary excerpt path
+    survives the four false-fire / miss classes the first landing left open --
+    P2b (a null top-level ``error`` shadowing the claude result branch), P4 (a
+    mapping-valued error carrying a UUID session id), P5 (a claude result printed
+    behind noisy stdout lines), and R4 (a cross-field space-join manufacturing a
+    spend_limit marker neither field carried)."""
+
+    from brick_protocol.support.connection import agent_adapter as adapter
+    from brick_protocol.support.connection import adapter_local_cli
+
+    # P2b: a claude result flagging its own failure with an EXPLICIT ``"error": null``
+    # alongside ``is_error: true`` must still record the result's free-text reason,
+    # not fall to an empty excerpt because ``"error" in payload`` was truthy-by-key.
+    null_error_stdout = json.dumps(
+        {
+            "type": "result",
+            "subtype": "error_during_execution",
+            "is_error": True,
+            "error": None,
+            "result": "claude run failed after a tool error",
+        }
+    )
+    null_excerpt = adapter_local_cli._stdout_error_excerpt(null_error_stdout)
+    if "claude run failed after a tool error" not in null_excerpt:
+        raise AdapterUsageMeterError(
+            "P2b: an explicit error:null shadowed the claude result branch and dropped "
+            f"the obituary excerpt (got {null_excerpt!r})"
+        )
+
+    # P4: a mapping-valued error object carrying a bare-UUID session id (under a
+    # session key AND under a benign key) must be scrubbed of the UUID while keeping
+    # the real error message. The shared redactor does NOT match a bare hyphenated
+    # UUID, so this proves the dedicated session-identifier scrub.
+    mapping_error_stdout = json.dumps(
+        {
+            "is_error": True,
+            "subtype": "error_during_execution",
+            "error": {
+                "message": "upstream provider failure while writing",
+                "session_id": _CLAUDE_OBITUARY_UUID_SESSION,
+                "detail": _CLAUDE_OBITUARY_UUID_SESSION,
+            },
+        }
+    )
+    mapping_excerpt = adapter_local_cli._stdout_error_excerpt(mapping_error_stdout)
+    if _CLAUDE_OBITUARY_UUID_SESSION in mapping_excerpt:
+        raise AdapterUsageMeterError(
+            "P4: a UUID session id from a mapping-valued claude error rode into the "
+            f"obituary excerpt (got {mapping_excerpt!r})"
+        )
+    if "upstream provider failure while writing" not in mapping_excerpt:
+        raise AdapterUsageMeterError(
+            "P4: scrubbing the session id also dropped the real provider error message "
+            f"(got {mapping_excerpt!r})"
+        )
+
+    # P5: a claude obituary printed BEHIND a line of client noise (so the whole stdout
+    # is not a single JSON object) is still recovered by the per-line scan.
+    noisy_stdout = (
+        "warning: unrelated client noise before the provider JSON\n"
+        + _claude_obituary_error_stdout()
+    )
+    noisy_excerpt = adapter_local_cli._stdout_error_excerpt(noisy_stdout)
+    if _CLAUDE_OBITUARY_PROVIDER_SENTENCE not in noisy_excerpt:
+        raise AdapterUsageMeterError(
+            "P5: a claude obituary behind a noise-prefixed stdout line yielded an empty "
+            f"excerpt (got {noisy_excerpt!r})"
+        )
+
+    # R4: the classifier must NOT manufacture a spend_limit marker by space-joining a
+    # "rate"-tailed stderr with a "limit"-led stdout. Neither field carries a full
+    # spend marker on its own, so the honest label is unknown.
+    cross_field = adapter.LocalCliCompleted(
+        ("claude", "-p"), 1, "limit exceeded downstream", "provider error: rate"
+    )
+    cross_field_label = adapter_local_cli._local_cli_nonzero_classification(cross_field)
+    if cross_field_label != "unknown":
+        raise AdapterUsageMeterError(
+            "R4: a cross-field space-join manufactured a "
+            f"{cross_field_label!r} classification neither field carried"
+        )
+
+    return (
+        "claude obituary edge cases: null-error no longer shadows the claude branch "
+        "(P2b), a mapping-valued UUID session id is scrubbed while the message is kept "
+        "(P4), a noise-prefixed obituary is still recovered (P5), and a cross-field "
+        "join no longer fabricates a spend_limit label (R4)"
+    )
+
+
+# A NON-UUID provider session marker: it is dropped ONLY by the key-drop scrub
+# (_scrub_session_identifiers), never by the embedded-UUID mask or the shared
+# session-redaction patterns -- so it isolates the key-drop scrub as load-bearing.
+_CLAUDE_OBITUARY_PLAIN_SESSION = "claude-obituary-plain-session-marker"
+
+
+def _assert_mutation_red_session_identifier_scrub_dropped() -> str:
+    """Mutation RED: neutering the session-identifier KEY-DROP scrub leaks a NON-UUID
+    session id into the obituary excerpt (proves the P4 key-drop scrub is load-bearing
+    for session-named keys whose value is NOT a bare UUID -- the shared redaction
+    patterns AND the embedded-UUID mask both miss such a value, so only the key-drop
+    scrub removes it). A UUID value is used elsewhere (the embedded-UUID mask test);
+    here the value is deliberately non-UUID to isolate the key-drop path."""
+
+    from brick_protocol.support.connection import adapter_local_cli
+
+    mapping_error_stdout = json.dumps(
+        {
+            "is_error": True,
+            "subtype": "error_during_execution",
+            "error": {
+                "message": "upstream provider failure",
+                "session_id": _CLAUDE_OBITUARY_PLAIN_SESSION,
+            },
+        }
+    )
+    original = adapter_local_cli._scrub_session_identifiers
+    try:
+        adapter_local_cli._scrub_session_identifiers = lambda value, **_kw: value
+        mutated_excerpt = adapter_local_cli._stdout_error_excerpt(mapping_error_stdout)
+    finally:
+        adapter_local_cli._scrub_session_identifiers = original
+    if _CLAUDE_OBITUARY_PLAIN_SESSION not in mutated_excerpt:
+        raise AdapterUsageMeterError(
+            "mutation RED failed: neutering _scrub_session_identifiers did NOT leak the "
+            "non-UUID session id -- the key-drop scrub is not load-bearing for "
+            f"session-named keys (got {mutated_excerpt!r})"
+        )
+    # SANITY: the non-mutated path must still scrub the non-UUID session marker (the
+    # key-drop scrub removes it), so the mutation above proves a real load-bearing gap.
+    clean_excerpt = adapter_local_cli._stdout_error_excerpt(mapping_error_stdout)
+    if _CLAUDE_OBITUARY_PLAIN_SESSION in clean_excerpt:
+        raise AdapterUsageMeterError(
+            "session scrub: the non-mutated obituary excerpt still leaked the non-UUID "
+            f"session marker (got {clean_excerpt!r})"
+        )
+    return (
+        "mutation RED observed: neutering _scrub_session_identifiers leaks a non-UUID "
+        "session id into the obituary excerpt (the P4 key-drop scrub is load-bearing)"
+    )
+
+
+def _assert_string_error_uuid_scrubbed() -> str:
+    """P-QA8: a STRING-typed provider error carrying an EMBEDDED bare UUID must have
+    the UUID masked in the obituary excerpt while the real error text is preserved.
+
+    The first landing scrubbed only mapping-valued errors (key drop + whole-string
+    UUID value). A string-typed claude ``result`` free-text -- and a UUID embedded
+    inside a mapping error's own message string -- still rode a bare session/request
+    UUID into the excerpt (0707 scroll-window line deaths). This pins the embedded-UUID
+    mask over BOTH branches; the shared session-redaction patterns do NOT cover a bare
+    hyphenated UUID, so the mask is required."""
+
+    from brick_protocol.support.connection import adapter_local_cli
+
+    # (a) STRING-typed claude result error with an embedded UUID.
+    string_error_stdout = json.dumps(
+        {
+            "type": "result",
+            "subtype": "error_during_execution",
+            "is_error": True,
+            "result": (
+                f"run failed in session {_CLAUDE_OBITUARY_UUID_SESSION} while writing"
+            ),
+        }
+    )
+    string_excerpt = adapter_local_cli._stdout_error_excerpt(string_error_stdout)
+    if _CLAUDE_OBITUARY_UUID_SESSION in string_excerpt:
+        raise AdapterUsageMeterError(
+            "P-QA8: a string-typed claude error leaked its embedded UUID session id "
+            f"into the obituary excerpt (got {string_excerpt!r})"
+        )
+    if "run failed" not in string_excerpt or "while writing" not in string_excerpt:
+        raise AdapterUsageMeterError(
+            "P-QA8: masking the embedded UUID also dropped the real string-error text "
+            f"(got {string_excerpt!r})"
+        )
+
+    # (b) mapping-valued error whose own MESSAGE string embeds a UUID (not a whole-
+    # string value, so the anchored value-scrub cannot reach it).
+    embedded_mapping_stdout = json.dumps(
+        {
+            "is_error": True,
+            "subtype": "error",
+            "error": {
+                "message": (
+                    f"upstream failure for session {_CLAUDE_OBITUARY_UUID_SESSION} "
+                    "downstream"
+                ),
+            },
+        }
+    )
+    embedded_excerpt = adapter_local_cli._stdout_error_excerpt(embedded_mapping_stdout)
+    if _CLAUDE_OBITUARY_UUID_SESSION in embedded_excerpt:
+        raise AdapterUsageMeterError(
+            "P-QA8: a UUID embedded inside a mapping error's message string leaked into "
+            f"the obituary excerpt (got {embedded_excerpt!r})"
+        )
+    if "upstream failure" not in embedded_excerpt:
+        raise AdapterUsageMeterError(
+            "P-QA8: masking the embedded UUID also dropped the mapping error message "
+            f"(got {embedded_excerpt!r})"
+        )
+    return (
+        "P-QA8: a string-typed provider error and a UUID embedded inside a mapping "
+        "error message are both masked in the obituary excerpt while the real error "
+        "text is preserved"
+    )
+
+
+def _assert_mutation_red_embedded_uuid_mask_dropped() -> str:
+    """Mutation RED: neutering the embedded-UUID mask leaks a string-typed error's
+    embedded UUID into the obituary excerpt (proves the P-QA8 mask is load-bearing --
+    the key-drop scrub does NOT run on a string error and the shared redaction
+    patterns do NOT cover a bare hyphenated UUID)."""
+
+    from brick_protocol.support.connection import adapter_local_cli
+
+    string_error_stdout = json.dumps(
+        {
+            "type": "result",
+            "subtype": "error_during_execution",
+            "is_error": True,
+            "result": (
+                f"run failed in session {_CLAUDE_OBITUARY_UUID_SESSION} while writing"
+            ),
+        }
+    )
+    original = adapter_local_cli._mask_embedded_session_uuids
+    try:
+        adapter_local_cli._mask_embedded_session_uuids = lambda text: text
+        mutated_excerpt = adapter_local_cli._stdout_error_excerpt(string_error_stdout)
+    finally:
+        adapter_local_cli._mask_embedded_session_uuids = original
+    if _CLAUDE_OBITUARY_UUID_SESSION not in mutated_excerpt:
+        raise AdapterUsageMeterError(
+            "mutation RED failed: neutering _mask_embedded_session_uuids did NOT leak "
+            "the embedded UUID from a string-typed error -- the mask is not load-bearing "
+            f"or a wider redactor already covers bare embedded UUIDs (got {mutated_excerpt!r})"
+        )
+    return (
+        "mutation RED observed: neutering _mask_embedded_session_uuids leaks a string-"
+        "typed error's embedded UUID into the obituary excerpt (the P-QA8 mask is "
+        "load-bearing)"
+    )
+
+
+def _assert_numeric_status_code_boundary() -> str:
+    """Numeric-substring false-fire follow-up: an HTTP status code EMBEDDED inside a
+    larger number must NOT fire a limit/transport/auth/content_policy label, while a
+    genuine STANDALONE status code still classifies correctly.
+
+    The first landing matched "429"/"529"/"503"-style codes as BARE SUBSTRINGS, so a
+    token count ("11429 tokens"), a byte offset ("4529"), or a request id ("15039")
+    manufactured a spend_limit/transport label the field never carried. This pins the
+    standalone-status-code matching (delimited 3-digit tokens only)."""
+
+    from brick_protocol.support.connection import agent_adapter as adapter
+    from brick_protocol.support.connection import adapter_local_cli
+
+    def _cls(stderr: str) -> str:
+        return adapter_local_cli._local_cli_nonzero_classification(
+            adapter.LocalCliCompleted(("x",), 1, "", stderr)
+        )
+
+    # (a) embedded status codes must NOT false-fire -- honest unknown.
+    false_fire_cases = (
+        ("produced 11429 tokens then exited", "429->spend_limit"),
+        ("write failed at byte offset 4529", "529->transport"),
+        ("request id 15039 aborted", "503->transport"),
+        ("trace 34519 recorded", "451->content_policy"),
+        ("counter 24011 rolled", "401->auth"),
+    )
+    for stderr, why in false_fire_cases:
+        observed = _cls(stderr)
+        if observed != "unknown":
+            raise AdapterUsageMeterError(
+                f"numeric-status false-fire: {stderr!r} classified as {observed!r} "
+                f"(embedded {why} substring); expected honest unknown"
+            )
+
+    # (b) genuine standalone status codes still classify to their label.
+    genuine_cases = (
+        ("HTTP 429 Too Many Requests", "spend_limit"),
+        ("HTTP 401 Unauthorized", "auth"),
+        ("HTTP 403 Forbidden", "auth"),
+        ("HTTP 503 Service Unavailable", "transport"),
+        ("HTTP 529 overloaded upstream", "transport"),
+        ("HTTP 451 Unavailable For Legal Reasons", "content_policy"),
+    )
+    for stderr, expected in genuine_cases:
+        observed = _cls(stderr)
+        if observed != expected:
+            raise AdapterUsageMeterError(
+                f"numeric-status miss: genuine {stderr!r} classified as {observed!r}, "
+                f"expected {expected!r}"
+            )
+    return (
+        "numeric-status boundary: an HTTP status code embedded inside a larger number "
+        "(token count / byte offset / request id) no longer false-fires a "
+        "limit/transport/auth/content_policy label, while a genuine standalone "
+        "429/401/403/503/529/451 still classifies correctly"
+    )
+
+
+def _assert_claude_throttle_marker_labels() -> str:
+    """Pin each claude throttle/limit/overload TEXT marker to its classification label.
+
+    The R4 follow-up added claude-specific text signatures (rate_limit / usage_limit /
+    "usage limit" / "too many requests" for spend_limit; overloaded / overloaded_error
+    for transport). Removing any of them would silently drop a real throttled/overloaded
+    claude death to unknown -- this per-marker fixture makes that removal turn the
+    checker RED. Absent any signal the classifier stays honestly unknown."""
+
+    from brick_protocol.support.connection import agent_adapter as adapter
+    from brick_protocol.support.connection import adapter_local_cli
+
+    def _cls(stderr: str) -> str:
+        return adapter_local_cli._local_cli_nonzero_classification(
+            adapter.LocalCliCompleted(("claude", "-p"), 1, "", stderr)
+        )
+
+    cases = (
+        ("provider rate_limit hit", "spend_limit"),
+        ("usage_limit exhausted for this key", "spend_limit"),
+        ("Claude usage limit reached; try again later", "spend_limit"),
+        ("too many requests, slow down", "spend_limit"),
+        ("the server is overloaded right now", "transport"),
+        ("overloaded_error from upstream", "transport"),
+    )
+    for stderr, expected in cases:
+        observed = _cls(stderr)
+        if observed != expected:
+            raise AdapterUsageMeterError(
+                f"claude-marker: {stderr!r} classified as {observed!r}, expected "
+                f"{expected!r} (a throttle/overload marker was dropped from the "
+                "decision table)"
+            )
+    # HONEST-UNKNOWN: a death with no throttle/transport/auth/policy signal stays
+    # unknown (never a fabricated label).
+    if _cls("the operation could not be completed") != "unknown":
+        raise AdapterUsageMeterError(
+            "claude-marker: a no-signal death was labelled instead of honest unknown"
+        )
+    return (
+        "claude-marker: each claude throttle/limit marker (rate_limit / usage_limit / "
+        "usage limit / too many requests -> spend_limit) and overload marker "
+        "(overloaded / overloaded_error -> transport) classifies to its label; a "
+        "no-signal death stays honestly unknown"
+    )
+
+
+def _assert_mutation_red_numeric_substring_false_fire() -> str:
+    """Mutation RED: the OLD bare-substring status matcher WOULD false-fire on a status
+    code embedded in a larger number (proves _assert_numeric_status_code_boundary is
+    not vacuously green). Reconstructs the old ``"429" in field`` shape and confirms it
+    misclassifies a token-count field the standalone matcher now leaves unknown."""
+
+    embedded_field = "produced 11429 tokens then exited"
+
+    # OLD shape: bare-substring membership (what the fix replaced).
+    old_bare_substring_fires = "429" in embedded_field
+    # NEW shape: standalone 3-digit tokens only.
+    from brick_protocol.support.connection import adapter_local_cli
+
+    standalone_tokens = set(
+        adapter_local_cli._STANDALONE_STATUS_CODE_RE.findall(embedded_field)
+    )
+    new_boundary_fires = "429" in standalone_tokens
+    if not old_bare_substring_fires:
+        raise AdapterUsageMeterError(
+            "mutation RED failed: the old bare-substring matcher did NOT fire on the "
+            "embedded '429' -- the false-fire it models is not reproduced"
+        )
+    if new_boundary_fires:
+        raise AdapterUsageMeterError(
+            "mutation RED failed: the standalone-status matcher STILL matched the "
+            "embedded '429' inside '11429' -- the boundary fix is not effective"
+        )
+    return (
+        "mutation RED observed: the old bare-substring matcher fires on an embedded "
+        "'429' inside '11429' (a false-fire) while the standalone-status matcher does "
+        "not -- the numeric-boundary fix is load-bearing"
     )
 
 
@@ -1322,6 +1859,11 @@ def check(repo: Path) -> list[str]:
         _assert_dynamic_walker_dispatch_timing_persisted(repo),
         _assert_jsonl_never_becomes_text(),
         _assert_local_cli_nonzero_classification(),
+        _assert_claude_obituary_stdout_excerpt(),
+        _assert_claude_obituary_edge_cases(),
+        _assert_string_error_uuid_scrubbed(),
+        _assert_numeric_status_code_boundary(),
+        _assert_claude_throttle_marker_labels(),
         test_behavioral_probe_usage_only_stdout(),
         _assert_meter_write_guarded_by_usage_present(repo),
         _assert_pure_append_preserves_existing_lines(),
@@ -1329,6 +1871,10 @@ def check(repo: Path) -> list[str]:
         _assert_mutation_red_missing_usage_timestamp_alias(),
         _assert_mutation_red_usage_into_returned(),
         _assert_mutation_red_missing_error_classification(),
+        _assert_mutation_red_claude_obituary_excerpt_dropped(),
+        _assert_mutation_red_session_identifier_scrub_dropped(),
+        _assert_mutation_red_embedded_uuid_mask_dropped(),
+        _assert_mutation_red_numeric_substring_false_fire(),
         _assert_mutation_red_behavioral_probe_leak(),
         _assert_mutation_red_jsonl_text_fallback(),
         _assert_mutation_red_pure_append_rewrite(),

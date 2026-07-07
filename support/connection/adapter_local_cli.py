@@ -1245,10 +1245,22 @@ def _adapter_error_timestamp() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="microseconds").replace("+00:00", "Z")
 
 
+# A STANDALONE 3-digit run (an HTTP status code) not adjacent to another digit. Used
+# to match "429"/"451"/"503"-style status labels as delimited tokens so an embedded
+# "429" inside "11429" cannot false-fire a limit/transport classification.
+_STANDALONE_STATUS_CODE_RE = re.compile(r"(?<!\d)\d{3}(?!\d)")
+
+
 def _local_cli_nonzero_classification(completed: LocalCliCompleted) -> str:
     """Classify non-zero local-CLI exits without carrying raw provider text."""
 
-    haystack = " ".join(
+    # R4 (cross-field-join fix): match each field on its OWN, never a space-join of
+    # return_code + stderr + stdout. Joining them let a "rate"-tailed stderr abut a
+    # "limit"-led stdout and manufacture a "rate limit"/"usage limit" marker that
+    # NEITHER field actually carried (the 0706 R4 cross-field-join false-fire). Per-
+    # field matching keeps every real single-field signal while removing the
+    # fabricated adjacency marker.
+    fields = tuple(
         part.lower()
         for part in (
             str(completed.return_code),
@@ -1257,10 +1269,30 @@ def _local_cli_nonzero_classification(completed: LocalCliCompleted) -> str:
         )
         if part
     )
-    if _content_policy_signature_present(haystack):
+
+    def _field_has(marker: str) -> bool:
+        return any(marker in field for field in fields)
+
+    # NUMERIC-STATUS boundary set (P-QA numeric-substring false-fire follow-up): an
+    # HTTP status code embedded INSIDE a larger number ("11429 tokens", "byte offset
+    # 4529", "request id 15039") previously fired a limit/transport/auth label the
+    # field never carried, because "429"/"529"/"503" were matched as bare substrings.
+    # Collect only STANDALONE 3-digit runs (not digit-adjacent) per field and match
+    # status labels against that set, so a genuine "HTTP 429" still fires while an
+    # embedded "429"/"529"/"503" does not.
+    status_codes: set[str] = set()
+    for field in fields:
+        status_codes.update(_STANDALONE_STATUS_CODE_RE.findall(field))
+
+    def _has_status(*codes: str) -> bool:
+        return any(code in status_codes for code in codes)
+
+    if any(_content_policy_signature_present(field) for field in fields) or _has_status(
+        "451"
+    ):
         return "content_policy"
-    if any(
-        marker in haystack
+    if _has_status("429") or any(
+        _field_has(marker)
         for marker in (
             "spend_limit",
             "spend limit",
@@ -1269,12 +1301,21 @@ def _local_cli_nonzero_classification(completed: LocalCliCompleted) -> str:
             "insufficient quota",
             "quota exceeded",
             "rate limit",
-            "429",
+            # CLAUDE THROTTLE/LIMIT signatures (R4 follow-up): claude's own
+            # rate/usage exhaustion strings use underscores or the "usage limit"
+            # phrasing that the space-separated "rate limit" marker above misses,
+            # so a throttled claude death classified as unknown. Absent any of
+            # these signals the classifier still returns unknown (honest), never a
+            # fabricated limit label.
+            "rate_limit",
+            "usage limit",
+            "usage_limit",
+            "too many requests",
         )
     ):
         return "spend_limit"
-    if any(
-        marker in haystack
+    if _has_status("401", "403") or any(
+        _field_has(marker)
         for marker in (
             "auth",
             "authentication",
@@ -1286,13 +1327,11 @@ def _local_cli_nonzero_classification(completed: LocalCliCompleted) -> str:
             "oauth",
             "login required",
             "not logged in",
-            "401",
-            "403",
         )
     ):
         return "auth"
-    if any(
-        marker in haystack
+    if _has_status("529", "502", "503", "504") or any(
+        _field_has(marker)
         for marker in (
             "connection reset",
             "connection refused",
@@ -1305,9 +1344,11 @@ def _local_cli_nonzero_classification(completed: LocalCliCompleted) -> str:
             "service unavailable",
             "bad gateway",
             "gateway timeout",
-            "502",
-            "503",
-            "504",
+            # CLAUDE/API overload (R4 follow-up): a provider-overload death carries
+            # an overload signature rather than a quota/limit one; route it to the
+            # transport class it belongs to instead of unknown.
+            "overloaded",
+            "overloaded_error",
         )
     ):
         return "transport"
@@ -1318,21 +1359,149 @@ def _stdout_error_excerpt(stdout: str) -> str:
     from .agent_adapter import _redacted_diagnostic_excerpt, _try_json_value
 
     payload = _try_json_value(stdout)
-    if isinstance(payload, Mapping) and "error" in payload:
-        error = payload["error"]
-    else:
+    error: Any = None
+    if isinstance(payload, Mapping):
+        top_error = payload.get("error")
+        if top_error not in (None, ""):
+            # codex-shaped top-level error object/string.
+            error = top_error
+        elif _claude_result_error_present(payload):
+            # CLAUDE OBITUARY (R4 follow-up): claude's `--output-format json` emits a
+            # SINGLE result object whose own failure is flagged by ``is_error`` / an
+            # ``error*`` subtype rather than a top-level ``error`` key, so the
+            # codex-shaped ``"error" in payload`` misses it and the claude-local
+            # obituary landed with an EMPTY stdout excerpt (the 0707 pre-dawn line
+            # deaths were obituary-less). Read the result's own error text so the last
+            # stdout excerpt rides the adapter-error, same secret scrub.
+            #
+            # P2b (null-error shadow fix): the guard is ``top_error not in (None, "")``,
+            # NOT ``"error" in payload``, so a claude result carrying an explicit
+            # ``"error": null`` alongside ``is_error: true`` no longer shadows this
+            # branch and silently drops to an empty excerpt.
+            error = _claude_result_error_payload(payload)
+    if error in (None, ""):
+        # P5 (noisy-stdout coverage): a claude obituary printed BEHIND a line of
+        # client noise (so the whole stdout is not a single JSON object) is recovered
+        # by scanning the lines for a codex error / turn.failed / claude result-error
+        # object, instead of yielding an empty excerpt.
         error = _jsonl_stdout_error_payload(stdout)
     if error in (None, ""):
         return ""
     if isinstance(error, str):
         text = error
     else:
-        text = json.dumps(error, ensure_ascii=True, sort_keys=True)
+        # P4 (session-id-in-excerpt fix): a mapping-valued error object can carry a
+        # provider ``session_id`` -- a bare UUID that the shared session-redaction
+        # patterns (ULID / sess_ / JWT shaped) do NOT match -- so strip session-shaped
+        # identifiers from the object before it is rendered into the obituary excerpt.
+        text = json.dumps(
+            _scrub_session_identifiers(error), ensure_ascii=True, sort_keys=True
+        )
+    # P-QA8 (string-error UUID leak follow-up): the P4 key-drop scrub above runs ONLY
+    # on a MAPPING-valued error and masks a bare-UUID VALUE only when the value is the
+    # WHOLE string. A STRING-typed provider error (claude's ``result`` free-text) and a
+    # UUID EMBEDDED inside a mapping error's own message string therefore still carried
+    # a bare provider session/request UUID into the obituary (0707 scroll-window line
+    # deaths). Mask any bare hyphenated UUID wherever it appears in the rendered text,
+    # for BOTH branches, before the shared redactor runs. The shared session-redaction
+    # patterns do not cover a bare hyphenated UUID, so this pass is required.
+    text = _mask_embedded_session_uuids(text)
     return _redacted_diagnostic_excerpt(text, limit=360)
 
 
+def _claude_result_error_present(payload: Mapping[str, Any]) -> bool:
+    """Detect a claude ``--output-format json`` result that reports its own failure.
+
+    Reads ONLY the result's declared failure flags -- ``is_error is True`` or an
+    ``error``-prefixed ``subtype`` (e.g. ``error_during_execution`` /
+    ``error_max_turns``). It never invents an error where the result reports none,
+    so a genuine success row (``is_error`` false, ``subtype`` ``success``) is left
+    to the JSONL/no-excerpt path and yields an empty, honest excerpt."""
+
+    if payload.get("is_error") is True:
+        return True
+    subtype = payload.get("subtype")
+    return isinstance(subtype, str) and subtype.startswith("error")
+
+
+def _claude_result_error_payload(payload: Mapping[str, Any]) -> Any:
+    """Return the claude result's own error text/object for the obituary excerpt.
+
+    Prefers the most descriptive declared field the result carries; falls back to
+    the ``subtype`` label when no free-text error message is present. Pure read of
+    the provider's own reported failure -- no fabrication."""
+
+    for key in ("error", "result", "message", "subtype"):
+        value = payload.get(key)
+        if isinstance(value, str) and value.strip():
+            return value
+        if isinstance(value, Mapping) and value:
+            return value
+    return None
+
+
+_SESSION_IDENTIFIER_KEY_NAMES = frozenset(
+    {"session_id", "sessionid", "session", "uuid", "request_id", "requestid"}
+)
+_BARE_UUID_RE = re.compile(
+    r"\A[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\Z"
+)
+# UNANCHORED twin of _BARE_UUID_RE: masks a hyphenated UUID that appears EMBEDDED in a
+# larger diagnostic string (P-QA8), where the anchored value-scrub above cannot reach.
+_EMBEDDED_UUID_RE = re.compile(
+    r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b"
+)
+
+
+def _mask_embedded_session_uuids(text: str) -> str:
+    """Mask any bare hyphenated UUID embedded in obituary excerpt text.
+
+    P-QA8 (string-error UUID leak): a STRING-typed provider error (e.g. claude's
+    ``result`` free-text) and a UUID embedded inside a mapping error's own message
+    string both escape the P4 key-drop scrub (which drops session KEYS and masks only
+    WHOLE-string UUID values) and the shared session-redaction patterns (which do not
+    cover a bare hyphenated UUID). This masks the identifier wherever it appears in the
+    rendered text -- both the string branch and the embedded-in-message case -- so no
+    provider session/request id rides the adapter-error obituary. Pure removal: it
+    masks identifiers only, invents nothing, and leaves all other diagnostic text
+    intact."""
+
+    return _EMBEDDED_UUID_RE.sub("[redacted]", text)
+
+
+def _scrub_session_identifiers(value: Any, *, depth: int = 0) -> Any:
+    """Drop session-id-shaped identifiers from a mapping/list error payload.
+
+    P4 (session-id-in-excerpt): a claude/codex error OBJECT can carry a provider
+    ``session_id`` -- a bare hyphenated UUID that the shared session-redaction
+    patterns (ULID / ``sess_`` / JWT shaped) do NOT match. Before such an object is
+    rendered into the obituary excerpt, its session-identifying KEYS are dropped and
+    any bare-UUID string VALUE (even under a benign key) is masked, so no provider
+    session id can ride the adapter-error. Pure shaping: it removes identifiers only,
+    invents nothing, and leaves every other field intact for the diagnostic."""
+
+    if depth > 6:
+        return "[redacted-depth]"
+    if isinstance(value, Mapping):
+        scrubbed: dict[Any, Any] = {}
+        for key, child in value.items():
+            normalized = str(key).strip().lower().replace("-", "_")
+            if normalized in _SESSION_IDENTIFIER_KEY_NAMES:
+                continue
+            scrubbed[key] = _scrub_session_identifiers(child, depth=depth + 1)
+        return scrubbed
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+        return [_scrub_session_identifiers(child, depth=depth + 1) for child in value]
+    if isinstance(value, str) and _BARE_UUID_RE.match(value.strip()):
+        return "[redacted]"
+    return value
+
+
 def _content_policy_signature_present(text: str) -> bool:
-    return "451" in text or "content policy" in text or "content_policy" in text
+    # NOTE: the HTTP 451 status code is matched via the standalone-status-code set in
+    # _local_cli_nonzero_classification (not a bare "451" substring), so an embedded
+    # "451" inside a larger number cannot false-fire a content_policy label here.
+    return "content policy" in text or "content_policy" in text
 
 
 def _jsonl_stdout_error_payload(stdout: str) -> Any:
@@ -1350,7 +1519,9 @@ def _jsonl_stdout_error_payload(stdout: str) -> Any:
         if not isinstance(event, Mapping):
             continue
         event_type = event.get("type")
-        if "error" in event and event_type in (None, "error", "turn.failed"):
+        # P2b: require a NON-NULL error value here too, so a JSONL row carrying an
+        # explicit ``"error": null`` does not overwrite a real error with nothing.
+        if event.get("error") not in (None, "") and event_type in (None, "error", "turn.failed"):
             last_error = event.get("error")
             continue
         if event_type == "turn.failed":
@@ -1359,6 +1530,13 @@ def _jsonl_stdout_error_payload(stdout: str) -> Any:
                 if isinstance(value, str) and value.strip():
                     last_error = value
                     break
+            continue
+        # P5 (noisy-stdout coverage): a claude result-error object can arrive as its
+        # own line among client noise. Recognize its own failure flags (is_error /
+        # error* subtype) so the obituary excerpt is still recovered; a success/no-
+        # signal claude result is left untouched (honest empty excerpt).
+        if _claude_result_error_present(event):
+            last_error = _claude_result_error_payload(event)
     return last_error
 
 
