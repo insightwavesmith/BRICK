@@ -503,6 +503,10 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "project_declaration",
         "support.checkers.check_project_declaration",
     ),
+    "rule13_durable_evidence_ref": _repo_main(
+        "rule13_durable_evidence_ref",
+        "support.checkers.check_rule13_durable_evidence_ref",
+    ),
     # CHARTER-INJECT (0618): the declared project vessel's README charter is
     # injected into EVERY role's runtime instruction packet (work/qa/closure
     # lanes), reaches the built codex+claude prompt, and stamps the charter_ref
@@ -1323,6 +1327,89 @@ def run_kernel_check(
     return result
 
 
+@dataclass(frozen=True)
+class ProfileCheckFailure:
+    profile_id: str
+    check_id: str
+    observation_kind: str
+    detail: str
+
+
+def _profile_exception_observation_kind(exc: BaseException) -> str:
+    """Classify a profile/kern_check exception as support-observed blocked/red."""
+
+    if isinstance(exc, UnicodeDecodeError):
+        return "blocked(non_utf8)"
+    if isinstance(exc, FileNotFoundError):
+        return "blocked(missing_file_or_cli)"
+    if isinstance(exc, OSError):
+        return "blocked(os_error)"
+    text = str(exc).lower()
+    blocked_needles = (
+        "unicode",
+        "utf-8",
+        "no such file or directory",
+        "command not found",
+        "missing executable",
+        "executable not found",
+        "not installed",
+        "cli missing",
+        "cli absent",
+        "gemini cli",
+        "gemini executable",
+        "gemini-local cli",
+    )
+    if any(needle in text for needle in blocked_needles):
+        return "blocked(environment)"
+    return "red(source)"
+
+
+def _profile_exception_detail(exc: BaseException) -> str:
+    text = str(exc).replace("\n", " ").strip()
+    if not text:
+        text = exc.__class__.__name__
+    return text[:600]
+
+
+def _format_profile_check_failures(failures: Sequence[ProfileCheckFailure]) -> str:
+    return "\n".join(
+        "- profile={failure.profile_id} kernel_check={failure.check_id} "
+        "observation={failure.observation_kind}: {failure.detail}".format(
+            failure=failure
+        )
+        for failure in failures
+    )
+
+
+def _run_profile_kernel_checks(
+    repo: Path,
+    profile: Mapping[str, Any],
+    *,
+    profile_id: str,
+) -> tuple[list[KernelResult], list[ProfileCheckFailure]]:
+    kernel_results: list[KernelResult] = []
+    failures: list[ProfileCheckFailure] = []
+    for check_id in require_string_list(profile.get("kernel_checks", []), "kernel_checks"):
+        try:
+            kernel_results.append(run_kernel_check(repo, check_id, profile_id=profile_id))
+        except Exception as exc:  # support observation: isolate one kernel check.
+            failure = ProfileCheckFailure(
+                profile_id=profile_id,
+                check_id=check_id,
+                observation_kind=_profile_exception_observation_kind(exc),
+                detail=_profile_exception_detail(exc),
+            )
+            failures.append(failure)
+            print(
+                "profile kernel_check observed: "
+                f"profile={failure.profile_id} check={failure.check_id} "
+                f"observation={failure.observation_kind} detail={failure.detail}",
+                file=sys.stderr,
+                flush=True,
+            )
+    return kernel_results, failures
+
+
 def _run_profile_rule(
     repo: Path,
     profile: Mapping[str, Any],
@@ -1353,10 +1440,17 @@ def run_profile(repo: Path, path: Path) -> tuple[int, list[KernelResult]]:
             profile_id=profile_id,
             rule_key=key,
         )
-    kernel_results = [
-        run_kernel_check(repo, check_id, profile_id=profile_id)
-        for check_id in require_string_list(profile.get("kernel_checks", []), "kernel_checks")
-    ]
+    kernel_results, kernel_failures = _run_profile_kernel_checks(
+        repo,
+        profile,
+        profile_id=profile_id,
+    )
+    if kernel_failures:
+        raise ProfileError(
+            "profile kernel_check exception isolation observed rejecting "
+            "kernel_check(s); sweep may continue to later profiles under --all:\n"
+            + _format_profile_check_failures(kernel_failures)
+        )
     print(
         f"profile passed: {profile['profile_id']} "
         f"({rule_count} declarative rule observation(s), "
@@ -1540,9 +1634,165 @@ def _run_progress_guard_probe(
     return probe_stderr.getvalue()
 
 
+@dataclass(frozen=True)
+class ProfileRunFailure:
+    path: Path
+    observation_kind: str
+    detail: str
+
+
+def _format_profile_run_failures(failures: Sequence[ProfileRunFailure]) -> str:
+    return "\n".join(
+        "- profile={failure.path.stem} observation={failure.observation_kind}: "
+        "{failure.detail}".format(failure=failure)
+        for failure in failures
+    )
+
+
+def _run_profile_path_sweep(
+    repo: Path,
+    paths: Sequence[Path],
+    *,
+    continue_after_error: bool,
+    profile_runner: Callable[[Path, Path], tuple[int, list[KernelResult]]] = run_profile,
+) -> list[ProfileRunFailure]:
+    failures: list[ProfileRunFailure] = []
+    total = len(paths)
+    for index, path in enumerate(paths, start=1):
+        if continue_after_error:
+            _emit_profile_sweep_start(index, total, path)
+        try:
+            profile_runner(repo, path)
+        except Exception as exc:
+            failure = ProfileRunFailure(
+                path=path,
+                observation_kind=_profile_exception_observation_kind(exc),
+                detail=_profile_exception_detail(exc),
+            )
+            if not continue_after_error:
+                raise
+            failures.append(failure)
+            print(
+                "profile sweep: OBSERVED "
+                f"{index}/{total} profile={path.stem} "
+                f"observation={failure.observation_kind} detail={failure.detail}",
+                file=sys.stderr,
+                flush=True,
+            )
+            continue
+        if continue_after_error:
+            _emit_profile_sweep_done(index, total, path)
+    return failures
+
+
+def run_checker_profile_exception_isolation(repo: Path) -> KernelResult:
+    """D2 fixtures for kernel-check and --all profile exception isolation."""
+
+    inspected = 0
+    observed_kernel_checks: list[str] = []
+
+    def fixture_non_utf8(_repo: Path) -> KernelResult:
+        observed_kernel_checks.append("fixture_non_utf8")
+        raise UnicodeDecodeError("utf-8", b"\xff", 0, 1, "fixture non-UTF8")
+
+    def fixture_after(_repo: Path) -> KernelResult:
+        observed_kernel_checks.append("fixture_after")
+        return KernelResult(
+            check_id="fixture_after",
+            inspected=1,
+            output="fixture after observed",
+        )
+
+    original_non_utf8 = KERNEL_DISPATCH.get("fixture_non_utf8")
+    original_after = KERNEL_DISPATCH.get("fixture_after")
+    try:
+        KERNEL_DISPATCH["fixture_non_utf8"] = fixture_non_utf8
+        KERNEL_DISPATCH["fixture_after"] = fixture_after
+        kernel_results, kernel_failures = _run_profile_kernel_checks(
+            repo,
+            {"kernel_checks": ["fixture_non_utf8", "fixture_after"]},
+            profile_id="exception-isolation-fixture",
+        )
+    finally:
+        if original_non_utf8 is None:
+            KERNEL_DISPATCH.pop("fixture_non_utf8", None)
+        else:
+            KERNEL_DISPATCH["fixture_non_utf8"] = original_non_utf8
+        if original_after is None:
+            KERNEL_DISPATCH.pop("fixture_after", None)
+        else:
+            KERNEL_DISPATCH["fixture_after"] = original_after
+    if observed_kernel_checks != ["fixture_non_utf8", "fixture_after"]:
+        raise ProfileError(
+            "checker_profile_exception_isolation mutation-RED: kernel loop did "
+            "not continue after a forced non-UTF8 exception; observed "
+            f"{observed_kernel_checks!r}"
+        )
+    if len(kernel_results) != 1 or len(kernel_failures) != 1:
+        raise ProfileError(
+            "checker_profile_exception_isolation fixture expected one kernel "
+            f"result and one isolated failure; observed {kernel_results!r} / "
+            f"{kernel_failures!r}"
+        )
+    if kernel_failures[0].observation_kind != "blocked(non_utf8)":
+        raise ProfileError(
+            "checker_profile_exception_isolation fixture expected "
+            f"blocked(non_utf8); observed {kernel_failures[0].observation_kind}"
+        )
+    inspected += 2
+
+    with tempfile.TemporaryDirectory(prefix="bp-profile-sweep-isolation-") as tmp:
+        profile_dir = Path(tmp)
+        first = profile_dir / "001-crash.yaml"
+        second = profile_dir / "002-after.yaml"
+        first.write_text("schema: checker-profile/v1\nprofile_id: first\n", encoding="utf-8")
+        second.write_text("schema: checker-profile/v1\nprofile_id: second\n", encoding="utf-8")
+        observed_profiles: list[str] = []
+
+        def fixture_profile_runner(_repo: Path, path: Path) -> tuple[int, list[KernelResult]]:
+            observed_profiles.append(path.stem)
+            if path == first:
+                raise FileNotFoundError("fixture missing provider CLI")
+            return 0, []
+
+        failures = _run_profile_path_sweep(
+            repo,
+            [first, second],
+            continue_after_error=True,
+            profile_runner=fixture_profile_runner,
+        )
+        if observed_profiles != ["001-crash", "002-after"]:
+            raise ProfileError(
+                "checker_profile_exception_isolation mutation-RED: --all sweep "
+                "did not continue to the next profile after a forced profile "
+                f"exception; observed {observed_profiles!r}"
+            )
+        if len(failures) != 1 or failures[0].observation_kind != "blocked(missing_file_or_cli)":
+            raise ProfileError(
+                "checker_profile_exception_isolation fixture expected one "
+                "blocked(missing_file_or_cli) observation; observed "
+                f"{failures!r}"
+            )
+        inspected += 2
+
+    return KernelResult(
+        check_id="checker_profile_exception_isolation",
+        inspected=inspected,
+        output=(
+            "checker profile exception isolation passed: forced non-UTF8 "
+            "kernel_check exception was observed as blocked and the following "
+            "kernel_check still ran; forced per-profile missing-CLI exception "
+            "under --all was observed as blocked and the following profile still "
+            "ran. Both fixtures are mutation-RED probes for removing the "
+            "isolation catch."
+        ),
+    )
+
+
 KERNEL_DISPATCH = {
     **KERNEL_DISPATCH,
     "checker_progress_observability": run_checker_progress_observability,
+    "checker_profile_exception_isolation": run_checker_profile_exception_isolation,
 }
 KERNEL_CHECK_IDS = frozenset(KERNEL_DISPATCH)
 
@@ -1740,13 +1990,17 @@ def main(argv: Sequence[str] | None = None) -> int:
                 # invokes main() twice) never serves a stale KernelResult across
                 # sweeps. Within one sweep, repeated pure kernels reuse the cache.
                 _KERNEL_MEMO.clear()
-                total = len(paths)
-                for index, path in enumerate(paths, start=1):
-                    if args.all:
-                        _emit_profile_sweep_start(index, total, path)
-                    run_profile(repo, path)
-                    if args.all:
-                        _emit_profile_sweep_done(index, total, path)
+                profile_failures = _run_profile_path_sweep(
+                    repo,
+                    paths,
+                    continue_after_error=args.all,
+                )
+                if profile_failures:
+                    raise ProfileError(
+                        "--all observed rejecting profile(s) after continuing "
+                        "through the full declared profile set:\n"
+                        + _format_profile_run_failures(profile_failures)
+                    )
         finally:
             if live_inbox_count_before is not None:
                 assert_all_profiles_did_not_write_live_fixture_inbox(

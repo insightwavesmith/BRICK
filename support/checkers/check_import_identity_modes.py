@@ -61,6 +61,7 @@ PARENTS_BINDING_REGISTRY = {
     "support/checkers/check_positive_int_bool_boundary.py": {2},
     "support/checkers/check_preflight_injection_survival.py": {2},
     "support/checkers/check_project_declaration.py": {2},
+    "support/checkers/check_rule13_durable_evidence_ref.py": {2},
     "support/checkers/check_recording_checker_derived_contract.py": {2},
     "support/checkers/check_report_env_autoload.py": {2},
     "support/checkers/check_resume_declaration.py": {2},
