@@ -49,11 +49,11 @@ review:                   gemini
 | ③ | fable5→opus 캐스팅 전환 | ✓ | `1bd459e2d` origin, §W 격리 --all 55 green |
 | ④a | **개헌 이주 C1** (런타임층 최상위 import 캐노니컬화) | ✓ | `af60198cb` 포함, origin/main 착지 |
 | ④b | **개헌 이주 C2** (물리구조=패키지구조 통일, 축 4루트 git mv) | ✓ | `7b99b8f7f` origin/main, `--all` rc=0, top-level import 4종 실패 확인 |
-| ④c | **개헌 이주 C3** + 문서/개헌/human gate 정리 | ▶ | C2 코드 착지 완료. GOAL/handoff/order/route 상태문서 갱신 중. Smith human gate 남음 |
+| ④c | **개헌 이주 C3** + 문서/개헌/human gate 정리 | ▶ | C2 코드 착지 완료. C3 상태문서 5종 `3bce21bf4` 착지 완료. Smith human gate 남음 |
 | ⑤ | **§T Phase 1~5** (발주 v2 신규 파일 — ★병렬 창) | ☐ | 개헌 착지 후 |
 | ⑥ | **§T Phase 6~8** (walker v2, =§S-v2 흡수 — 최고위험) | ☐ | Phase 1~5 후 |
 
-**착지 결과(0708 C3 갱신)**: C1+C2는 `7b99b8f7f`로 origin/main에 착지 완료. 과거 “1랜딩 대기” 문구는 C2 착지 전 운영 계획이었고, 현재는 C3 문서/human-gate 정리만 남았다.
+**착지 결과(0708 C3 갱신)**: C1+C2는 `7b99b8f7f`로 origin/main에 착지 완료. C3 상태문서 5종은 `3bce21bf4`로 origin/main에 착지 완료. 과거 “1랜딩 대기” 문구는 C2 착지 전 운영 계획이었고, 현재는 Smith human gate만 남았다.
 
 ---
 
@@ -95,7 +95,7 @@ check_profile.py --all: rc=0, passed_count=55
 남은 C3 human gate 후보:
 1. AGENTS.md의 Active physical roots 조항은 현재 코드와 맞는다.
 2. BRICK-CONSTITUTION.md에 별도 물리 루트 조항을 추가할지 여부는 Smith 확인 필요.
-3. 이 GOAL 문서와 handoff 문서가 C2 이전 실패 기록을 보존하면서도 현재 완료 상태를 분명히 말하는지 Smith 확인 필요.
+3. 이 GOAL 문서와 handoff 문서는 C2 이전 실패 기록을 역사 증거로 보존하면서도 현재 완료 상태를 앞단 C3 갱신 블록으로 분리했다.
 
 **개헌 문안 = human gate**: AGENTS.md:76-88 물리루트 조항 반전 + path rebase 표, BRICK-CONSTITUTION.md 물리 언급 — 빌딩은 **초안만**, 채택은 Smith.
 
