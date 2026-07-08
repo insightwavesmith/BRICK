@@ -627,7 +627,7 @@ project-creation already exists: brick_protocol/agent/skills/project-creation/SK
 | ⑩b | blocks 정리 | `project/brick-protocol/status/kernel/blocks-retained-map-0709.md` | docs-only map done | ✓ map prepared: 8 retained / 0 archive / 0 supersede / 0 delete. 모든 block related_presets 실존, runtime reader 0, admission checker가 corpus를 admit. 삭제/이동 불필요 |
 | ⑩c | building_plans 위치 결정 | keep vs move under templates decision; if move then path constants/checkers/admission/profile migration | Building 중 | load-bearing. 단순 `git mv` 금지. `check_package_path_admission.py`와 reader/checker 동시 변경 필요 |
 | ⑩d | skills ship-copy 정리 | `project/brick-protocol/status/kernel/skills-ship-copy-drift-map-0709.md` | docs-only drift map done | ✓ map prepared: common 7, identical 5, real drift candidate `building-coordination`, checker/pin overlay candidate `building-sizing-method`, agent-only maybe-ship candidates recorded, `.DS_Store` residue observed |
-| ⑩e | COO 발주 스킬체인 정합 | COO ordering prompt, building-call-authoring skill, building-coordination/task_intake, hooks/projections update | Building 중 | ⑤h direct escape hatch 결과 반영. "small=direct preset candidate, large=order_authoring/building"을 스킬체인에 반영 |
+| ⑩e | COO 발주 스킬체인 정합 | `project/brick-protocol/status/kernel/coo-order-chain-consistency-0709.md` | docs-only consistency map done | ✓ map prepared: Quick Path policy aligned across brick-task-author/building-call-authoring/building_call.py/building_call_menus.py; watch items recorded for building-coordination ship-copy drift, brick-task-author selected_* example context, building-sizing-method checker overlay |
 | ⑩f | customer UX layer | install -> create project -> buildings -> progress board -> project definition flow; first-run copy/spec/checker plan | Building 대, design-first | 이미 있는 project-creation/progress_projection 위에 UX 층을 얹는다. 새 runtime/queue/scheduler 금지 |
 | ⑩g | `project/brick-protocol` dogfood vessel 분리 | dogfood evidence/status vessel separation plan and migration | Building 대 + human gate | ⑤/⑥/⑩f 이후. active GOAL/status/inbox가 여기 있으므로 즉시 이동/삭제 금지 |
 
@@ -664,6 +664,17 @@ agent-only maybe-ship candidates: building-call-authoring, evidence-verification
 tracked residue observed: brick_protocol/agent/skills/.DS_Store.
 next cleanup candidate: ⑩d-repair-1 Building or ⑩e COO order-chain consistency design.
 proof limit: support evidence only; no skill file changed.
+```
+
+⑩e COO order-chain consistency map — 2026-07-09 KST:
+
+```text
+doc: project/brick-protocol/status/kernel/coo-order-chain-consistency-0709.md
+observed aligned policy: direct_preset escape hatch only for quick_check/quick_fix with direct_preset_admission + fast_confirm; order_authoring default; human_gate_first for critical/destructive/credential/high-impact cases.
+positive surfaces: brick-task-author source+ship-copy, building-call-authoring source, building_call.py, building_call_authoring.py, building_call_menus.py.
+watch items: building-coordination ship-copy drift; brick-task-author selected_* example context needs focused classification; building-sizing-method template checker overlay must not be blind-synced.
+next cleanup candidate: cleanup-10e-order-chain-consistency-0709a Building, or ⑩c building_plans keep/move decision doc.
+proof limit: support evidence only; no skill/prompt/hook/projection changed.
 ```
 
 ### 7.4 direct preset vs Building 판정 규칙
@@ -735,7 +746,8 @@ Then:
 ⑩a cleanup scope / invariants doc — prepared at `project/brick-protocol/status/kernel/cleanup-scope-invariants-0709.md`
 ⑩b blocks retained/archive/superseded map — done at `project/brick-protocol/status/kernel/blocks-retained-map-0709.md` (8 retained, 0 archive/supersede/delete)
 ⑩d skills ship-copy drift map — done at `project/brick-protocol/status/kernel/skills-ship-copy-drift-map-0709.md`
-⑩c/⑩e~⑩g cleanup/UX phases remain; next candidate ⑩d-repair-1 Building or ⑩e COO order-chain consistency design
+⑩e COO order-chain consistency map — done at `project/brick-protocol/status/kernel/coo-order-chain-consistency-0709.md`
+⑩c/⑩f/⑩g cleanup/UX phases remain; next candidate cleanup-10e-order-chain-consistency-0709a Building or ⑩c building_plans keep/move decision doc
 ⑥d route_materialization review approved by Smith at `project/brick-protocol/status/kernel/route-v2-human-gate-approval-0709.md`; ⑥e walker integration remains HOLD until ⑥d green or unnecessary
 ```
 
