@@ -1,0 +1,23 @@
+{
+  "schema": "route-v2-delta-qa-fact-shape/v1",
+  "delta_qa_fact": {
+    "made_changes": true,
+    "changed_files": [
+      "project/brick-protocol/status/kernel/route-v2-sealed-materialization-architecture.md",
+      "brick_protocol/support/checkers/profiles/route_v2_sealed_materialization.yaml"
+    ],
+    "diff_refs": [
+      "observation:route-v2-r1-diff"
+    ],
+    "evidence_refs": [
+      "observation:route-v2-r1-profile"
+    ]
+  },
+  "proof_limits": [
+    "fixture pins factual delta-QA fields only",
+    "not Movement authority",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment"
+  ]
+}

@@ -360,8 +360,8 @@ proof limit: 통합 방향 승인은 support evidence only; green/dogfood 전 wa
 
 | Phase | 이름 | 산출물 | 병렬성 | 상태 |
 |---|---|---|---|---|
-| ⑥a | 정본 문서 | `route-v2-sealed-materialization-architecture.md` | ⑤와 병렬 가능, 문서 only | ☐ |
-| ⑥b | checker fence | `check_route_v2_concern_kind_seal.py`, `check_route_v2_gate_movement_shape.py`, `check_route_v2_delta_qa_fake_landing.py`, `check_route_v2_no_new_route_scope.py`, `check_route_v2_no_walker_touch.py` + fixtures | ⑥a 이후 병렬 가능, fixtures owner 하나 | ☐ |
+| ⑥a | 정본 문서 | `route-v2-sealed-materialization-architecture.md` | ⑤와 병렬 가능, 문서 only | R0 evidence: `project/brick-protocol/status/kernel/route-v2-sealed-materialization-architecture.md` |
+| ⑥b | checker fence | `route_v2_sealed_materialization.yaml` + `fixtures/route_v2/**` | ⑥a 이후 병렬 가능, fixtures owner 하나 | R1 evidence: declarative profile pins concern seal / gate-Movement separation / delta-QA facts |
 | ⑥c | read-only view builder | `brick_protocol/support/operator/route_v2_views.py` | ⑥a/⑥b schema 확정 후 | ☐ |
 | ⑥d | route_materialization 확장 검토 | route_replay_plan view/provenance 확장 여부 | HOLD, human gate | ☐ |
 | ⑥e | walker integration | walker_kernel/walker_resume integration | HOLD, 최고위험 | ☐ |
@@ -379,7 +379,7 @@ write_scope:
 
 Lane R1 — Route V2 checker fence
 write_scope:
-  - brick_protocol/support/checkers/check_route_v2_*.py
+  - brick_protocol/support/checkers/profiles/route_v2_sealed_materialization.yaml
   - brick_protocol/support/checkers/fixtures/route_v2/**
 
 Lane R2 — Route V2 view builder

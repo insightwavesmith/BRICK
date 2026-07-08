@@ -222,6 +222,12 @@ text_contains:
       - 'total_blocks: 0'
       - 'text_needles: 0'
       - 'note: "CLEAN-YARD v3 0611, operator per Smith ruling (project-0 ships no standing inspection specimens)'
+      # latest entry (Route V2 R0/R1 checker-first, Smith-approved direction 0708):
+      - 'path_exists_blocks: 2'
+      - 'text_contains_blocks: 2'
+      - 'text_needles: 19'
+      - 'total_blocks: 4'
+      - 'note: "Route V2 R0/R1 checker-first slice, Smith-approved direction recorded in GOAL 0708'
   # ---------------------------------------------------------------------
   # SPLIT-PREP 0611 (checker-split-map-0611.md D-2): unique pins of the
   # retired phase-named profile post_d_surface_recompile_p7 folded here

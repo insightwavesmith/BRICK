@@ -1,0 +1,32 @@
+{
+  "schema": "route-v2-concern-kind-seal/v1",
+  "allowed_concern_kinds": [
+    "upstream_gap",
+    "boundary_mismatch",
+    "insufficient_input",
+    "replay_needed",
+    "unknown",
+    "design_gap",
+    "implementation_gap",
+    "verification_gap"
+  ],
+  "non_reroute_concern_kinds": [
+    "verification_gap"
+  ],
+  "reroute_eligible_concern_kinds": [
+    "upstream_gap",
+    "boundary_mismatch",
+    "insufficient_input",
+    "replay_needed",
+    "unknown",
+    "design_gap",
+    "implementation_gap"
+  ],
+  "proof_limits": [
+    "fixture pins sealed Route V2 vocabulary evidence only",
+    "not Movement authority",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment"
+  ]
+}

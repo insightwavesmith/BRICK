@@ -1,0 +1,28 @@
+{
+  "schema": "route-v2-gate-movement-shape/v1",
+  "movement_literals": [
+    "forward",
+    "reroute"
+  ],
+  "gate_lifecycle_states": [
+    "hold",
+    "paused",
+    "held_for_coo_review"
+  ],
+  "movement_exclusions": [
+    "hold",
+    "paused",
+    "held_for_coo_review"
+  ],
+  "projection_fields": {
+    "gate_state": "held_for_coo_review",
+    "movement_candidate": "reroute"
+  },
+  "proof_limits": [
+    "fixture distinguishes Link Movement from support-projected gate/lifecycle state",
+    "not Movement authority",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment"
+  ]
+}

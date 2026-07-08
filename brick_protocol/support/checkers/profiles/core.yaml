@@ -124,6 +124,7 @@ path_allowlist:
       - brick_protocol/support/checkers/profiles/receipt_writer_join.yaml
       - brick_protocol/support/checkers/profiles/report_env_autoload.yaml
       - brick_protocol/support/checkers/profiles/return_field_merge_set_parity.yaml
+      - brick_protocol/support/checkers/profiles/route_v2_sealed_materialization.yaml
       - brick_protocol/support/checkers/profiles/raw_evidence_stream_scrub.yaml
       - brick_protocol/support/checkers/profiles/re-instruction-endline-gate.yaml
       - brick_protocol/support/checkers/profiles/resume_declaration.yaml

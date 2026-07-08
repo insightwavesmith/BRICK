@@ -538,6 +538,12 @@ PLAN_EXPANSION0_FIXTURES = {
     "brick_protocol/support/checkers/fixtures/plan_expansion/duplicate_step_ref.json",
 }
 
+ROUTE_V2_R1_FIXTURES = {
+    "brick_protocol/support/checkers/fixtures/route_v2/concern_kind_seal.json",
+    "brick_protocol/support/checkers/fixtures/route_v2/gate_movement_shape.json",
+    "brick_protocol/support/checkers/fixtures/route_v2/delta_qa_fact_shape.json",
+}
+
 PRH_B_RECORDER_TARGETS = {
     "brick_protocol/support/recording/__init__.py",
     "brick_protocol/support/recording/records.py",
@@ -877,6 +883,7 @@ ALLOWED_DIRS = {
     "brick_protocol/support/checkers/fixtures",
     "brick_protocol/support/checkers/fixtures/building_call_authoring",
     "brick_protocol/support/checkers/fixtures/plan_expansion",
+    "brick_protocol/support/checkers/fixtures/route_v2",
     "brick_protocol/support/connection",
     "brick_protocol/support/operator",
     "brick_protocol/support/onboarding",
@@ -2132,6 +2139,9 @@ def allowed_path(path: str) -> bool:
         return True
 
     if clean in PLAN_EXPANSION0_FIXTURES:
+        return True
+
+    if clean in ROUTE_V2_R1_FIXTURES:
         return True
 
     if is_dashboard_surface_path(clean, is_dir=False):

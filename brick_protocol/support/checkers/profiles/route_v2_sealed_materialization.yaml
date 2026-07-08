@@ -1,0 +1,142 @@
+schema: checker-profile/v1
+profile_id: route-v2-sealed-materialization
+description: Route V2 R0/R1 checker-first fence over sealed concern kinds, non-reroute verification_gap, Movement/lifecycle separation, no new route engine/scope, and delta-QA factual fields.
+path_exists:
+  - project/brick-protocol/status/kernel/route-v2-sealed-materialization-architecture.md
+  - project/brick-protocol/status/kernel/GOAL/02-unified-continuous-build-goal-0708.md
+  - brick_protocol/support/checkers/fixtures/route_v2/concern_kind_seal.json
+  - brick_protocol/support/checkers/fixtures/route_v2/gate_movement_shape.json
+  - brick_protocol/support/checkers/fixtures/route_v2/delta_qa_fact_shape.json
+  - brick_protocol/agent/return_fact.py
+  - brick_protocol/link/movement.yaml
+path_absent:
+  - brick_protocol/support/operator/route_scope.py
+  - brick_protocol/support/operator/route_v2_engine.py
+path_absent_glob:
+  - brick_protocol/**/route_scope.py
+  - brick_protocol/**/route_v2_engine.py
+text_contains:
+  - path: project/brick-protocol/status/kernel/route-v2-sealed-materialization-architecture.md
+    texts:
+      - Route V2 is a sealed materialization view
+      - It is not a new route engine
+      - verification_gap
+      - is non-reroute evidence
+      - hold
+      - paused
+      - held_for_coo_review
+      - gate or lifecycle states
+      - made_changes
+      - changed_files
+      - diff_refs
+      - evidence_refs
+      - support evidence only
+  - path: project/brick-protocol/status/kernel/GOAL/02-unified-continuous-build-goal-0708.md
+    texts:
+      - Route V2는 새 라우터가 아니다.
+      - DO NOT create new engine.
+      - DO NOT create new route_scope.py unless later human gate explicitly approves.
+      - DO NOT add new concern_kind.
+      - DO NOT reroute verification_gap.
+      - DO NOT use hold as Movement.
+  - path: brick_protocol/agent/return_fact.py
+    texts:
+      - TRANSITION_CONCERN_KINDS
+      - NON_REROUTE_CONCERN_KINDS
+      - REROUTE_ELIGIBLE_CONCERN_KINDS
+      - '"upstream_gap"'
+      - '"boundary_mismatch"'
+      - '"insufficient_input"'
+      - '"replay_needed"'
+      - '"unknown"'
+      - '"design_gap"'
+      - '"implementation_gap"'
+      - '"verification_gap"'
+      - 'frozenset({"verification_gap"})'
+  - path: brick_protocol/link/movement.yaml
+    texts:
+      - "movement: forward"
+      - "movement: reroute"
+      - represent transition pause or resume through transition_lifecycle evidence, not Movement
+      - represent Building wait or close through Building lifecycle evidence, not Movement
+text_absent:
+  - path: brick_protocol/link/movement.yaml
+    texts:
+      - "movement: hold"
+      - "movement: paused"
+      - "movement: held_for_coo_review"
+json_required_paths:
+  - path: brick_protocol/support/checkers/fixtures/route_v2/concern_kind_seal.json
+    required:
+      - allowed_concern_kinds[]
+      - non_reroute_concern_kinds[]
+      - reroute_eligible_concern_kinds[]
+      - proof_limits[]
+  - path: brick_protocol/support/checkers/fixtures/route_v2/gate_movement_shape.json
+    required:
+      - movement_literals[]
+      - gate_lifecycle_states[]
+      - movement_exclusions[]
+      - projection_fields.gate_state
+      - projection_fields.movement_candidate
+  - path: brick_protocol/support/checkers/fixtures/route_v2/delta_qa_fact_shape.json
+    required:
+      - delta_qa_fact.made_changes
+      - delta_qa_fact.changed_files[]
+      - delta_qa_fact.diff_refs[]
+      - delta_qa_fact.evidence_refs[]
+json_value_paths:
+  - path: brick_protocol/support/checkers/fixtures/route_v2/concern_kind_seal.json
+    key: allowed_concern_kinds[]
+    values:
+      - upstream_gap
+      - boundary_mismatch
+      - insufficient_input
+      - replay_needed
+      - unknown
+      - design_gap
+      - implementation_gap
+      - verification_gap
+  - path: brick_protocol/support/checkers/fixtures/route_v2/concern_kind_seal.json
+    key: non_reroute_concern_kinds[]
+    values:
+      - verification_gap
+  - path: brick_protocol/support/checkers/fixtures/route_v2/concern_kind_seal.json
+    key: reroute_eligible_concern_kinds[]
+    values:
+      - upstream_gap
+      - boundary_mismatch
+      - insufficient_input
+      - replay_needed
+      - unknown
+      - design_gap
+      - implementation_gap
+  - path: brick_protocol/support/checkers/fixtures/route_v2/gate_movement_shape.json
+    key: movement_literals[]
+    values:
+      - forward
+      - reroute
+  - path: brick_protocol/support/checkers/fixtures/route_v2/gate_movement_shape.json
+    key: movement_exclusions[]
+    values:
+      - hold
+      - paused
+      - held_for_coo_review
+  - path: brick_protocol/support/checkers/fixtures/route_v2/delta_qa_fact_shape.json
+    key: delta_qa_fact.diff_refs[]
+    values:
+      - observation:route-v2-r1-diff
+  - path: brick_protocol/support/checkers/fixtures/route_v2/delta_qa_fact_shape.json
+    key: delta_qa_fact.evidence_refs[]
+    values:
+      - observation:route-v2-r1-profile
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - checker profile pass as Route V2 source truth
+  - walker integration readiness
+  - provider behavior
