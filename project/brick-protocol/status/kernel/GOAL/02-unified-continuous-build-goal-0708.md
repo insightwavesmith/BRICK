@@ -15,7 +15,7 @@ Live repo: /Users/smith/projects/BRICK
 Current pushed base at 작성 시점: 69988d815ed77bb6b2006c04c37c2083d473e3df
 C2 import-unify base: 7b99b8f7fd4e00a94d797620c4905afd9f957f7c
 C3 status docs base: 3bce21bf4e58932b6233a1360ec3ce3825df286c
-GOAL ⑤/⑥ updates: 6100e3eb6, fb765bdc3, 197b7df51, 69988d815
+GOAL ⑤/⑥ updates: 6100e3eb6, fb765bdc3, 197b7df51, 69988d815, 28cfda632
 ```
 
 Source hierarchy:
@@ -68,7 +68,7 @@ walker/run/link/AgentFact 변경은 human gate 전까지 HOLD한다.
 | ④a | C1 import canonicalization | ✓ | `af60198cb` 포함, origin/main 착지 |
 | ④b | C2 physical root unification | ✓ | `7b99b8f7f`, `brick_protocol/*`, top-level import 실패 확인 |
 | ④c | C3 문서/human gate | 부분 완료 | C3 상태문서 착지. BRICK-CONSTITUTION 물리 루트 조항은 Smith human gate 전까지 HOLD |
-| ⑤ | 발주서/빌딩콜 v1.1 | ▶ active | `building-call-v11-cleanup-first-0708a` 실행 중. cleanup checker/오염정리 slice 진행 |
+| ⑤ | 발주서/빌딩콜 v1.1 | 부분 착지 | `building-call-v11-cleanup-first-0708a` frontier complete 관측. ⑤b/⑤c tracked cleanup slice는 `28cfda632`로 push. ⑤d~⑤j 남음 |
 | ⑥ | Route V2 sealed materialization | ☐ 준비 | prompt/GOAL 반영 완료. ⑥a/⑥b 병렬 가능, ⑥d/⑥e HOLD |
 | ⑦ | route/walker integration | HOLD | checker green + human gate + route_materialization view 안정 후에만 |
 | ⑧ | 발주서작성 preset/Agent/menu/lowering | 대기 | ⑤ cleanup-first 종료 후 ⑤d~⑤j 순서로 진행 |
@@ -192,8 +192,8 @@ STEP 5. 에이전트 선택(agent + strength)
 | Phase | 이름 | 산출물 | 상태 |
 |---|---|---|---|
 | ⑤a | 정책/용어 고정 | order_authoring 기본, direct_preset 2-FIX, 순서 규율, selected_* 외부 금지 | ✓ |
-| ⑤b | cleanup checker fence | external selected_* 금지, common preset selected_* 금지, gate_state_not_movement, no-success-fields, deep-design casting RED fixtures | ▶ active building |
-| ⑤c | 오염 표면 정리 | `postmortem.md` selected_* 제거, `four-llm` product alias 제외/격리, deep-design return casting 제거 | ▶ active building |
+| ⑤b | cleanup checker fence | external selected_* 금지, common preset selected_* 금지, gate_state_not_movement, no-success-fields, deep-design casting RED fixtures | ✓ pushed `28cfda632` |
+| ⑤c | 오염 표면 정리 | `postmortem.md` selected_* 제거, `four-llm` product alias 제외/격리, deep-design return casting 제거 | ✓ pushed `28cfda632` |
 | ⑤d | 메뉴/API | `building_call_menus.py`, brick/agent-role/intensity/strength/graph motif menu | ☐ |
 | ⑤e | 발주서작성 preset/Brick/Agent | `building-call-authoring` preset, 전용 Brick/return, 발주서 전용 Agent skill(prompt) | ☐ |
 | ⑤f | authoring module | `building_call_authoring.py`, `building_call_authoring_return_v1`, 순서 위반 checker | ☐ |
@@ -212,34 +212,29 @@ scope: ⑤b cleanup checker fence + ⑤c contamination cleanup
 route v2: out of scope
 ```
 
-Current observed event at 문서 작성 시점:
+Current observed closure/push snapshot:
 
 ```text
-latest event: brick_received
-step_ref: building-call-v11-cleanup-first-0708a-work
-work_kind: work
-agent: agent-object:dev
-adapter: adapter:codex-local
-model: model:codex:default
+latest frontier: complete
+frontier_reason: declared closed boundary observed after paused frontier disposition
+observed_counts: agent_received_records=8, agent_return_records=8, link_records=16
+tracked cleanup commit: 28cfda632 building-call: add cleanup-first fences
+focused proof: compileall rc=0; check_profile.py --profile mutation_red_manifest rc=0; graph_draft rc=0; structure_template_integrity rc=0; git diff --check rc=0
+--all status: not used as landing gate for this slice; live --all is polluted by local Building evidence Rule13 absolute/session-temp refs, so treat as remaining support cleanup, not ⑤b/⑤c tracked-code proof.
 ```
 
 Note: 이 빌딩은 내가 `run_building_intake(... repo_root=., adapter_cwd=.)`로 직접 호출해 live checkout에 변경이 생겼다.
 원래 병렬/정식 고객-facing 빌딩은 `run_customer_building_in_sandbox()` / worktree sandbox 경로를 써야 한다.
 이 active building은 중복 발사하지 않고 closure까지 추적 후 착지한다.
 
-Current active dirty surfaces from building:
+Current local evidence surfaces after push:
 
 ```text
-brick_protocol/brick/templates/bricks/deep-design/brick.md
-brick_protocol/brick/templates/bricks/deep-design/return.yaml
-brick_protocol/brick/templates/presets/postmortem.md
-brick_protocol/support/checkers/lib/mutation_red_manifest_check.py
-brick_protocol/support/checkers/mutation_red_manifest.yaml
-brick_protocol/support/checkers/profiles/graph_draft.yaml
-brick_protocol/support/checkers/profiles/mutation_red_manifest.yaml
-brick_protocol/support/checkers/profiles/structure_template_integrity.yaml
-project/brick-protocol/buildings/building-call-v11-cleanup-first-0708a/
-project/brick-protocol/status/inbox/*building-call-v11-cleanup-first-0708a*.json
+Tracked source/checker changes: pushed in 28cfda632.
+Local untracked Building evidence remains intentionally uncommitted:
+  project/brick-protocol/buildings/building-call-v11-cleanup-first-0708a/
+  project/brick-protocol/status/inbox/*building-call-v11-cleanup-first-0708a*.json
+Reason: evidence includes local absolute/session-temp refs and is support evidence, not product source.
 ```
 
 ---
@@ -356,8 +351,9 @@ building_finished
 Immediate:
 
 ```text
-A. Active ⑤ building-call-v11-cleanup-first-0708a closure까지 추적.
-B. ⑤b/⑤c 변경물 검증, 필요한 checker 실행, 착지/commit/push.
+A. Active ⑤ building-call-v11-cleanup-first-0708a closure 추적: complete frontier observed.
+B. ⑤b/⑤c 변경물 검증/commit/push: done at 28cfda632.
+C. 다음은 ⑤d menus/API부터 진행. Route V2 R0/R1은 sandbox 병렬 후보.
 ```
 
 Parallel candidate after active ⑤ is stable or via sandbox immediately:
