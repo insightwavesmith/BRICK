@@ -91,11 +91,11 @@ Proof limit: 이 절은 운영정책 support evidence이며 source truth·성공
 | ④a | C1 import canonicalization | ✓ | `af60198cb` 포함, origin/main 착지 |
 | ④b | C2 physical root unification | ✓ | `7b99b8f7f`, `brick_protocol/*`, top-level import 실패 확인 |
 | ④c | C3 문서/human gate | 부분 완료 | C3 상태문서 착지. BRICK-CONSTITUTION 물리 루트 조항은 Smith human gate 전까지 HOLD |
-| ⑤ | 발주서/빌딩콜 v1.1 | 부분 착지 | ⑤a~⑤i 착지(⑤b/⑤c `28cfda632`, ⑤f `298b28a86`, ⑤g `201e502d3`, ⑤h `569458a0d`, ⑤i `15ecf8bcc`). ⑤j dogfood 남음 |
+| ⑤ | 발주서/빌딩콜 v1.1 | ✓ | ⑤a~⑤j 착지/관찰 완료(⑤b/⑤c `28cfda632`, ⑤f `298b28a86`, ⑤g `201e502d3`, ⑤h `569458a0d`, ⑤i `15ecf8bcc`, ⑤j dogfood evidence `f0e75cae`). Proof limit: support evidence only |
 | ⑥ | Route V2 sealed materialization | 부분 착지 | R0/R1 sealed materialization checker/document slice `47cf35a4b` 착지. ⑥c R2 view builder 대기, ⑥d/⑥e HOLD |
 | ⑦ | route/walker integration | HOLD | checker green + human gate + route_materialization view 안정 후에만 |
-| ⑧ | 발주서작성 preset/Agent/menu/lowering | 부분 착지 | ⑤d~⑤i declared Building으로 착지. 남은 ⑤j도 COO 직접 구현 금지, declared Building/sandbox로 진행 |
-| ⑨ | dogfood/골 closure | 대기 | quick direct + order_authoring + Route V2 view/checker 증거까지 모은 뒤 closure |
+| ⑧ | 발주서작성 preset/Agent/menu/lowering | ✓ | ⑤d~⑤j declared Building/sandbox 경로로 관찰 완료. COO 직접 구현 금지 원칙 유지 |
+| ⑨ | dogfood/골 closure | 부분 완료 | Building Call quick direct + order_authoring dogfood 관찰 완료. Route V2 view/checker 및 remaining gates 이후 parent closure |
 
 ---
 
@@ -224,7 +224,7 @@ STEP 5. 에이전트 선택(agent + strength)
 | ⑤g | lowering layer | `building_call.py`, fixture cases, confirmed-only lowering, provenance | ✓ landed candidate from `building-call-lowering-0708g` WIP; clean review worktree `--all` green before main landing |
 | ⑤h | direct escape hatch | triage/admission/fast_confirm, quick_fix/quick_check만 direct | ✓ focused proof green in `building-call-direct-escape-0708h` |
 | ⑤i | docs/skill examples | brick-task-author/building-call Quick Path, 4개 worked examples, 메뉴얼 규칙 | ✓ landed `e8b6f953` via repair2; clean worktree focused profiles + `check_profile.py --all` rc=0 |
-| ⑤j | dogfood | quick_check direct, quick_fix direct, order_authoring path 각 1회 증거 | ☐ |
+| ⑤j | dogfood | quick_check direct, quick_fix direct, order_authoring path 각 1회 증거 | ✓ observed via sandbox Buildings; quick_fix repaired from fake-landing RED to scoped diff commit `f0e75cae` |
 
 ### 4.4 현재 active building
 
@@ -335,7 +335,7 @@ building-call-docs-examples-0708i-repair2:
   surfaces: brick_protocol/agent/skills/brick-task-author/SKILL.md, brick_protocol/brick/templates/skills/brick-task-author/SKILL.md, brick_protocol/agent/skills/building-call-authoring/SKILL.md, brick_protocol/support/checkers/profiles/building_call_menus.yaml
   effect: Agent-source and ship-copy brick-task-author Quick Path sections match and contain the four explicit examples: direct quick_check, direct quick_fix, order_authoring, human_gate_first / forbidden direct. Building-call-authoring skill carries equivalent labels and exposure limits.
   proof: clean detached worktree applied e8b6f953; compileall OK; git diff --check OK; focused profiles building_call_menus, building_call_authoring, building_skill_preset_agent_resource_boundary green; check_profile.py --all rc=0.
-  proof limit: docs/skill/checker support evidence only; no dogfood execution, no launch authorization, no route/walker integration, no source truth, no success judgment, no quality judgment, no Movement authority. ⑤j remains out of scope.
+  proof limit: docs/skill/checker support evidence only; no dogfood execution, no launch authorization, no route/walker integration, no source truth, no success judgment, no quality judgment, no Movement authority. ⑤j now covered by later sandbox dogfood evidence; this prior proof itself still did not launch a Building.
 
 building-call-direct-escape-0708h:
   frontier: focused implementation evidence recorded.
@@ -345,7 +345,49 @@ building-call-direct-escape-0708h:
   effect: direct_preset_admission + fast_confirm lowers only quick_fix -> building-chain-preset:fast-fix and quick_check -> building-chain-preset:quick-check. Default triage evidence stays order_authoring; standard_delivery, missing fast_confirm, red flag, critical red flag, selected_*, provider/model/adapter, and malformed red-flag probes are rejected.
   proof: compileall rc=0; check_profile.py --profile building_call_direct_escape rc=0; check_profile.py --profile building_call_lowering rc=0; git diff --check rc=0; check_profile.py --all rc=0.
   coverage repair: reroute pass tightened direct-preset validation so dict/list-of-dict/bool/int red_flags or critical_red_flags no longer collapse to an empty list, and bare model/provider/model_ref/provider_ref/adapter_ref request fields are rejected alongside selected_* fields.
-  proof limit: support triage/lowering evidence only; no launch authorization, no route/walker integration, no source truth, no success judgment, no quality judgment, no Movement authority. ⑤j remains out of scope.
+  proof limit: support triage/lowering evidence only; no launch authorization, no route/walker integration, no source truth, no success judgment, no quality judgment, no Movement authority. ⑤j now covered by later sandbox dogfood evidence; this prior proof itself still did not launch a Building.
+```
+
+⑤j dogfood sandbox Buildings:
+
+```text
+quick_check direct:
+  building_id: building-call-0708j-quick-check-direct-dogfood
+  route evidence: building_call_direct_preset_admission_v1 -> lowered_intent chain_preset_ref building-chain-preset:quick-check
+  frontier: complete
+  evidence_root: /Users/smith/.brick/project/brick-protocol/buildings/building-call-0708j-quick-check-direct-dogfood
+  commit_sha: none (read-only quick-check route; no sandbox source diff expected)
+
+quick_fix direct initial RED:
+  building_id: building-call-0708j-quick-fix-direct-dogfood
+  route evidence: building_call_direct_preset_admission_v1 -> lowered_intent chain_preset_ref building-chain-preset:fast-fix
+  frontier: human_review_waiting
+  frontier_reason: fake_landing_write_scope_diff_absent
+  interpretation: direct path reached Building execution, but write-need route had no scoped diff; fake-landing guard correctly stopped it.
+
+quick_fix direct repair:
+  building_id: building-call-0708j-quick-fix-direct-dogfood-repair
+  frontier: complete
+  output commit: f0e75cae08cfe6e8cd80cb414c73cb09ece507a7
+  landed artifact: project/brick-protocol/status/kernel/dogfood/0708j-quick-fix-direct.md
+  evidence_root: /Users/smith/.brick/project/brick-protocol/buildings/building-call-0708j-quick-fix-direct-dogfood-repair
+  interpretation: quick_fix direct path can produce a scoped sandbox diff and avoid fake-landing.
+
+order_authoring:
+  building_id: building-call-0708j-order-authoring-dogfood
+  route evidence: confirmed_building_call_request_v1_1 building_case=order_authoring -> lowered_intent chain_preset_ref building-chain-preset:building-call-authoring
+  frontier: complete
+  evidence_root: /Users/smith/.brick/project/brick-protocol/buildings/building-call-0708j-order-authoring-dogfood
+  commit_sha: none (draft/evidence route; no sandbox source diff expected)
+
+clean detached verification:
+  verify root: /tmp/brick-verify-0708j-47245
+  base: f937d407e35a03418a448000b2bfb27aa65d93b1
+  commands: python3 -m compileall -q brick_protocol; check_profile.py --profile building_call_direct_escape; --profile building_call_authoring; --profile building_call_lowering; --profile building_operator_driver0; git diff --check
+  rc: 0
+
+proof limits:
+  support evidence only; deterministic command_runner dogfood, not real provider quality proof; no source truth, success judgment, quality judgment, or Movement authority.
 ```
 
 ⑤f authoring module Building slice:
@@ -360,7 +402,7 @@ fixtures:
 purpose: draft-only validation/normalization for building_call_authoring_return_v1 and the fixed STEP1_SCOPE -> STEP2_BUILDING_INTENSITY -> STEP3_STRUCTURE -> STEP4_PER_BRICK_INTENSITY -> STEP5_AGENT_CANDIDATES sequence.
 coverage repair: reroute pass tightened validation to reject unknown top-level fields, scan every declared return field for forbidden draft exposure, and catch embedded/case-varied provider/model/adapter markers.
 checker evidence: clean review worktree observed compileall rc=0, git diff --check rc=0, focused ⑤f profiles green, and check_profile.py --all rc=0 with 57/57 profile passes and real red observations=0. building_call_authoring_contract rejects unknown top-level, remaining_delta exposure, forbidden_exposure_scan key, and embedded case-varied exposure probes.
-limits: no launch authorization, no lowering, no route/walker integration, no source truth, no success judgment, no quality judgment, no Movement authority. ⑤j remains out of scope.
+limits: no launch authorization, no lowering, no route/walker integration, no source truth, no success judgment, no quality judgment, no Movement authority. ⑤j now covered by later sandbox dogfood evidence; this prior proof itself still did not launch a Building.
 ```
 
 ---
@@ -574,7 +616,7 @@ Then:
 ⑤g lowering layer
 ⑤h direct escape hatch
 ⑤i docs/examples
-⑤j dogfood
+⑤j dogfood (observed; quick_fix artifact landed as `f0e75cae`)
 ⑥c route_v2 read-only view builder
 ⑩a cleanup scope / invariants doc
 ⑩b~⑩g cleanup/UX phases after ⑤/⑥ closure
