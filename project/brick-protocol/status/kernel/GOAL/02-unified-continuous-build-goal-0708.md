@@ -90,7 +90,7 @@ Proof limit: 이 절은 운영정책 support evidence이며 source truth·성공
 | ③ | 캐스팅 전환 | ✓ | fable5 active dispatch 퇴장 착지 `82a1b9699`; opus/sonnet 사용 가능성 probe 확인 |
 | ④a | C1 import canonicalization | ✓ | `af60198cb` 포함, origin/main 착지 |
 | ④b | C2 physical root unification | ✓ | `7b99b8f7f`, `brick_protocol/*`, top-level import 실패 확인 |
-| ④c | C3 문서/human gate | 부분 완료 | C3 상태문서 착지. BRICK-CONSTITUTION 물리 루트 조항은 Smith human gate 전까지 HOLD |
+| ④c | C3 문서/human gate | ✓ | C3 상태문서 착지 + Smith 승인 후 BRICK-CONSTITUTION active physical roots 조항 착지. Proof limit: support evidence only |
 | ⑤ | 발주서/빌딩콜 v1.1 | ✓ | ⑤a~⑤j 착지/관찰 완료(⑤b/⑤c `28cfda632`, ⑤f `298b28a86`, ⑤g `201e502d3`, ⑤h `569458a0d`, ⑤i `15ecf8bcc`, ⑤j dogfood evidence `f0e75cae`). Proof limit: support evidence only |
 | ⑥ | Route V2 sealed materialization | 부분 착지 | R0/R1 sealed materialization checker/document slice `47cf35a4b` 착지. ⑥c R2 read-only view builder landed `134ad9550`; ⑥d/⑥e HOLD |
 | ⑦ | route/walker integration | HOLD | checker green + human gate + route_materialization view 안정 후에만 |
@@ -318,9 +318,12 @@ route-v2-r0-r1-0708g:
   clean proof: temp detached worktree at 47cf35a4b observed compileall OK, git diff --check OK, focused route_v2_sealed_materialization / structure_template_integrity / core profiles green, and check_profile.py --all rc=0.
 
 constitution-active-roots-0708g:
-  frontier: agent_incomplete
-  adapter error: code-attack-qa used adapter:claude-local + model:claude:sonnet, dispatched claude-sonnet-5, local_cli_nonzero, return_code=143.
-  disposition candidate: reroute QA/relaunch through a working adapter/model lane; do not patch BRICK-CONSTITUTION.md directly as COO.
+  original frontier: agent_incomplete because code-attack-qa used adapter:claude-local + model:claude:sonnet, dispatched claude-sonnet-5, local_cli_nonzero, return_code=143.
+  landed resolution: applied only the WIP commit's BRICK-CONSTITUTION.md active physical roots clause onto current HEAD; did not apply stale WIP changes to ⑤/⑥ surfaces.
+  landed commit: pending in current patch.
+  surfaces: BRICK-CONSTITUTION.md and this GOAL status note.
+  proof: grep exact active roots in BRICK-CONSTITUTION.md; compileall; check_profile.py --all from clean detached worktree before landing.
+  proof limit: constitution/status support evidence only; not source truth beyond Smith-ratified constitution text, not success judgment, not quality judgment, not Movement authority.
 
 building-call-lowering-0708g:
   frontier: agent_incomplete on original Building because code-attack-qa used adapter:claude-local + model:claude:sonnet, dispatched claude-sonnet-5, local_cli_nonzero, return_code=143.

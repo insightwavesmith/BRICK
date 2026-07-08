@@ -100,3 +100,14 @@ C. 추가 문서/원장(walk-results-adopted-0707.md)까지 갱신 후 C3 완료
 ```
 
 Route v2 / walker v2는 아직 HOLD.
+
+
+---
+
+### 0709 landing update
+
+Smith 승인 후 `BRICK-CONSTITUTION.md`에 active physical roots 조항을 추가하는 방향으로 처리한다.
+적용 표면은 `BRICK-CONSTITUTION.md`이며, 기존 `AGENTS.md`의 active physical roots와 정합해야 한다.
+Legacy top-level `brick/`, `agent/`, `link/`, `support/` roots는 C2 이후 active import roots가 아니다.
+
+Proof limit: 이 문서는 support status evidence이며 source truth·성공/품질·Movement 권한이 아니다.
