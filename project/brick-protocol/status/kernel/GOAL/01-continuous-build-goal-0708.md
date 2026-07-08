@@ -50,7 +50,7 @@ review:                   gemini
 | ④a | **개헌 이주 C1** (런타임층 최상위 import 캐노니컬화) | ✓ | `af60198cb` 포함, origin/main 착지 |
 | ④b | **개헌 이주 C2** (물리구조=패키지구조 통일, 축 4루트 git mv) | ✓ | `7b99b8f7f` origin/main, `--all` rc=0, top-level import 4종 실패 확인 |
 | ④c | **개헌 이주 C3** + 문서/개헌/human gate 정리 | ▶ | C2 코드 착지 완료. C3 상태문서 5종 `3bce21bf4` 착지 완료. Smith human gate 남음 |
-| ⑤ | **§T Phase 1~5** (발주 v2 신규 파일 — ★병렬 창) | ☐ | 개헌 착지 후 |
+| ⑤ | **발주서/빌딩콜 v1.1** (order_authoring 기본 + direct_preset 예외권 + lowering) | ▶ | product_plan 채택. direct_preset 2-FIX 반영, small slice 준비 |
 | ⑥ | **§T Phase 6~8** (walker v2, =§S-v2 흡수 — 최고위험) | ☐ | Phase 1~5 후 |
 
 **착지 결과(0708 C3 갱신)**: C1+C2는 `7b99b8f7f`로 origin/main에 착지 완료. C3 상태문서 5종은 `3bce21bf4`로 origin/main에 착지 완료. 과거 “1랜딩 대기” 문구는 C2 착지 전 운영 계획이었고, 현재는 Smith human gate만 남았다.
@@ -107,23 +107,126 @@ check_profile.py --all: rc=0, passed_count=55
 
 ---
 
-## ⑤ §T Phase 1~5 (발주 아키텍처 v2, 신규 파일 위주) — ★병렬 창
+## ⑤ 발주서/빌딩콜 v1.1 — order_authoring 기본 + direct_preset 예외권
 
-원장 §T-v2 채택. 출처 `BRICK_order_architecture_v2_existing_overlay.md` (codex, COO 코드대조 재검증 완료 — 인용 file:line 전수 실측 일치, 피드백 4건 해소).
+0708 추가 판단: 발주 v2는 기존 거대 Case Pack/새 엔진 방향으로 바로 가지 않는다. 먼저
+`building_call_request_v1_1` 제품 표면을 현재 공식 seam 위에 얹는 small slice로 좁힌다.
 
 ```text
-P1 Schema        brick_protocol/brick/order·plan_card·plan_lock·profile, brick_protocol/agent/verification, brick_protocol/link/route_scope
-                 (신규 파일, 개헌 비충돌 / 단 concern_kind 봉인 8종은 v2가 유지 — detail_code는 observed_evidence 안)
-P2 Profile Registry + Shape Compiler   brick_protocol/support/operator/workflow_profiles·building_shape_compiler
-P3 Plan Card + Plan Lock               (declared-plan revision chain read view — 새 상태 아님)
-P4 Blind Pack Builder                  brick_protocol/support/operator/blind_pack
-                                       (verdict 은닉 / 사실주장 made_changes·changed_files·diff 노출 — code-attack-qa fake-landing 방어 유지)
-P5 Gate Digest Builder                 brick_protocol/support/operator/gate_digest·coo_gate_view
+공식 실행 seam:
+raw task / confirmed request
+→ brick_protocol/support/operator/driver.py::run_building_intake
+→ brick_protocol/support/operator/composition_intent.py::materialize_building_intent
+→ declared-building-plan.json
+→ brick_protocol/support/operator/run.py::run_building_plan
 ```
 
-**병렬 규율**: P1~P5는 축별 신규 파일이라 격리 워크트리 3~5개 동시 발사 가능(§V). 단 P4~P5는 brick_protocol/support/operator 만지므로 겹침 점검. 시공 캐스팅 work=fugu/opus-4.8.
+### ⑤ 핵심 운영정책
 
-**v2 핵심 성과** (v1 대비): casting tier/lens 통합(v1 공백), §15 작업자 금지 14개(재발명 명문 차단). v1은 인용 틀림(§T-정정), v2는 코드 읽고 씀.
+```text
+Default route: order_authoring
+Fast path:     direct_preset only after direct_preset_admission + fast_confirm
+Critical:      human_gate_first
+```
+
+- **발주서작성 Brick**은 `building_call_request_v1_1` draft만 만든다. 확정·발사·성공/품질/Movement 판단 금지.
+- **HOLD 위치**는 `draft returned → gate_state: held_for_coo_review → COO/Smith 검토`다. 여기서 완료는 “발주서 작성 완료”이지 실제 작업 성공이 아니다.
+- **building_call.py**는 confirmed request만 받아 `chain_preset_ref`, `step_selection_overrides`, `selected_casting_provenance`로 낮춘다.
+- 실행은 반드시 `run_building_intake` seam을 탄다.
+
+### direct_preset COO 앵커링 방지 — 2-FIX 채택
+
+```text
+FIX 1. direct_preset_admission 통과는 launch 권한이 아니다.
+       direct_preset도 fast_confirm 1회가 필요하다.
+
+FIX 2. direct_preset 허용 case는 quick_fix / quick_check만.
+       standard_delivery 이상은 order_authoring으로 보낸다.
+```
+
+운영문:
+
+```text
+Direct preset is an escape hatch, not the default path.
+Direct preset admission is not launch authorization.
+Only quick_fix and quick_check may use the direct path.
+If COO hesitates or cannot prove triviality, route to order_authoring.
+Preset is not a mold to force work into; it is the execution path after triviality is proven.
+```
+
+### ⑤ 작업 페이즈
+
+| Phase | 이름 | 산출물 | 상태 |
+|---|---|---|---|
+| ⑤a | 제품정책 고정 | order_authoring 기본, direct_preset 예외권, human_gate_first 문구 | ▶ |
+| ⑤b | triage/admission | `building_call_triage_v1`, `direct_preset_admission_v1`, `direct_preset_fast_confirm_v1` schema/checker | ☐ |
+| ⑤c | 발주서작성 Brick/Agent | `building_call_authoring_return_v1`, draft-only Agent/Brick 설명, held_for_coo_review return shape | ☐ |
+| ⑤d | lowering layer | `brick_protocol/support/operator/building_call.py`, `building_call_cases.yaml` | ☐ |
+| ⑤e | checker-first guardrails | request checker, no-success-fields checker, gate/movement separation, factual-claims checker fixtures | ☐ |
+| ⑤f | skill/docs surface | `brick-task-author` / building-call skill Quick Path, 예시, 메뉴얼 규칙 | ☐ |
+| ⑤g | dogfood | quick_fix/quick_check direct path + order_authoring path 각 1회 증거 | ☐ |
+
+### ⑤에서 단순화할 것 / 노출 금지할 것
+
+```text
+노출할 단순 표면:
+- raw task
+- quick_fix / quick_check direct 여부
+- order_authoring draft
+- building_case 후보(제품명)
+- 업무 강도: easy | normal | complex | critical
+- 검토/발사 상태: draft | held_for_coo_review | confirmed | launched
+
+노출하지 않을 것:
+- chain_preset_ref 원문 선택 메뉴
+- selected_adapter_ref / selected_model_ref / selected_reasoning_effort_ref 직접 선택
+- Agent Object 내부 adapter_refs/preferred_* 구조
+- route/walker 세부 정책
+- Movement 판단
+```
+
+### 발주서작성 Brick/Agent 설계 원칙
+
+발주서작성 Agent는 preset을 고르는 기계가 아니다. 다음만 사고한다.
+
+```text
+- 이 일의 구조는 무엇인가?
+- 어떤 Brick 종류/렌즈가 필요한가?
+- 어떤 Agent 역할 설명이 필요한가?
+- 업무 강도(easy/normal/complex/critical)는 무엇인가?
+- write_scope 후보는 무엇인가?
+- source_facts/proof_obligations는 무엇인가?
+- Blind Pack에서 숨길 verdict와 노출할 factual claims는 무엇인가?
+- human/COO gate 질문은 무엇인가?
+```
+
+반환은 draft-only:
+
+```text
+building_call_authoring_return_v1
+- draft_building_call_request
+- alternatives / rejected_simplifications
+- missing_fields
+- not_proven
+- risks
+- launch_readiness: ready | needs_human | blocked
+- proof_limits: draft only, not source truth, not launch authorization, not success/quality/Movement
+```
+
+### ⑤에서 하지 않을 것(HOLD)
+
+```text
+- standard_delivery direct path
+- true Agent roster replacement
+- Agent singleton runtime_profile schema
+- arbitrary graph overlay insertion
+- runtime Blind Pack filtering
+- route v2 / walker v2 변경
+- 새 Movement vocabulary
+- brick_protocol/brick/catalog/* source catalog 신설
+```
+
+**v2 핵심 성과 승계**: 기존 발주 v2의 장점(casting tier/lens 통합, verdict 은닉/factual 노출, 작업자 금지/축 경계)은 보존하되, 최초 착지는 alias/lowering/order_authoring small slice로 줄인다.
 
 ---
 
