@@ -526,6 +526,15 @@ BUILDING_CALL_LOWERING0_FIXTURES = {
     "brick_protocol/support/checkers/fixtures/building_call_lowering/negative_held_for_coo_review.json",
 }
 
+BUILDING_CALL_DIRECT_ESCAPE0_FIXTURES = {
+    "brick_protocol/support/checkers/fixtures/building_call_direct_escape/positive_quick_fix.json",
+    "brick_protocol/support/checkers/fixtures/building_call_direct_escape/positive_quick_check.json",
+    "brick_protocol/support/checkers/fixtures/building_call_direct_escape/negative_standard_delivery_direct.json",
+    "brick_protocol/support/checkers/fixtures/building_call_direct_escape/negative_missing_fast_confirm.json",
+    "brick_protocol/support/checkers/fixtures/building_call_direct_escape/negative_red_flag_direct.json",
+    "brick_protocol/support/checkers/fixtures/building_call_direct_escape/negative_critical_red_flag_direct.json",
+}
+
 # anchoring-defense (#draft-diff): the draft->launched flip diff surface. Pure
 # support operator mechanics: it reads two graph-decl files, splits shape-flip vs
 # casting-flip aggregates, appends an append-only flip ledger under <brick_home>,
@@ -892,6 +901,7 @@ ALLOWED_DIRS = {
     # (work_contract_template.md) moved to archive/docs-templates/.
     "brick_protocol/support/checkers/fixtures",
     "brick_protocol/support/checkers/fixtures/building_call_authoring",
+    "brick_protocol/support/checkers/fixtures/building_call_direct_escape",
     "brick_protocol/support/checkers/fixtures/building_call_lowering",
     "brick_protocol/support/checkers/fixtures/plan_expansion",
     "brick_protocol/support/checkers/fixtures/route_v2",
@@ -2147,6 +2157,9 @@ def allowed_path(path: str) -> bool:
         return True
 
     if clean in BUILDING_CALL_LOWERING0_FIXTURES:
+        return True
+
+    if clean in BUILDING_CALL_DIRECT_ESCAPE0_FIXTURES:
         return True
 
     if clean in DRAFT_DIFF0_TARGETS:

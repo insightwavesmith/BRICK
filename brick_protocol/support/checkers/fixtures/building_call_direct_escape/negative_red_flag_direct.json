@@ -1,0 +1,11 @@
+{
+  "building_case": "quick_check",
+  "direct_preset_admission": true,
+  "fast_confirm": true,
+  "intensity": "easy",
+  "kind": "building_call_direct_preset_triage_v1",
+  "red_flags": [
+    "touches shared checker wiring"
+  ],
+  "task_statement": "Attempt direct quick check despite a red flag.\n"
+}

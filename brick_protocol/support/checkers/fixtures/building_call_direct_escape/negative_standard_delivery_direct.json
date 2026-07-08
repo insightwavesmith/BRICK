@@ -1,0 +1,9 @@
+{
+  "building_case": "standard_delivery",
+  "direct_preset_admission": true,
+  "fast_confirm": true,
+  "intensity": "normal",
+  "kind": "building_call_direct_preset_triage_v1",
+  "not_admitted_reason": "standard_delivery and larger requests must use order_authoring triage evidence.",
+  "task_statement": "Attempt to send a standard delivery request through the direct path.\n"
+}

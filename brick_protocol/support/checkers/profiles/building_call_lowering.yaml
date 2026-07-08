@@ -51,7 +51,7 @@ text_contains:
   - path: brick_protocol/support/checkers/module_registry.yaml
     texts:
       - brick_protocol/support/operator/building_call.py
-      - GOAL ⑤g confirmed-only Building Call lowering to existing materializer intent shape
+      - GOAL ⑤g confirmed-only lowering and GOAL ⑤h direct_preset_admission + fast_confirm evidence
 text_absent:
   - path: brick_protocol/support/operator/building_call.py
     texts:

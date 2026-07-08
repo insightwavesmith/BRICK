@@ -1,0 +1,16 @@
+{
+  "building_case": "quick_fix",
+  "direct_preset_admission": true,
+  "fast_confirm": true,
+  "intensity": "easy",
+  "kind": "building_call_direct_preset_triage_v1",
+  "task_statement": "Apply a bounded fixture-backed quick fix.\n",
+  "write_scope": {
+    "allowed_paths": [
+      "brick_protocol/support/operator/building_call.py"
+    ],
+    "forbidden_paths": [
+      ".git/**"
+    ]
+  }
+}

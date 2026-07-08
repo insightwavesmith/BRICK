@@ -1,0 +1,11 @@
+{
+  "building_case": "quick_fix",
+  "critical_red_flags": [
+    "credential exposure risk"
+  ],
+  "direct_preset_admission": true,
+  "fast_confirm": true,
+  "intensity": "critical",
+  "kind": "building_call_direct_preset_triage_v1",
+  "task_statement": "Attempt direct quick fix despite a critical red flag.\n"
+}

@@ -13,18 +13,25 @@ from typing import Any
 
 
 BUILDING_CALL_LOWERING_SCHEMA_VERSION = "building-call-lowering-v1"
+BUILDING_CALL_DIRECT_ADMISSION_SCHEMA_VERSION = "building-call-direct-preset-admission-v1"
 CONFIRMED_BUILDING_CALL_REQUEST_KIND = "confirmed_building_call_request_v1_1"
+DIRECT_PRESET_TRIAGE_REQUEST_KIND = "building_call_direct_preset_triage_v1"
 CONFIRMED_STATE = "confirmed"
 HELD_FOR_COO_REVIEW_STATE = "held_for_coo_review"
 
 BUILDING_CASE_TO_CHAIN_PRESET_REF: Mapping[str, str] = {
     "order_authoring": "building-chain-preset:building-call-authoring",
+    "quick_check": "building-chain-preset:quick-check",
+    "quick_fix": "building-chain-preset:fast-fix",
     "simple_delivery": "building-chain-preset:app-feature-basic",
     "standard_delivery": "building-chain-preset:app-feature-inspected",
     "governed_change": "building-chain-preset:governed-change-review",
     "design_contract": "building-chain-preset:design-contract-only",
     "research_report": "building-chain-preset:research-report",
 }
+
+DIRECT_PRESET_CASES: frozenset[str] = frozenset({"quick_check", "quick_fix"})
+DIRECT_RED_FLAG_FIELDS: tuple[str, ...] = ("red_flags", "critical_red_flags")
 
 ROSTER_VARIANT_STEP_SELECTIONS: Mapping[str, Mapping[str, Mapping[str, str]]] = {
     "default": {},
@@ -74,10 +81,15 @@ _REQUEST_PASSTHROUGH_FIELDS = frozenset(
 _OVERRIDE_ALLOWED_KEYS = frozenset({"step_template_ref", "casting_tier_ref", "casting_lens_ref"})
 _FORBIDDEN_REQUEST_KEYS = frozenset(
     {
+        "adapter_ref",
         "launch",
+        "model",
+        "model_ref",
         "run",
         "movement",
         "movement_choice",
+        "provider",
+        "provider_ref",
         "route_target",
         "success",
         "quality",
@@ -161,6 +173,122 @@ def building_call_lowering_v1(request: Mapping[str, Any]) -> dict[str, Any]:
     return lower_building_call_request_v1_1(request)
 
 
+def building_call_direct_preset_admission_v1(request: Mapping[str, Any]) -> dict[str, Any]:
+    """Return direct-preset triage evidence and lower only fast-confirmed quick cases."""
+
+    violations = validate_building_call_direct_preset_admission_request(request)
+    if violations:
+        raise BuildingCallLoweringError(violations)
+
+    building_case = _required_text("building_case", request["building_case"])
+    fast_confirm = request.get("fast_confirm") is True
+    red_flags = _direct_red_flags(request.get("red_flags"), "red_flags")
+    critical_red_flags = _direct_red_flags(request.get("critical_red_flags"), "critical_red_flags")
+    direct_candidate = building_case in DIRECT_PRESET_CASES
+    direct_admitted = (
+        request.get("direct_preset_admission") is True
+        and fast_confirm
+        and direct_candidate
+        and not red_flags
+        and not critical_red_flags
+    )
+
+    if critical_red_flags or request.get("intensity") == "critical":
+        routing_mode_evidence = "human_gate_first"
+        admission_reason = "critical red flag or critical intensity requires human_gate_first triage evidence"
+    elif red_flags:
+        routing_mode_evidence = "order_authoring"
+        admission_reason = "red flag present; default order_authoring triage evidence applies"
+    elif not direct_candidate:
+        routing_mode_evidence = "order_authoring"
+        admission_reason = "only quick_fix and quick_check may use direct_preset triage evidence"
+    elif request.get("direct_preset_admission") is not True:
+        routing_mode_evidence = "order_authoring"
+        admission_reason = "direct_preset_admission was not recorded"
+    elif not fast_confirm:
+        routing_mode_evidence = "order_authoring"
+        admission_reason = "fast_confirm is required before direct lowering"
+    else:
+        routing_mode_evidence = "direct_preset"
+        admission_reason = "quick direct candidate admitted with fast_confirm"
+
+    evidence: dict[str, Any] = {
+        "kind": BUILDING_CALL_DIRECT_ADMISSION_SCHEMA_VERSION,
+        "request_kind": DIRECT_PRESET_TRIAGE_REQUEST_KIND,
+        "building_case": building_case,
+        "routing_mode_evidence": routing_mode_evidence,
+        "direct_preset_admission": direct_admitted,
+        "fast_confirm": fast_confirm,
+        "admission_reason": admission_reason,
+        "red_flag_count": len(red_flags),
+        "critical_red_flag_count": len(critical_red_flags),
+        "proof_limits": [
+            "support triage evidence only",
+            "direct_preset_admission is not launch authorization",
+            "fast_confirm is required before direct lowering",
+            "no Building launch",
+            "no run_building_plan call",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+        ],
+        "not_proven": [
+            "semantic fitness of the caller-authored direct triage request",
+            "provider readiness for later materialization",
+            "future Building execution behavior",
+        ],
+    }
+    if direct_admitted:
+        evidence["lowered_intent"] = lower_building_call_request_v1_1(
+            _confirmed_request_from_direct_triage(request, building_case)
+        )["lowered_intent"]
+        evidence["chain_preset_ref"] = BUILDING_CASE_TO_CHAIN_PRESET_REF[building_case]
+    return evidence
+
+
+def validate_building_call_direct_preset_admission_request(request: Mapping[str, Any]) -> list[str]:
+    """Return fail-closed violations for direct-preset triage evidence."""
+
+    if not isinstance(request, Mapping):
+        return ["request must be a mapping"]
+    violations: list[str] = []
+    _scan_forbidden_request_keys(request, "request", violations)
+
+    kind = request.get("kind")
+    if kind != DIRECT_PRESET_TRIAGE_REQUEST_KIND:
+        violations.append(f"kind must be {DIRECT_PRESET_TRIAGE_REQUEST_KIND}")
+
+    building_case = _optional_text(request.get("building_case"))
+    if building_case not in BUILDING_CASE_TO_CHAIN_PRESET_REF:
+        allowed = ", ".join(sorted(BUILDING_CASE_TO_CHAIN_PRESET_REF))
+        violations.append(f"building_case must be one of: {allowed}")
+
+    intensity = request.get("intensity")
+    if intensity not in {"easy", "normal", "complex", "critical"}:
+        violations.append("intensity must be one of: easy, normal, complex, critical")
+
+    direct_requested = request.get("direct_preset_admission") is True
+    if direct_requested and building_case not in DIRECT_PRESET_CASES:
+        violations.append("direct_preset_admission may be true only for quick_fix or quick_check")
+    if direct_requested and request.get("fast_confirm") is not True:
+        violations.append("fast_confirm is required before direct lowering")
+    red_flags = _coerce_direct_red_flags(request.get("red_flags"), "red_flags", violations)
+    critical_red_flags = _coerce_direct_red_flags(
+        request.get("critical_red_flags"), "critical_red_flags", violations
+    )
+    if direct_requested and red_flags:
+        violations.append("red flags require order_authoring triage evidence")
+    if direct_requested and critical_red_flags:
+        violations.append("critical red flags require human_gate_first triage evidence")
+
+    if not (_optional_text(request.get("task_source_ref")) or _optional_text(request.get("task_statement"))):
+        violations.append("request must declare task_source_ref or task_statement")
+
+    _validate_roster_overrides(request.get("roster_overrides"), violations)
+    return violations
+
+
 def validate_building_call_lowering_request(request: Mapping[str, Any]) -> list[str]:
     """Return fail-closed lowering violations without launching any work."""
 
@@ -202,6 +330,33 @@ def validate_building_call_lowering_request(request: Mapping[str, Any]) -> list[
     return violations
 
 
+def render_building_call_direct_preset_policy() -> dict[str, Any]:
+    """Return the direct-preset admission policy as support evidence."""
+
+    return {
+        "kind": "building-call-direct-preset-policy-v1",
+        "default_routing_mode_evidence": "order_authoring",
+        "direct_preset_cases": sorted(DIRECT_PRESET_CASES),
+        "direct_case_to_chain_preset_ref": {
+            key: BUILDING_CASE_TO_CHAIN_PRESET_REF[key] for key in sorted(DIRECT_PRESET_CASES)
+        },
+        "fast_confirm_required": True,
+        "red_flag_routing_mode_evidence": "order_authoring",
+        "critical_red_flag_routing_mode_evidence": "human_gate_first",
+        "proof_limits": [
+            "support triage policy evidence only",
+            "not launch authorization",
+            "not Movement authority",
+        ],
+    }
+
+
+def render_building_call_direct_preset_policy_json() -> str:
+    """Return deterministic JSON for the direct-preset admission policy."""
+
+    return json.dumps(render_building_call_direct_preset_policy(), ensure_ascii=False, sort_keys=True)
+
+
 def render_building_call_lowering_cases() -> dict[str, Any]:
     """Return the admitted case and roster map as support evidence."""
 
@@ -225,6 +380,43 @@ def render_building_call_lowering_cases_json() -> str:
     """Return deterministic JSON for the lowering case table."""
 
     return json.dumps(render_building_call_lowering_cases(), ensure_ascii=False, sort_keys=True)
+
+
+def _confirmed_request_from_direct_triage(
+    request: Mapping[str, Any],
+    building_case: str,
+) -> dict[str, Any]:
+    confirmed: dict[str, Any] = {
+        field: _normalize_json_value(request[field])
+        for field in sorted(_REQUEST_PASSTHROUGH_FIELDS)
+        if field in request
+    }
+    confirmed.update(
+        {
+            "kind": CONFIRMED_BUILDING_CALL_REQUEST_KIND,
+            "confirmation_state": CONFIRMED_STATE,
+            "building_case": building_case,
+        }
+    )
+    roster_variant = _optional_text(request.get("roster_variant"))
+    if roster_variant:
+        confirmed["roster_variant"] = roster_variant
+    if "roster_overrides" in request:
+        confirmed["roster_overrides"] = _normalize_json_value(request["roster_overrides"])
+    return confirmed
+
+
+def _scan_forbidden_request_keys(value: Any, path: str, violations: list[str]) -> None:
+    if isinstance(value, Mapping):
+        forbidden = sorted(str(key) for key in value if str(key) in _FORBIDDEN_REQUEST_KEYS)
+        if forbidden:
+            violations.append(f"forbidden request field(s) at {path}: {', '.join(forbidden)}")
+        for key, child in value.items():
+            _scan_forbidden_request_keys(child, f"{path}.{key}", violations)
+        return
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+        for index, child in enumerate(value):
+            _scan_forbidden_request_keys(child, f"{path}[{index}]", violations)
 
 
 def _request_roster_overrides(value: Any) -> dict[str, Mapping[str, str]]:
@@ -317,6 +509,45 @@ def _optional_text(value: Any) -> str | None:
     return text or None
 
 
+def _text_list(value: Any) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, str):
+        text = value.strip()
+        return [text] if text else []
+    if isinstance(value, Sequence) and not isinstance(value, (bytes, bytearray)):
+        return [item.strip() for item in value if isinstance(item, str) and item.strip()]
+    return []
+
+
+def _direct_red_flags(value: Any, label: str) -> list[str]:
+    violations: list[str] = []
+    flags = _coerce_direct_red_flags(value, label, violations)
+    if violations:
+        raise BuildingCallLoweringError(violations)
+    return flags
+
+
+def _coerce_direct_red_flags(value: Any, label: str, violations: list[str]) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, str):
+        text = value.strip()
+        return [text] if text else []
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+        flags: list[str] = []
+        for index, item in enumerate(value):
+            if not isinstance(item, str):
+                violations.append(f"{label}[{index}] must be text")
+                continue
+            text = item.strip()
+            if text:
+                flags.append(text)
+        return flags
+    violations.append(f"{label} must be text or an array of text")
+    return []
+
+
 def _normalize_json_value(value: Any) -> Any:
     if isinstance(value, Mapping):
         return {str(key): _normalize_json_value(value[key]) for key in sorted(value)}
@@ -327,13 +558,20 @@ def _normalize_json_value(value: Any) -> Any:
 
 __all__ = [
     "BUILDING_CALL_LOWERING_SCHEMA_VERSION",
+    "BUILDING_CALL_DIRECT_ADMISSION_SCHEMA_VERSION",
     "CONFIRMED_BUILDING_CALL_REQUEST_KIND",
+    "DIRECT_PRESET_TRIAGE_REQUEST_KIND",
     "BUILDING_CASE_TO_CHAIN_PRESET_REF",
+    "DIRECT_PRESET_CASES",
     "ROSTER_VARIANT_STEP_SELECTIONS",
     "BuildingCallLoweringError",
+    "building_call_direct_preset_admission_v1",
     "building_call_lowering_v1",
     "lower_building_call_request_v1_1",
+    "validate_building_call_direct_preset_admission_request",
     "validate_building_call_lowering_request",
+    "render_building_call_direct_preset_policy",
+    "render_building_call_direct_preset_policy_json",
     "render_building_call_lowering_cases",
     "render_building_call_lowering_cases_json",
 ]

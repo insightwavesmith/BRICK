@@ -222,7 +222,7 @@ STEP 5. 에이전트 선택(agent + strength)
 | ⑤e | 발주서작성 preset/Brick/Agent | `building-call-authoring` preset, 전용 Brick/return, 발주서 전용 Agent skill(prompt) | landed candidate: repair-2 green, 착지/푸시 검증 중 |
 | ⑤f | authoring module | `building_call_authoring.py`, `building_call_authoring_return_v1`, 순서 위반 checker | ✓ pushed `298b28a86`, clean --all green |
 | ⑤g | lowering layer | `building_call.py`, fixture cases, confirmed-only lowering, provenance | ✓ landed candidate from `building-call-lowering-0708g` WIP; clean review worktree `--all` green before main landing |
-| ⑤h | direct escape hatch | triage/admission/fast_confirm, quick_fix/quick_check만 direct | ☐ |
+| ⑤h | direct escape hatch | triage/admission/fast_confirm, quick_fix/quick_check만 direct | ✓ focused proof green in `building-call-direct-escape-0708h` |
 | ⑤i | docs/skill examples | brick-task-author/building-call Quick Path, 4개 worked examples, 메뉴얼 규칙 | ☐ |
 | ⑤j | dogfood | quick_check direct, quick_fix direct, order_authoring path 각 1회 증거 | ☐ |
 
@@ -328,6 +328,16 @@ building-call-lowering-0708g:
   COO disposition: WIP anchor was applied to a clean detached review worktree on top of current HEAD; stale GOAL conflict was discarded; code/checker surfaces were verified independently.
   landing proof before main commit: compileall OK, git diff --check OK, building_call_lowering / building_call_authoring / building_call_menus / structure_template_integrity focused profiles green, and check_profile.py --all rc=0 in /tmp/brick-review-lowering-73593.
   proof limit: this lands the ⑤g lowering support surface; it does not prove ⑤h direct escape hatch, ⑤i docs/examples, ⑤j dogfood, future request semantic fitness, source truth, success, quality, or Movement authority.
+
+building-call-direct-escape-0708h:
+  frontier: focused implementation evidence recorded.
+  surface: brick_protocol/support/operator/building_call.py
+  checker/profile: brick_protocol/support/checkers/profiles/building_call_direct_escape.yaml
+  fixtures: brick_protocol/support/checkers/fixtures/building_call_direct_escape/*.json
+  effect: direct_preset_admission + fast_confirm lowers only quick_fix -> building-chain-preset:fast-fix and quick_check -> building-chain-preset:quick-check. Default triage evidence stays order_authoring; standard_delivery, missing fast_confirm, red flag, critical red flag, selected_*, provider/model/adapter, and malformed red-flag probes are rejected.
+  proof: compileall rc=0; check_profile.py --profile building_call_direct_escape rc=0; check_profile.py --profile building_call_lowering rc=0; git diff --check rc=0; check_profile.py --all rc=0.
+  coverage repair: reroute pass tightened direct-preset validation so dict/list-of-dict/bool/int red_flags or critical_red_flags no longer collapse to an empty list, and bare model/provider/model_ref/provider_ref/adapter_ref request fields are rejected alongside selected_* fields.
+  proof limit: support triage/lowering evidence only; no launch authorization, no route/walker integration, no source truth, no success judgment, no quality judgment, no Movement authority. ⑤i/⑤j remain out of scope.
 ```
 
 ⑤f authoring module Building slice:

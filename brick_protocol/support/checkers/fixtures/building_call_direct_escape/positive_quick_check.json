@@ -1,0 +1,8 @@
+{
+  "building_case": "quick_check",
+  "direct_preset_admission": true,
+  "fast_confirm": true,
+  "intensity": "easy",
+  "kind": "building_call_direct_preset_triage_v1",
+  "task_statement": "Run a bounded fixture-backed quick check.\n"
+}

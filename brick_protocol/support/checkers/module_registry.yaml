@@ -1798,7 +1798,7 @@ modules:
     imports_axis: []
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
-    pinned_by: building_call_lowering profile (GOAL ⑤g confirmed-only Building Call lowering to existing materializer intent shape; no launch, no run, no route/walker integration)
+    pinned_by: building_call_lowering + building_call_direct_escape profiles (GOAL ⑤g confirmed-only lowering and GOAL ⑤h direct_preset_admission + fast_confirm evidence; no launch, no run, no route/walker integration)
 
   - module: brick_protocol/support/operator/draft_diff.py
     layer: operator

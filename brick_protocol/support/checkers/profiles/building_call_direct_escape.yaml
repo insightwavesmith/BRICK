@@ -1,0 +1,82 @@
+schema: checker-profile/v1
+profile_id: building-call-direct-escape
+description: GOAL ⑤h direct_preset_admission + fast_confirm escape hatch for quick_fix and quick_check only.
+kernel_checks:
+  - building_call_direct_escape_contract
+  - package_path_admission
+  - axis_crossing_elegance
+path_exists:
+  - brick_protocol/support/operator/building_call.py
+  - brick_protocol/support/checkers/fixtures/building_call_direct_escape/positive_quick_fix.json
+  - brick_protocol/support/checkers/fixtures/building_call_direct_escape/positive_quick_check.json
+  - brick_protocol/support/checkers/fixtures/building_call_direct_escape/negative_standard_delivery_direct.json
+  - brick_protocol/support/checkers/fixtures/building_call_direct_escape/negative_missing_fast_confirm.json
+  - brick_protocol/support/checkers/fixtures/building_call_direct_escape/negative_red_flag_direct.json
+  - brick_protocol/support/checkers/fixtures/building_call_direct_escape/negative_critical_red_flag_direct.json
+  - brick_protocol/support/checkers/profiles/building_call_direct_escape.yaml
+text_contains:
+  - path: brick_protocol/support/operator/building_call.py
+    texts:
+      - BUILDING_CALL_DIRECT_ADMISSION_SCHEMA_VERSION = "building-call-direct-preset-admission-v1"
+      - DIRECT_PRESET_TRIAGE_REQUEST_KIND = "building_call_direct_preset_triage_v1"
+      - DIRECT_PRESET_CASES
+      - building_call_direct_preset_admission_v1
+      - validate_building_call_direct_preset_admission_request
+      - render_building_call_direct_preset_policy
+      - direct_preset_admission is not launch authorization
+      - fast_confirm is required before direct lowering
+      - no Building launch
+      - no run_building_plan call
+      - not source truth
+      - not success judgment
+      - not quality judgment
+      - not Movement authority
+  - path: brick_protocol/support/checkers/lib/kernel_checks.py
+    texts:
+      - building_call_direct_escape_contract
+      - quick_fix and quick_check lowered only after admission + fast_confirm
+  - path: brick_protocol/support/checkers/check_profile.py
+    texts:
+      - building_call_direct_escape_contract
+  - path: brick_protocol/support/checkers/fixtures/building_call_direct_escape/positive_quick_fix.json
+    texts:
+      - '"building_case": "quick_fix"'
+      - '"direct_preset_admission": true'
+      - '"fast_confirm": true'
+  - path: brick_protocol/support/checkers/fixtures/building_call_direct_escape/positive_quick_check.json
+    texts:
+      - '"building_case": "quick_check"'
+      - '"direct_preset_admission": true'
+      - '"fast_confirm": true'
+  - path: brick_protocol/support/checkers/fixtures/building_call_direct_escape/negative_standard_delivery_direct.json
+    texts:
+      - '"building_case": "standard_delivery"'
+      - standard_delivery and larger requests must use order_authoring triage evidence
+  - path: brick_protocol/support/checkers/profiles/core.yaml
+    texts:
+      - brick_protocol/support/checkers/profiles/building_call_direct_escape.yaml
+text_absent:
+  - path: brick_protocol/support/operator/building_call.py
+    texts:
+      - route_materialization.py
+      - walker_kernel.py
+      - walker_resume.py
+      - brick_protocol/link/
+      - return_fact.py
+      - def run_building_plan
+      - run_building_plan(
+      - run_building_intake(
+      - materialize_building_intent(
+      - compose_building(
+      - materialize_transition_concern_disposition
+proof_limits:
+  - support evidence only
+  - not launch authorization
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic fitness of future direct Building Call triage requests
+  - future materialize_building_intent behavior
+  - future Building execution behavior

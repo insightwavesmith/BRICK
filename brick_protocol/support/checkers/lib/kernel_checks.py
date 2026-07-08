@@ -413,6 +413,123 @@ def run_building_call_lowering_contract(repo: Path) -> KernelResult:
     )
 
 
+def run_building_call_direct_escape_contract(repo: Path) -> KernelResult:
+    """Validate ⑤h direct-preset admission and fast-confirm fixtures."""
+
+    from brick_protocol.support.operator.building_call import (
+        BuildingCallLoweringError,
+        building_call_direct_preset_admission_v1,
+        render_building_call_direct_preset_policy,
+        validate_building_call_direct_preset_admission_request,
+    )
+
+    fixture_root = repo / "brick_protocol/support/checkers/fixtures/building_call_direct_escape"
+    quick_fix = json.loads((fixture_root / "positive_quick_fix.json").read_text(encoding="utf-8"))
+    quick_check = json.loads((fixture_root / "positive_quick_check.json").read_text(encoding="utf-8"))
+    standard = json.loads((fixture_root / "negative_standard_delivery_direct.json").read_text(encoding="utf-8"))
+    missing_fast = json.loads((fixture_root / "negative_missing_fast_confirm.json").read_text(encoding="utf-8"))
+    red_flag = json.loads((fixture_root / "negative_red_flag_direct.json").read_text(encoding="utf-8"))
+    critical = json.loads((fixture_root / "negative_critical_red_flag_direct.json").read_text(encoding="utf-8"))
+
+    quick_fix_evidence = building_call_direct_preset_admission_v1(quick_fix)
+    if quick_fix_evidence.get("routing_mode_evidence") != "direct_preset":
+        raise ProfileError("building_call_direct_escape_contract: quick_fix did not direct")
+    if quick_fix_evidence.get("chain_preset_ref") != "building-chain-preset:fast-fix":
+        raise ProfileError("building_call_direct_escape_contract: quick_fix preset drifted")
+    if "lowered_intent" not in quick_fix_evidence:
+        raise ProfileError("building_call_direct_escape_contract: quick_fix did not lower")
+
+    quick_check_evidence = building_call_direct_preset_admission_v1(quick_check)
+    if quick_check_evidence.get("chain_preset_ref") != "building-chain-preset:quick-check":
+        raise ProfileError("building_call_direct_escape_contract: quick_check preset drifted")
+
+    standard_violations = validate_building_call_direct_preset_admission_request(standard)
+    if not any("quick_fix or quick_check" in item for item in standard_violations):
+        raise ProfileError("building_call_direct_escape_contract: standard_delivery direct was accepted")
+    for fixture, expected, label in (
+        (missing_fast, "fast_confirm is required before direct lowering", "missing fast_confirm"),
+        (red_flag, "red flags require order_authoring", "red flag"),
+        (critical, "critical red flags require human_gate_first", "critical red flag"),
+    ):
+        violations = validate_building_call_direct_preset_admission_request(fixture)
+        if not any(expected in item for item in violations):
+            raise ProfileError(f"building_call_direct_escape_contract: {label} fixture was accepted")
+        try:
+            building_call_direct_preset_admission_v1(fixture)
+        except BuildingCallLoweringError:
+            pass
+        else:
+            raise ProfileError(f"building_call_direct_escape_contract: {label} fixture normalized")
+
+    exposure_probe = dict(quick_fix)
+    exposure_probe["selected_model_ref"] = "model:codex:default"
+    exposure_violations = validate_building_call_direct_preset_admission_request(exposure_probe)
+    if not any("selected_model_ref" in item for item in exposure_violations):
+        raise ProfileError("building_call_direct_escape_contract: selected_* exposure was accepted")
+
+    for field_name in ("model", "provider", "model_ref", "provider_ref", "adapter_ref"):
+        exposure_probe = dict(quick_fix)
+        exposure_probe[field_name] = "request-facing exposure"
+        exposure_violations = validate_building_call_direct_preset_admission_request(exposure_probe)
+        if not any(field_name in item for item in exposure_violations):
+            raise ProfileError(f"building_call_direct_escape_contract: {field_name} exposure was accepted")
+
+    malformed_flag_probes = (
+        (
+            "red flag bool",
+            "red_flags",
+            True,
+            "red_flags must be text or an array of text",
+        ),
+        (
+            "red flag int",
+            "red_flags",
+            1,
+            "red_flags must be text or an array of text",
+        ),
+        (
+            "critical red flag mapping",
+            "critical_red_flags",
+            {"reason": "credential exposure risk"},
+            "critical_red_flags must be text or an array of text",
+        ),
+        (
+            "critical red flag object list",
+            "critical_red_flags",
+            [{"severity": "critical", "reason": "credential exposure risk"}],
+            "critical_red_flags[0] must be text",
+        ),
+    )
+    for label, field_name, field_value, expected in malformed_flag_probes:
+        malformed_probe = dict(quick_fix)
+        malformed_probe[field_name] = field_value
+        violations = validate_building_call_direct_preset_admission_request(malformed_probe)
+        if not any(expected in item for item in violations):
+            raise ProfileError(f"building_call_direct_escape_contract: {label} was accepted")
+        try:
+            building_call_direct_preset_admission_v1(malformed_probe)
+        except BuildingCallLoweringError:
+            pass
+        else:
+            raise ProfileError(f"building_call_direct_escape_contract: {label} normalized")
+
+    policy = render_building_call_direct_preset_policy()
+    if policy.get("default_routing_mode_evidence") != "order_authoring":
+        raise ProfileError("building_call_direct_escape_contract: default route evidence drifted")
+    if policy.get("fast_confirm_required") is not True:
+        raise ProfileError("building_call_direct_escape_contract: fast_confirm policy drifted")
+
+    return KernelResult(
+        check_id="building_call_direct_escape_contract",
+        inspected=16,
+        output=(
+            "quick_fix and quick_check lowered only after admission + fast_confirm; "
+            "standard_delivery, missing fast_confirm, red flag, critical red flag, "
+            "selected_*, provider/model/adapter, and malformed red-flag probes rejected"
+        ),
+    )
+
+
 
 
 
