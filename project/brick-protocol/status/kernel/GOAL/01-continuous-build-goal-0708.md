@@ -157,40 +157,57 @@ If COO hesitates or cannot prove triviality, route to order_authoring.
 Preset is not a mold to force work into; it is the execution path after triviality is proven.
 ```
 
-### 발주서작성 Agent 순서 규율 — 앵커링 방지 핵심
+### 발주서작성 Agent 순서 규율 — 앵커링 방지 핵심 (Smith 0708 확정)
 
-발주서작성 Agent는 처음부터 “구조/브릭/에이전트”를 한꺼번에 사고하지 않는다. 반드시 한 단계씩 닫는다.
+발주서작성 Agent는 처음부터 “구조/브릭/에이전트” 3개를 한꺼번에 사고하지 않는다.
+한번에 여러 개를 주면 앵커링이 걸린다. 반드시 하나씩 순서대로 닫는다. 각 단계가
+확정(또는 held)되기 전에는 다음 단계를 시작하지 않는다.
+
+Smith 지정 골격: `업무 파악 → 구조 그린다 → 업무 과중 넣는다 → 에이전트 선택`.
+여기에 라우팅용 building 전체 강도(triage)만 앞단에 분리한다(easy면 direct preset로 빠지므로
+구조를 그리기 전에 결정해야 함). per-brick 경중은 Smith 순서대로 구조 뒤에 넣는다.
 
 ```text
-1. 범위 확인하기
-   - 대상 영역, allowed/forbidden path, source_facts, 빠진 정보 확인.
+STEP 1. 업무 파악 (scope)
+   - 대상 영역, allowed/forbidden path 후보, source_facts, 빠진 정보.
+   - 산출: scope_assessment. 여기서 구조/에이전트/LLM 언급 금지.
 
-2. 업무 비중/강도 정하기
-   - building intensity: easy | normal | complex | critical
-   - 이 단계에서는 Agent/LLM/adapter/model을 고르지 않는다.
+STEP 2. building 전체 과중 → 라우팅 (triage only)
+   - building intensity: easy | normal | complex | critical.
+   - easy(쉬움 증명) → direct_preset(quick_fix/quick_check) + fast_confirm.
+   - normal/complex → order_authoring 계속.
+   - critical → human_gate_first.
+   - 여기서 per-brick 세부/에이전트/LLM 금지. 오직 경로 결정만.
 
-3. 현재 Brick(업무)의 역할 정하기
-   - planning/design/work/code_qa/axis_qa/evidence_qa/closure 등 역할 후보.
-   - 각 Brick의 work_statement/return need/proof obligation 후보.
+STEP 3. 구조 그린다 (structure)
+   - Brick plane: 어떤 Brick(업무)들이 필요한가 = brick_kind + role.
+   - Link plane: edges, fan-out/fan-in, 3d 구조, gate_state, held_for_coo_review.
+   - 아직 per-brick 경중/에이전트 넣지 않는다. 뼈대만 그린다.
 
-4. 3축 구조 그리기
-   - Brick plane: nodes + brick_kind + per-brick intensity.
-   - Link plane: edges, fan-out/fan-in, gate_state, held_for_coo_review.
-   - Agent plane은 아직 “need”만: role_need/capability_need/write_need.
+STEP 4. 업무 과중 넣는다 (per-brick intensity)
+   - STEP 3에서 그린 각 node에 경중을 매긴다: easy | normal | complex | critical.
+   - 각 Brick의 work_statement/return need/proof obligation 확정.
+   - 여기서도 아직 구체 에이전트/LLM 금지. role_need/capability_need/write_need만.
 
-5. 에이전트와 수준 후보 끼우기
-   - 각 node의 role_need + capability_need + write_need + intensity를 보고 Agent candidate/strength를 Agent 칸에만 기록.
-   - Brick 칸에는 adapter/model/provider를 쓰지 않는다.
+STEP 5. 에이전트 선택 (agent + strength)
+   - 각 node의 role_need + capability_need + write_need + per-brick 경중을 보고
+     Agent candidate + strength(cheap/default/deep/critical)를 Agent 칸에만 기록.
+   - Brick 칸에는 adapter/model/provider를 절대 쓰지 않는다.
 ```
 
 순서 위반 RED:
 
 ```text
-- 1단계 범위 확인 전에 graph/agent부터 고름.
-- Brick role이 닫히기 전에 specific Agent/LLM부터 고름.
+- STEP 1(업무 파악) 전에 구조/에이전트부터 고름.
+- STEP 3(구조) 전에 per-brick 경중이나 에이전트를 고름.
+- 구조/브릭/에이전트를 한 번에 한 응답에서 동시 확정함(순서 붕괴 = 앵커링).
 - Brick section에 selected_adapter_ref/model/provider를 씀.
 - preset 이름을 먼저 고르고 일을 끼워맞춤.
 ```
+
+이 순서는 발주서작성 Brick/Agent 전용 스킬(prompt)에 그대로 박는다. 발주서작성 Agent
+프롬프트에는 발주서 작성에만 해당하는 내용만 들어가고, 일반 dev/qa/route/walker 프롬프트나
+실행 지시를 섞지 않는다.
 
 ### ⑤에서 필요한 메뉴/API
 
@@ -223,7 +240,7 @@ API 후보:
 | ⑤b | cleanup checker fence | external selected_* 금지, common preset selected_* 금지, gate_state_not_movement, no-success-fields, deep-design casting RED fixtures | ☐ |
 | ⑤c | 오염 표면 정리 | `postmortem.md` selected_* 제거, `four-llm` product alias 제외/격리, deep-design return casting 제거 | ☐ |
 | ⑤d | 메뉴/API | `building_call_menus.py`, brick/agent-role/intensity/strength/graph motif menu | ☐ |
-| ⑤e | 발주서작성 preset/Brick/Agent | `building-call-authoring` preset, 전용 Brick/return, 전용 Agent skill(prompt) | ☐ |
+| ⑤e | 발주서작성 preset/Brick/Agent | `building-call-authoring` preset, 전용 Brick/return, 발주서 전용 Agent skill(prompt) — STEP1~5 순서 규율만 담고 타 프롬프트 혼입 금지 | ☐ |
 | ⑤f | authoring module | `building_call_authoring.py`, `building_call_authoring_return_v1`, 순서 위반 checker | ☐ |
 | ⑤g | lowering layer | `building_call.py`, `building_call_cases.yaml`, confirmed-only lowering, provenance | ☐ |
 | ⑤h | direct escape hatch | triage/admission/fast_confirm, quick_fix/quick_check만 direct | ☐ |
