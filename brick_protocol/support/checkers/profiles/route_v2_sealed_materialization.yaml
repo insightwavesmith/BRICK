@@ -1,7 +1,11 @@
 schema: checker-profile/v1
 profile_id: route-v2-sealed-materialization
-description: Route V2 R0/R1 checker-first fence over sealed concern kinds, non-reroute verification_gap, Movement/lifecycle separation, no new route engine/scope, and delta-QA factual fields.
+description: Route V2 R0/R1/R2 checker-first fence over sealed concern kinds, non-reroute verification_gap, Movement/lifecycle separation, no new route engine/scope, delta-QA factual fields, and read-only Route V2 view projection.
+kernel_checks:
+  - route_v2_views
 path_exists:
+  - brick_protocol/support/operator/route_v2_views.py
+  - brick_protocol/support/checkers/check_route_v2_views.py
   - project/brick-protocol/status/kernel/route-v2-sealed-materialization-architecture.md
   - project/brick-protocol/status/kernel/GOAL/02-unified-continuous-build-goal-0708.md
   - brick_protocol/support/checkers/fixtures/route_v2/concern_kind_seal.json
@@ -59,6 +63,21 @@ text_contains:
       - "movement: reroute"
       - represent transition pause or resume through transition_lifecycle evidence, not Movement
       - represent Building wait or close through Building lifecycle evidence, not Movement
+  - path: brick_protocol/support/operator/route_v2_views.py
+    texts:
+      - Route V2 read-only projection helpers
+      - ROUTE_V2_VIEW_SCHEMA = "route-v2-read-only-view/v1"
+      - render_route_v2_view
+      - route_v2_policy_packet
+      - materialize_transition_concern_disposition
+      - verification_gap is non-reroute evidence
+      - not Movement authority
+      - not walker integration
+  - path: brick_protocol/support/checkers/check_route_v2_views.py
+    texts:
+      - implementation_gap materialization view
+      - verification_gap non-reroute view
+      - forbidden key probes
 text_absent:
   - path: brick_protocol/link/movement.yaml
     texts:

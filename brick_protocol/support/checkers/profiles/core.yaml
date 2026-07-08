@@ -53,6 +53,7 @@ path_exists:
   - brick_protocol/support/checkers/check_building_map_graph.py
   - brick_protocol/support/checkers/check_project_declaration.py
   - brick_protocol/support/checkers/check_rule13_durable_evidence_ref.py
+  - brick_protocol/support/checkers/check_route_v2_views.py
   - brick_protocol/support/checkers/check_building_declaration_integrity.py
   - brick_protocol/support/checkers/check_axis_crossing_elegance.py
   - brick_protocol/support/checkers/check_link_gate_measurement_separation.py

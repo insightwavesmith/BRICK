@@ -371,6 +371,7 @@ BAR_V2_OPERATOR_TARGETS = {
     "brick_protocol/support/operator/primitives.py",
     "brick_protocol/support/operator/proof_observation.py",
     "brick_protocol/support/operator/route_materialization.py",
+    "brick_protocol/support/operator/route_v2_views.py",
     "brick_protocol/support/operator/write_observation.py",
     # BUILDING-OPERATOR-DRIVER-0 admits the bounded declared portfolio driver.
     "brick_protocol/support/operator/driver.py",
@@ -561,6 +562,7 @@ ROUTE_V2_R1_FIXTURES = {
     "brick_protocol/support/checkers/fixtures/route_v2/concern_kind_seal.json",
     "brick_protocol/support/checkers/fixtures/route_v2/gate_movement_shape.json",
     "brick_protocol/support/checkers/fixtures/route_v2/delta_qa_fact_shape.json",
+    "brick_protocol/support/checkers/check_route_v2_views.py",
 }
 
 PRH_B_RECORDER_TARGETS = {

@@ -117,6 +117,17 @@ modules:
     decomposition_target: ""
     pinned_by: stale-build masking RED probe for run_wheel_smoke (seeds a stale in-tree build/ + shrinks pyproject packages, asserts wheel_smoke RED; support evidence only)
 
+
+  - module: brick_protocol/support/checkers/check_route_v2_views.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: route_v2_sealed_materialization profile (Route V2 read-only view projection checker)
+
   - module: brick_protocol/support/checkers/check_axis_contract_projection.py
     layer: checkers
     role: oracle
@@ -2425,6 +2436,21 @@ modules:
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
     pinned_by: shared operator primitives; covered by run_surface_split + route_match_and_materialization (E2/S6 re-imports the casting field-set from the Agent axis brick_protocol/agent/spec.py; E2/S9 re-imports the Brick-row allowed-key set from the Brick axis brick_protocol/brick/spec.py)
+
+
+  - module: brick_protocol/support/operator/route_v2_views.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - agent_return_fact
+      - link_movement
+    imports_axis:
+      - brick_protocol/agent/return_fact.py
+      - brick_protocol/link/movement.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: route_v2_sealed_materialization profile / check_route_v2_views (read-only Route V2 projection; no route engine, no walker integration)
 
   - module: brick_protocol/support/operator/route_materialization.py
     layer: operator

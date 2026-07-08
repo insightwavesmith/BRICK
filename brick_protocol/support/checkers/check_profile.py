@@ -382,6 +382,10 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
     "building_call_authoring_contract": run_building_call_authoring_contract,
     "building_call_direct_escape_contract": run_building_call_direct_escape_contract,
     "building_call_lowering_contract": run_building_call_lowering_contract,
+    "route_v2_views": _repo_main(
+        "route_v2_views",
+        "brick_protocol.support.checkers.check_route_v2_views",
+    ),
     "preflight_injection_survival": _repo_main(
         "preflight_injection_survival",
         "brick_protocol.support.checkers.check_preflight_injection_survival",

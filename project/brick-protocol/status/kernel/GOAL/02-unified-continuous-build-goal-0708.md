@@ -92,7 +92,7 @@ Proof limit: 이 절은 운영정책 support evidence이며 source truth·성공
 | ④b | C2 physical root unification | ✓ | `7b99b8f7f`, `brick_protocol/*`, top-level import 실패 확인 |
 | ④c | C3 문서/human gate | 부분 완료 | C3 상태문서 착지. BRICK-CONSTITUTION 물리 루트 조항은 Smith human gate 전까지 HOLD |
 | ⑤ | 발주서/빌딩콜 v1.1 | ✓ | ⑤a~⑤j 착지/관찰 완료(⑤b/⑤c `28cfda632`, ⑤f `298b28a86`, ⑤g `201e502d3`, ⑤h `569458a0d`, ⑤i `15ecf8bcc`, ⑤j dogfood evidence `f0e75cae`). Proof limit: support evidence only |
-| ⑥ | Route V2 sealed materialization | 부분 착지 | R0/R1 sealed materialization checker/document slice `47cf35a4b` 착지. ⑥c R2 view builder 대기, ⑥d/⑥e HOLD |
+| ⑥ | Route V2 sealed materialization | 부분 착지 | R0/R1 sealed materialization checker/document slice `47cf35a4b` 착지. ⑥c R2 read-only view builder candidate green; ⑥d/⑥e HOLD |
 | ⑦ | route/walker integration | HOLD | checker green + human gate + route_materialization view 안정 후에만 |
 | ⑧ | 발주서작성 preset/Agent/menu/lowering | ✓ | ⑤d~⑤j declared Building/sandbox 경로로 관찰 완료. COO 직접 구현 금지 원칙 유지 |
 | ⑨ | dogfood/골 closure | 부분 완료 | Building Call quick direct + order_authoring dogfood 관찰 완료. Route V2 view/checker 및 remaining gates 이후 parent closure |
@@ -450,9 +450,42 @@ proof limit: 통합 방향 승인은 support evidence only; green/dogfood 전 wa
 |---|---|---|---|---|
 | ⑥a | 정본 문서 | `route-v2-sealed-materialization-architecture.md` | ⑤와 병렬 가능, 문서 only | ✓ landed `47cf35a4b`; R0 evidence: `project/brick-protocol/status/kernel/route-v2-sealed-materialization-architecture.md` |
 | ⑥b | checker fence | `route_v2_sealed_materialization.yaml` + `fixtures/route_v2/**` | ⑥a 이후 병렬 가능, fixtures owner 하나 | ✓ landed `47cf35a4b`; declarative profile pins concern seal / gate-Movement separation / delta-QA facts |
-| ⑥c | read-only view builder | `brick_protocol/support/operator/route_v2_views.py` | ⑥a/⑥b schema 확정 후 | ☐ |
+| ⑥c | read-only view builder | `brick_protocol/support/operator/route_v2_views.py` + `check_route_v2_views.py` | ⑥a/⑥b schema 확정 후 | ✓ candidate green in sandbox worktree `/tmp/brick-route-v2-views-0708c`; landing pending |
 | ⑥d | route_materialization 확장 검토 | route_replay_plan view/provenance 확장 여부 | HOLD, human gate | ☐ |
 | ⑥e | walker integration | walker_kernel/walker_resume integration | HOLD, 최고위험 | ☐ |
+
+⑥c R2 read-only view builder candidate:
+
+```text
+worktree: /tmp/brick-route-v2-views-0708c
+surfaces:
+  - brick_protocol/support/operator/route_v2_views.py
+  - brick_protocol/support/checkers/check_route_v2_views.py
+  - brick_protocol/support/checkers/profiles/route_v2_sealed_materialization.yaml
+  - brick_protocol/support/checkers/check_profile.py
+  - brick_protocol/support/checkers/check_package_path_admission.py
+  - brick_protocol/support/checkers/module_registry.yaml
+  - brick_protocol/support/checkers/profiles/core.yaml
+observed behavior:
+  - implementation_gap renders a read-only materialization view over existing route_materialization.
+  - verification_gap remains non-reroute and not route-policy eligible.
+  - gate_state and movement_candidate are separate projection fields; no Movement is authored.
+  - delta-QA factual fields made_changes/changed_files/diff_refs/evidence_refs are preserved.
+  - forbidden success/quality/Movement/route_target keys are rejected.
+forbidden surfaces untouched:
+  - route_materialization.py
+  - walker_kernel.py / walker_resume.py
+  - brick_protocol/link/**
+  - brick_protocol/agent/return_fact.py
+  - route_scope.py / route_v2_engine.py
+proof:
+  - python3 -m compileall -q brick_protocol
+  - python3 brick_protocol/support/checkers/check_route_v2_views.py
+  - python3 brick_protocol/support/checkers/check_profile.py --profile route_v2_sealed_materialization
+  - python3 brick_protocol/support/checkers/check_profile.py --profile core
+proof limits:
+  support evidence only; not source truth, not success judgment, not quality judgment, not Movement authority, not walker integration approval.
+```
 
 ### 5.4 병렬 전략
 
