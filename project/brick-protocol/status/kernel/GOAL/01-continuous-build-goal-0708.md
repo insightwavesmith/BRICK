@@ -304,26 +304,87 @@ building_call_authoring_return_v1
 
 ---
 
-## ⑥ §T Phase 6~8 (route v2 + walker v2) — 최고위험
+## ⑥ Route V2 — sealed materialization / checker-first track
 
-원장 §S-v2 = §T Phase 6~7로 흡수. 출처 `BRICK_common_route_architecture_v2_existing_extension.md`.
+0708 추가 입력: `/Users/smith/Downloads/brick_route_v2_dev_implementation_architecture_v1.md`.
+이 문서는 Route V2를 새 라우터/새 route_scope/walker 수정으로 바로 구현하지 않고,
+기존 `transition_concern_evidence -> Link policy -> route_materialization -> route_replay_plan` 경로를
+봉인 enum과 gate/lifecycle 분리로 안전하게 정리하는 **checker-first 개발 아키텍처**로 재정위한다.
+
+현재 정본 관계:
 
 ```text
-P6 Common Route Policy (=§S 흡수)   brick_protocol/link/route_policy·default_common_route·default_targeted_repair
-P7 COO Disposition + HOLD 연결      brick_protocol/link/transition·walker_resume·walker_kernel = ★13모듈 SCC 접촉 (최고위험)
-P8 Checkers (10종)                  concern seal parity·blind pack partition·fake-landing preservation·
-                                    carry-forward basis·route_scope authority·no_dev_reroute_on_verification_gap 등
+Route V2 review prompt: project/brick-protocol/status/kernel/route-v2-review-prompt-0708.md (`c695f71ff`)
+Route V2 dev architecture input: /Users/smith/Downloads/brick_route_v2_dev_implementation_architecture_v1.md
+Route V2 implementation: HOLD until checker/doc/view slice closes and Smith/COO gate passes
 ```
 
-**순서 제약 (실측)**: P7이 walker_kernel(3053줄/26모듈 의존)/walker_resume 접촉 = arch 검수의 13모듈 SCC 한복판 → **개헌 이주 착지 후**가 안전선. walker v2는 checker green + human gate 후 최고위험 격리.
+### ⑥ 핵심 운영정책
 
-**§S-v2 4핀 (시공 입력 승계)**:
-1. 자동화 상한 낮음 — walker_fan_in 자인(data-dependency graph 부재) → 초기 목표 = Level 2(COO 승인 부분재실행), 전자동 아님.
-2. concern_kind = 봉인 8종 유지 + detail_code는 1급 승격 human gate.
-3. delta QA = verdict 은닉/factual 노출 + **머지 직전 빌딩은 full-QA 백스톱**.
-4. 개헌과 순서 = 개헌 착지 후.
+```text
+DO:
+- concern_kind 봉인 8종 유지
+- verification_gap non-reroute 유지
+- route_scope를 새 source truth로 만들지 않고 기존 route_replay_plan view/extension으로 표현
+- gate_state와 movement_candidate(forward|reroute|null)를 분리
+- delta QA에서도 made_changes/changed_files/diff_refs/evidence_refs 보존
+- checker-first로 진행
 
-**남은 시공검증(설계결함 아님)**: route_replay_plan 신규필드(live_retry_refs·automation_level·requires_coo_approval)를 route_materialization `_reject_forbidden_keys`가 unknown key로 막는지 = Phase 2에서 확인.
+DO NOT:
+- 새 concern_kind 추가
+- verification_gap reroute
+- hold를 Movement로 사용
+- brick_protocol/link/route_scope.py 신규 source truth 생성
+- walker_kernel.py / walker_resume.py / run.py / link/* / agent/return_fact.py small slice에서 수정
+- building_call track과 route track 섞기
+```
+
+### ⑥ 작업 페이즈
+
+| Phase | 이름 | 산출물 | 병렬성 | 상태 |
+|---|---|---|---|---|
+| ⑥a | 정본 문서 | `route-v2-sealed-materialization-architecture.md` — 금지선/봉인8종/non-reroute/gate-Movement 분리 | ⑤와 병렬 가능(문서 only, 별도 worktree 권장) | ☐ |
+| ⑥b | checker fence | `check_route_v2_concern_kind_seal.py`, `check_route_v2_gate_movement_shape.py`, `check_route_v2_delta_qa_fake_landing.py`, `check_route_v2_no_new_route_scope.py`, `check_route_v2_no_walker_touch.py` + fixtures | ⑥a 이후 병렬 가능하나 한 lane이 fixtures를 소유 | ☐ |
+| ⑥c | read-only view builder | `brick_protocol/support/operator/route_v2_views.py` — route_gate_packet_v2 / route_materialization_view_v2, no Movement authority | ⑥a/⑥b schema 확정 후 가능 | ☐ |
+| ⑥d | route_materialization 확장 검토 | existing route_replay_plan view/provenance 확장 여부 | HOLD, human gate 필요 | ☐ |
+| ⑥e | walker integration | walker_kernel/walker_resume integration | HOLD, 최고위험, checker green + human gate 후 | ☐ |
+
+### 병렬 진행 판단
+
+현재 ⑤ `building-call-v11-cleanup-first-0708a`가 같은 main worktree에서 실행 중이므로, ⑥를 병렬로 굴리려면 **별도 worktree/별도 building root**가 안전하다.
+
+```text
+병렬 가능:
+- ⑥a 문서 정본 lane: project/brick-protocol/status/kernel/* only
+- ⑥b checker lane: brick_protocol/support/checkers/check_route_v2_* + fixtures/route_v2/* only
+- ⑥c view-builder lane: brick_protocol/support/operator/route_v2_views.py only (⑥a/⑥b schema 확정 뒤)
+
+직렬/HOLD:
+- route_materialization.py 변경
+- walker_kernel.py / walker_resume.py 변경
+- link/* / agent/return_fact.py 변경
+```
+
+### ⑥a~⑥c 병렬 발사 후보
+
+```text
+Lane R0 — Route V2 canonical doc
+write_scope:
+  - project/brick-protocol/status/kernel/route-v2-sealed-materialization-architecture.md
+
+Lane R1 — Route V2 checker fence
+write_scope:
+  - brick_protocol/support/checkers/check_route_v2_*.py
+  - brick_protocol/support/checkers/fixtures/route_v2/**
+
+Lane R2 — Route V2 view builder
+write_scope:
+  - brick_protocol/support/operator/route_v2_views.py
+condition:
+  - R0/R1 schema names fixed first, or R2 uses only documented schema from dev architecture v1
+```
+
+**판정**: ⑥는 지금 구현 전체 FORWARD가 아니라 `⑥a/⑥b` checker/doc slice만 FORWARD. `⑥c`는 R0/R1 schema 확정 후 FORWARD. `⑥d/⑥e`는 HOLD.
 
 ---
 
