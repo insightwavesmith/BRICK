@@ -652,7 +652,7 @@ project-creation already exists: brick_protocol/agent/skills/project-creation/SK
 | ⑩d | skills ship-copy 정리 | `project/brick-protocol/status/kernel/skills-ship-copy-drift-map-0709.md` | docs-only drift map done | ✓ map prepared: common 7, identical 5, real drift candidate `building-coordination`, checker/pin overlay candidate `building-sizing-method`, agent-only maybe-ship candidates recorded, `.DS_Store` residue observed |
 | ⑩e | COO 발주 스킬체인 정합 | `project/brick-protocol/status/kernel/coo-order-chain-consistency-0709.md` | docs-only consistency map done | ✓ map prepared: Quick Path policy aligned across brick-task-author/building-call-authoring/building_call.py/building_call_menus.py; watch items recorded for building-coordination ship-copy drift, brick-task-author selected_* example context, building-sizing-method checker overlay |
 | ⑩f | customer UX layer | `project/brick-protocol/status/kernel/customer-ux-layer-design-0709.md` | design produced | ◐ design doc landed; core gap = missing `brick project`/`brick progress` CLI tie over existing create_project/progress_projection; implementation pending declared Building |
-| ⑩g | `project/brick-protocol` dogfood vessel 분리 | dogfood evidence/status vessel separation plan and migration | Building 대 + human gate | ⑤/⑥/⑩f 이후. active GOAL/status/inbox가 여기 있으므로 즉시 이동/삭제 금지 |
+| ⑩g | `project/brick-protocol` dogfood vessel 분리 | `project/brick-protocol/status/kernel/dogfood-vessel-separation-human-gate-0709.md` | human gate packet produced | ◐ recommends Option A KEEP+clarify; no move/delete/archive; migration remains HOLD until Smith chooses |
 
 ⑩a cleanup scope / invariants — 2026-07-09 KST:
 
@@ -696,7 +696,7 @@ doc: project/brick-protocol/status/kernel/coo-order-chain-consistency-0709.md
 observed aligned policy: direct_preset escape hatch only for quick_check/quick_fix with direct_preset_admission + fast_confirm; order_authoring default; human_gate_first for critical/destructive/credential/high-impact cases.
 positive surfaces: brick-task-author source+ship-copy, building-call-authoring source, building_call.py, building_call_authoring.py, building_call_menus.py.
 watch items: building-coordination ship-copy drift; brick-task-author selected_* example context needs focused classification; building-sizing-method template checker overlay must not be blind-synced.
-next cleanup candidate: cleanup-10e-order-chain-consistency-0709a Building, ⑩f customer UX design, or ⑩g dogfood vessel separation human-gate packet.
+next cleanup candidate: ⑩f implementation Building, ⑩g Smith decision record, or optional cleanup-10e-order-chain-consistency-0709a Building.
 proof limit: support evidence only; no skill/prompt/hook/projection changed.
 ```
 
@@ -709,7 +709,7 @@ measured surface: brick_protocol/brick/building_plans/ has 4 fixture/example pla
 reason: current refs from package path admission, building_plans_boundary_sweep, core/link_routing_behavioral/building_operator_driver0 profiles, onboarding/quickstart docs, onboard.py, run.py, coo_operating_chain.py, and orchestration_packet.py make this path load-bearing.
 forbidden shortcut: no simple git mv under templates; no delete/archive now.
 future migration: declared Building only, with reader/checker/admission/profile/docs migration and clean detached --all proof.
-remaining_delta: ⑩f customer UX layer; ⑩g dogfood vessel separation; optional ⑩e repair candidate.
+remaining_delta: ⑩f implementation Building; ⑩g Smith decision; ⑥e/⑦ route-walker implementation/proof; optional ⑩e repair candidate.
 ```
 
 ⑩f customer UX layer design — 2026-07-09 KST:
@@ -723,6 +723,18 @@ design: thin CLI tie only (subcommand -> existing support verb, no vessel/board 
 checker plan: CLI orchestrator purity, non-TTY stamp safety, progress read-only, secret masking, keep project_declaration/intake_project_vessel green.
 implementation state: pending declared design-build Building in worktree sandbox; no code changed.
 still not proven: ⑩f CLI code, charter-fill prompt-level UX, build->progress auto-refresh decision, 0618 first-green funnel impl status.
+```
+
+⑩g dogfood vessel separation human-gate packet — 2026-07-09 KST:
+
+```text
+doc: project/brick-protocol/status/kernel/dogfood-vessel-separation-human-gate-0709.md
+live vessel facts: project/brick-protocol has README.md + project.json + PROGRESS.md, 58 building roots, 94 status/kernel files, and 929 status/inbox event files.
+classification: active declared dogfood vessel, not product/source root and not stray clutter.
+recommended gate choice: Option A KEEP + clarify wording only; no filesystem migration now.
+forbidden shortcut: no move/delete/archive while active GOAL/status/building/inbox evidence lives here.
+other options: Option B design split map only; Option C high-risk migration Building only after explicit approval; Option D delete/archive rejected.
+state: held_for_human_gate; Smith decision required to close ⑩g as KEEP or open a future split/migration Building.
 ```
 
 ### 7.4 direct preset vs Building 판정 규칙
@@ -795,7 +807,7 @@ Then:
 ⑩b blocks retained/archive/superseded map — done at `project/brick-protocol/status/kernel/blocks-retained-map-0709.md` (8 retained, 0 archive/supersede/delete)
 ⑩d skills ship-copy drift map — done at `project/brick-protocol/status/kernel/skills-ship-copy-drift-map-0709.md`
 ⑩e COO order-chain consistency map — done at `project/brick-protocol/status/kernel/coo-order-chain-consistency-0709.md`
-⑩c building_plans decision — done at `project/brick-protocol/status/kernel/building-plans-location-decision-0709.md` (KEEP for now; no move/delete/archive). ⑩f customer UX design — done at `project/brick-protocol/status/kernel/customer-ux-layer-design-0709.md` (core gap = missing brick project/progress CLI tie; implementation pending). Remaining: ⑩f implementation Building, ⑩g dogfood vessel separation (human gate), optional cleanup-10e-order-chain-consistency-0709a
+⑩c building_plans decision — done at `project/brick-protocol/status/kernel/building-plans-location-decision-0709.md` (KEEP for now; no move/delete/archive). ⑩f customer UX design — done at `project/brick-protocol/status/kernel/customer-ux-layer-design-0709.md` (core gap = missing brick project/progress CLI tie; implementation pending). ⑩g dogfood vessel separation packet — done at `project/brick-protocol/status/kernel/dogfood-vessel-separation-human-gate-0709.md` (recommended Option A KEEP+clarify; held_for_human_gate). Remaining: ⑩f implementation Building, ⑩g Smith decision, ⑥e/⑦ route-walker implementation/proof, optional cleanup-10e-order-chain-consistency-0709a
 ⑥d route_materialization review — done at `project/brick-protocol/status/kernel/route-v2-6d-materialization-review-0709.md` (no code change needed); ⑥e walker integration design produced at `project/brick-protocol/status/kernel/route-v2-6e-walker-integration-design-0709.md`; implementation remains HOLD pending explicit declared Building/proof
 ```
 
