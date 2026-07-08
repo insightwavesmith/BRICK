@@ -221,7 +221,7 @@ STEP 5. 에이전트 선택(agent + strength)
 | ⑤d | 메뉴/API | `building_call_menus.py`, brick/agent-role/intensity/strength/graph motif menu | 수습 완료 예정: 이번 direct 예외 slice로만 마감, 이후 실무는 Building-only |
 | ⑤e | 발주서작성 preset/Brick/Agent | `building-call-authoring` preset, 전용 Brick/return, 발주서 전용 Agent skill(prompt) | landed candidate: repair-2 green, 착지/푸시 검증 중 |
 | ⑤f | authoring module | `building_call_authoring.py`, `building_call_authoring_return_v1`, 순서 위반 checker | ✓ pushed `298b28a86`, clean --all green |
-| ⑤g | lowering layer | `building_call.py`, `building_call_cases.yaml`, confirmed-only lowering, provenance | agent_incomplete: `building-call-lowering-0708g` work step returned, QA `adapter:claude-local`/`model:claude:sonnet` exited 143; not landed |
+| ⑤g | lowering layer | `building_call.py`, fixture cases, confirmed-only lowering, provenance | ✓ landed candidate from `building-call-lowering-0708g` WIP; clean review worktree `--all` green before main landing |
 | ⑤h | direct escape hatch | triage/admission/fast_confirm, quick_fix/quick_check만 direct | ☐ |
 | ⑤i | docs/skill examples | brick-task-author/building-call Quick Path, 4개 worked examples, 메뉴얼 규칙 | ☐ |
 | ⑤j | dogfood | quick_check direct, quick_fix direct, order_authoring path 각 1회 증거 | ☐ |
@@ -323,9 +323,11 @@ constitution-active-roots-0708g:
   disposition candidate: reroute QA/relaunch through a working adapter/model lane; do not patch BRICK-CONSTITUTION.md directly as COO.
 
 building-call-lowering-0708g:
-  frontier: agent_incomplete
-  adapter error: code-attack-qa used adapter:claude-local + model:claude:sonnet, dispatched claude-sonnet-5, local_cli_nonzero, return_code=143.
-  disposition candidate: reroute QA over the existing sandbox output or relaunch ⑤g with a working adapter/model lane; do not land lowering changes until QA/gate evidence returns.
+  frontier: agent_incomplete on original Building because code-attack-qa used adapter:claude-local + model:claude:sonnet, dispatched claude-sonnet-5, local_cli_nonzero, return_code=143.
+  WIP anchor: refs/brick/wip/building-call-lowering-0708g @ 792a4c34bc3cc298944286bc35bcc1bb8cb6caee.
+  COO disposition: WIP anchor was applied to a clean detached review worktree on top of current HEAD; stale GOAL conflict was discarded; code/checker surfaces were verified independently.
+  landing proof before main commit: compileall OK, git diff --check OK, building_call_lowering / building_call_authoring / building_call_menus / structure_template_integrity focused profiles green, and check_profile.py --all rc=0 in /tmp/brick-review-lowering-73593.
+  proof limit: this lands the ⑤g lowering support surface; it does not prove ⑤h direct escape hatch, ⑤i docs/examples, ⑤j dogfood, future request semantic fitness, source truth, success, quality, or Movement authority.
 ```
 
 ⑤f authoring module Building slice:

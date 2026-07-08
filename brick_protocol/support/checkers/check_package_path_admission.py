@@ -516,6 +516,16 @@ BUILDING_CALL_AUTHORING0_FIXTURES = {
     "brick_protocol/support/checkers/fixtures/building_call_authoring/negative_sequence_violation.json",
 }
 
+BUILDING_CALL_LOWERING0_TARGETS = {
+    "brick_protocol/support/operator/building_call.py",
+}
+
+BUILDING_CALL_LOWERING0_FIXTURES = {
+    "brick_protocol/support/checkers/fixtures/building_call_lowering/positive_confirmed_request.json",
+    "brick_protocol/support/checkers/fixtures/building_call_lowering/negative_draft_request.json",
+    "brick_protocol/support/checkers/fixtures/building_call_lowering/negative_held_for_coo_review.json",
+}
+
 # anchoring-defense (#draft-diff): the draft->launched flip diff surface. Pure
 # support operator mechanics: it reads two graph-decl files, splits shape-flip vs
 # casting-flip aggregates, appends an append-only flip ledger under <brick_home>,
@@ -882,6 +892,7 @@ ALLOWED_DIRS = {
     # (work_contract_template.md) moved to archive/docs-templates/.
     "brick_protocol/support/checkers/fixtures",
     "brick_protocol/support/checkers/fixtures/building_call_authoring",
+    "brick_protocol/support/checkers/fixtures/building_call_lowering",
     "brick_protocol/support/checkers/fixtures/plan_expansion",
     "brick_protocol/support/checkers/fixtures/route_v2",
     "brick_protocol/support/connection",
@@ -2130,6 +2141,12 @@ def allowed_path(path: str) -> bool:
         return True
 
     if clean in BUILDING_CALL_AUTHORING0_FIXTURES:
+        return True
+
+    if clean in BUILDING_CALL_LOWERING0_TARGETS:
+        return True
+
+    if clean in BUILDING_CALL_LOWERING0_FIXTURES:
         return True
 
     if clean in DRAFT_DIFF0_TARGETS:

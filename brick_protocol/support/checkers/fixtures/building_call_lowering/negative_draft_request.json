@@ -1,0 +1,8 @@
+{
+  "building_case": "standard_delivery",
+  "confirmation_state": "draft",
+  "kind": "draft_building_call_request_v1_1",
+  "not_lowered_reason": "This fixture must be rejected because only confirmed_building_call_request_v1_1 lowers.",
+  "roster_variant": "default",
+  "task_statement": "Draft Building Call requests are authoring evidence only.\n"
+}

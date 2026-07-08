@@ -1,0 +1,9 @@
+{
+  "building_case": "order_authoring",
+  "confirmation_state": "confirmed",
+  "gate_state": "held_for_coo_review",
+  "kind": "confirmed_building_call_request_v1_1",
+  "not_lowered_reason": "This fixture must be rejected because held_for_coo_review is not confirmed lowering input.",
+  "roster_variant": "default",
+  "task_statement": "Held Building Call requests require COO disposition before lowering.\n"
+}

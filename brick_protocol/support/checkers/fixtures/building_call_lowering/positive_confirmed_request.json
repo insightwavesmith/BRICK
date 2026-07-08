@@ -1,0 +1,23 @@
+{
+  "building_case": "standard_delivery",
+  "confirmation_state": "confirmed",
+  "declared_by": "coo:building-call-lowering-checker",
+  "kind": "confirmed_building_call_request_v1_1",
+  "roster_overrides": [
+    {
+      "casting_lens_ref": "casting-lens:review",
+      "casting_tier_ref": "casting-tier:light",
+      "step_template_ref": "building-step-template:review"
+    }
+  ],
+  "roster_variant": "deep_work",
+  "task_statement": "Implement a fixture-backed confirmed Building Call lowering probe.\n",
+  "write_scope": {
+    "allowed_paths": [
+      "brick_protocol/support/operator/building_call.py"
+    ],
+    "forbidden_paths": [
+      ".git/**"
+    ]
+  }
+}

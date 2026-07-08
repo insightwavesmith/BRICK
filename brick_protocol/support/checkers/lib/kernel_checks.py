@@ -327,6 +327,92 @@ def run_building_call_authoring_contract(repo: Path) -> KernelResult:
     )
 
 
+def run_building_call_lowering_contract(repo: Path) -> KernelResult:
+    """Validate ⑤g confirmed-only Building Call lowering fixtures."""
+
+    from brick_protocol.support.operator.building_call import (
+        BuildingCallLoweringError,
+        building_call_lowering_v1,
+        render_building_call_lowering_cases,
+        validate_building_call_lowering_request,
+    )
+
+    fixture_root = repo / "brick_protocol/support/checkers/fixtures/building_call_lowering"
+    positive = json.loads((fixture_root / "positive_confirmed_request.json").read_text(encoding="utf-8"))
+    draft = json.loads((fixture_root / "negative_draft_request.json").read_text(encoding="utf-8"))
+    held = json.loads((fixture_root / "negative_held_for_coo_review.json").read_text(encoding="utf-8"))
+
+    lowered = building_call_lowering_v1(positive)
+    intent = lowered.get("lowered_intent")
+    if not isinstance(intent, Mapping):
+        raise ProfileError("building_call_lowering_contract: lowered_intent missing")
+    if intent.get("chain_preset_ref") != "building-chain-preset:app-feature-inspected":
+        raise ProfileError("building_call_lowering_contract: building_case did not lower to expected preset")
+    if "step_selection_overrides" not in intent:
+        raise ProfileError("building_call_lowering_contract: roster variant/override did not lower")
+    overrides = intent["step_selection_overrides"]
+    if not isinstance(overrides, Mapping):
+        raise ProfileError("building_call_lowering_contract: step_selection_overrides not a mapping")
+    work_row = overrides.get("building-step-template:work")
+    review_row = overrides.get("building-step-template:review")
+    if not isinstance(work_row, Mapping) or work_row.get("casting_tier_ref") != "casting-tier:deep":
+        raise ProfileError("building_call_lowering_contract: deep_work variant did not lower")
+    if not isinstance(review_row, Mapping) or review_row.get("casting_tier_ref") != "casting-tier:light":
+        raise ProfileError("building_call_lowering_contract: explicit roster override did not lower")
+    if "selected_adapter_ref" in review_row or "selected_model_ref" in review_row:
+        raise ProfileError("building_call_lowering_contract: concrete selected_* leaked into step override")
+    provenance = lowered.get("selected_casting_provenance")
+    if not isinstance(provenance, Mapping) or provenance.get("roster_variant") != "deep_work":
+        raise ProfileError("building_call_lowering_contract: selected_casting_provenance missing")
+
+    draft_violations = validate_building_call_lowering_request(draft)
+    if not any("kind must be confirmed_building_call_request_v1_1" in item for item in draft_violations):
+        raise ProfileError("building_call_lowering_contract: draft fixture did not trip kind guard")
+    if not any("confirmation_state must be confirmed" in item for item in draft_violations):
+        raise ProfileError("building_call_lowering_contract: draft fixture did not trip confirmation guard")
+    try:
+        building_call_lowering_v1(draft)
+    except BuildingCallLoweringError:
+        pass
+    else:
+        raise ProfileError("building_call_lowering_contract: draft fixture normalization did not fail closed")
+
+    held_violations = validate_building_call_lowering_request(held)
+    if not any("held_for_coo_review requests must not be lowered" in item for item in held_violations):
+        raise ProfileError("building_call_lowering_contract: held fixture did not trip hold guard")
+
+    selected_exposure = dict(positive)
+    selected_exposure["roster_overrides"] = [
+        {
+            "step_template_ref": "building-step-template:work",
+            "selected_adapter_ref": "adapter:codex-local",
+        }
+    ]
+    selected_violations = validate_building_call_lowering_request(selected_exposure)
+    if not any("observed selected_adapter_ref" in item for item in selected_violations):
+        raise ProfileError("building_call_lowering_contract: selected_* roster override was accepted")
+
+    launch_probe = dict(positive)
+    launch_probe["movement_choice"] = "forward"
+    launch_violations = validate_building_call_lowering_request(launch_probe)
+    if not any("forbidden request field(s): movement_choice" in item for item in launch_violations):
+        raise ProfileError("building_call_lowering_contract: movement field probe was accepted")
+
+    cases = render_building_call_lowering_cases()
+    case_map = cases.get("building_case_to_chain_preset_ref")
+    if not isinstance(case_map, Mapping) or case_map.get("order_authoring") != "building-chain-preset:building-call-authoring":
+        raise ProfileError("building_call_lowering_contract: case table render drifted")
+
+    return KernelResult(
+        check_id="building_call_lowering_contract",
+        inspected=7,
+        output=(
+            "confirmed fixture lowered; draft and held fixtures rejected; selected_* "
+            "override and movement field probes rejected"
+        ),
+    )
+
+
 
 
 
