@@ -1,0 +1,240 @@
+schema: checker-profile/v1
+profile_id: building-skill-preset-intake-adapter-gate
+description: Staging copy slice for BUILDING-SKILL-PRESET-AGENT-TOOL-HARDENING-0 task intake, adapter ask-shape, and Link gate seam assertions.
+kernel_checks:
+  - package_path_admission
+  - axis_contract_projection
+  - building_lifecycle_path_shape
+path_exists:
+  - brick_protocol/brick/templates/tasks/source-template.md
+  - brick_protocol/agent/prompts/coo.md
+  - brick_protocol/agent/skills/building-coordination/SKILL.md
+  - brick_protocol/agent/skills/task_intake/SKILL.md
+  - brick_protocol/support/operator/run.py
+  - brick_protocol/support/operator/driver.py
+  - brick_protocol/support/operator/building_operation.py
+  - brick_protocol/support/operator/plan_validation.py
+  - brick_protocol/support/checkers/check_profile.py
+text_contains:
+  - path: brick_protocol/agent/prompts/coo.md
+    texts:
+      - MOVEMENT-BINARY-0 as the active Link language
+      - Building-intake trigger
+      - task_source_draft
+      - task-source confirmed first
+      - route_family_candidate
+      - graph_movement_case_analysis
+      - fan_in_first_candidate
+      - Slack is the payload
+      - Partial QA reuse remains
+  - path: brick_protocol/agent/skills/building-coordination/SKILL.md
+    texts:
+      - use the active MOVEMENT-BINARY-0 language
+      - Building trigger rule
+      - Run `task_intake` as the first active work step
+      - Confirm `task_source_draft`
+      - support records `work/task.md` as declaration evidence
+      - Builder materializer handoff
+      - graph_movement_case_analysis
+      - fan_in_first_candidate
+      - partial QA reuse remains not_proven
+  - path: brick_protocol/agent/skills/task_intake/SKILL.md
+    texts:
+      - route_family_candidate
+      - preset_vs_manual_candidate
+      - preset_vs_manual_case_analysis
+      - manual_graph_candidate
+      - graph_movement_case_analysis
+      - fan_out_candidate
+      - fan_in_first_candidate
+      - reroute_replay_readiness_questions
+      - declared_boundary_candidate_refs
+      - route_policy_candidate_refs
+      - route_replay_plan_candidate_refs
+      - claim partial QA reuse is valid without consumed_input_refs
+  - path: brick_protocol/support/operator/plan_validation.py
+    texts:
+      - evidence_used.repository_artifact_ref
+      - evidence_refs.repository_artifact_ref
+  - path: brick_protocol/support/operator/run.py
+    texts:
+      - validate_agent_refs
+      - Agent Object resource rejected by Agent resource resolver
+  - path: brick_protocol/support/checkers/check_profile.py
+    texts:
+      - adapter_gate_shape_union_case
+      - building_intake_seam_case
+      - run_once_task_source_admission_case
+text_absent:
+  - path: brick_protocol/agent/prompts/coo.md
+    texts:
+      - Until MOVEMENT-BINARY-0 is implemented
+      - Open or point to a real Brick-owned Building Plan before changing protocol
+      - Choose the Building shape by work type
+  - path: brick_protocol/agent/skills/building-coordination/SKILL.md
+    texts:
+      - until MOVEMENT-BINARY-0 is implemented
+      - Name the Brick work contract and the Building Plan before resource changes.
+      - QA branch cannot route
+      - branch cannot reroute
+      - closure-synthesis means final close
+      - partial QA reuse without consumed_input_refs
+preset_building_completion_case:
+  - label: all-current-presets-slack-alert
+    task_source_ref: brick_protocol/brick/templates/tasks/slack-alert-all-presets-task.md
+    selected_adapter_ref: adapter:codex-local
+    selected_model_ref: model:default
+    write_scope:
+      allowed_paths:
+        - brick_protocol/support/operator/**
+        - brick_protocol/support/checkers/**
+        - project/brick-protocol/status/kernel/**
+      forbidden_paths:
+        - .git/**
+        - .claude/**
+    # GATE-WIRING (0610): the route_decision_basis is the CALLER-declared
+    # disposition fact set for these fixture walks. The 6 review-gated presets'
+    # closure rows now carry REAL [coo, human] gates, so the basis declares BOTH
+    # the COO override and the human disposition -- this case is the standing
+    # no-over-block guard: every preset must still COMPLETE once the declared
+    # dispositions exist (and _assert_no_missing_gate_facts keeps every wired
+    # gate, including strict on QA rows, fully satisfied -- not decorative).
+    route_decision_basis:
+      override_refs:
+        - coo:all-presets-completion-smoke
+      human_review_refs:
+        - human-review:all-presets-completion-smoke
+    expected_preset_count: 29
+    expected_frontier_kind: complete
+    expected_portfolio_frontier_kind: complete
+    expected_preset_refs:
+      - building-chain-preset:app-feature-basic
+      - building-chain-preset:app-feature-inspected
+      - building-chain-preset:brick-protocol-constitution-change
+      - building-chain-preset:brick-protocol-dashboard-dev-basic
+      - building-chain-preset:brick-protocol-dashboard-dev-inspected
+      - building-chain-preset:brick-protocol-engine-feature-hard
+      - building-chain-preset:brick-protocol-portfolio-driver
+      - building-chain-preset:brick-protocol-post-d-cleanup
+      - building-chain-preset:design-build-parallel
+      - building-chain-preset:design-contract-only
+      - building-chain-preset:docs-simple-review
+      - building-chain-preset:fast-fix
+      - building-chain-preset:four-llm-standard-graph
+      - building-chain-preset:governed-change-review
+      - building-chain-preset:high-risk-change-inspected
+      - building-chain-preset:onboarding-example-graph
+      - building-chain-preset:one-brick-do
+      - building-chain-preset:portfolio-reviewed
+      - building-chain-preset:portfolio-sequence
+      - building-chain-preset:postmortem
+      - building-chain-preset:postmortem-fleet
+      - building-chain-preset:quick-check
+      - building-chain-preset:recon-fleet
+      - building-chain-preset:recon-fleet-light
+      - building-chain-preset:repair-loop
+      - building-chain-preset:research-report
+      - building-chain-preset:review-fleet
+      - building-chain-preset:triage-fanout-3
+      - building-chain-preset:two-fan-in-graph
+adapter_gate_shape_union_case:
+  - label: legacy-underask-row-gets-gate-union
+    task_source_ref: brick_protocol/brick/templates/tasks/source-template.md
+    chain_preset_ref: building-chain-preset:design-contract-only
+    target_step_index: 0
+    drop_field: observed_evidence
+    expected_request_labels: "design_summary, relevant_current_structure, proposed_changes, unchanged_surfaces, axis_responsibility, invariants, edge_cases, checker_or_verifier_plan, candidate_file_changes, evidence_refs, not_proven, reading_scope_map, observed_evidence"
+    passthrough_step_index: 1
+building_intake_seam_case:
+  # TASK-BY-TEXT (0611, Smith ruling; codex FIX-A): humans SPEAK tasks; the
+  # machine records them as building evidence. An intent with task_statement
+  # (inline text, NO task_source_ref) must complete through the SAME seam,
+  # land the statement VERBATIM as the building's work/task.md, record
+  # task_source_basis == task_statement, and create NO repo-root
+  # task-statement file AT ANY POINT (the runner probes the repo-root glob
+  # DURING the run from inside the seam callable -- a regression back to the
+  # retired transient ephemeral-file mechanism REDs mid-walk, not just
+  # after). The persisted declared plan must CARRY the statement
+  # (task_source_ref == task-source:inline-statement + task_statement body)
+  # and REPLAYING that plan file must reproduce work/task.md verbatim (codex
+  # Vector C). The runner also FIREs the fail-closed set: BOTH sources ->
+  # reject with the EITHER/OR message; empty task_statement -> reject;
+  # oversize (>64KiB) statement -> reject; and FIX-IDEMPOTENCY -- with
+  # building_id absent the default id is a STABLE hash of (statement +
+  # preset): same pair -> same id (retry collides loudly on the existing
+  # root), different statement -> different id.
+  - label: building-intake-seam-task-statement
+    task_statement: "온보딩 화면의 환영 문구를 한 줄로 다듬어 주세요. 맥락: 첫 화면이 너무 딱딱하다는 피드백."
+    chain_preset_ref: building-chain-preset:governed-change-review
+    # C4 (0615): governed-change-review's QA bricks (axis-attack-qa,
+    # code-attack-qa) now declare a write NEED, so the intent carries a broad
+    # work-area write_scope and drives adapter:codex-local through the existing
+    # command_runner sentinel (no real CLI). The W1 worktree sandboxes the
+    # work-area write; .git/secret/token stay UNCONDITIONALLY forbidden by
+    # write_observation.py regardless of allowed_paths.
+    selected_adapter_ref: adapter:codex-local
+    write_scope:
+      allowed_paths:
+        - "**"
+      forbidden_paths:
+        - ".git/**"
+    expected_plan_shape: graph
+    expected_walker_mode: dynamic
+    expected_frontier_kind: complete
+    route_decision_basis:
+      override_refs:
+        - coo:intake-seam-task-statement-override
+      human_review_refs:
+        - human-review:intake-seam-task-statement-disposition
+    no_preset_chain_preset_ref: building-chain-preset:this-preset-is-not-in-the-registry
+  - label: building-intake-seam-graph-preferred-gemini
+    task_source_ref: brick_protocol/brick/templates/tasks/source-template.md
+    chain_preset_ref: building-chain-preset:onboarding-example-graph
+    selected_adapter_ref: adapter:gemini-local
+    expected_plan_shape: graph
+    expected_walker_mode: dynamic
+    expected_frontier_kind: complete
+    no_preset_chain_preset_ref: building-chain-preset:this-preset-is-not-in-the-registry
+  - label: building-intake-seam-human-gate-hold
+    task_source_ref: brick_protocol/brick/templates/tasks/source-template.md
+    chain_preset_ref: building-chain-preset:governed-change-review
+    selected_adapter_ref: adapter:codex-local
+    write_scope:
+      allowed_paths:
+        - "**"
+      forbidden_paths:
+        - ".git/**"
+    expected_plan_shape: graph
+    expected_walker_mode: dynamic
+    expected_frontier_kind: link_paused
+    expected_required_disposition_owner: caller-or-coo
+    expected_missing_required_fact: Link.route_decision_basis.human_review_refs
+    route_decision_basis:
+      override_refs:
+        - coo:intake-seam-checker-override
+    no_preset_chain_preset_ref: building-chain-preset:this-preset-is-not-in-the-registry
+run_once_task_source_admission_case:
+  - label: once-task-source-admission
+    missing_task_source_ref: brick_protocol/brick/templates/tasks/this-once-task-source-does-not-exist.md
+    valid_task_source_ref: brick_protocol/brick/templates/tasks/source-template.md
+intake_project_vessel_case:
+  - label: intake-project-ref-lands-in-vessel
+    vessel_id: intake-project-vessel-case-fixture
+    chain_preset_ref: building-chain-preset:governed-change-review
+    task_statement: "체커 픽스처: project_ref 가 선언된 intake 가 해당 동네(project/<id>/buildings)에 빌딩을 만든다."
+    route_decision_basis:
+      override_refs:
+        - coo:intake-project-vessel-case-override
+      human_review_refs:
+        - human-review:intake-project-vessel-case-disposition
+proof_limits:
+  - support evidence only
+  - staging copies only; original profile remains intact
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - complete intake and gate profile diet
+  - provider login/session quality
+  - semantic correctness of future Agent transition concerns

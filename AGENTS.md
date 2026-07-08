@@ -44,7 +44,7 @@ Support is not a fourth axis.
 
 Runtime, engine, storage, wiki, docs, tests, checkers, memory, tools, Claude,
 Gemini, Codex, generated output, dashboards, reporters, projections, and
-project records are support/evidence/projection surfaces only. They must not
+project records are brick_protocol/support/evidence/projection surfaces only. They must not
 become source truth, success judgment, quality judgment, Movement authority,
 target selector, route inventor, or fourth axis.
 
@@ -52,8 +52,8 @@ Current public run relationship:
 
 ```text
 Building Plan defines the road.
-support/operator/run.py walks one Building road.
-support/operator/driver.py walks declared multi-Building portfolios only.
+brick_protocol/support/operator/run.py walks one Building road.
+brick_protocol/support/operator/driver.py walks declared multi-Building portfolios only.
 Agent Object defines the performer.
 Agent Adapter connects the brain.
 Link owns Movement.
@@ -76,24 +76,24 @@ scheduler/queue/retry runtime ownership.
 Active physical roots:
 
 ```text
-brick/    = Brick axis physical surface
-agent/    = Agent axis physical surface
-link/     = Link axis physical surface
-support/  = support machine location only
+brick_protocol/brick/    = Brick axis physical surface
+brick_protocol/agent/    = Agent axis physical surface
+brick_protocol/link/     = Link axis physical surface
+brick_protocol/support/  = support machine location only
 project/  = project-local evidence / status destination only
 ```
 
-The Python import identity router lives under
-`support/import_identity/brick_protocol/`. Root-level `brick_protocol/` is not
-an active root. The namespace remains `brick_protocol`.
+The Python package root is now the physical `brick_protocol/` tree.
+The namespace remains `brick_protocol`; legacy top-level `brick/`, `agent/`,
+`link/`, and `support/` roots are no longer active import roots.
 
 Active path rebases:
 
 ```text
-docs/              -> support/docs/
+docs/              -> brick_protocol/support/docs/
 .status/           -> project/brick-protocol/status/
-support/status/    -> project/brick-protocol/status/
-tests/checkers/    -> support/checkers/
+brick_protocol/support/status/    -> project/brick-protocol/status/
+tests/checkers/    -> brick_protocol/support/checkers/
 building-evidence/ -> project/brick-protocol/building-evidence/
 ```
 
@@ -104,20 +104,20 @@ status/control references use `project/brick-protocol/status/`.
 
 Brick owns work contracts, Building Plans, Building templates, required return
 shape, comparison facts, and work composition. Active Brick surfaces include
-`brick/work.py`, `brick/building.py`, `brick/comparison.py`,
-`brick/templates/**`, and `brick/building_plans/**`.
+`brick_protocol/brick/work.py`, `brick_protocol/brick/building.py`, `brick_protocol/brick/comparison.py`,
+`brick_protocol/brick/templates/**`, and `brick_protocol/brick/building_plans/**`.
 
 Current template catalog:
 
 ```text
-brick/templates/shapes/catalog.yaml
-brick/templates/shapes/shapes.yaml
-brick/templates/presets/*.md
+brick_protocol/brick/templates/shapes/catalog.yaml
+brick_protocol/brick/templates/shapes/shapes.yaml
+brick_protocol/brick/templates/presets/*.md
 ```
 
 `development` is CTO assignment planning and writes no code. `work` is the
 coding Brick and requires a dev lane write-scope NEED. `step_template_ref` is a
-legacy-named key resolving to `brick/templates/bricks/<kind>/brick.md`.
+legacy-named key resolving to `brick_protocol/brick/templates/bricks/<kind>/brick.md`.
 
 P7 admits the matrix direction as current post-D operating policy:
 
@@ -127,7 +127,7 @@ plan/design shaping is reserved for ambiguity, portfolio split, or admission ris
 Codex builder, Opus attack-review, and Gemini broad-review are routing hints
 parallel attack-QA is Building work, not reviewer judgment authority
 fan-in-wait-all -> declared graph fan-in observation/frontier
-portfolio-policy -> support/operator/driver.py declared portfolio policy
+portfolio-policy -> brick_protocol/support/operator/driver.py declared portfolio policy
 ```
 
 ## Agent Axis
@@ -161,7 +161,7 @@ preferred_reasoning_effort_ref
 
 `hook_refs` are advisory intents only; registry entries carry
 `execution_opened: false`. Executing hooks are machine config wired by
-`support/operator/onboard.py --recording`, not by Agent-axis records.
+`brick_protocol/support/operator/onboard.py --recording`, not by Agent-axis records.
 
 Current Agent Object roles:
 
@@ -204,11 +204,11 @@ Model-specific adapter refs are not admitted.
 Projection sync terms:
 
 ```text
-sync-out = agent/ -> rendered projection seed -> exact provider-native projection file
+sync-out = brick_protocol/agent/ -> rendered projection seed -> exact provider-native projection file
 sync-in observation = provider-native projection file -> hash / presence / field observation -> drift evidence
 ```
 
-Sync-in observation must not automatically write `agent/`.
+Sync-in observation must not automatically write `brick_protocol/agent/`.
 AGENT-PROJECTION-SYNC-0 is an Agent resource/projection admission family.
 
 Setup token, auth, credential body, provider runtime state, provider call state,
@@ -278,13 +278,13 @@ BrickWork boundary
 -> next BrickWork boundary
 ```
 
-`support/operator/run.py` is the only active public single-Building run surface.
+`brick_protocol/support/operator/run.py` is the only active public single-Building run surface.
 It may walk caller-supplied Building Plans and preserve declared rows. It does
 not choose next steps, invent routes, create default GateFacts, classify
 returns, treat BrickComparisonFact as a verdict, execute tools/hooks outside
 admission, store secrets, or use Agent/provider identity as a Link endpoint.
 
-`support/operator/dynamic_walker.py` walks declared graph Buildings under
+`brick_protocol/support/operator/dynamic_walker.py` walks declared graph Buildings under
 BOUNDED-AGENT-PROPOSED-ROUTING-LOOP-0. Agent may propose non-binding
 transition concerns; declared Link gate/policy adopts or pauses; support walks
 and records. Per-node budgets and HOLD/frontier evidence bound the route.
@@ -301,12 +301,12 @@ address that does not resolve in the ledger causes a HOLD through existing
 machinery. AgentReceipt records delivered addresses as
 `received_handoff_refs`.
 
-AUTO-REPAIR-REPLAY-0 admits `support/operator/auto_repair_replay.py` only for
+AUTO-REPAIR-REPLAY-0 admits `brick_protocol/support/operator/auto_repair_replay.py` only for
 predeclared repair/replay Building Plan execution after literal route
 materialization. It may check and walk the declared repair/replay Building Plan;
 it must not invent repair work, route targets, Movement, or sufficiency.
 
-BUILDING-OPERATOR-DRIVER-0 admits `support/operator/driver.py::run_declared_portfolio`
+BUILDING-OPERATOR-DRIVER-0 admits `brick_protocol/support/operator/driver.py::run_declared_portfolio`
 as the bounded declared multi-Building driver. It composes existing
 `run_building_plan()` once per adopted Building over a finite caller/COO-declared
 candidate set. It must not discover, invent, or choose Buildings; author
@@ -314,26 +314,26 @@ Building Plans, Movement, targets, or adoption; judge success or quality; or
 open scheduler/queue/retry.
 
 Nested/child Building candidate records inside a Brick are not active Buildings
-until caller/COO declaration. `support/operator/child_building_generation.py`
+until caller/COO declaration. `brick_protocol/support/operator/child_building_generation.py`
 may support candidate generation only inside its admitted boundary.
 
 ## Support And Projection Boundaries
 
-Support connection surfaces include `support/connection/agent_adapter.py`,
-`support/connection/agent_resources.py`,
-`support/connection/building_design_toolkit.py`,
-`support/connection/coo_sync.py`, and `support/connection/mcp_projection.py`.
+Support connection surfaces include `brick_protocol/support/connection/agent_adapter.py`,
+`brick_protocol/support/connection/agent_resources.py`,
+`brick_protocol/support/connection/building_design_toolkit.py`,
+`brick_protocol/support/connection/coo_sync.py`, and `brick_protocol/support/connection/mcp_projection.py`.
 
-Support operator surfaces include `support/operator/driver.py`,
-`support/operator/run.py`, `support/operator/dynamic_walker.py`,
-`support/operator/building_operation.py`, `support/operator/plan_validation.py`,
-`support/operator/evidence_assembly.py`, `support/operator/contracts.py`,
-`support/operator/plan_graph.py`, `support/operator/primitives.py`,
-`support/operator/route_materialization.py`,
-`support/operator/write_observation.py`,
-`support/operator/auto_repair_replay.py`,
-`support/operator/child_building_generation.py`,
-`support/operator/reporter.py`, and `support/operator/report_sinks.py`.
+Support operator surfaces include `brick_protocol/support/operator/driver.py`,
+`brick_protocol/support/operator/run.py`, `brick_protocol/support/operator/dynamic_walker.py`,
+`brick_protocol/support/operator/building_operation.py`, `brick_protocol/support/operator/plan_validation.py`,
+`brick_protocol/support/operator/evidence_assembly.py`, `brick_protocol/support/operator/contracts.py`,
+`brick_protocol/support/operator/plan_graph.py`, `brick_protocol/support/operator/primitives.py`,
+`brick_protocol/support/operator/route_materialization.py`,
+`brick_protocol/support/operator/write_observation.py`,
+`brick_protocol/support/operator/auto_repair_replay.py`,
+`brick_protocol/support/operator/child_building_generation.py`,
+`brick_protocol/support/operator/reporter.py`, and `brick_protocol/support/operator/report_sinks.py`.
 
 Recording-folder glossary inside every Building root:
 
@@ -356,8 +356,8 @@ quality judgment.
 REPORTER-NOTIFICATION-PROJECTION-0 four support-only report sinks:
 
 ```text
-support/operator/reporter.py
-support/operator/report_sinks.py
+brick_protocol/support/operator/reporter.py
+brick_protocol/support/operator/report_sinks.py
 project/brick-protocol/status/inbox/
 report-sink:local-inbox
 report-sink:operator-wake-local
@@ -397,7 +397,7 @@ implementation-closed:
   success/quality judge, or hidden target selector?
 ```
 
-Prefer `support/checkers/check_profile.py` + profile YAML + kernel helpers.
+Prefer `brick_protocol/support/checkers/check_profile.py` + profile YAML + kernel helpers.
 Avoid new standalone `check_*.py` unless separately admitted. Negative probes
 are required for high-risk boundaries.
 

@@ -1,0 +1,22 @@
+schema: declaration-enforcement-ledger/v1
+owner_axis: Brick
+description: Central ledger for Brick template declarations that intentionally name a later enforcement consumer.
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+declarations:
+  - declaration_ref: "brick_protocol/brick/templates/bricks/closure/return.yaml:44"
+    declaration_text: "future Link-side completion gate consumes this declared field"
+    gate_pending: "Consumed by brick_protocol/support/checkers/lib/deliverable_crosscheck_gate_check.py kernel check deliverable_crosscheck_gate; runtime Link completion-gate placement remains outside this non-walker slice."
+  - declaration_ref: "brick_protocol/brick/templates/bricks/closure/return.yaml:45"
+    declaration_text: "gate is a later consumer"
+    gate_pending: "Consumed by brick_protocol/support/checkers/lib/deliverable_crosscheck_gate_check.py kernel check deliverable_crosscheck_gate; runtime Link completion-gate placement remains outside this non-walker slice."
+  - declaration_ref: "brick_protocol/brick/templates/reroute-defaults.yaml:7"
+    declaration_text: "Link-side gate is a later consumer"
+    gate_pending: "Consumed by brick_protocol/support/operator/onboard.py run_approve_entry adoption-time check + brick_protocol/support/checkers/lib/re_instruction_endline_gate_check.py kernel check re_instruction_endline_gate; runtime Link-side gate placement remains outside this non-walker slice."
+  - declaration_ref: "brick_protocol/brick/templates/reroute-defaults.yaml:21"
+    declaration_text: "gate is a later consumer"
+    gate_pending: "Consumed by brick_protocol/support/operator/onboard.py run_approve_entry adoption-time check + brick_protocol/support/checkers/lib/re_instruction_endline_gate_check.py kernel check re_instruction_endline_gate; runtime Link-side gate placement remains outside this non-walker slice."

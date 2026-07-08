@@ -1,0 +1,191 @@
+schema: checker-profile/v1
+profile_id: core
+description: Core profile runner slice over kernel support checkers and boundary declarations.
+kernel_checks:
+  - axis_vocab_drift
+  - package_path_admission
+  - axis_contract_projection
+  - declared_verifier_exists
+  - axis_field_enum_parity
+  - agentfact_single_home
+  - building_root_anchor
+  - catalog_reader_sync
+  - agent_resource_resolution
+  - axis_field_set_single_source
+  - builder_consumes_axis_api
+  - support_no_axis_judgment
+  - bricks_spec_completeness
+  - building_lifecycle_path_shape
+  - building_map_graph
+  - project_declaration
+  - rule13_durable_evidence_ref
+  - building_declaration_integrity
+  - building_plans_boundary_sweep
+  - axis_crossing_elegance
+  - link_gate_measurement_separation
+  - gate_policy_action_single_source
+  - positive_int_bool_boundary
+  - fan_out_sibling_evidence_independence
+  - evidence_spine
+  - evidence_spine_projection
+  - plan_revision_chain
+  - mutation_red_manifest
+  - checker_progress_observability
+  - checker_profile_exception_isolation
+path_exists:
+  - AGENTS.md
+  - brick_protocol/support/checkers/check_profile.py
+  - brick_protocol/support/checkers/check_package_path_admission.py
+  - brick_protocol/support/checkers/check_axis_contract_projection.py
+  - brick_protocol/support/checkers/check_declared_verifier_exists.py
+  - brick_protocol/support/checkers/check_axis_field_enum_parity.py
+  - brick_protocol/support/checkers/check_agentfact_single_home.py
+  - brick_protocol/support/checkers/check_building_root_anchor.py
+  - brick_protocol/support/checkers/check_catalog_reader_sync.py
+  - brick_protocol/support/checkers/check_agent_resource_resolution.py
+  - brick_protocol/support/checkers/check_axis_field_set_single_source.py
+  - brick_protocol/support/checkers/field_set_registry.yaml
+  - brick_protocol/support/checkers/check_builder_consumes_axis_api.py
+  - brick_protocol/support/checkers/check_support_no_axis_judgment.py
+  - brick_protocol/support/checkers/judgment_home.yaml
+  - brick_protocol/support/checkers/check_bricks_spec_completeness.py
+  - brick_protocol/support/checkers/check_building_lifecycle_path_shape.py
+  - brick_protocol/support/checkers/check_building_map_graph.py
+  - brick_protocol/support/checkers/check_project_declaration.py
+  - brick_protocol/support/checkers/check_rule13_durable_evidence_ref.py
+  - brick_protocol/support/checkers/check_building_declaration_integrity.py
+  - brick_protocol/support/checkers/check_axis_crossing_elegance.py
+  - brick_protocol/support/checkers/check_link_gate_measurement_separation.py
+  - brick_protocol/support/checkers/check_gate_policy_action_single_source.py
+  - brick_protocol/support/checkers/check_fan_out_sibling_evidence_independence.py
+  - brick_protocol/support/checkers/check_evidence_spine.py
+  - brick_protocol/support/checkers/check_evidence_spine_projection.py
+  - brick_protocol/support/checkers/check_plan_revision_chain.py
+  - brick_protocol/support/checkers/mutation_red_manifest.yaml
+  - brick_protocol/support/checkers/check_import_identity_modes.py
+  - brick_protocol/support/checkers/lib/mutation_red_manifest_check.py
+  - brick_protocol/support/checkers/crossing_registry.yaml
+  - brick_protocol/support/checkers/module_registry.yaml
+path_absent:
+  - architecture-review-site
+  - brick_protocol/support/run.py
+path_absent_glob:
+  - brick_protocol/support/runner/**
+  - brick_protocol/support/building_run/**
+  - brick_protocol/support/invocation/**
+path_allowlist:
+  - root: brick_protocol/support/checkers/profiles
+    paths:
+      - brick_protocol/support/checkers/profiles/adapter_usage_meter.yaml
+      - brick_protocol/support/checkers/profiles/agent_axis_behavioral.yaml
+      - brick_protocol/support/checkers/profiles/agent_object_schema_single_source.yaml
+      - brick_protocol/support/checkers/profiles/agent_output_text_preservation.yaml
+      - brick_protocol/support/checkers/profiles/assembly_equivalence.yaml
+      - brick_protocol/support/checkers/profiles/bounded_agent_proposed_routing_loop.yaml
+      - brick_protocol/support/checkers/profiles/driver_public_intake_seal.yaml
+      - brick_protocol/support/checkers/profiles/building_operator_driver0.yaml
+      - brick_protocol/support/checkers/profiles/building_automation.yaml
+      - brick_protocol/support/checkers/profiles/brick_cli_entrypoint.yaml
+      - brick_protocol/support/checkers/profiles/building_skill_preset_carry_boundary.yaml
+      - brick_protocol/support/checkers/profiles/building_skill_preset_agent_packet_boundary.yaml
+      - brick_protocol/support/checkers/profiles/building_skill_preset_agent_resource_boundary.yaml
+      - brick_protocol/support/checkers/profiles/building_skill_preset_builder_composition.yaml
+      - brick_protocol/support/checkers/profiles/building_skill_preset_compose_boundary.yaml
+      - brick_protocol/support/checkers/profiles/building_skill_preset_intake_adapter_gate.yaml
+      - brick_protocol/support/checkers/profiles/building_skill_preset_step_template_boundary.yaml
+      - brick_protocol/support/checkers/profiles/chained_carry_dependency.yaml
+      - brick_protocol/support/checkers/profiles/charter_injection.yaml
+      - brick_protocol/support/checkers/profiles/cli_runner_stdin_devnull.yaml
+      - brick_protocol/support/checkers/profiles/coo_operating_chain.yaml
+      - brick_protocol/support/checkers/profiles/core.yaml
+      - brick_protocol/support/checkers/profiles/declaration_enforcement_parity.yaml
+      - brick_protocol/support/checkers/profiles/gate_registry_single_source.yaml
+      - brick_protocol/support/checkers/profiles/gate_policy_action_single_source.yaml
+      - brick_protocol/support/checkers/profiles/graphdecl_fix.yaml
+      - brick_protocol/support/checkers/profiles/graph_draft.yaml
+      - brick_protocol/support/checkers/profiles/graph_topology_fan_barrier.yaml
+      - brick_protocol/support/checkers/profiles/heldnode_expansion_verifier.yaml
+      - brick_protocol/support/checkers/profiles/interactive_provider_intake.yaml
+      - brick_protocol/support/checkers/profiles/import_identity_modes.yaml
+      - brick_protocol/support/checkers/profiles/link_routing_behavioral.yaml
+      - brick_protocol/support/checkers/profiles/mcp_dispatch_wire.yaml
+      - brick_protocol/support/checkers/profiles/mutation_red_manifest.yaml
+      - brick_protocol/support/checkers/profiles/model_lane_matching_discipline.yaml
+      - brick_protocol/support/checkers/profiles/native_dispatch_brick_backstop.yaml
+      - brick_protocol/support/checkers/profiles/onboarding_success_literal.yaml
+      - brick_protocol/support/checkers/profiles/operator_correction.yaml
+      - brick_protocol/support/checkers/profiles/plan_expansion.yaml
+      - brick_protocol/support/checkers/profiles/positive_int_bool_boundary.yaml
+      - brick_protocol/support/checkers/profiles/preflight_injection_survival.yaml
+      - brick_protocol/support/checkers/profiles/provider_registry_ladder.yaml
+      - brick_protocol/support/checkers/profiles/read_side_projection_boundary.yaml
+      - brick_protocol/support/checkers/profiles/receipt_writer_join.yaml
+      - brick_protocol/support/checkers/profiles/report_env_autoload.yaml
+      - brick_protocol/support/checkers/profiles/return_field_merge_set_parity.yaml
+      - brick_protocol/support/checkers/profiles/raw_evidence_stream_scrub.yaml
+      - brick_protocol/support/checkers/profiles/re-instruction-endline-gate.yaml
+      - brick_protocol/support/checkers/profiles/resume_declaration.yaml
+      - brick_protocol/support/checkers/profiles/session_continuity_adapter.yaml
+      - brick_protocol/support/checkers/profiles/sakana_wire_packet.yaml
+      - brick_protocol/support/checkers/profiles/sink_registry.yaml
+      - brick_protocol/support/checkers/profiles/step_output_evidence_field_set_parity.yaml
+      - brick_protocol/support/checkers/profiles/structure_template_integrity.yaml
+      - brick_protocol/support/checkers/profiles/tier_a_three_axis_conformance.yaml
+text_contains:
+  - path: AGENTS.md
+    texts:
+      - Support is not a fourth axis.
+      - Runtime, engine, storage, wiki, docs, tests, checkers, memory, tools, Claude,
+      - brick_protocol/support/operator/run.py
+      - brick_protocol.support.operator.run
+      - "Agent transition concerns use the closed `concern_kind` vocabulary"
+      - "upstream_gap"
+      - "boundary_mismatch"
+      - "insufficient_input"
+      - "replay_needed"
+      - "unknown"
+      - "design_gap"
+      - "implementation_gap"
+      - "verification_gap"
+      - "callable_performer_refs"
+      - "transition_lifecycle:"
+      - "progress_state: in_progress"
+      - "required_disposition_owner: caller | coo | caller-or-coo"
+      - "disposition_action: raise | forward | stop | reroute"
+      - "budget_increment: <finite positive integer, required only for raise>"
+      - "`human:/coo:/caller:` are author prefixes, not owner values"
+      - "Human gate MUST-HALT conditions:"
+      - "child Building candidate"
+      - "brick_protocol/support/operator/child_building_generation.py"
+      - "AUTO-REPAIR-REPLAY-0"
+      - "brick_protocol/support/operator/auto_repair_replay.py"
+      - "repair/replay Building Plan"
+      - "credential / secret exposure risk"
+      - "Impact tiers:"
+      - "High-impact work requires explicit"
+  - path: brick_protocol/support/checkers/check_profile.py
+    texts:
+      - KERNEL_CHECK_IDS
+      - source truth
+text_absent:
+  - path: brick_protocol/support/checkers/check_profile.py
+    texts:
+      - subprocess
+      - os.system
+      - eval(
+      - exec(
+yaml_literal_set:
+  - path: brick_protocol/link/movement.yaml
+    key: movement_literals[].movement
+    values:
+      - forward
+      - reroute
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - checker profile pass as source truth
+  - complete checker compaction

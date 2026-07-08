@@ -1,0 +1,34 @@
+contract_projection:
+  owner: Brick
+  module: Brick.comparison
+  contract: BrickComparisonFact
+  authority: projection_only
+  python_surface: brick_protocol/brick/comparison.py
+  allowed_public_fields:
+    - work_reference
+    - comparison_evidence
+    - observed_match_kind
+    - comparison_rule
+    - required_return_shape_evidence
+    - forbidden_shortcut_evidence
+  field_rules:
+    work_reference: required_text
+    comparison_evidence: text_tuple
+    observed_match_kind:
+      allowed_observed_match_kind:
+        - matched
+        - missing
+        - mismatched
+        - unknown
+        - blank
+    comparison_rule: text
+    required_return_shape_evidence: text
+    forbidden_shortcut_evidence: text_tuple
+  closed_boundary:
+    foreign_axis_fields: blocked
+    chooser_fields: blocked
+    rating_fields: blocked
+    final_judgment_fields: blocked
+  verifier:
+    - check_axis_contract_projection.py
+    # residual contract guards tracked in checker-consolidation-and-builder-plan-0602.md (not all built yet)

@@ -1,0 +1,2833 @@
+# Module Registry (engine blueprint 0531 §4 Table B) — the cohesion ledger.
+#
+# Append-only. ONE row per support module on disk (minus package __init__.py and
+# tests, which G4 excludes). The elegance guard reads this file + the file tree
+# and rejects any support module not registered here (G4, bidirectional with the
+# package-path mag-0 allowlist).
+#
+# Support record / governance projection only. Decides nothing: NOT source truth,
+# NOT success judgment, NOT quality judgment, NOT Movement authority. Admits no
+# axis or fact class.
+#
+# OWNERSHIP MODEL (so the guard is honest, not tautological):
+#   owns_crossings      = the axis crossings whose SUPPORT-SIDE mechanics are
+#                         solely homed in this module. Most support modules are
+#                         consumers / validators / projectors / orchestrators /
+#                         emitters and own ZERO axis crossings (they consume
+#                         contracts; they do not home one). Owning <=1 is the
+#                         elegant target (G2). Only two non-empty
+#                         decomposition_target rows remain: check-profile-god-0
+#                         (historical/self-consistency ceiling on the thin
+#                         checker facade) and rs-sink-ceiling-0 (live report
+#                         sink ceiling). G6 is support-governance
+#                         self-consistency evidence, NOT success/quality/
+#                         Movement authority and NOT the primary re-bloat
+#                         ratchet; see the decomposition_ceilings proof-limit
+#                         note below.
+#   consumes_crossings  = crossings this module reaches via the canonical contract
+#                         (real axis imports). Read-only coupling record.
+#   imports_axis        = the axis source files this module imports from. G3
+#                         AST-scans the real imports and rejects any symbol that
+#                         is not a canonical_symbol of a crossing defined in that
+#                         file (per crossing_registry.yaml).
+#   forbidden_ownership = the authoring this support module must NEVER do
+#                         (G5 re-encodes the support baseline independently).
+#   decomposition_target= present only on rows with an admitted G6 ceiling:
+#                         check-profile-god-0 preserves historical checker
+#                         facade self-consistency, and rs-sink-ceiling-0 pins
+#                         the live report sink dispatch ceiling. G6 observes
+#                         ceiling self-consistency only; it does not judge
+#                         quality/success or choose Movement.
+#
+# roles:
+#   facade            delegates each crossing to its owner, authors nothing
+#                     (historical god-module decompositions now leave thin
+#                     support facades where admitted).
+#   oracle            independent re-encoder (check_axis_contract_projection).
+#   carrier           aggregates the 5/typed facts by design (operator/contracts).
+#   checker           support-evidence checker (single concern).
+#   checker-runner    profile load + dispatch (the check_profile god-checker).
+#   checker-lib       checker helper sublayer.
+#   path-gate         file-tree admission gate (check_package_path_admission).
+#   connection        Agent-brain / projection connection surface.
+#   recording         deterministic evidence/packet writer (one seam).
+#   operator          Building operator mechanics (validate / project / route /
+#                     orchestrate); any non-empty decomposition_target is a
+#                     governance ceiling row, not authority.
+#
+# SUPPORT_FORBIDDEN_OWNERSHIP baseline (G5 re-encodes this, hand-written):
+#   movement_author, target_selector, success_judge, quality_judge, route_invent
+
+modules:
+  # ---- brick_protocol/support/checkers ---------------------------------------------------
+  - module: brick_protocol/support/checkers/check_profile.py
+    layer: checkers
+    role: checker-runner
+    # ELEGANT-REFACTOR P3a: the kernel-check bodies + rule/case runners + YAML
+    # parser were lifted into brick_protocol/support/checkers/lib/* (each a registered
+    # checker-lib row above). This module is now the THIN FACADE (profile load +
+    # validate, RULE_RUNNERS, run_kernel_check dispatch, self-test, CLI). It
+    # homes NO crossing mechanics any more (owns_crossings shrank 11 -> 0; the
+    # axis MOVEMENT_LITERALS import moved to lib/rule_runners). The G6 ceiling
+    # lowered 11 -> 0 (historical; G6 is a self-consistency ceiling, see proof-limit).
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: check-profile-god-0
+    pinned_by: core profile self-test + structure_template_integrity profile
+
+  - module: brick_protocol/support/checkers/check_package_path_admission.py
+    layer: checkers
+    role: path-gate
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: package_path_admission kernel check (self-inspecting)
+
+  - module: brick_protocol/support/checkers/check_preflight_injection_survival.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: preflight_injection_survival profile (literal build()/assemble() dirty/clean probes; support evidence only)
+
+  - module: brick_protocol/support/checkers/probe_prompt_behavior_red.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: fixture-driven prompt behavior RED probe (manual LLM dispatch; support evidence only)
+
+  - module: brick_protocol/support/checkers/probe_wheel_smoke_stale_build_red.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: stale-build masking RED probe for run_wheel_smoke (seeds a stale in-tree build/ + shrinks pyproject packages, asserts wheel_smoke RED; support evidence only)
+
+  - module: brick_protocol/support/checkers/check_axis_contract_projection.py
+    layer: checkers
+    role: oracle
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: axis_contract_projection kernel check (independent re-encode)
+
+  - module: brick_protocol/support/checkers/check_declared_verifier_exists.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: declared_verifier_exists kernel check (axis-contract verifier existence)
+
+  - module: brick_protocol/support/checkers/check_axis_field_enum_parity.py
+    layer: checkers
+    role: oracle
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: axis_field_enum_parity kernel check (independent ast oracle)
+
+  - module: brick_protocol/support/checkers/check_agentfact_single_home.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: agentfact_single_home kernel check (single AgentFact home)
+
+  - module: brick_protocol/support/checkers/check_building_root_anchor.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_root_anchor kernel check (repo-anchored single-source Building root)
+
+  - module: brick_protocol/support/checkers/check_catalog_reader_sync.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: catalog_reader_sync kernel check (code reader catalog file-path resolves)
+
+  - module: brick_protocol/support/checkers/check_agent_resource_resolution.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: agent_resource_resolution kernel check (file-backed Agent Object refs prefix-match + resolve; adapter refs admitted)
+
+  - module: brick_protocol/support/checkers/check_model_lane_matching_discipline.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: model_lane_matching_discipline profile (0705/0706 fable-class/fugu reconciliation text pin + mutation-RED probes)
+
+  - module: brick_protocol/support/checkers/check_import_identity_modes.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: import_identity_modes profile (source/install identity helper probes + parents[N] binding registry + guard-removal RED)
+
+  - module: brick_protocol/support/checkers/check_axis_field_set_single_source.py
+    layer: checkers
+    role: oracle
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: axis_field_set_single_source kernel check (E2/S0 mirror-guard + scatter-guard; registry-driven AST oracle, each registered axis field-set enumerated in exactly one single source)
+
+  - module: brick_protocol/support/checkers/check_builder_consumes_axis_api.py
+    layer: checkers
+    role: oracle
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: builder_consumes_axis_api kernel check (E2/S8 builder-bypass-guard; AST oracle over the builder entrypoints — per-node casting carriers thread the opaque casting bag (no named CASTING_FIELDS member) and the Gate/Concern/Adoption enums derive from the axis vocab (no hardcoded gate/concern/adoption token))
+
+  - module: brick_protocol/support/checkers/check_support_no_axis_judgment.py
+    layer: checkers
+    role: oracle
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: support_no_axis_judgment kernel check (E2/S10 judgment-guard; registry-driven AST oracle, no support module outside a judgment family's declared consumer set re-makes the relocated axis verdict — a conditional assignment of a registered axis verdict field to a registered verdict value literal)
+
+  - module: brick_protocol/support/checkers/check_bricks_spec_completeness.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bricks_spec_completeness kernel check (brick spec frontmatter complete + required_return_template_refs/agent_object_hint_ref resolve + flat/missing-return/primary-return FIRE probes; needed-kind coverage is pinned by catalog/preset reference validation)
+
+  - module: brick_protocol/support/checkers/check_building_lifecycle_path_shape.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_lifecycle_path_shape kernel check
+
+  - module: brick_protocol/support/checkers/check_resume_disposition_surface.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: resume_disposition_surface kernel check
+
+  - module: brick_protocol/support/checkers/check_resume_replay_disposition_mirror.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: resume_replay_disposition_mirror behavioral checker (t7b RED baseline for the non-forward resume-replay disposition MIRROR; gate-sequence fixtures F-R1/F-R2/F-S/F-M dual-acceptance-pinned to the engine refusal literals + labeled probes P-1/P-2/P-3; concern-path fixtures F-C1 (ambiguous) / F-C2 (fan+cohort) / F-C3 (broken-mail) dual-acceptance-pinned to the _require_undisposed_concern_hold guard literal + labeled probe P-C1 (gate-sequence budget-exhausted, the 6th guard site); the concern-path walker mirror edit is COO-direct under this gate; SELFLOCK-0706 family-② additive fixtures SL-1 (D1 validate-before-persist: refused intake leaves raw/link.jsonl byte-identical + retry resumes) / SL-2 (D2 declared void correction path for an already-locked ledger) + validate-before-persist source-guard mutation proof)
+
+  - module: brick_protocol/support/checkers/check_resume_admission_single_source.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: resume-admission single-source checker (RESUME-ADMISSION-UNIFY 0707; AST delegation pin -- both firing points _resume_dynamic_graph_walker and validate_disposition_intake call resume_admission_decision exactly once and keep no inline/alias/attribute/string sequence-validator reference -- plus in-process behavioral refusal probes for every pinned fail-closed literal and the resume-only raise budget_increment int-coercion accepted path; direct-run only, not registered in check_profile KERNEL_DISPATCH)
+
+  - module: brick_protocol/support/checkers/check_resume_declaration.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: resume_declaration behavioral checker (JSON declaration loader/preflight, class-action mismatch rejection, explicit adapter_cwd lowering, CLI/profile pins)
+
+  - module: brick_protocol/support/checkers/check_first_use_wizard.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: first_use_wizard kernel check (simulated brick init FIRST_USE.md generation, disclaimer + funnel, failure no-write, mutation-RED probe)
+
+  - module: brick_protocol/support/checkers/check_onboarding_success_literal.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: onboarding_success_literal profile + standalone checker (docs/script success literal pin + temp-copy mutation-RED probes; does not execute install.sh)
+
+  - module: brick_protocol/support/checkers/check_provider_registry_ladder.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: provider_registry_ladder profile (fixture-only providers.yaml ladder regression probes; never reads live ~/.brick/providers.yaml)
+
+  - module: brick_protocol/support/checkers/check_interactive_provider_intake.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: interactive_provider_intake profile (fixture-only prompt injection and temp providers.yaml model pin; never reads live stdin or ~/.brick/providers.yaml)
+
+  - module: brick_protocol/support/checkers/check_sink_registry.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: sink_registry profile (fixture-only sinks.yaml and mocked Slack/Dashboard reachability probes; never reads live ~/.brick/sinks.yaml)
+
+  - module: brick_protocol/support/checkers/check_evidence_spine.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: [agent_return_fact]
+    imports_axis:
+      - brick_protocol/agent/return_fact.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: evidence_spine kernel check (U5.5 spine structural integrity; verifies pairing/hash-chain/monotonic-order/index-re-derivation for u5_5_live buildings, reuses the canonical RETURNED_FORBIDDEN_KEYS forbidden-key set, judges nothing)
+
+  - module: brick_protocol/support/checkers/check_evidence_spine_projection.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: evidence_spine_projection kernel check (U5.5 spine projection completeness; verifies the spine projection covers the building-scope declarations — exactly one each of PresetExpansion and LinkLaunchPolicy in events/ — for u5_5_live buildings, reuses the existing u5_5_live gate, judges nothing)
+
+  - module: brick_protocol/support/checkers/check_plan_revision_chain.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: plan_revision_chain kernel check (T10-S2 declared-building-plan revision chain; fixture RED/GREEN probes for append-only revisions, hash chain, approval evidence, expansion budget, immutable budget fields, and hold-class whitelist; judges nothing)
+
+  - module: brick_protocol/support/checkers/check_heldnode_expansion_verifier.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: heldnode_expansion_verifier profile (fixture append-only expansion safety + mutation-RED probes; support evidence only)
+
+  - module: brick_protocol/support/checkers/check_pin_estate_integrity.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pin_estate_integrity kernel check (TREASURE PORT 1 0611, concept lift from d5bc86e check_doc_grounding; decorative-pin rejection + adversarial pin probes + dated pin-estate ratchet vs brick_protocol/support/checkers/pin_estate_baseline.yaml over the post-W2 history-doc pin estate, judges nothing)
+
+  - module: brick_protocol/support/checkers/check_building_map_graph.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_map_graph kernel check
+
+  - module: brick_protocol/support/checkers/check_building_declaration_integrity.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_declaration_integrity kernel check (3 negative probes)
+
+  # PROJECT-0 S1-B (0611): every project/<id>/ vessel must declare its charter
+  # (README.md) + machine declaration (project.json) before buildings
+  # accumulate. Single concern; consumes the support loader
+  # (brick_protocol/support/operator/project_declaration.py); anti-tautology probes incl.
+  # non-slug ids, symlinked vessel, slug-law seam parity, creation rollback.
+  - module: brick_protocol/support/checkers/check_project_declaration.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: project_declaration kernel check (core profile; anti-tautology probes incl. slug law + symlink + rollback)
+
+  - module: brick_protocol/support/checkers/check_rule13_durable_evidence_ref.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: rule13_durable_evidence_ref kernel check (core profile; scans Building work/evidence/raw for absolute local / username-bearing / session-temp refs with clean/leak FIRE probes and frozen content-hash mutation-RED)
+
+  # CHARTER-INJECT (0618): the declared project vessel's README charter is
+  # injected into EVERY role's runtime instruction packet (work/qa/closure
+  # lanes), reaches the built codex+claude prompt, and stamps the charter_ref
+  # evidence field — closing the audit's 0% charter-injection gap. Drives the
+  # REAL renderer over a synthetic vessel (brick_protocol/agent/ symlinked to the real axis);
+  # mutation-RED when _charter_resources is disabled.
+  - module: brick_protocol/support/checkers/check_charter_injection.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: charter_injection kernel check (charter_injection profile; FIRE probe over a synthetic declared vessel)
+
+  - module: brick_protocol/support/checkers/check_tier_a_three_axis_conformance.py
+    layer: checkers
+    role: oracle
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: tier_a_three_axis_conformance kernel check (FIRE probe + per-axis assertions)
+
+  - module: brick_protocol/support/checkers/check_receipt_writer_join.py
+    layer: checkers
+    role: oracle
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: receipt_writer_join profile (path/text pins) + the standalone checker's adapter:local complete-walk probe + two mutation-RED probes (writer block + scrub mask); asserts the normal-completion forward writer records raw/agent-received.jsonl in the returned transaction so a completed walk is not evidence_incomplete (T10)
+
+  - module: brick_protocol/support/checkers/check_building_operator_driver0.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_operator_driver0 kernel check
+
+  - module: brick_protocol/support/checkers/check_driver_public_intake_seal.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: driver_public_intake_seal kernel check (driver.py __all__ exposes only run_building_intake as the public Building-making intake; assemble is owned by brick_protocol/support/operator/assembly.py)
+
+  - module: brick_protocol/support/checkers/check_cli_runner_stdin_devnull.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: cli_runner_stdin_devnull kernel check (the two CLI-runner subprocess spawns in brick_protocol/support/connection/agent_adapter.py -- _run_text_cli_command + _run_command -- pass stdin=subprocess.DEVNULL so a provider CLI inheriting an open-no-EOF stdin pipe cannot block forever at startup; the connect-stall primary cure)
+
+  - module: brick_protocol/support/checkers/check_mcp_dispatch_wire.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: mcp_dispatch_wire kernel check (the brick-protocol MCP config + the per-provider isolation lever are wired into both _invoke_local_cli dispatch branches in brick_protocol/support/connection/adapter_local_cli.py -- claude --mcp-config + --strict-mcp-config; codex -c mcp_servers.* + --ignore-user-config -- reusing connect.py's single-source registration shape, so a dispatched build CLI sees the brick MCP regardless of the user's own ~/.claude / ~/.codex config; INSTALL-WIZARD-0623 engine-native A1)
+
+  - module: brick_protocol/support/checkers/check_return_field_merge_set_parity.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: return_field_merge_set_parity kernel check (every field in the structured-return merge-set {evidence_refs, not_proven, proof_limits} inside _merge_structured_return_fields in brick_protocol/support/connection/adapter_grant_policy.py is also in _RETURN_LIST_FIELDS in brick_protocol/support/connection/agent_adapter.py, so the return normalizer list-normalizes + dict-flattens it before _merge_texts; the F1 coverage-gap regression pin -- a merge-set field absent from the list-set crashes adapter return-assembly before the AgentFact is written)
+
+  - module: brick_protocol/support/checkers/check_declaration_enforcement_parity.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: declaration_enforcement_parity kernel check (Brick return-template forbidden_return_keys are present in Agent return-fact enforcement constants, and gate-pending Brick template declarations are registered in brick_protocol/brick/templates/enforcement-ledger.yaml)
+
+  - module: brick_protocol/support/checkers/check_step_output_evidence_field_set_parity.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: step_output_evidence_field_set_parity kernel check (the three step-output-family packet builders in brick_protocol/support/recording/step_outputs.py -- normal step-output manifest, adapter-error record, and chat-session park record -- carry the same always-present evidence-shape field set {evidence_refs, not_proven, proof_limits} through EVIDENCE_SHAPE_FIELDS and the writer helper; task_source_ref remains an optional mirror outside the set; mutation-RED drops one builder helper spread and is rejected)
+
+  - module: brick_protocol/support/checkers/check_chained_carry_dependency.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: chained_carry_dependency kernel check (runs the real EASY-tier assemble() composition in-process; every write/QA node -- write_need=True step template -- reached by a forward edge from an upstream node receives that upstream's step-output as a declared source_fact carry, or is a fan-in convergence target the walker auto-carries; read-only/inspect/review/design/plan/closure nodes are exempt; the F2 fake-green regression pin -- a downstream writer with no carry runs blind on the task alone and the walk greens with no real work)
+
+  - module: brick_protocol/support/checkers/check_gate_registry_single_source.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: gate_registry_single_source kernel check (struct-surgery ② 0623; AST seals the Link gate-ref vocabulary + materializer placement rule to ONE data table -- brick_protocol/link/spec.GATE_REGISTRY. RULE 1 rejects any collection literal of >= 2 link-gate: literals outside brick_protocol/link/spec.py -- a re-stated gate vocabulary, the old DECLARED_GATE_REFS-tuple shape -- while leaving lone behavioral "if ref == link-gate:human" comparisons clean; RULE 2 rejects the support materializer placement helper _materializer_profile_gate_translations if it does not delegate to gate_placement_for_row or hand-authors placement via translate_gate_concept guarded by row flags. Positively asserts GATE_REGISTRY enumerates the vocabulary + gate_placement_for_row is defined on the Link axis. Built-in synthetic mutation-RED probe -- re-enumerated tuple + hand-authored placement both rejected, lone comparison left clean)
+
+  - module: brick_protocol/support/checkers/check_gate_policy_action_single_source.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: gate_policy_action_single_source kernel check (K1 vocabulary re-home 0706; AST seals the Link gate-sequence policy action vocabulary and partition subsets to brick_protocol/link/gate.py -- ADMITTED_POLICY_ACTIONS, ON_MISSING_REQUIRED_FACTS_ACTIONS, ON_SUFFICIENT_ACTIONS, and normalize_gate_policy_action. Rejects any Python collection literal outside brick_protocol/link/gate.py/checker oracle that re-states the full action set or either partition subset; leaves lone behavioral action comparisons clean. Built-in mutation-RED probes -- re-stated all-action tuple + partition set rejected, lone comparison left clean)
+
+  - module: brick_protocol/support/checkers/check_agent_object_schema_single_source.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: agent_object_schema_single_source kernel check (struct-surgery ③ 0623; AST seals the agent-OBJECT key/ref/forbidden SCHEMA to ONE source on the Agent axis -- brick_protocol/agent/spec.AGENT_OBJECT_SCHEMA, assembled over its _AGENT_OBJECT_REF_FIELDS + _AGENT_OBJECT_FORBIDDEN_KEYS literals with allowed_keys deriving the casting names from CASTING_FIELDS, plus the validate_agent_object_keys gate the support load path AND the inline agent() compose path both call. RULE 1 positively asserts the schema symbol, both member literals (exact 6-name ref + 16-name forbidden member-sets), and the gate are defined on the axis; RULE 2 rejects any collection literal whose member-set equals the ref-field or forbidden-key set anywhere in the brick_protocol/agent/brick/link/support trees except brick_protocol/agent/spec.py -- the old _REF_FIELDS / forbidden-frozenset copies scattered across agent_resources.py + primitives.py + native_dispatch.py, one of which omitted the casting keys and raised on a real role -- while leaving lone by-name reads obj.get("adapter_refs") clean. This checker file itself is excluded from RULE 2 as the independent oracle re-encoding the expected member-sets for RULE 1. Built-in synthetic mutation-RED probe -- a re-stated ref tuple + a re-stated forbidden frozenset both rejected, a lone by-name read left clean)
+
+  - module: brick_protocol/support/checkers/check_report_env_autoload.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: report_env_autoload kernel check (#56; exercises brick_protocol/support/operator/runtime_env.py in-process over temp env fixtures -- allowlisted key injected, non-allowlisted dropped, 0644 refused, env precedence preserved, no value echo -- plus two mutation-RED probes and the run.py engine-seam wiring assertion)
+
+  - module: brick_protocol/support/checkers/check_adapter_usage_meter.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: adapter_usage_meter kernel check (the per-step adapter token-usage meter in brick_protocol/support/recording/adapter_usage_meter.py records the codex turn.completed counters as a support fact with allowlisted keys + absent=null and never leaks usage into AgentFact.returned or any Link field; TrackA-A1 INSTRUMENT FIRST, measurement only, no cap)
+
+  - module: brick_protocol/support/checkers/check_session_continuity_adapter.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: session_continuity_adapter profile (fixture-only same-Building adapter continuity argv/env/fallback/cleanup pin; no live provider call and no raw provider session id storage)
+
+  - module: brick_protocol/support/checkers/check_bounded_agent_proposed_routing_loop0.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop kernel check
+
+  - module: brick_protocol/support/checkers/check_recording_checker_derived_contract.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: recording_checker_derived_contract kernel check
+
+  - module: brick_protocol/support/checkers/check_axis_crossing_elegance.py
+    layer: checkers
+    role: oracle
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: axis_crossing_elegance kernel check (this guard; self-registered, anti-tautological)
+
+  # FAULT-SEPARATION gate-no-measure half (0618): the Link gate JUDGES
+  # sufficiency and must not re-compute Brick MEASUREMENT (BrickComparisonFact,
+  # the brick_comparison crossing owned by brick_protocol/brick/comparison.py). Twin of
+  # check_recording_checker_derived_contract._check_emitter_axis_separation,
+  # applied to brick_protocol/link/gate.py: AST-scans the gate source and rejects any import of
+  # the Brick measurement module/symbol or any construction/derivation of
+  # BrickComparisonFact (string-form public-fact references stay allowed). Parses
+  # gate.py, imports no axis module, judges nothing.
+  - module: brick_protocol/support/checkers/check_link_gate_measurement_separation.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: link_gate_measurement_separation kernel check (core profile; AST seal — brick_protocol/link/gate.py imports/recomputes no Brick measurement; built-in synthetic mutation-RED probe)
+
+  # FAULT-SEPARATION fan-out sibling-evidence independence (F1, the 0609
+  # cross-vouch invariant, 0618): same-parent fan-out sibling nodes each hold
+  # their OWN evidence — one sibling's returned-evidence body (AgentFact /
+  # claim_trace) must never appear as another sibling's body (a cross-vouch
+  # leak). General byte-distinctness GUARD complementing the structural defence
+  # (walker_kernel sibling_independence + per-branch exception isolation, 0609).
+  # Scan/read checker scoped to fan-out siblings only (sequential/chain carry-
+  # sharing + parent->child sharing excluded); self-contained synthetic GREEN +
+  # mutation-RED FIRE probe; reaches no axis module, judges nothing.
+  - module: brick_protocol/support/checkers/check_fan_out_sibling_evidence_independence.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: fan_out_sibling_evidence_independence kernel check (core profile; same-parent fan-out sibling evidence bodies byte-distinct; synthetic GREEN + cross-vouch-leak mutation-RED probe)
+
+  - module: brick_protocol/support/checkers/check_brick_template_catalog_restructure.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: brick_template_catalog_restructure kernel check (P3 staged FIRE fixtures)
+
+  - module: brick_protocol/support/checkers/check_assembly_equivalence.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: assembly_equivalence kernel check (HEART-PHASE0 structural projection + discrimination probes)
+
+  - module: brick_protocol/support/checkers/check_graph_draft_rules.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: graph_draft_rules kernel check (graph-draft profile; rule-embedding + no-autolaunch probes)
+
+  - module: brick_protocol/support/checkers/check_build_forward_action.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: graphdecl_fix profile path_exists (build --forward action priority matrix + variant-RED probes)
+
+  - module: brick_protocol/support/checkers/check_positive_int_bool_boundary.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: positive_int_bool_boundary profile path/text pins + direct checker mutation probes
+
+  # ELEGANT-REFACTOR P3a (engine blueprint 0531 §5 / detail-design §D-4 Opt B):
+  # the check_profile god-checker's kernel-check bodies, declarative rule runners,
+  # behavioral case runners, and the YAML-subset parser were lifted here. Each is
+  # a single-concern checker-lib module that owns ZERO axis crossing (it parses,
+  # validates, projects, or dispatches; it homes no crossing). The facade
+  # (check_profile.py) imports them and re-exports the public names.
+  - module: brick_protocol/support/checkers/lib/bootstrap.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: checker bootstrap fold direct/profile runs; package_path_admission + axis_crossing_elegance G4 registration guard
+
+  - module: brick_protocol/support/checkers/lib/yaml_subset.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: imported by check_profile facade; covered by structure_template_integrity + core profile self-test
+
+  - module: brick_protocol/support/checkers/lib/rule_runners.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings:
+      - link_movement
+    imports_axis:
+      - brick_protocol/link/movement.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_plan_boundary / route_policy_boundary / fail_fixture_rejects rules (structure_template_integrity profile)
+
+  - module: brick_protocol/support/checkers/lib/case_runners.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure re-export hub for behavioral profile case-runner leaves
+
+  - module: brick_protocol/support/checkers/lib/materialize_intent_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (materialize_building_intent profile cases; imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/compose_building_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (compose_building profile cases; imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/checker_temp_vessel.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (checker temp-vessel helpers and slug helpers; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/route_materialization_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (route_materialization_case behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/building_intake_seam_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (building_intake_seam_case behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/onboard_seam_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (onboard_seam_case behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/operator_correction_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: operator_correction profile (temp-fixture correction observation cases; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/native_dispatch_close_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (native_dispatch_close_case behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/plan_expansion_case_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (plan_expansion_case behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/casting_node_carry_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (casting_node_carry behavioral kernel check; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/adapter_capability_checks.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (adapter_capability_rehome check helpers; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/workflow_import_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (workflow_import_case behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/hook_registry_axis_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (hook_registry_axis_case behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/wiki_carry_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (wiki_carry_truncation_survival_case behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/auto_repair_replay_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (auto_repair_replay_case behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/write_scope_default_exclude_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (write_scope_default_exclude_case behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/source_fact_body_carry_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (source_fact_body_carry_case behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/step_output_drain_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (step_output_drain_case behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/mutation_red_manifest_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: mutation_red_manifest kernel check (A+ W2 manifest coverage over existing RED fixture/probe literals; support evidence only)
+
+  - module: brick_protocol/support/checkers/lib/agent_packets_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (agent_candidate_packet_case and preset_ranking_packet_case behavioral profile runners; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/once_task_source_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (run_once_task_source_admission_case behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/child_building_candidate_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (child_building_candidate_case behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/fail_fixture_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (fail_fixture_rejects behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/declared_step_template_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (declared_step_template_plan behavioral profile runners; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/materialize_reject_scaffold.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: materialize_building_intent_rejects profile cases
+
+  - module: brick_protocol/support/checkers/lib/gate_evidence_readers.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: preset_building_completion / building_intake_seam profile cases
+
+  - module: brick_protocol/support/checkers/lib/plan_fixture_helpers.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: route_materialization / compose_building profile cases
+
+  - module: brick_protocol/support/checkers/lib/fixture_graph_helpers.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: module self-check compares representative loop0 and case_runners graph fixture outputs; staged for later consumer conversion
+
+  - module: brick_protocol/support/checkers/lib/materialized_plan_observers.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: materialize_building_intent profile cases
+
+  - module: brick_protocol/support/checkers/lib/materialized_return_shape_guards.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: materialize_building_intent profile cases
+
+  - module: brick_protocol/support/checkers/lib/preset_completion_fixture.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: preset_building_completion profile cases
+
+  - module: brick_protocol/support/checkers/lib/intake_project_vessel_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (intake_project_vessel_case behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/intake_evidence_projection_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (intake_evidence_projection_case behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/preset_completion_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of case_runners (preset_building_completion_case behavioral profile runner; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/kernel_checks.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: axis_vocab_drift / building_map_graph / agent_adapter_return_shape / reporter_notification_projection kernel checks (core profile) + design_ai_text_seams / agent_session_id_redaction / codex_connect_stall_classification kernel checks (agent_axis_behavioral profile, TREASURE PORT 2 0611, frozen-line-content-hash allowlist over kernel/buildings/reviews/archive session-id leaks; codex_connect_stall_classification = TrackB 0619 DEAD-worker connect-stall label split: stall-tagged timeout -> local_cli_connect_stall, plain timeout -> local_cli_timeout, both -> same adapter_error_frontier HOLD, default threshold in 90-180s fast-fail band, reap journal dead-signature support facts)
+
+  - module: brick_protocol/support/checkers/lib/axis_vocab_drift_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of kernel_checks (axis_vocab_drift kernel check; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/building_plan_graph_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of kernel_checks (building_map_graph + building_plans_boundary_sweep kernel checks; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/building_result_summary_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of kernel_checks (building_result_summary kernel check; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/deliverable_crosscheck_gate_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: deliverable_crosscheck_gate kernel check (closure deliverable_crosscheck consumer; synthetic RED/GREEN fixtures and mutation probe; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/re_instruction_endline_gate_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: re_instruction_endline_gate kernel check (adopted-reroute re_instruction consumer; synthetic RED/GREEN fixtures and run_approve_entry pre-write probe; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/raw_evidence_stream_scrub_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of kernel_checks (raw_evidence_stream_scrub kernel check; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/agent_output_text_preservation_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of kernel_checks (agent_output_text_preservation kernel check; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/agent_adapter_return_shape_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of kernel_checks (agent_adapter_return_shape kernel check; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/brick_cli_entrypoint_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of kernel_checks (brick_cli_entrypoint_smoke kernel check; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/mcp_connect_projection_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of kernel_checks (mcp_stdio_smoke + connect_config_launch + codex_projection_native + claude_projection_native kernel checks; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/chat_session_park_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of kernel_checks (chat_session_park_seam kernel check; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/adapter_error_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of kernel_checks (adapter_error_frontier_manifest_consistency + adapter_error_path_hardening kernel checks; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/agent_session_id_redaction_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of kernel_checks (agent_session_id_redaction kernel check; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/dashboard_productization_projection_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of kernel_checks (dashboard_productization_projection kernel check; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/sakana_wire_packet_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: sakana_wire_packet kernel check (fixture-only codex-fugu-local prompt packet resource path-label redaction; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/reporter_notification_projection_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of kernel_checks (reporter_notification_projection kernel check; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/no_smith_residue_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of kernel_checks (product_no_smith_residue scan; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/provider_preflight_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of kernel_checks (provider_preflight execution checker; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/onboard_smoke_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of kernel_checks (onboard_smoke execution checker; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/install_release_export_lint_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of kernel_checks (install_script_lint + release_export_exclusion + release_gate_contract onboarding shell-verb structural/safety lints; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/design_ai_text_seams_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of kernel_checks (design_ai_text_seams mocked Claude/Codex text seam checker; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/codex_connect_stall_classification_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of kernel_checks (codex_connect_stall_classification mocked dead-worker stall label checker; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/gemini_local_only_adapter_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of kernel_checks (gemini_local_only_adapter admission/guardrail checker; homes no crossing mechanics, imports no axis at module level)
+
+  - module: brick_protocol/support/checkers/lib/graph_topology_fan_barrier.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: graph_topology_fan_barrier kernel check (declared graph fan-in/fan-out barrier negative/positive fixtures; homes no crossing mechanics, imports no axis at module level)
+
+  # ---- brick_protocol/support/connection -------------------------------------------------
+  - module: brick_protocol/support/connection/agent_adapter.py
+    layer: connection
+    role: connection
+    owns_crossings: [agent_return_fact]
+    consumes_crossings:
+      - agent_return_fact
+      - brick_work
+      - brick_spec
+    imports_axis:
+      - brick_protocol/agent/return_fact.py
+      - brick_protocol/brick/work.py
+      - brick_protocol/brick/spec.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: agent_adapter_return_shape / design_ai_text_seams kernel checks + adapter_model_selection cases
+
+  # MODULE-SEP 0621: agent_adapter.py (was 3391 lines) decomposed into a thin
+  # ~1185-line FACADE (above) plus the 7 PURE no-op relocation siblings below.
+  # Each re-exported by the facade unchanged. No crossing OWNERSHIP moved
+  # (owns_crossings stays [] for all 7 — the facade still owns agent_return_fact
+  # and still imports all 3 axis files at top level). consumes_crossings /
+  # imports_axis declare each sibling's REAL top-level axis imports only: only
+  # adapter_validation reaches an axis (brick_protocol/agent/return_fact.py); the other 6 import
+  # nothing across an axis (stdlib + sibling adapter_* + support secret_text,
+  # which is support->support, not a crossing).
+  - module: brick_protocol/support/connection/adapter_constants.py
+    layer: connection
+    role: connection
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of agent_adapter facade (shared adapter constants — sentinels / env names / preset tables); homes no crossing mechanics, imports no axis
+
+  - module: brick_protocol/support/connection/adapter_validation.py
+    layer: connection
+    role: connection
+    owns_crossings: []
+    consumes_crossings:
+      - agent_return_fact
+    imports_axis:
+      - brick_protocol/agent/return_fact.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of agent_adapter facade (secret-text rejection / verdict-key validation); consumes the agent_return_fact contract (ALWAYS_SECRET_KEYS / TOP_LEVEL_VERDICT_KEYS) but homes no crossing
+
+  - module: brick_protocol/support/connection/adapter_subprocess.py
+    layer: connection
+    role: connection
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of agent_adapter facade (CLI subprocess spawn / stdin=DEVNULL connect-stall cure); imports no axis (stdlib + adapter_constants + adapter_validation)
+
+  - module: brick_protocol/support/connection/adapter_model_casting.py
+    layer: connection
+    role: connection
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of agent_adapter facade (model-ref -> CLI-arg casting); imports no axis (stdlib + adapter_constants + adapter_validation)
+
+  - module: brick_protocol/support/connection/adapter_grant_policy.py
+    layer: connection
+    role: connection
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of agent_adapter facade (tool-grant policy mechanics); imports no axis (stdlib + adapter_constants)
+
+  - module: brick_protocol/support/connection/adapter_gemini_http.py
+    layer: connection
+    role: connection
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of agent_adapter facade (S11 Gemini HTTP seam / invoke_gemini_text); imports no axis (stdlib urllib + sibling adapter_* + support secret_text)
+
+  - module: brick_protocol/support/connection/adapter_local_cli.py
+    layer: connection
+    role: connection
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of agent_adapter facade (local CLI invokers — invoke_claude_text / invoke_codex_text / preflight_provider); imports no axis (stdlib + sibling adapter_*)
+
+  - module: brick_protocol/support/connection/agent_resources.py
+    layer: connection
+    role: connection
+    owns_crossings: []
+    consumes_crossings: [agent_performer]
+    imports_axis:
+      - brick_protocol/agent/performance.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: agent_resource_boundary cases (agent_projection_sync profile)
+
+  - module: brick_protocol/support/connection/building_design_toolkit.py
+    layer: connection
+    role: connection
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: design_toolkit_and_mcp profile
+
+  - module: brick_protocol/support/connection/secret_text.py
+    layer: connection
+    role: connection
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: single-source raw-secret pattern definition consumed by the four credential-rejection sites
+
+  - module: brick_protocol/support/connection/coo_sync.py
+    layer: connection
+    role: connection
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: agent_projection_sync profile
+
+  - module: brick_protocol/support/connection/mcp_projection.py
+    layer: connection
+    role: connection
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: design_toolkit_and_mcp profile
+
+  - module: brick_protocol/support/connection/connect.py
+    layer: connection
+    role: connection
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: connect_config_launch kernel check (read_side_projection_boundary profile)
+
+  # ---- brick_protocol/support/operator ---------------------------------------------------
+  - module: brick_protocol/support/operator/run.py
+    layer: operator
+    role: facade
+    owns_crossings:
+      - brick_work
+      - agent_return_fact
+      - agent_receipt
+      - agent_performer
+      - brick_comparison
+      - link_gate
+      - link_movement
+      - link_transfer
+      - link_carry
+      - link_transition
+    consumes_crossings:
+      - brick_work
+      - agent_return_fact
+      - agent_receipt
+      - agent_performer
+      - brick_comparison
+      - link_gate
+      - link_movement
+      - link_transfer
+      - link_carry
+      - link_transition
+      - link_spec
+    imports_axis:
+      - brick_protocol/brick/work.py
+      - brick_protocol/brick/comparison.py
+      - brick_protocol/agent/return_fact.py
+      - brick_protocol/agent/receipt.py
+      - brick_protocol/agent/performance.py
+      - brick_protocol/link/gate.py
+      - brick_protocol/link/movement.py
+      - brick_protocol/link/transfer.py
+      - brick_protocol/link/carry.py
+      - brick_protocol/link/transition.py
+      - brick_protocol/link/spec.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: run_surface_split profile (facade entry; delegates each crossing to its axis owner)
+
+  # E2/S11 GOD-MODULE SPLIT: the self-contained chat-session step subsystem
+  # (human-as-agent claim/submit/release envelope + frontier-history
+  # preservation) lifted VERBATIM out of run.py. A pure relocation — it records
+  # support evidence only (chooses no Movement, creates no undeclared GateFact,
+  # judges no success/quality). run.py re-imports the public + internal names it
+  # still references, so every call site (and external run_module.* access) is
+  # unchanged. Consumes only the brick_work crossing (parse_required_return_shape
+  # for the chat-session submission required-return shape check).
+  - module: brick_protocol/support/operator/run_chat_session.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - brick_work
+    imports_axis:
+      - brick_protocol/brick/work.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: run_surface_split profile (the chat-session claim/submit/release surface the profile exercises through run.py re-exports) + simple_run0_one_run_surface
+
+  - module: brick_protocol/support/operator/contracts.py
+    layer: operator
+    role: carrier
+    owns_crossings:
+      - brick_work
+      - agent_return_fact
+      - agent_receipt
+      - agent_performer
+      - brick_comparison
+      - link_gate
+      - link_movement
+      - link_transfer
+      - link_carry
+      - link_transition
+    consumes_crossings:
+      - brick_work
+      - agent_return_fact
+      - agent_receipt
+      - agent_performer
+      - brick_comparison
+      - link_gate
+      - link_movement
+      - link_transfer
+      - link_carry
+      - link_transition
+    imports_axis:
+      - brick_protocol/brick/work.py
+      - brick_protocol/brick/comparison.py
+      - brick_protocol/agent/return_fact.py
+      - brick_protocol/agent/receipt.py
+      - brick_protocol/agent/performance.py
+      - brick_protocol/link/gate.py
+      - brick_protocol/link/movement.py
+      - brick_protocol/link/transfer.py
+      - brick_protocol/link/carry.py
+      - brick_protocol/link/transition.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: axis_contract_projection (typed-fact carrier; aggregates the facts by design)
+
+  # ELEGANT-REFACTOR P3d (engine blueprint 0531 §5 Opt 2 / detail-design §D-1):
+  # the largest god-module's single-concern parts (shared path/JSON/text helpers,
+  # allowlisted checker-profile subprocess, evidence presence/analysis, project
+  # orchestration-ledger projection+view, Building frontier observation, COO
+  # operating-chain/operator-loop/closure projection, declared-plan rendering,
+  # compose_building plan assembly, coo_run_orchestration packet, native-dispatch
+  # open/close seam) were lifted into single-concern operator collaborators
+  # (brick_protocol/support/operator/{building_operation_common,checker_runner,evidence_status,
+  # ledger_projection,frontier_observation,coo_operating_chain,plan_rendering,
+  # composition,orchestration_packet,native_dispatch}.py, each a registered row
+  # below). This module is now the THIN READ-PROJECTION FACADE: it re-exports
+  # every previously-public name (driver/reporter observe_building_frontier; the
+  # checker lib case runners' compose_building / render_declared_step_template_plan
+  # / observe_building_frontier / CompositionError; mcp_projection's
+  # coo_operating_chain_packet reference) as thin re-exports. It homes NO crossing
+  # mechanics any more (owns_crossings shrank 9 -> 0; the brick_protocol/agent/performance +
+  # brick_protocol/link/movement + brick_protocol/link/transition axis imports moved into the native_dispatch /
+  # plan_rendering collaborators that cross via the canonical contract, G3). The
+  - module: brick_protocol/support/operator/building_operation.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: compose_building / declared_step_template_plan cases + frontier observation (thin facade; concerns lifted to operator/{checker_runner,evidence_status,ledger_projection,frontier_observation,coo_operating_chain,plan_rendering,composition,orchestration_packet,native_dispatch} + building_operation_common in P3d)
+
+  - module: brick_protocol/support/operator/building_operation_common.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: compose_building / declared_step_template_plan cases + frontier observation (shared path/JSON/text helpers + default refs imported by the building-operation collaborators; reaches no axis)
+
+  # ONBOARDING-WIZARD-0: friendly never-raising onboarding flow that ties the
+  # existing preflight + connect + a bundled adapter:local example Building into
+  # one guided, plain-Korean beginner experience. Reuses existing functions
+  # (preflight_provider, connect.render_connect, run_building_plan); owns no
+  # crossing, judges nothing, owns no Movement.
+  - module: brick_protocol/support/operator/onboard.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: onboard_smoke kernel check (building_operator_driver0 profile)
+
+  - module: brick_protocol/support/operator/import_identity.py
+    layer: operator
+    role: operator-support-helper
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: import_identity_modes profile (source pyproject marker vs installed importlib.metadata identity split; support evidence only)
+
+  - module: brick_protocol/support/operator/re_instruction_rules.py
+    layer: operator
+    role: operator-support-helper
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: re_instruction_endline_gate kernel check (shared support-only re_instruction rule parser/validator consumed by onboard, walker_resume, and checker fixtures; authors no Link facts and judges no quality/success)
+
+  - module: brick_protocol/support/operator/provider_registry.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: provider_registry_ladder profile (per-user providers.yaml persistence and support-only adapter-resolution registry reader; no credentials, no source truth, no Movement)
+
+  - module: brick_protocol/support/operator/sink_registry.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: sink_registry profile (per-user sinks.yaml persistence and support-only sink reachability registry reader; no credentials, no source truth, no Movement)
+
+  # BUILDING-EASE-0 (0623): the make-a-brick skill's scaffold helper. Pure support
+  # operator mechanics: WRITES a new brick kind's two template files
+  # (bricks/<kind>/brick.md + return.yaml) with the body↔return invariant pre-
+  # satisfied, and REGISTERS the kind's primary return template in the catalog
+  # active list so it is not an orphan. A new kind is DATA (no brick_protocol/brick/spec edit).
+  # Owns no crossing, casts no agent, judges nothing.
+  - module: brick_protocol/support/operator/brick_kind_scaffold.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - link_movement
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: BRICK_KIND_SCAFFOLD0_TARGETS in check_package_path_admission.py (pins the module path). Its scaffolded OUTPUT is the make-a-brick skill's in-repo usability check -- the core profile (wraps check_bricks_spec_completeness, the body<->return invariant) plus the structure_template_integrity profile (wraps check_brick_template_catalog_restructure, catalog orphan + Link-word) must be green; the skill runs those PROFILES, not the standalone checker scripts (which skip the admission gate and false-green).
+
+  # BRICK-CLI-ENTRYPOINT-0: customer-facing `brick` console-script support
+  # wrapper. Bootstraps repo/import-identity paths before importing existing
+  # support seams, then delegates doctor/build/verify/status/init to admitted
+  # operator/checker surfaces. Owns no crossing, judges nothing, owns no Movement.
+  - module: brick_protocol/support/operator/cli.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: brick_cli_entrypoint profile (repo-outside/PYTHONPATH-unset entrypoint smoke)
+
+  - module: brick_protocol/support/operator/graph_draft.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: graph-draft profile (graph_draft_rules kernel check + no-autolaunch text_absent pins)
+
+  - module: brick_protocol/support/operator/draft_diff.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: graph-draft profile (graph_draft_rules kernel check draft-diff probes + no-autolaunch text_absent pins)
+
+  - module: brick_protocol/support/operator/resume_declaration.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - transition_lifecycle
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: resume_declaration behavioral checker and profile (JSON declaration loader/preflight, class-action mismatch rejection, already-complete no-op, explicit adapter_cwd lowering, CLI/profile pins)
+
+  - module: brick_protocol/support/operator/first_use.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: first_use_wizard kernel check (renders deterministic FIRST_USE.md support note after successful local init example only)
+
+  # PROJECT-0 S1-A (0611): project declaration record loader. Reads + validates
+  # project/<id>/project.json (closed 9-key set, non-empty direction, judgment
+  # keys rejected, human-only managers, charter_ref resolves to the project's
+  # own README.md). Records facts only — owns no crossing, judges nothing.
+  - module: brick_protocol/support/operator/project_declaration.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: project_declaration kernel check (core profile; loader is the validator the checker drives)
+
+  # PROJECT-0 S2-A (0611): project creation verb (charter-first 기계 박제).
+  # Writes project/<id>/README.md (charter) FIRST, then project.json (the
+  # shadow declaration), then the vessel skeleton dirs (buildings/ status/
+  # _portfolio-projections/ — empty dirs, no placeholder files), and
+  # fail-closed round-trips through the S1 loader: a rejected declaration
+  # removes the vessel and the loader's rejection speaks verbatim. Records
+  # direction facts only — owns no crossing, judges nothing.
+  - module: brick_protocol/support/operator/project_creation.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: project_declaration kernel check (core profile; every vessel the verb creates must pass the loader-driven kernel check or be removed)
+
+  # PROJECT-0 S4-C (0611): per-vessel PROGRESS.md machine projection (TRUTH
+  # layer only). Renders + writes project/<id>/PROGRESS.md from already-written
+  # Building evidence: counts by board_state/frontier_kind, latest Buildings by
+  # recorded evidence timestamp, declared direction echoed as header context.
+  # No judgment vocabulary, no human prose slot, no wallclock in the body
+  # (idempotent over unchanged evidence). Optional output — the declaration
+  # checker never requires it. Owns no crossing, judges nothing.
+  - module: brick_protocol/support/operator/progress_projection.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: project_declaration kernel check (core profile; the vessel must load through the S1 declaration loader before any PROGRESS projection renders) + building_root_anchor read-side vessel-literal guard
+
+  # IMPORTER (0612): post-hoc workflow-result recording verbs. A Workflow's
+  # internal agents go through a harness back door the recording hooks cannot
+  # observe (B4 measurement), so a workflow's substantial work left no
+  # building evidence. The operator opens a recording building FIRST
+  # (open_workflow_recording -> open_native_dispatch_brick into the vessel via
+  # buildings_root_for), runs the workflow (unrecorded), then
+  # import_workflow_result stamps the RESULT as evidence (verbatim text rides
+  # the existing agent-return raw stream) and closes through the SAME repaired
+  # native close seam (envelope-tolerant extraction; the closed
+  # RETURNED_FORBIDDEN_KEYS set unchanged). HONESTY: per-internal-agent
+  # identity is NOT observable; the workflow is recorded as ONE performer act
+  # + an explicit not-observable note; no per-agent AgentBinding/AgentReceipt
+  # is fabricated. POST-HOC + EXPLICIT (operator-called; hooks/polls nothing).
+  # Owns no crossing, judges nothing.
+  - module: brick_protocol/support/operator/workflow_import.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: workflow_import_case (native_dispatch_brick_backstop profile; honesty pin -- exactly one recorded performer act + not-observable note on the on-disk packet, no fabricated per-agent rows; envelope tolerance + no-laundering through the import verb; composition-mode-stamped building passes the declaration-law validator)
+
+  # ONBOARDING-RECORDING-HOOKS (0610): TRACKED machine-neutral templates for
+  # the per-LLM auto-recording hooks. NOT engine surfaces -- inert template
+  # SOURCE files the onboard wizard's opt-in recording step copies into a
+  # checkout's .claude/hooks/ + .codex/hooks/ machine config (gitignored).
+  # No machine default (BRICK_REPO_ROOT required), no crossing, no judgment,
+  # always exit 0 (a recording failure can never block a dispatch).
+  - module: brick_protocol/support/onboarding/claude-hooks/open-recording.py
+    layer: onboarding
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: ONBOARD_RECORDING_HOOK_TEMPLATE_TARGETS (check_package_path_admission.py) + onboard recording step (brick_protocol/support/operator/onboard.py)
+
+  - module: brick_protocol/support/onboarding/claude-hooks/close-recording.py
+    layer: onboarding
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: ONBOARD_RECORDING_HOOK_TEMPLATE_TARGETS (check_package_path_admission.py) + onboard recording step (brick_protocol/support/operator/onboard.py)
+
+  - module: brick_protocol/support/onboarding/codex-hooks/codex-open-recording.py
+    layer: onboarding
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: ONBOARD_RECORDING_HOOK_TEMPLATE_TARGETS (check_package_path_admission.py) + onboard recording step (brick_protocol/support/operator/onboard.py)
+
+  - module: brick_protocol/support/onboarding/codex-hooks/codex-close-recording.py
+    layer: onboarding
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: ONBOARD_RECORDING_HOOK_TEMPLATE_TARGETS (check_package_path_admission.py) + onboard recording step (brick_protocol/support/operator/onboard.py)
+
+  - module: brick_protocol/support/operator/checker_runner.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: simple_run0_one_run_surface (allowlisted checker-profile subprocess invocation; forbidden-part filtered, runs no commit/push, chooses no Movement)
+
+  - module: brick_protocol/support/operator/evidence_status.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_lifecycle_path_shape + building_declaration_integrity (evidence presence + mechanical layer-count analysis read projection; not content correctness, chooses no Movement)
+
+  - module: brick_protocol/support/operator/ledger_projection.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_operator_driver0 (project orchestration-ledger read projection + read-only markdown view over already-written evidence; not a dashboard runtime, chooses no Movement)
+
+  - module: brick_protocol/support/operator/frontier_observation.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - link_spec
+    imports_axis:
+      - brick_protocol/link/spec.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_operator_driver0 + bounded_agent_proposed_routing_loop (Building frontier observation over recorded link.jsonl lifecycle records; reads lifecycle state by field name, chooses no Movement or target; E2/S10 J6 delegates the SUFFICIENCY verdict — which frontier_kind the recorded evidence has reached — to the Link axis brick_protocol/link/spec.frontier_sufficiency_verdict, gathering the facts here)
+
+  - module: brick_protocol/support/operator/worktree_sandbox.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_operator_driver0 (W1 thin worktree-sandbox lifecycle helper for customer-facing dispatch — create→run→commit-on-complete or refs/brick/wip anchor-on-incomplete→dispose around run_building_intake; runs git plumbing only, chooses no Movement/target, judges no success/quality, reads no axis; commit/anchor gate is supplied by the caller's frontier observation)
+
+  - module: brick_protocol/support/operator/coo_operating_chain.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_operator_driver0 (COO operating-chain / operator-loop / closure read projection + forbidden-verdict gap notes; reads design/agent context via the support.connection toolkit, authors no verdict or Movement)
+
+  - module: brick_protocol/support/operator/plan_rendering.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - agent_spec
+      - link_movement
+    imports_axis:
+      - brick_protocol/agent/spec.py
+      - brick_protocol/link/movement.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: declared_step_template_plan case (declared-plan rendering from shape-registry step templates + compact link expressions; reads declared movement literals via the canonical MOVEMENT_LITERALS contract; E2/S6 reads the casting field-set via the canonical CASTING_FIELDS contract for the one generic resolver; authors no Movement or route)
+
+  - module: brick_protocol/support/operator/composition_problem.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: assembly_equivalence kernel check (composition lowering; CompositionError/CompositionProblem error-collection types — no axis crossing, authors no Movement or route)
+
+  - module: brick_protocol/support/operator/composition_common.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: assembly_equivalence kernel check (composition lowering; shared composition constants/helpers — no axis crossing, authors no Movement or route)
+
+  - module: brick_protocol/support/operator/composition_kinds.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: assembly_equivalence kernel check (composition lowering; node-kind classification + unknown-kind hints — no axis crossing, authors no Movement or route)
+
+  - module: brick_protocol/support/operator/composition_route_policy.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: assembly_equivalence kernel check (composition lowering; declared route-policy provenance resolution — no axis crossing, authors no Movement or route)
+
+  - module: brick_protocol/support/operator/composition_gate_translation.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - link_spec
+    imports_axis:
+      - brick_protocol/link/spec.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: assembly_equivalence kernel check (composition lowering; gate-concept translation crossing to Link via the canonical translate_gate_concept contract, authors no Movement or route)
+
+  - module: brick_protocol/support/operator/composition_graph_emit.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - link_gate
+      - link_spec
+    imports_axis:
+      - brick_protocol/link/gate.py
+      - brick_protocol/link/spec.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: assembly_equivalence kernel check (composition lowering; graph/edge emission crossing to Link via the canonical gate-ref + translate_gate_concept contracts, authors no Movement or route)
+
+  - module: brick_protocol/support/operator/composition_graph_validate.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - agent_return_fact
+    imports_axis:
+      - brick_protocol/agent/return_fact.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: assembly_equivalence kernel check (composition lowering; graph validation + CompositionProblem collection reading the canonical TRANSITION_CONCERN_KINDS contract, authors no Movement or route)
+
+  - module: brick_protocol/support/operator/composition_compose.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - link_gate
+      - link_movement
+    imports_axis:
+      - brick_protocol/link/gate.py
+      - brick_protocol/link/movement.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: assembly_equivalence kernel check (composition lowering; compose_building Brick plan assembly crossing to Link via the canonical gate-ref + MOVEMENT_LITERALS contracts, authors no Movement or route)
+
+  - module: brick_protocol/support/operator/composition_intent.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: assembly_equivalence kernel check (composition lowering; materialize_building_intent + render_declared_step_template_plan declared-plan rendering — no axis crossing, authors no Movement or route)
+
+  - module: brick_protocol/support/operator/assembly.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - link_spec
+      - agent_spec
+      - agent_return_fact
+      - brick_spec
+    imports_axis:
+      - brick_protocol/link/spec.py
+      - brick_protocol/agent/spec.py
+      - brick_protocol/agent/return_fact.py
+      - brick_protocol/brick/spec.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: assembly_equivalence kernel check (HEART front door: refined 3-axis builder API; assemble() lowers caller STRUCTURE to compose_building (nodes, edges, groups), consumes the casting bag (brick_protocol/agent/spec CASTING_FIELDS) + the Link-owned translate_gate_concept + the Brick-owned derived_worktree_write_scope default (brick_protocol/brick/spec), and DERIVES its Gate/Concern/Adoption enums from the axis vocab (brick_protocol/link/spec GATE_CONCEPT_TOKENS+ADOPTION_LITERALS, brick_protocol/agent/return_fact TRANSITION_CONCERN_KINDS); authors no Movement or route; build()/fan() are a pure front-end that lowers BRICK-FIRST node literals to the same chain/fan_out/fan_in/converge primitives, byte-identically) + builder_consumes_axis_api kernel check (builder-bypass-guard)
+
+  - module: brick_protocol/support/operator/orchestration_packet.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_operator_driver0 (coo_run_orchestration read packet composing the declared-plan + evidence-analysis + closure-draft collaborators; chooses no Movement or target)
+
+  - module: brick_protocol/support/operator/native_dispatch.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - agent_performer
+      - link_movement
+      - link_transition
+    imports_axis:
+      - brick_protocol/agent/performance.py
+      - brick_protocol/link/movement.py
+      - brick_protocol/link/transition.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: simple_run0_one_run_surface + building_lifecycle_path_shape (POSITION-A native-dispatch open/close recording seam; records a native subagent dispatch + a COMPUTED Link gate via the canonical NATIVE_DISPATCH_PERFORMANCE_MODE / make_movement_fact / make_transition_fact contracts, launches nothing and chooses no Movement)
+
+  # ELEGANT-REFACTOR P3b (engine blueprint 0531 §5 / detail-design §D-2 Opt B):
+  # the per-crossing-family emitters (Brick/Agent/Link/Carry-budget claim+raw,
+  # declaration packets, building-map, lifecycle, adapter-error frontier) were
+  # lifted into brick_protocol/support/recording/claims_*.py + the recording emitter sublayer
+  # (each a registered recording row below). This module is now the THIN WRITER
+  # FACADE (the three public writers as thin orchestrators + re-exported public
+  # names). It homes NO crossing mechanics any more (owns_crossings shrank 9 ->
+  # 0; the GateFact axis import moved to recording/claims_link). The G6 ceiling
+  - module: brick_protocol/support/operator/evidence_assembly.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: recording_checker_derived_contract + write_single/accumulated evidence (thin facade; crossings lifted to recording/claims_* emitters in P3b)
+
+  # ELEGANT-REFACTOR P3c (engine blueprint 0531 §5 / detail-design §D-3 Opt B):
+  # the dynamic graph walker god-module's separable concerns (forward walk kernel,
+  # resume-after-HOLD verb, reroute + per-node budget, HOLD construction, fan-in
+  # wait-all, agent transition-concern adoption, per-step row fixtures, adapter-
+  # error frontier) were lifted into single-concern operator collaborators
+  # (brick_protocol/support/operator/walker_*.py, each a registered row below). This module is
+  # now the THIN FACADE: it re-exports every previously-public name (run.py's
+  # walk/resume entry + the checker's _node_reroute_budgets import) as thin
+  # delegators. It homes NO crossing mechanics any more (owns_crossings shrank
+  # 10 -> 0; the brick_protocol/agent/return_fact + brick_protocol/link/transition axis imports moved into the
+  # transition-concern / reroute-budget / resume / step-fixture collaborators
+  # that cross via the canonical contract, G3).
+  - module: brick_protocol/support/operator/dynamic_walker.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop + recording_checker_derived_contract (thin facade; walk kernel + per-concern collaborators lifted to operator/walker_* in P3c)
+
+  - module: brick_protocol/support/operator/walker_common.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (shared walker proof-limit / not-proven vocab; imported by the walker collaborators)
+
+  - module: brick_protocol/support/operator/walker_step_fixture.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - transition_lifecycle
+    imports_axis:
+      - brick_protocol/link/transition.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (per-step Brick/Link row readers + declared gate disposition; reads declared gate via the canonical transition-lifecycle author-prefix contract, authors none)
+
+  - module: brick_protocol/support/operator/walker_reroute_budget.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - transition_lifecycle
+    imports_axis:
+      - brick_protocol/link/transition.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (Link-assigned per-target-node reroute budget reader + Carry-budget evidence refs; validates disposition_action via the canonical DISPOSITION_ACTIONS contract, authors no budget)
+
+  - module: brick_protocol/support/operator/walker_fan_in.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (declared fan-out splice + fan-in wait-all observation/HOLD; supports walker_kernel opt-in pool readiness, chooses no Movement)
+
+  - module: brick_protocol/support/operator/walker_transition_concern.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - agent_return_fact
+    imports_axis:
+      - brick_protocol/agent/return_fact.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (Agent non-binding transition-concern adoption + existing-node target resolution; consumes the canonical validate_transition_concern_evidence contract, invents no node)
+
+  - module: brick_protocol/support/operator/gate_sequence.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - brick_comparison
+      - link_gate
+      - transition_lifecycle
+    imports_axis:
+      - brick_protocol/brick/work.py
+      - brick_protocol/link/gate.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_skill_preset_agent_tool_hardening gate_sequence_policy cases (reads declared Link gate sequence and returns support-only action observation)
+
+  - module: brick_protocol/support/operator/walker_hold.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (HOLD RerouteAdoptionRecord builder + paused transition_lifecycle injection; built from the recording contract field-spec, decides no raise/forward/stop)
+
+  - module: brick_protocol/support/operator/walker_frontier.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (adapter-error frontier write-plan + writer; records the frontier through the injected support writer, chooses no Movement)
+
+  - module: brick_protocol/support/operator/walker_frontier_driver.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (live frontier queue/cursor and fan-out ready-batch helper; schedules only declared queue items, chooses no Movement)
+
+  - module: brick_protocol/support/operator/walker_carry.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (carry, step-output, and compact wiki-view helpers; observes declared refs and carries recorded addresses, chooses no Movement)
+
+  - module: brick_protocol/support/operator/walker_runtime_mail.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (runtime-mail ledger address resolution and adopted concern handoff assembly; delivers addresses only, chooses no Movement)
+
+  - module: brick_protocol/support/operator/walker_resume_seed.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (resume seed/replay gate and disposition observation helpers; reads recorded resume facts, authors no disposition)
+
+  - module: brick_protocol/support/operator/walker_report_events.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: reporter_notification_projection + bounded_agent_proposed_routing_loop (brick-grain report event projection helpers; notification observations only, not source truth or Movement)
+
+  - module: brick_protocol/support/operator/walker_kernel.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (the forward step-walk kernel; orchestrates the collaborators + reuses the injected step executor/writer, authors no route or Movement)
+
+  - module: brick_protocol/support/operator/walker_resume.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - transition_lifecycle
+    imports_axis:
+      - brick_protocol/link/transition.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (the resume-after-HOLD verb; reads the human/COO disposition row via the canonical transition-lifecycle author-prefix contract and replays/walks, authors no disposition)
+
+  - module: brick_protocol/support/operator/plan_validation.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - brick_work
+      - brick_comparison
+      - brick_spec
+      - link_gate
+      - link_movement
+      - link_transfer
+      - link_carry
+      - link_transition
+      - transition_lifecycle
+      - link_spec
+    imports_axis:
+      - brick_protocol/brick/work.py
+      - brick_protocol/brick/comparison.py
+      - brick_protocol/brick/spec.py
+      - brick_protocol/link/gate.py
+      - brick_protocol/link/movement.py
+      - brick_protocol/link/transfer.py
+      - brick_protocol/link/carry.py
+      - brick_protocol/link/transition.py
+      - brick_protocol/link/spec.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_plan_boundary + compose_building cases (validates declared rows; consumes, owns none; E2/S9 re-imports the Brick write-NEED interpreter from the Brick axis brick_protocol/brick/spec.py)
+
+  - module: brick_protocol/support/operator/primitives.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - agent_return_fact
+      - agent_spec
+      - brick_spec
+      - link_gate
+      - link_movement
+      - link_transition
+      - transition_lifecycle
+    imports_axis:
+      - brick_protocol/agent/return_fact.py
+      - brick_protocol/agent/spec.py
+      - brick_protocol/brick/spec.py
+      - brick_protocol/link/gate.py
+      - brick_protocol/link/movement.py
+      - brick_protocol/link/transition.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: shared operator primitives; covered by run_surface_split + route_match_and_materialization (E2/S6 re-imports the casting field-set from the Agent axis brick_protocol/agent/spec.py; E2/S9 re-imports the Brick-row allowed-key set from the Brick axis brick_protocol/brick/spec.py)
+
+  - module: brick_protocol/support/operator/route_materialization.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - link_spec
+    imports_axis:
+      - brick_protocol/link/spec.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: route_materialization_case + transition_concern_disposition_case (literal route matching; chooses no Movement)
+
+  - module: brick_protocol/support/operator/plan_graph.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - link_spec
+    imports_axis:
+      - brick_protocol/link/spec.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: compose_building cases (graph->linear projection)
+
+  - module: brick_protocol/support/operator/plan_expansion.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: plan_expansion_case profile
+
+  - module: brick_protocol/support/operator/auto_repair_replay.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: auto_repair_replay_case profile
+
+  - module: brick_protocol/support/operator/child_building_generation.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: structure-template-integrity profile (child_building_candidate_case rule)
+
+  - module: brick_protocol/support/operator/driver.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - agent_return_fact
+      - transition_lifecycle
+    imports_axis:
+      - brick_protocol/agent/return_fact.py
+      - brick_protocol/link/transition.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_operator_driver0 kernel check (bounded portfolio driver; selection is the declared gate dial, not new authority)
+
+  - module: brick_protocol/support/operator/portfolio_projection.py
+    layer: operator
+    role: projection
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_operator_driver0 kernel check (portfolio hold guidance projection; read-side fields only)
+
+  - module: brick_protocol/support/operator/write_observation.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: write_scope_default_exclude profile
+
+  - module: brick_protocol/support/operator/proof_observation.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: agent_adapter_return_shape kernel check
+
+  - module: brick_protocol/support/operator/reporter.py
+    layer: operator
+    role: operator
+    owns_crossings: [report_packet]
+    consumes_crossings: [transition_lifecycle]
+    imports_axis:
+      - brick_protocol/link/transition.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: reporter_notification_projection kernel check (render-only target; owns the ReportPacket support projection, decides nothing)
+
+  - module: brick_protocol/support/operator/report_sinks.py
+    layer: operator
+    role: operator
+    owns_crossings: [report_packet]
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: rs-sink-ceiling-0
+    pinned_by: reporter_notification_projection kernel check (G6 sink ceiling re-ratified at FOUR by Smith 0611 = dispatch seam + exactly {local-inbox, operator-wake-local, slack, dashboard}; a 5th sink requires the report_bus split — never a 5th sibling; blueprint 3.1)
+
+  - module: brick_protocol/support/operator/dashboard_export.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: dashboard read-side projection (reshapes the ledger packet + brick_protocol/agent/brick/building-map evidence into a dashboard-readable snapshot, and one building into the same per-building row/detail shape as an event delta; not a dashboard runtime, chooses no Movement, judges nothing)
+
+  - module: brick_protocol/support/operator/runtime_env.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: report_env_autoload kernel check (#56; the engine-entry auto-loader that injects the NARROW allowlist of slack/dashboard/provider credential keys from ~/.brick/report.env + ~/.brick/credentials.env into os.environ at the run.py building seam so the environment-gated report sinks can deliver; allowlist-only, 0600-gated, env-precedence, no value echo, absent-file no-op; owns no crossing, stores no secret at rest, judges nothing)
+
+  - module: brick_protocol/support/operator/task_order_preflight.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: task_order_preflight --self-test + dirty/clean task-order fixture probes (standalone pre-launch lint only; records support evidence, authors no Brick contract, Agent resource, Link Movement, route, success, or quality judgment)
+
+  # ---- brick_protocol/support/recording --------------------------------------------------
+  - module: brick_protocol/support/recording/records.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: [agent_return_fact]
+    imports_axis:
+      - brick_protocol/agent/return_fact.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: recording_checker_derived_contract (typed packet records)
+
+  - module: brick_protocol/support/recording/contracts.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: recording_checker_derived_contract (recording input contracts; the derived-shape source)
+
+  - module: brick_protocol/support/recording/building_map.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_map_graph kernel check (Building Graph map writer)
+
+  - module: brick_protocol/support/recording/capture.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_lifecycle_path_shape (CAP-BOOT-3 capture writer)
+
+  - module: brick_protocol/support/recording/spine.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: evidence_spine kernel check (U5.5 spine shared pure functions — event_type set + canonical_json/content_hash/render_event_md; reuses capture.graph_ready_json_object, owns no crossing, judges nothing)
+
+  - module: brick_protocol/support/recording/spine_projection.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: evidence_spine_projection kernel check (U5.5 slice-2 BUILD-2 building-scope declaration projector — reads work/preset-expansion.json + work/link-launch-policy.json, appends PresetExpansion + LinkLaunchPolicy via spine.append_spine_events; imports recording only, owns no crossing, judges nothing)
+
+  - module: brick_protocol/support/recording/operator_evidence.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: recording_checker_derived_contract (accumulated-Building operator evidence emitters)
+
+  - module: brick_protocol/support/recording/operator_correction.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: operator_correction profile (append-only human/COO correction observation writer; records measured tail evidence only, chooses no Movement)
+
+  - module: brick_protocol/support/recording/raw_claim_trace.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_lifecycle_path_shape (raw stream + claim-trace writer)
+
+  - module: brick_protocol/support/recording/step_outputs.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: [agent_return_fact]
+    imports_axis:
+      - brick_protocol/agent/return_fact.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: step_output_and_route_request profile (per-step output + transition concern writer)
+
+  # TrackA-A1 INSTRUMENT FIRST (0619): per-step codex token-usage METER journal
+  # writer (raw/adapter-usage.jsonl). SUPPORT FACT only -- records the
+  # turn.completed token counters as a Brick-axis support fact with no
+  # quality/fault label and NO cap (measurement only; a cap is TrackA-A2). The
+  # usage never enters AgentFact.returned or any Link field.
+  - module: brick_protocol/support/recording/adapter_usage_meter.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: adapter_usage_meter kernel check (per-step adapter token-usage meter records allowlisted counters with absent=null and never leaks usage into AgentFact.returned or any Link field)
+
+  - module: brick_protocol/support/recording/walker_evidence.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: recording_checker_derived_contract (dynamic-walker support evidence emitters)
+
+  # REDO (Smith 0623 struct-surgery): the per-step Agent support-observation fact
+  # deriver. Support = move+record only. The ADAPTER exposes raw (gemini tool-call
+  # list, stripped top-level verdict-key names, effective-write request inputs) and
+  # the support write observer exposes raw worktree observation; this module RECORDS
+  # the named per-step facts (observed_non_granted_gemini_tools,
+  # ignored_forbidden_return_key, the effective-write reason-token facts,
+  # git_refs_moved) and calls the Brick axis (brick.comparison) for the
+  # written-vs-scope classification. It owns ZERO crossing, judges nothing, stops
+  # nothing. It is axis-import-free: the Brick comparison call lives in the operator
+  # write observer (which already consumes the brick_comparison crossing), which
+  # passes the comparison result into this deriver.
+  - module: brick_protocol/support/recording/agent_step_observation.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: recording_checker_derived_contract (per-step Agent support-observation fact deriver; records the adapter raw side-channel + raw worktree observation as named facts, axis-import-free)
+
+  # ELEGANT-REFACTOR P3b (engine blueprint 0531 §5 / detail-design §D-2 Opt B):
+  # the evidence_assembly god-module's per-crossing-family emitters lifted here as
+  # single-concern recording collaborators behind the writer facade
+  # (brick_protocol/support/operator/evidence_assembly.py). Each owns ZERO axis crossing (it
+  # assembles raw records / claim facts / packets and homes no crossing); the one
+  # axis-internal import (the canonical GateFact contract of the link_gate
+  # crossing) lives in claims_link only, which crosses via that canonical
+  # contract (elegance guard G3). Behavior stays pinned by
+  # recording_checker_derived_contract / building_lifecycle_path_shape / Tier-A.
+  - module: brick_protocol/support/recording/claims_common.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: recording_checker_derived_contract (shared claim/step leaf primitives; imported by the claims_* emitters)
+
+  - module: brick_protocol/support/recording/claims_brick.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: recording_checker_derived_contract (Brick raw records + work/comparison claim facts)
+
+  - module: brick_protocol/support/recording/claims_agent.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: recording_checker_derived_contract (Agent raw records + claim/receipt facts)
+
+  - module: brick_protocol/support/recording/claims_link.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings:
+      - link_gate
+    imports_axis:
+      - brick_protocol/link/gate.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: recording_checker_derived_contract (Link transfer/movement/sufficiency facts + gate body; consumes the canonical GateFact contract only)
+
+  - module: brick_protocol/support/recording/claims_carry_budget.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (node-reroute + route-replay Carry budget observation facts)
+
+  - module: brick_protocol/support/recording/claims_assembly.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: recording_checker_derived_contract (per-axis RawClaimTracePacket assembler over the claims_* families)
+
+  - module: brick_protocol/support/recording/declaration_packets.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_declaration_integrity + run_surface_split (declaration-provenance packets + plan snapshot)
+
+  - module: brick_protocol/support/recording/building_map_emit.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_map_graph kernel check (accumulated / single-run / adapter-error frontier Building Graph map packets)
+
+  - module: brick_protocol/support/recording/lifecycle_emit.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_lifecycle_path_shape (lifecycle + capture-event packets; mapping converters)
+
+  - module: brick_protocol/support/recording/adapter_error_frontier.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_automation (write_adapter_error_frontier_evidence + agent-incomplete frontier lifecycle/map/trace builders)
+
+# G6 decomposition ceiling: each decomposition_target's current owns_crossings
+# count is its ceiling; raising owns_crossings above the ceiling -> G6 RED.
+# PROOF LIMIT (codex review 4 P2-2, decision C 0601): this is a CURRENT-state
+# self-consistency check, NOT an independently-enforced one-way ratchet — editing
+# this ceiling upward in the same commit is not rejected here. The intent ("a
+# decomposed module does not re-bloat") is enforced by G2 (owns<=1) + G1 + G4 +
+# mag-0, not by G6 alone. "shrink-only" below is a HISTORICAL note (P3 actually
+# moved each count down to 0), not a guaranteed mechanism.
+decomposition_ceilings:
+  - target: check-profile-god-0
+    module: brick_protocol/support/checkers/check_profile.py
+    ceiling: 0          # P3a DONE: kernel-check bodies + rule/case runners + YAML parser lifted to checkers/lib/* (§D-4 Opt B); facade homes no crossing. lowered 11 -> 0 (historical).
+  - target: rs-sink-ceiling-0
+    module: brick_protocol/support/operator/report_sinks.py
+    ceiling: 1          # owns exactly the report_packet sink-dispatch seam; sink set re-ratified at FOUR (Smith 0611: local-inbox, operator-wake-local, slack, dashboard — live-pinned by the reporter_notification_projection kernel check); a 5th sink requires the report_bus + sinks/<name> split FIRST — never a 5th sibling (blueprint 3.1)
+
+proof_limits:
+  - support evidence only
+  - governance/navigation projection only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - module registry row as source truth
+  - module behavior (pinned by per-row pinned_by, not by this registry)

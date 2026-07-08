@@ -1,0 +1,43 @@
+schema: checker-profile/v1
+profile_id: positive-int-bool-boundary
+description: Static Rule 12 guard that keeps budget/count positive-int surfaces from accepting bool.
+kernel_checks:
+  - positive_int_bool_boundary
+path_exists:
+  - brick_protocol/support/checkers/check_positive_int_bool_boundary.py
+  - brick_protocol/support/checkers/profiles/positive_int_bool_boundary.yaml
+  - brick_protocol/support/recording/contracts.py
+text_contains:
+  - path: brick_protocol/support/recording/contracts.py
+    texts:
+      - def require_positive_int(
+      - "bool is not admitted"
+  - path: brick_protocol/support/checkers/check_positive_int_bool_boundary.py
+    texts:
+      - SURFACE_EXPECTATIONS
+      - MUTATION_PROBES
+      - mutation fixture did not produce rc!=0
+      - brick_protocol/support/operator/assembly.py
+      - brick_protocol/support/operator/route_materialization.py
+      - brick_protocol/support/operator/auto_repair_replay.py
+      - brick_protocol/support/operator/plan_expansion.py
+      - brick_protocol/support/operator/composition_route_policy.py
+      - brick_protocol/support/operator/walker_frontier_driver.py
+      - brick_protocol/support/operator/walker_reroute_budget.py
+      - brick_protocol/support/operator/plan_validation.py
+      - brick_protocol/support/operator/walker_resume.py
+      - brick_protocol/support/operator/driver.py
+      - brick_protocol/support/recording/step_outputs.py
+      - brick_protocol/support/recording/claims_carry_budget.py
+      - DRIVER_CONSOLIDATION_ERROR_CONTRACT
+      - gate_sequence replay reader accepted mixed-case recorded action
+proof_limits:
+  - checker profile support evidence only
+  - profile dispatch observes the checker body only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - future positive-int surfaces outside the static expectation list
+  - semantic correctness of every future budget consumer

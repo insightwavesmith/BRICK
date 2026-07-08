@@ -1,0 +1,107 @@
+catalog_ref: brick-template-catalog:split-p3b-p4
+owner_axis: Brick
+catalog_kind: split_building_shape_and_template_catalog
+status: staged_brick_catalog
+phase_ref: BRICK-TEMPLATE-CATALOG-RESTRUCTURE-0
+selection_rule: caller_or_coo_declared_only
+files:
+  shapes: brick_protocol/brick/templates/shapes/shapes.yaml
+  # Step templates are now sourced from bricks/<kind>/brick.md frontmatter (U6; U4 retired
+  # brick_protocol/brick/templates/shapes/step-templates.yaml); the catalog no longer declares a
+  # step_templates file or rows key.
+  # Chain presets are now authored as presets/<name>.md (frontmatter = structure;
+  # each step carries step_template_ref + brick_spec_ref; `## Route` body = author
+  # route-intent prose the engine does not parse). The Builder sources the preset
+  # rows from this directory; canonical vs dogfood is split by each preset's
+  # catalog_scope. (Legacy compat_preset_refs aliases are RETIRED: loader-rejected.)
+  chain_presets:
+    presets: brick_protocol/brick/templates/presets
+  dogfood_chain_presets:
+    brick_protocol: brick_protocol/brick/templates/presets
+export_policy:
+  common_share_surface:
+    - brick_protocol/brick/templates/shapes/shapes.yaml
+    - brick_protocol/brick/templates/presets
+  dogfood_surface:
+    - brick_protocol/brick/templates/presets
+  rule:
+    - common share/export uses the common chain catalog only
+    - Brick Protocol development may also use dogfood chain presets
+    - dogfood presets are variants over the same common Brick templates
+    - common and dogfood chain presets co-locate under presets/; scope is per-preset catalog_scope
+compact_link_authoring_view:
+  projection_only: true
+  canonical_link_source: brick_protocol/link/gate.py DECLARED_GATE_REFS
+  default_gate_ref: link-gate:default-transition
+  token_refs:
+    strict: link-gate:strict
+    human: link-gate:human
+    coo: link-gate:coo
+  proof_limits:
+    - reference-only view over Link-owned gate refs
+    - not a GateFact literal source
+    - not Movement authority
+physical_template_classification:
+  active:
+    - path: brick_protocol/brick/templates/bricks/plan/return.yaml
+      reason: Canonical primary return template for building-step-template:plan.
+    - path: brick_protocol/brick/templates/bricks/design/return.yaml
+      reason: Canonical primary return template for building-step-template:design.
+    - path: brick_protocol/brick/templates/bricks/development/return.yaml
+      reason: Canonical primary return template for building-step-template:development.
+    - path: brick_protocol/brick/templates/bricks/work/return.yaml
+      reason: Canonical primary return template for building-step-template:work.
+    - path: brick_protocol/brick/templates/bricks/review/return.yaml
+      reason: Canonical primary return template for building-step-template:review.
+    - path: brick_protocol/brick/templates/bricks/inspect/return.yaml
+      reason: Canonical primary return template for building-step-template:inspect.
+    - path: brick_protocol/brick/templates/bricks/code-attack-qa/return.yaml
+      reason: Canonical primary return template for building-step-template:code-attack-qa.
+    - path: brick_protocol/brick/templates/bricks/axis-attack-qa/return.yaml
+      reason: Canonical primary return template for building-step-template:axis-attack-qa.
+    - path: brick_protocol/brick/templates/bricks/evidence-integrity/return.yaml
+      reason: Canonical primary return template for building-step-template:evidence-integrity.
+    - path: brick_protocol/brick/templates/bricks/closure/return.yaml
+      reason: Canonical primary return template for building-step-template:closure.
+    - path: brick_protocol/brick/templates/bricks/deep-design/return.yaml
+      reason: Canonical primary return template for building-step-template:deep-design.
+  shared_base:
+    - path: brick_protocol/brick/templates/building-design-contract.yaml
+      reason: Building-level human<->COO design-contract table (templates root since T-FLATTEN 0611; building-level by design, so deliberately NOT a brick sheet under bricks/).
+    - path: brick_protocol/brick/templates/reroute-defaults.yaml
+      reason: Smith-declared constitutional fallback node_reroute_budget for graph presets that omit their own budget map.
+    - path: brick_protocol/brick/templates/tasks/source-template.md
+      reason: Existing task-source template for Brick intake evidence.
+    - path: brick_protocol/brick/templates/tasks/slack-alert-all-presets-task.md
+      reason: Task-source fixture input for the standing all-presets completion smoke (rehomed from status/kernel, W2 DOC-DECOUPLE 0611).
+    - path: brick_protocol/brick/templates/bricks/transition-concern-return.yaml
+      reason: Shared non-binding transition-concern complaint form every brick carries as its second return ref (bricks/ family root since T-FLATTEN 0611; not an 11th kind).
+  superseded:
+    # PRODUCT-TREE CLEANUP (0610): 8 museum sheets (design/standard-design-return,
+    # design/standard-development-assignment-return, do/standard-work-return,
+    # closure/standard-closure-with-parent-delta, review/standard-axis-attack-qa-return,
+    # review/standard-code-attack-qa-return, review/standard-evidence-integrity-return,
+    # review/minimal-review-template.json) moved to the frozen HISTORY repo's
+    # archive/brick-templates/<same relative path> (CLEAN-YARD v3: the product
+    # repo ships no archive mirror; the menu lists the live tree only and a
+    # stale packet ref REDs in the catalog checker instead of resolving).
+    # (0610 follow-up: design/standard-plan-return, review/standard-review-return,
+    # review/standard-inspect-return — zero live refs — archived the same way.)
+    # (T-FLATTEN v3 0611: review/standard-route-request-return — the historical-
+    # compat PREDECESSOR of the transition-concern form (its own description:
+    # "pre-TRANSITION-CONCERN route request evidence"; zero live brick refs; its
+    # recorded active_profile_ref step_output_and_route_request.yaml was folded
+    # into link_routing_behavioral in the profile consolidation, so the compat
+    # entry's anchor was already gone) — archived the same way; the surviving
+    # link_routing_behavioral pins FOLLOW it into the archive mirror, with the
+    # pin-estate disposition recorded in brick_protocol/support/checkers/pin_estate_baseline.yaml.)
+proof_limits:
+  - Brick-owned catalog index only
+  - not automatic shape selection
+  - not Building Plan authoring
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic fitness of every physical Brick template in future Building contexts

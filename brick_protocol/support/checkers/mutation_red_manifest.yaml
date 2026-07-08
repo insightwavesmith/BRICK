@@ -1,0 +1,137 @@
+schema: mutation-red-manifest/v1
+description: Allowlist-first mutation-RED manifest for A+ W2 admitted surfaces.
+surfaces:
+  - surface: declared_plan_revision
+    fixture_path: brick_protocol/support/checkers/check_plan_revision_chain.py
+    fixture_identifier: RED forged valid-hash reader probe did not reject changed existing node
+    incident_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md W2 declared_plan_revision
+  - surface: plan_expansion
+    fixture_path: brick_protocol/support/checkers/fixtures/plan_expansion/duplicate_step_ref.json
+    fixture_identifier: duplicate_step_ref
+    incident_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md W2 plan_expansion
+  - surface: route_materialization
+    fixture_path: brick_protocol/support/checkers/lib/route_materialization_check.py
+    fixture_identifier: route_materialization_case rejected
+    incident_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md W2 route_materialization
+  - surface: step_output
+    fixture_path: brick_protocol/support/checkers/lib/step_output_drain_check.py
+    fixture_identifier: step_output_source_fact_disk_fallback_rejected
+    incident_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md W2 step_output
+  - surface: gate_sequence_decision
+    fixture_path: brick_protocol/support/checkers/check_plan_revision_chain.py
+    fixture_identifier: gate sequence replay record sideways top-level action
+    incident_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md W2 gate_sequence_decision
+  - surface: gate_policy_action_single_source
+    fixture_path: brick_protocol/support/checkers/check_gate_policy_action_single_source.py
+    fixture_identifier: local case-normalization core were rejected
+    incident_anchor: project/brick-protocol/status/kernel/w1s1-contract-kernel-map-0706.md K2 gate policy action single-source
+  - surface: positive_int_bool_boundary
+    fixture_path: brick_protocol/support/checkers/check_positive_int_bool_boundary.py
+    fixture_identifier: gate_sequence replay reader accepted mixed-case recorded action
+    incident_anchor: project/brick-protocol/status/kernel/w1s1-contract-kernel-map-0706.md K2 positive-int/disposition probes
+  - surface: write_scope_commit_gate
+    fixture_path: brick_protocol/support/checkers/check_assembly_equivalence.py
+    fixture_identifier: build mutation-RED observed: severed write_scope/expansion_budget/declared_expansion_node_budgets/gates
+    incident_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md W2 write_scope_commit_gate
+  - surface: write_scope_segment_matcher
+    fixture_path: brick_protocol/support/checkers/lib/write_scope_default_exclude_check.py
+    fixture_identifier: accepted nested child; observed
+    incident_anchor: project/brick-protocol/status/kernel/w1s1-contract-kernel-map-0706.md K4' WR-007 residue
+  - surface: hold_lifecycle
+    fixture_path: brick_protocol/support/checkers/check_building_operator_driver0.py
+    fixture_identifier: w1-fake-missing-paused-at-RED
+    incident_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md W2 hold_lifecycle
+  - surface: plan_result_side_channel_carry_strip
+    fixture_path: brick_protocol/support/checkers/check_building_operator_driver0.py
+    fixture_identifier: w1-direct-close-anchor channel-strip mutation-RED
+    incident_anchor: r2-carry-0706n D3 post-assembly side-channel carry (whole-channel survival)
+  - surface: plan_result_side_channel_carry_partial
+    fixture_path: brick_protocol/support/checkers/check_building_operator_driver0.py
+    fixture_identifier: w1-direct-close-anchor partial-copy mutation-RED
+    incident_anchor: r2-carry-0706n D3 post-assembly side-channel carry (partial hand-copy regression)
+  - surface: graphdecl_proposal_path
+    fixture_path: brick_protocol/support/checkers/check_assembly_equivalence.py
+    fixture_identifier: graph declaration proposal was not persisted under the Building work/ recording path
+    incident_anchor: graphdecl-fix-0706e D1 proposed-building-graph work/ path-shape guard
+  - surface: graphdecl_model_inheritance
+    fixture_path: brick_protocol/support/checkers/check_assembly_equivalence.py
+    fixture_identifier: graph declaration omitted model did not inherit adapter default_model_ref
+    incident_anchor: graphdecl-fix-0706e D2 graph declaration omitted model inherits adapter default
+  - surface: build_unify_casting_convergence
+    fixture_path: brick_protocol/support/checkers/lib/brick_cli_entrypoint_check.py
+    fixture_identifier: build-unify D2 casting convergence (표17)
+    incident_anchor: project/brick-protocol/status/kernel/operator-ergonomics-wave-0705.md 표17 입구별 기본 캐스팅 비대칭
+  - surface: build_unify_launch_repo_root_line
+    fixture_path: brick_protocol/support/checkers/lib/brick_cli_entrypoint_check.py
+    fixture_identifier: build-unify D4 first launch line (표16)
+    incident_anchor: project/brick-protocol/status/kernel/operator-ergonomics-wave-0705.md 표16 repo_root 발사 첫 줄
+  - surface: build_unify_model_alias_loud
+    fixture_path: brick_protocol/support/checkers/lib/brick_cli_entrypoint_check.py
+    fixture_identifier: build-unify D5 model-alias loud rejection (표18)
+    incident_anchor: project/brick-protocol/status/kernel/operator-ergonomics-wave-0705.md 표18 모델 별칭의 조용한 증발
+audit_mutants:
+  - mutant_id: S11-declared-plan-revision-forged-hash
+    surface: declared_plan_revision
+    fixture_path: brick_protocol/support/checkers/check_plan_revision_chain.py
+    fixture_identifier: RED forged valid-hash reader probe did not reject changed existing node
+    audit_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md S11 mutant 5종 pending external CSV; local observed substitute
+  - mutant_id: S11-plan-expansion-duplicate-step
+    surface: plan_expansion
+    fixture_path: brick_protocol/support/checkers/fixtures/plan_expansion/duplicate_step_ref.json
+    fixture_identifier: duplicate_step_ref
+    audit_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md S11 mutant 5종 pending external CSV; local observed substitute
+  - mutant_id: S11-route-materialization-mismatch
+    surface: route_materialization
+    fixture_path: brick_protocol/support/checkers/lib/route_materialization_check.py
+    fixture_identifier: route_materialization_case rejected
+    audit_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md S11 mutant 5종 pending external CSV; local observed substitute
+  - mutant_id: S11-step-output-disk-fallback
+    surface: step_output
+    fixture_path: brick_protocol/support/checkers/lib/step_output_drain_check.py
+    fixture_identifier: step_output_source_fact_disk_fallback_rejected
+    audit_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md S11 mutant 5종 pending external CSV; local observed substitute
+  - mutant_id: S11-gate-sequence-sideways-action
+    surface: gate_sequence_decision
+    fixture_path: brick_protocol/support/checkers/check_plan_revision_chain.py
+    fixture_identifier: gate sequence replay record sideways top-level action
+    audit_anchor: project/brick-protocol/status/kernel/aplus-wave-plan-0705.md S11 mutant 5종 pending external CSV; local observed substitute
+  - mutant_id: WR-007-fnmatch-star-crosses-slash
+    surface: write_scope_segment_matcher
+    fixture_path: brick_protocol/support/checkers/lib/write_scope_default_exclude_check.py
+    fixture_identifier: accepted nested child; observed
+    audit_anchor: project/brick-protocol/status/kernel/w1s1-contract-kernel-map-0706.md K4' WR-007 residue
+  - mutant_id: graphdecl-proposal-root-placement
+    surface: graphdecl_proposal_path
+    fixture_path: brick_protocol/support/checkers/check_assembly_equivalence.py
+    fixture_identifier: graph declaration proposal was not persisted under the Building work/ recording path
+    audit_anchor: graphdecl-fix-0706e D3 mutation RED
+  - mutant_id: graphdecl-omitted-model-default-sentinel
+    surface: graphdecl_model_inheritance
+    fixture_path: brick_protocol/support/checkers/check_assembly_equivalence.py
+    fixture_identifier: graph declaration omitted model did not inherit adapter default_model_ref
+    audit_anchor: graphdecl-fix-0706e D3 mutation RED
+  - mutant_id: build-unify-d2-casting-convergence
+    surface: build_unify_casting_convergence
+    fixture_path: brick_protocol/support/checkers/lib/brick_cli_entrypoint_check.py
+    fixture_identifier: build-unify D2 casting convergence (표17)
+    audit_anchor: build-unify-0706n D6 mutation RED (표17 per-node casting synthesis reintroduced)
+  - mutant_id: build-unify-d4-launch-repo-root-line
+    surface: build_unify_launch_repo_root_line
+    fixture_path: brick_protocol/support/checkers/lib/brick_cli_entrypoint_check.py
+    fixture_identifier: build-unify D4 first launch line (표16)
+    audit_anchor: build-unify-0706n D6 mutation RED (표16 first repo_root launch line removed)
+  - mutant_id: build-unify-d5-model-alias-loud
+    surface: build_unify_model_alias_loud
+    fixture_path: brick_protocol/support/checkers/lib/brick_cli_entrypoint_check.py
+    fixture_identifier: build-unify D5 model-alias loud rejection (표18)
+    audit_anchor: build-unify-0706n D6 mutation RED (표18 quiet alias fallback restored)
+  - mutant_id: r2-carry-side-channel-carry-strip
+    surface: plan_result_side_channel_carry_strip
+    fixture_path: brick_protocol/support/checkers/check_building_operator_driver0.py
+    fixture_identifier: w1-direct-close-anchor channel-strip mutation-RED
+    audit_anchor: r2-carry-0706n D3 mutation RED (carry helper neutered -> all channels stripped by anchor replace())
+  - mutant_id: r2-carry-side-channel-carry-partial
+    surface: plan_result_side_channel_carry_partial
+    fixture_path: brick_protocol/support/checkers/check_building_operator_driver0.py
+    fixture_identifier: w1-direct-close-anchor partial-copy mutation-RED
+    audit_anchor: r2-carry-0706n D3 mutation RED (partial hand-copy drops _report_event_observations across anchor replace())

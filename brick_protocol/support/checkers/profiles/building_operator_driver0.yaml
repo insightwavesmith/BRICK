@@ -1,0 +1,320 @@
+schema: checker-profile/v1
+profile_id: building-operator-driver0
+description: BUILDING-OPERATOR-DRIVER-0 enforcement over the admitted bounded declared multi-Building driver, adapter:local checker probes, and the MODE-2 no-bare-default-transition rule.
+kernel_checks:
+  - building_operator_driver0
+  - onboard_smoke
+  - building_result_summary
+  - deliverable_crosscheck_gate
+  - re_instruction_endline_gate
+path_exists:
+  - brick_protocol/support/operator/driver.py
+  - brick_protocol/support/checkers/check_building_operator_driver0.py
+  - AGENTS.md
+  # ONBOARDING-WIZARD-0 surface (pinned by the onboard_smoke kernel check).
+  - brick_protocol/support/operator/onboard.py
+  - brick_protocol/support/checkers/lib/re_instruction_endline_gate_check.py
+  - brick_protocol/support/checkers/profiles/re-instruction-endline-gate.yaml
+  - brick_protocol/brick/building_plans/onboarding-example-0.yaml
+text_contains:
+  - path: AGENTS.md
+    texts:
+      - BUILDING-OPERATOR-DRIVER-0
+  - path: brick_protocol/support/operator/driver.py
+    texts:
+      - def run_declared_portfolio
+      - run_building_plan(
+      - multi_candidate_requires_declared_policy
+      - proposed_candidate_not_in_declared_set
+      - portfolio_transition_budget_exhausted
+      - support authors no Building Plan, Movement, target, or adoption
+      - disposition_action_surface
+      # H2a direct-graph intake seam: compose_building (no preset) + reattach the
+      # inline task-source carry + run_building_plan; the preset path is untouched.
+      - def run_composed_graph_intake
+      - inline_task_source_carry(
+      - 'run_composed_graph_intake admits only plan_shape: graph'
+      # Shared worktree-sandbox bracket the preset customer path routes through.
+      - def _run_in_worktree_sandbox
+      - run_dispatch=_run_preset
+      - _WRITE_SCOPE_OUTSIDE_DIFF_PRESENT_REASON
+      - def _write_need_complete_with_outside_scope_diff_for_plan
+      - evaluate_declared_movement_gate(
+  - path: brick_protocol/support/checkers/check_building_operator_driver0.py
+    texts:
+      - MODE2 bare-default rejected
+      - candidate-not-in-declared-set rejected
+      - child_roots=
+      - adapter:local deterministic fixture only
+      # H2a direct-graph intake FIRE pins (the seam + evidence-spine proof).
+      - H2a direct-graph intake FIRE passed
+      - def _h2a_direct_graph_intake_fire
+      - h2a-mutation-RED
+      - h2a-idempotency
+      # Lane1 launch safety: launch_assembled_building must refuse caller
+      # adapter_cwd values that point back into the live repo/customer tree.
+      - def _launch_assembled_adapter_cwd_fire
+      - launch-adapter-cwd-RED
+      - adapter_cwd=repo_root
+      - adapter_cwd_refused_live_repo
+      # P2 resume isolation/disposition: no silent approve defaults, no live-repo
+      # adapter_cwd on post-HOLD resume, and provider-session-like writes marked.
+      - def _resume_isolation_disposition_fire
+      - resume-disposition-RED
+      - re_instruction_endline_rule_violation
+      - resume-isolation-RED
+      - missing_disposition_action
+      - resume_requires_isolated_adapter_cwd
+      - def _sensitive_write_observation_fire
+      - sensitive-write-RED
+      - sensitive-commit-RED
+      - observed_sensitive_path_writes evidence
+      - provider-session-like paths
+      # W1 stale/liveness + fixture route isolation pins: checker-created
+      # worktrees must live only under its temporary HOME, stale reap must be
+      # marker-age gated, and mutation-RED must log the bypass evidence.
+      - w1_fixture_engine_root_isolated
+      - w1_stale_old_removed
+      - w1_stale_fresh_preserved
+      - w1_stale_bad_preserved
+      - w1_mutation_red_execution_log
+      - w1_incomplete_wip_anchor_ref
+      - w1_direct_close_anchored_ref
+      - W1 direct close anchor FIRE passed
+      # D1/D3 (0706 r2-carry): post-assembly side-channel carry single source +
+      # whole-channel (3-of-3) survival across the close-time anchor replace(),
+      # with two mutation-REDs (carry-strip / partial hand-copy).
+      - w1_direct_close_report_observation_count
+      - w1_direct_close_channel_strip_mutation_red_execution_log
+      - w1_direct_close_partial_copy_mutation_red_execution_log
+      - channel-strip mutation-RED
+      - partial-copy mutation-RED
+      - sensitive_anchor_red_execution_log
+      - mutation-RED support evidence only
+      # R3 fan-death detection: silent fan children must hit the adapter-timeout
+      # deadline, emit raw dispatch_child_timeout evidence, and surface a COO-owned
+      # loud HOLD.
+      - def _fan_dispatch_child_timeout_fire
+      - def _fan_dispatch_slow_normal_child_no_false_hold_fire
+      - fan_dispatch_child_unresponsive
+      - dispatch-child-timeout
+      - fan_dispatch_child_timeout_mutation_red_execution_log
+      - fan_dispatch_slow_normal_margin_removal_mutation_red_execution_log
+      - fan_dispatch_slow_normal_branch_hits
+      # D1 park-stop WIP anchor + launch dirty-cwd observation FIRE: a direct
+      # adapter_cwd walk that parks/stops still anchors the dirty worktree, and a
+      # pre-existing dirty adapter_cwd is warned (observation-only) at launch.
+      - def _park_stop_anchor_and_launch_dirty_fire
+      - D1 park-stop anchor + launch dirty FIRE passed
+      - d1-park-stop-anchor
+      - d1-park-stop-anchor mutation-RED
+      - d1-launch-dirty
+      - d1-launch-dirty mutation-RED
+      - d1_park_stop_anchor_mutation_red_execution_log
+      - d1_launch_dirty_mutation_red_execution_log
+      - w1-fake-allowed-outside
+      - w1-fake-missing-paused-at-RED
+      - allowed+outside source-write diff did not fire
+      - hold did not surface outside-scope reason
+      - support-authored Link hold rows were persisted
+      - gate_consumption_evidence
+      - declared Link gate consumption evidence was not persisted
+      # P3 thin fire(graph) sugar: drawn GraphSpec -> official customer graph
+      # sandbox route, with no caller-authored JSON packet seam.
+      - def _fire_graph_sugar_fire
+      - fire(graph) sugar FIRE passed
+      - fire-graph-sugar
+      - from brick_protocol.support.operator.assembly import Authority, build, fan, fire
+  # ONBOARDING-WIZARD-0 PART-2: the example routes through the PART-1 seam, the
+  # real-vs-local adapter is driven by preflight readiness evidence, and the
+  # handoff names the seam verb. (onboard_seam_case executes these; the source
+  # pins keep the routing/handoff honest even if the case stops covering them.)
+  - path: brick_protocol/support/operator/onboard.py
+    texts:
+      - from brick_protocol.support.operator.driver import run_building_intake
+      - 'SEAM_VERB = "brick_protocol.support.operator.driver.run_building_intake"'
+      - result_obj = run_building_intake(
+      - def _choose_example_adapter
+      - def _preflight_readiness
+      - 'command_runner: Any | None = None'
+      - 'preflight_provider(adapter_ref, command_runner=command_runner)'
+      - 'run_doctor(command_runner=command_runner)'
+      - 'run_onboard('
+      - 'command_runner=command_runner'
+      - ADAPTER_GEMINI_LOCAL
+      - '"gemini": ADAPTER_GEMINI_LOCAL'
+      - 'local_cli_missing (gemini CLI/API key가 없음)'
+      - api_key_env_present
+      - credential_validity
+      - materialized_step_adapters
+      - _materialized_step_adapter_evidence
+      # c2 (0610): the adapter-write gate reads the CANONICAL observed-write set
+      # (adapter_is_write_capable -- codex/claude/gemini local), not a codex
+      # literal. Pins updated to the corrected fact.
+      - adapter_is_write_capable(real_ref)
+      - 'adapter_ref": real_ref'
+      - preflight readiness=ready for observed-write adapter
+      - '"routed_through": SEAM_VERB'
+      - '"preflight_readiness": readiness'
+      - allow_real_provider
+      - def _unsafe_live_repo_adapter_cwd
+      - adapter_cwd_refused_live_repo
+      - missing_disposition_action
+      - resume_requires_isolated_adapter_cwd
+      - adapter_cwd if adapter_cwd is not None else sandbox_cwd
+  - path: brick_protocol/support/operator/run.py
+    texts:
+      - def _unsafe_resume_adapter_cwd
+      - adapter_cwd_refused_live_repo
+      - resume_building_plan refuses
+      # D1 park-stop WIP anchor + launch dirty-cwd observation surfaces.
+      - def _observe_launch_dirty_cwd
+      - def _anchor_park_stop_wip
+      - "building launch: DIRTY-CWD"
+      - run_building_plan_park_stop
+      # D1 (0706 r2-carry): the close-time anchor remint routes its side-channel
+      # carry through the single-source contracts helper, never a local loop.
+      - carry_plan_result_side_channels(result, stamped)
+  - path: brick_protocol/support/operator/contracts.py
+    texts:
+      # D1 (0706 r2-carry): single-source side-channel field list + copy-only
+      # carry helper for post-assembly BuildingPlanSupportResult remints.
+      - 'PLAN_RESULT_SIDE_CHANNEL_FIELDS: tuple[str, ...] = ('
+      - def carry_plan_result_side_channels
+  - path: brick_protocol/support/operator/walker_kernel.py
+    texts:
+      # D1: the attach block references the single-source field-name tuple.
+      - reroute_field, evidence_field, report_field = PLAN_RESULT_SIDE_CHANNEL_FIELDS
+  - path: brick_protocol/support/operator/walker_kernel.py
+    texts:
+      - _ADAPTER_TIMEOUT_JOIN_MARGIN_FLOOR_SECONDS
+      - _adapter_timeout_join_seconds
+      - _DISPATCH_CHILD_TIMEOUT_RAW_STREAM
+      - _DispatchChildTimeout
+      - fan_dispatch_child_unresponsive
+      - 'required_disposition_owner": "coo'
+      - raw.dispatch_child_timeout
+  - path: brick_protocol/support/operator/write_observation.py
+    texts:
+      - def _path_has_provider_session_like_segment
+      - provider-session-like path segment
+      - observed_sensitive_path_writes
+  - path: brick_protocol/support/operator/worktree_sandbox.py
+    texts:
+      - def _read_engine_marker
+      - stale_after_seconds
+      - unparseable markers fail closed
+      - refusing to replace a non-stale engine worktree path
+      - observed_sensitive_path_writes block sandbox commit
+      - _git_status_paths
+      - commit_sandbox_output
+      # D1 launch-time read-only dirty observation helper (never refuses/mutates).
+      - def observe_preexisting_dirty_paths
+  - path: brick_protocol/support/connection/adapter_subprocess.py
+    texts:
+      - ADAPTER_GEMINI_LOCAL
+      - api_key_env_present
+      - credential_validity
+      - not_proven
+      - '키 유효성'
+      - API_KEY_INVALID
+  - path: brick_protocol/support/checkers/lib/fixture_graph_helpers.py
+    texts:
+      - support evidence only
+      - not source truth
+      - not success judgment
+      - not quality judgment
+      - not Movement authority
+text_absent:
+  - path: brick_protocol/support/operator/driver.py
+    texts:
+      - while True
+      - subprocess
+      - os.system
+      - threading
+      - choose_movement
+      - support_chosen_movement
+      - 'author_ref = "support:'
+      - "author_ref = 'support:"
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+  - not real-provider proof
+  - not concurrency proof
+onboard_seam_case:
+  - label: onboarding example routes through the PART-1 seam (preferred-step adapter fallback)
+    host: codex
+    bogus_host: definitely-not-a-host
+    # provider-availability dependent (measured: 8 runs split agent_incomplete /
+    # complete; this graph has NO human gate so link_paused cannot occur). A
+    # no-provider machine honestly records agent_incomplete (non-local preferred
+    # adapters can't run); a provider-equipped machine's design step completes ->
+    # complete. Both honest; pinning one made this profile flaky on brick verify /
+    # --all. The set is EXACTLY the two outcomes this gate-less graph can reach --
+    # an unexpected link_paused/error/empty still REDs (it would be a real bug).
+    acceptable_frontier_kinds: [agent_incomplete, complete]
+step_output_drain_case:
+  - label: driver0-live-linear-incoming-handoff-step-output-ref
+    case_kind: live_linear_n1
+    expected:
+      consumer_brick_instance_ref: brick-linear-consumer
+      source_fact_body_refs:
+        - work/step-outputs/linear-producer-attempt-1/step-output.json
+      carried_markers:
+        - brick-linear-producer
+      incoming_step_output_refs:
+        - work/step-outputs/linear-producer-attempt-1/step-output.json
+      receipt_handoff_refs:
+        - work/step-outputs/linear-producer-attempt-1/step-output.json
+  # P2 handoff/carry/receipt closure: linear coverage alone left the dynamic
+  # fan-in consumer receipt unproven. This case locks the fan-in closure
+  # consumer (brick-fan-closure) ReceiptFact.received_handoff_refs to ALL three
+  # upstream QA step-output addresses, so a regression that drops a fan-in
+  # incoming address from the receipt REDs here. Support evidence only; not a
+  # success/quality verdict and not Movement authority.
+  - label: driver0-live-dynamic-fan-in-incoming-handoff-step-output-ref
+    case_kind: live_dynamic_fan_in_n3
+    expected:
+      consumer_brick_instance_ref: brick-fan-closure
+      source_fact_body_refs:
+        - work/step-outputs/fan-code-qa-attempt-1/step-output.json
+        - work/step-outputs/fan-axis-qa-attempt-1/step-output.json
+        - work/step-outputs/fan-evidence-qa-attempt-1/step-output.json
+      carried_markers:
+        - brick-fan-code-qa
+        - brick-fan-axis-qa
+        - brick-fan-evidence-qa
+      incoming_step_output_refs:
+        - work/step-outputs/fan-code-qa-attempt-1/step-output.json
+        - work/step-outputs/fan-axis-qa-attempt-1/step-output.json
+        - work/step-outputs/fan-evidence-qa-attempt-1/step-output.json
+      receipt_handoff_refs:
+        - work/step-outputs/fan-code-qa-attempt-1/step-output.json
+        - work/step-outputs/fan-axis-qa-attempt-1/step-output.json
+        - work/step-outputs/fan-evidence-qa-attempt-1/step-output.json
+  # QA concern emission policy guard: a REAL defect concern from a QA
+  # brick must not be decorative. The checker callable emits one valid
+  # implementation_gap transition_concern_evidence from the code-attack-qa
+  # brick, targeting the upstream work brick. default-transition must adopt it
+  # and the dynamic walker must record a second work attempt before closure.
+  # This proves Link can adopt a QA concern; it does NOT make QA a Movement
+  # authority and does NOT convert every failing_or_missing_probes item into a
+  # reroute.
+  - label: driver0-live-qa-concern-reroutes-to-work
+    case_kind: live_qa_reroute_to_work_n2
+    expected:
+      adopted_target_ref: brick-qa-reroute-work
+      recorded_brick_instance_refs:
+        - brick-qa-reroute-work
+        - brick-qa-reroute-code-attack-qa
+        - brick-qa-reroute-work
+        - brick-qa-reroute-closure
+not_proven:
+  - semantic correctness of Agent transition_concern_evidence
+  - caller/COO disposition after a portfolio HOLD
+  - real-provider multi-Building autonomy
+  - checker profile pass as source truth
+  - real-provider onboarding example completion (adapter:codex-local)

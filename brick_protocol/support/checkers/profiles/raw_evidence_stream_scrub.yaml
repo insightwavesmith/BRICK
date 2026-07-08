@@ -1,0 +1,36 @@
+schema: checker-profile/v1
+profile_id: raw-evidence-stream-scrub
+description: Pins raw BRICK JSONL stream persistence scrub behavior. The active raw stream writer must block credential, PII, and provider-session-like body detail before raw JSONL persistence for raw/brick-work.jsonl, raw/agent-received.jsonl, raw/agent-return.jsonl, raw/agent-output-text.jsonl, and raw/adapter-error.jsonl while preserving raw refs, proof limits, not_proven evidence, and ordinary nested non-secret words such as status/result.
+kernel_checks:
+  - raw_evidence_stream_scrub
+path_exists:
+  - brick_protocol/support/recording/raw_claim_trace.py
+  - brick_protocol/support/checkers/lib/kernel_checks.py
+  - brick_protocol/support/checkers/check_profile.py
+  - brick_protocol/support/checkers/profiles/raw_evidence_stream_scrub.yaml
+text_contains:
+  - path: brick_protocol/support/recording/raw_claim_trace.py
+    texts:
+      - _scrub_raw_stream_record
+      - raw_evidence_scrub
+      - provider_session_payload
+      - credential_text
+      - pii_text
+  - path: brick_protocol/support/checkers/lib/kernel_checks.py
+    texts:
+      - run_raw_evidence_stream_scrub
+      - brick-work.jsonl
+      - agent-received.jsonl
+      - agent-return.jsonl
+      - agent-output-text.jsonl
+      - adapter-error.jsonl
+proof_limits:
+  - support raw JSONL scrub evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic completeness of all future sensitive payload classes
+  - provider behavior
+  - quality judgment

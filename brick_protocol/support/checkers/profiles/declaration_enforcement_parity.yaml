@@ -1,0 +1,39 @@
+schema: checker-profile/v1
+profile_id: declaration-enforcement-parity
+description: T3 declaration/execution parity ledger for forbidden_return_keys and future/later gate-consumer declarations.
+kernel_checks:
+  - declaration_enforcement_parity
+path_exists:
+  - brick_protocol/brick/templates/enforcement-ledger.yaml
+  - brick_protocol/support/checkers/check_declaration_enforcement_parity.py
+  - brick_protocol/support/checkers/profiles/declaration_enforcement_parity.yaml
+  - brick_protocol/brick/templates/bricks/closure/return.yaml
+  - brick_protocol/brick/templates/reroute-defaults.yaml
+text_contains:
+  - path: brick_protocol/brick/templates/enforcement-ledger.yaml
+    texts:
+      - "schema: declaration-enforcement-ledger/v1"
+      - "brick_protocol/brick/templates/bricks/closure/return.yaml:44"
+      - "brick_protocol/brick/templates/bricks/closure/return.yaml:45"
+      - "brick_protocol/brick/templates/reroute-defaults.yaml:7"
+      - "brick_protocol/brick/templates/reroute-defaults.yaml:21"
+      - gate_pending
+  - path: brick_protocol/support/checkers/check_declaration_enforcement_parity.py
+    texts:
+      - DeclarationEnforcementParityError
+      - _assert_forbidden_key_parity
+      - _assert_gate_pending_ledger_closure
+      - mutation RED observed
+  - path: brick_protocol/support/checkers/check_profile.py
+    texts:
+      - declaration_enforcement_parity
+      - support.checkers.check_declaration_enforcement_parity
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic correctness of future Link-side gates
+  - provider behavior

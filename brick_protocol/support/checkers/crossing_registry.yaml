@@ -1,0 +1,426 @@
+# Crossing-Contract Registry (engine blueprint 0531 §3 Table A).
+#
+# Append-only. One row per axis crossing: at each crossing exactly ONE canonical
+# contract crosses, and an axis's internal change is hidden behind that contract
+# (information hiding / narrow waist). Adding a crossing = appending ONE row; the
+# elegance guard (brick_protocol/support/checkers/check_axis_crossing_elegance.py) reads this
+# file and module_registry.yaml and needs no code edit per added row.
+#
+# Support record / governance projection only. This file decides nothing: it is
+# NOT source truth, NOT success judgment, NOT quality judgment, and NOT Movement
+# authority. It admits no axis or fact class.
+#
+# columns:
+#   crossing_id        stable id (referenced by module_registry owns/consumes)
+#   crossing           human seam name (Table A row 1)
+#   seam               <from-axis>-><to-axis> mechanical seam
+#   owner_axis         Brick | Agent | Link | support (the axis that OWNS it)
+#   canonical_contract the single contract name that crosses (G1 unique)
+#   canonical_symbols  the public symbols a support module may import from the
+#                      owning axis module for this crossing (G3 allowlist; the
+#                      guard groups these by defined_at, so two crossings that
+#                      share one axis file share the union)
+#   defined_at         the axis source file the contract is defined in
+#   projection_yaml    the paired axis projection YAML (or "" if none)
+#   pinned_by          the behavioral pin that proves the contract body (NOT this
+#                      guard; this guard governs shape/boundary only)
+#   is_axis_crossing   true for the 11 axis crossings; false for the support
+#                      ReportPacket projection (listed so G1 owns its name
+#                      uniqueness — see blueprint §3.1/§7 — but it is NOT an axis
+#                      crossing and is excluded from G3's axis-import grouping)
+
+crossings:
+  - crossing_id: brick_work
+    crossing: "Brick->Agent (work dispatch)"
+    seam: "Brick->Agent"
+    owner_axis: Brick
+    canonical_contract: BrickWork
+    canonical_symbols:
+      - BrickWork
+      - parse_required_return_shape
+      - parse_carries_forward_fields
+    defined_at: brick_protocol/brick/work.py
+    projection_yaml: brick_protocol/brick/work.yaml
+    pinned_by: check_axis_contract_projection (check_brick_work)
+    is_axis_crossing: true
+
+  - crossing_id: agent_return_fact
+    crossing: "Agent->downstream (returned)"
+    seam: "Agent->downstream"
+    owner_axis: Agent
+    canonical_contract: AgentFact
+    canonical_symbols:
+      - AgentFact
+      - make_agent_fact
+      - AGENT_FACT_FIELDS
+      - TOP_LEVEL_VERDICT_KEYS
+      - ALWAYS_SECRET_KEYS
+      - RETURNED_FORBIDDEN_KEYS
+      - TRANSITION_CONCERN_ALLOWED_KEYS
+      - TRANSITION_CONCERN_KINDS
+      - is_non_reroute_transition_concern_kind
+      - validate_transition_concern_evidence
+    defined_at: brick_protocol/agent/return_fact.py
+    projection_yaml: brick_protocol/agent/return_fact.yaml
+    pinned_by: check_axis_contract_projection (check_agent_return_fact) + single-home verifier
+    is_axis_crossing: true
+
+  - crossing_id: agent_receipt
+    crossing: "Agent receipt (intake)"
+    seam: "upstream->Agent"
+    owner_axis: Agent
+    canonical_contract: ReceiptFact
+    canonical_symbols:
+      - ReceiptFact
+      - make_receipt_fact
+    defined_at: brick_protocol/agent/receipt.py
+    projection_yaml: brick_protocol/agent/receipt.yaml
+    pinned_by: check_axis_contract_projection (check_agent_receipt)
+    is_axis_crossing: true
+
+  - crossing_id: agent_performer
+    crossing: "Performer-lane (who performs)"
+    seam: "Agent->performer"
+    owner_axis: Agent
+    canonical_contract: AgentPerformerFact
+    canonical_symbols:
+      - AgentPerformerFact
+      - make_agent_performer_fact
+      - NATIVE_DISPATCH_PERFORMANCE_MODE
+    defined_at: brick_protocol/agent/performance.py
+    projection_yaml: brick_protocol/agent/performance.yaml
+    pinned_by: check_axis_contract_projection (check_agent_performance)
+    is_axis_crossing: true
+
+  - crossing_id: agent_spec
+    crossing: "Agent casting (WHO-dials single-source: performer + brain)"
+    seam: "Brick-plan->Agent"
+    owner_axis: Agent
+    canonical_contract: CASTING_FIELDS
+    canonical_symbols:
+      # E2/S6 (mirror M5+M6+M9): the casting field-set single-source on the Agent
+      # axis. The CastingField descriptor (resolution policy as DATA:
+      # fail_closed/default_ref/scope/inherits_source_of/cli_emit), the field-set
+      # itself, its selected_* projection + selected-key reader, and the casting
+      # transport helpers support imports through the canonical names. One generic
+      # resolver (plan_rendering), validator (agent_resources/rule_runners) and
+      # spawn projector (agent_adapter) read this data instead of two hand paths.
+      # The descriptor now also ships per-dial validate / spawn_default /
+      # native_config_emit hooks (each dial's whole behavior in ONE row); the
+      # native-subagent projection (agent_resources) loops native_config_emit
+      # against these two host-target tokens, so they cross as canonical names.
+      - CASTING_FIELDS
+      - CastingField
+      - NODE_CASTING_FIELDS
+      - selected_key
+      - casting_bag
+      - merge_casting_bags
+      - stamp_casting
+      - NATIVE_TARGET_CODEX
+      - NATIVE_TARGET_CLAUDE
+      # E2/S1 (struct-surgery 0623): the AGENT-axis authoring carrier + verb,
+      # single-sourced on the Agent axis (brick_protocol/agent/spec.py). The builder assembly
+      # (brick_protocol/support/operator/assembly.py) re-exports these so the brick-task-author
+      # surface keeps ``from ...assembly import agent`` resolving while the
+      # definition lives on its axis (assembly -> agent, acyclic).
+      - AgentSpec
+      - agent
+      # ③ (struct-surgery 0623): the agent-OBJECT key/ref/forbidden SCHEMA single
+      # source + the shared key-set gate. brick_protocol/agent/spec.AGENT_OBJECT_SCHEMA owns the
+      # allowed_keys / ref_fields / forbidden_keys (allowed_keys derives the casting
+      # names from CASTING_FIELDS); ``validate_agent_object_keys`` is the ONE key-set
+      # gate the support load path (agent_resources._load_agent_object) AND the
+      # inline ``agent()`` compose path both call. Support imports the schema +
+      # gate through these canonical names: agent_resources.py (load path +
+      # _AGENT_OBJECT_KEYS/_REF_FIELDS/_FORBIDDEN_AGENT_OBJECT_KEYS aliases),
+      # primitives.py (_AGENT_OBJECT_ALLOWED_KEYS/_AGENT_OBJECT_REF_FIELDS aliases,
+      # re-exported to run.py + native_dispatch.py). The literal member-sets live
+      # ONLY on the axis (sealed by check_agent_object_schema_single_source).
+      - AGENT_OBJECT_SCHEMA
+      - AgentObjectSchema
+      - validate_agent_object_keys
+    defined_at: brick_protocol/agent/spec.py
+    projection_yaml: ""
+    pinned_by: check_assembly_equivalence (loops CASTING_FIELDS; per-dial resolution byte-identical) + check_axis_field_set_single_source (casting_fields single-source) + adapter_model_selection cases
+    is_axis_crossing: true
+
+  - crossing_id: brick_comparison
+    crossing: "Agent->Brick (comparison)"
+    seam: "Agent->Brick"
+    owner_axis: Brick
+    canonical_contract: BrickComparisonFact
+    canonical_symbols:
+      - BrickComparisonFact
+      # REDO (Smith 0623 struct-surgery): the written-vs-scope comparison
+      # (정보가공) -- classify RAW changed paths against the recommended
+      # write_scope -- is Brick-axis work. The support operator write observer
+      # imports this and records the buckets; behavior moved OUT of
+      # brick_protocol/support/operator/write_observation per the architecture map.
+      - compare_changed_paths_to_write_scope
+      - path_matches_scope
+    defined_at: brick_protocol/brick/comparison.py
+    projection_yaml: brick_protocol/brick/comparison.yaml
+    pinned_by: check_axis_contract_projection (check_brick_comparison) + SEQ-0
+    is_axis_crossing: true
+
+  - crossing_id: link_gate
+    crossing: "comparison->Link (sufficiency)"
+    seam: "Brick->Link"
+    owner_axis: Link
+    canonical_contract: GateFact
+    canonical_symbols:
+      - GateFact
+      - make_gate_fact
+      - gate_required_return_fields
+      - evaluate_declared_movement_gate
+      - make_transfer_gate_fact
+      - make_carry_gate_fact
+      - make_movement_gate_fact
+      - DECLARED_GATE_REFS
+      # P4-S1: human/auto disposition gate partitions, single-sourced in brick_protocol/link/gate.py
+      # (derived from DECLARED_GATE_REFS) so support imports the Link-owned partition
+      # instead of re-deriving the raw frozensets at 4 sites.
+      - HUMAN_DISPOSITION_GATE_REFS
+      - AUTO_ADOPT_GATE_REFS
+      - HUMAN_GATE_REF
+      - COO_GATE_REF
+      # E1 (U5.5 slice-3): the admitted Link gate sufficiency vocabulary, single-
+      # sourced by recording (claims_link) to validate the recorded sufficiency.
+      - GATE_SUFFICIENCY_LITERALS
+      # K1 vocabulary re-home (0706): gate-sequence policy action vocabulary and
+      # partition subsets are Link gate policy facts. Support imports these names
+      # instead of re-stating forward/hold/next/reroute member sets.
+      - ADMITTED_POLICY_ACTIONS
+      - ON_MISSING_REQUIRED_FACTS_ACTIONS
+      - ON_SUFFICIENT_ACTIONS
+      - normalize_gate_policy_action
+    defined_at: brick_protocol/link/gate.py
+    projection_yaml: brick_protocol/link/gate.yaml
+    pinned_by: check_axis_contract_projection (check_link_gate)
+    is_axis_crossing: true
+
+  - crossing_id: link_movement
+    crossing: "Movement decision"
+    seam: "Link->Link"
+    owner_axis: Link
+    canonical_contract: MovementFact
+    canonical_symbols:
+      - MovementFact
+      - make_movement_fact
+      - MOVEMENT_LITERALS
+    defined_at: brick_protocol/link/movement.py
+    projection_yaml: brick_protocol/link/movement.yaml
+    pinned_by: check_axis_contract_projection + axis_vocab_drift
+    is_axis_crossing: true
+
+  - crossing_id: link_transfer
+    crossing: "Transfer"
+    seam: "Brick-boundary->Brick-boundary"
+    owner_axis: Link
+    canonical_contract: TransferFact
+    canonical_symbols:
+      - TransferFact
+      - make_transfer_fact
+    defined_at: brick_protocol/link/transfer.py
+    projection_yaml: brick_protocol/link/transfer.yaml
+    pinned_by: check_axis_contract_projection
+    is_axis_crossing: true
+
+  - crossing_id: link_carry
+    crossing: "Carry"
+    seam: "cross-boundary ref preservation"
+    owner_axis: Link
+    canonical_contract: CarryFact
+    canonical_symbols:
+      - CarryFact
+      - make_carry_fact
+    defined_at: brick_protocol/link/carry.py
+    projection_yaml: brick_protocol/link/carry.yaml
+    pinned_by: check_axis_contract_projection + bounded routing checker
+    is_axis_crossing: true
+
+  - crossing_id: link_transition
+    crossing: "Transition topology"
+    seam: "Link->Link"
+    owner_axis: Link
+    canonical_contract: TransitionFact
+    # brick_protocol/link/transition.py hosts TWO crossings (TransitionFact + transition_lifecycle);
+    # the guard groups canonical_symbols by defined_at, so both rows' symbols form
+    # one allowlist for that file. These are the topology symbols.
+    canonical_symbols:
+      - TransitionFact
+      - make_transition_fact
+      - BUILDING_LIFECYCLE_STATES
+    defined_at: brick_protocol/link/transition.py
+    projection_yaml: brick_protocol/link/transition.yaml
+    pinned_by: check_axis_contract_projection
+    is_axis_crossing: true
+
+  - crossing_id: transition_lifecycle
+    crossing: "Pause/resume (transition lifecycle)"
+    seam: "Link->Link"
+    owner_axis: Link
+    canonical_contract: transition_lifecycle
+    # The pause/resume lifecycle vocabulary, co-located in brick_protocol/link/transition.py.
+    canonical_symbols:
+      - DISPOSITION_ACTIONS
+      - TRANSITION_LIFECYCLE_STATES
+      - TRANSITION_LIFECYCLE_PROGRESS_STATES
+      - TRANSITION_LIFECYCLE_DISPOSITION_OWNERS
+      - TRANSITION_LIFECYCLE_DISPOSITION_AUTHOR_PREFIXES
+      - TRANSITION_LIFECYCLE_ALLOWED_KEYS
+    defined_at: brick_protocol/link/transition.py
+    projection_yaml: brick_protocol/link/transition.yaml
+    pinned_by: check_axis_contract_projection + bounded routing checker
+    is_axis_crossing: true
+
+  # E2/S3 (mirror M11): the plan-level Link gate-concept grammar — a preset's
+  # declared gate_concept_profile token -> live declared_gate_ref. Single-sourced
+  # in brick_protocol/link/spec.py (the start of the Link single-source API, design §2 AXIS C);
+  # the support materializer (composition.py) imports translate_gate_concept
+  # instead of re-stating the table or the 4 inline translation copies. Derives
+  # from the Link-owned DECLARED_GATE_REFS so produced refs cannot drift.
+  - crossing_id: link_spec
+    crossing: "Link plan grammar (gate-concept translation)"
+    seam: "Brick-plan->Link"
+    owner_axis: Link
+    canonical_contract: translate_gate_concept
+    canonical_symbols:
+      - GATE_CONCEPT_TOKEN_GATE_REFS
+      - translate_gate_concept
+      # struct-surgery ② (0623): the Link gate single-source DATA table + its
+      # placement reader. GATE_REGISTRY is the one row-per-gate table the Link
+      # axis owns (ref + concept_token + required_return_fields + placement +
+      # disposition); gate-concept translation, DECLARED_GATE_REFS (in
+      # brick_protocol/link/gate.py, intra-axis), and the materializer placement rule all DERIVE
+      # from it. gate_placement_for_row is the reader the composition materializer
+      # CALLS instead of authoring "strict on QA / coo+human on final row"; the
+      # GateRegistryRow descriptor names the row shape so a registered import of
+      # the table type crosses by its canonical name.
+      - GATE_REGISTRY
+      - GateRegistryRow
+      - gate_placement_for_row
+      # E2/S8 (mirror M15): the builder-declarable gate-concept token vocabulary
+      # + transition-concern adoption literals. The friendly builder ``Gate`` /
+      # ``Adoption`` enums (brick_protocol/support/operator/assembly.py) DERIVE their ``.value``s
+      # from these single sources instead of re-stating Link tokens as literals.
+      - GATE_CONCEPT_MODE_TOKENS
+      - GATE_CONCEPT_TOKENS
+      - ADOPTION_LITERALS
+      # E2/S4 (mirror M12+M13): the Link plan-level envelope grammar single-source.
+      # The row-key + sub-envelope schema field-sets (allowed-keys, forbidden-keys,
+      # value-markers, author/public-fact prefixes), the three distinct
+      # forbidden-ref-prefix vocabularies + the bare-word segment set, and the two
+      # generic descriptor-driven entry points the support validator consumes.
+      - LINK_ROW_ALLOWED_KEYS
+      - ROUTE_REPLAY_ALLOWED_KEYS
+      - ROUTE_REPLAY_FORBIDDEN_KEYS
+      - ROUTE_REPLAY_FORBIDDEN_VALUE_MARKERS
+      - ROUTE_REPLAY_ALLOWED_AUTHOR_PREFIXES
+      - ROUTE_REASON_ALLOWED_PUBLIC_FACT_PREFIXES
+      - ROUTE_DECISION_BASIS_ALLOWED_KEYS
+      - TRANSITION_AUTHORING_ALLOWED_KEYS
+      - TRANSITION_LIFECYCLE_ALLOWED_KEYS
+      - BUILDING_LIFECYCLE_ALLOWED_KEYS
+      - LINK_FORBIDDEN_REF_SEGMENTS
+      - LINK_FORBIDDEN_REF_PREFIXES_AUTHOR
+      - LINK_FORBIDDEN_REF_PREFIXES_ROUTE_REASON
+      - LINK_FORBIDDEN_REF_PREFIXES_ROUTE_ENDPOINT
+      - LINK_FORBIDDEN_REF_PREFIXES_DECISION
+      - LinkEnvelopeContext
+      - validate_link_envelope
+      - link_envelope_evidence_fields
+      # E2/S10 (judgment J6): the frontier SUFFICIENCY verdict — given the recorded
+      # evidence facts, which frontier_kind the Building walk has reached, in what
+      # precedence. The frontier_kind VOCABULARY stays support-owned (a fact support
+      # records); only the precedence DECISION is the Link axis's, so support's
+      # frontier_observation gathers the facts and reads the verdict here. The kind
+      # literals ride in via FrontierSufficiencyVocab so the vocabulary keeps its
+      # single source in support.
+      - FrontierSufficiencyFacts
+      - FrontierSufficiencyVocab
+      - FrontierSufficiencyVerdict
+      - frontier_sufficiency_verdict
+    defined_at: brick_protocol/link/spec.py
+    projection_yaml: ""
+    pinned_by: compose_building case (gate-concept translation byte-identical) + check_axis_field_set_single_source (gate_concept_token_gate_refs single-source) + link_routing_behavioral/structure_template_integrity (envelope grammar byte-identical) + building_operator_driver0/bounded_agent_proposed_routing_loop (E2/S10 J6 frontier sufficiency verdict byte-identical)
+    is_axis_crossing: true
+
+  # E2/S9 (mirror M + J5 + axis-leak fix): the Brick plan-level DECLARABLE
+  # contract surface — what a builder writes for a valid task (the WHAT face).
+  # Single-sourced in brick_protocol/brick/spec.py (the Brick single-source API, design §2 AXIS
+  # A), parallel to brick_protocol/agent/spec.py + brick_protocol/link/spec.py. It owns the admitted Brick-row
+  # key-set (moved from brick_protocol/support/operator/primitives.py), the WriteScope value
+  # object (shape allowed_paths/forbidden_paths + clean/validate, MOVED from
+  # brick_protocol/support/connection/agent_adapter.py — a Brick-axis value object that had been
+  # sitting in a support file named for the AGENT axis), the default worktree
+  # write envelope (moved from brick_protocol/support/operator/assembly.py), and the write-NEED
+  # value interpreter (J5: the requires_brick_write_scope contract field's
+  # bool/yes/no discipline + the row-level admission rule, moved from
+  # brick_protocol/support/operator/plan_validation.py). Support imports these through the
+  # canonical names (primitives/plan_validation re-export under the old _-prefixed
+  # names; agent_adapter injects the two support coercers via WriteScopeContext so
+  # the axis never imports support). brick_protocol/brick/work.py + brick_protocol/brick/comparison.py keep
+  # their own crossings (brick_work, brick_comparison); this crossing owns only
+  # the NEW declarable-surface symbols support reaches via brick_protocol/brick/spec.py.
+  - crossing_id: brick_spec
+    crossing: "Brick declarable contract (write_scope + row-keys + write-need interpreter)"
+    seam: "Brick-plan->Brick"
+    owner_axis: Brick
+    canonical_contract: brick_declarable_contract
+    canonical_symbols:
+      - BRICK_ROW_ALLOWED_KEYS
+      - WriteScope
+      - WriteScopeContext
+      - DERIVED_WORKTREE_WRITE_SCOPE
+      - derived_worktree_write_scope
+      - SILENT_WRITE_GRANT_REJECTION
+      - declared_brick_write_need
+      - validate_brick_row_write_need_for_scope
+      # E2/S10 (judgment J10): the artifact-grounding COMPLETENESS verdict — given
+      # the support-computed grounding facts (which evidence/grounding fields apply +
+      # whether the returned grounding field carries an inspected-repository artifact
+      # reference), recompute the missing-field set and downgrade the Brick comparison
+      # fact's observed_match_kind to "missing". A Brick-return completeness judgment,
+      # moved out of brick_protocol/support/operator/plan_validation.py; support gathers the facts.
+      - ArtifactGroundingFacts
+      - apply_artifact_grounding_completeness
+      # E2/S1 (struct-surgery 0623): the BRICK-axis authoring carrier + verb,
+      # single-sourced on the Brick axis (brick_protocol/brick/spec.py). The builder assembly
+      # (brick_protocol/support/operator/assembly.py) re-exports these so the brick-task-author
+      # surface keeps ``from ...assembly import brick`` resolving while the
+      # definition lives on its axis (assembly -> brick, acyclic). ``BrickSpec``
+      # is also the node handle the retained graph-wiring tier consumes.
+      - BrickSpec
+      - brick
+    defined_at: brick_protocol/brick/spec.py
+    projection_yaml: ""
+    pinned_by: check_axis_field_set_single_source (brick_row_allowed_keys single-source) + write_scope construction/validation cases (clean/validate byte-identical) + strict-write-need admission cases (declared write-need byte-identical)
+    is_axis_crossing: true
+
+  # NOT an axis crossing. Listed only so G1 owns ReportPacket contract-name
+  # uniqueness (blueprint §3.1/§7). Report delivery is support mechanics that
+  # decides nothing; the "decides nothing" fields are pinned by the reporter
+  # negative probe, not by this guard. owner_axis=support and
+  # is_axis_crossing=false exclude it from G3's axis-import grouping.
+  - crossing_id: report_packet
+    crossing: "Report delivery (support projection, NOT an axis)"
+    seam: "support->declared sinks"
+    owner_axis: support
+    canonical_contract: ReportPacket
+    canonical_symbols: []
+    defined_at: brick_protocol/support/operator/reporter.py
+    projection_yaml: brick_protocol/support/checkers/profiles/reporter_notification_projection.yaml
+    pinned_by: reporter negative probe + reporter_notification_projection profile
+    is_axis_crossing: false
+
+proof_limits:
+  - support evidence only
+  - governance/navigation projection only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - crossing registry row as source truth
+  - contract body behavior (pinned by per-row pinned_by, not by this registry)

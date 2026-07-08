@@ -1,0 +1,45 @@
+schema: checker-profile/v1
+profile_id: graphdecl-fix
+description: Focused graph declaration proposal path and model inheritance support checks.
+kernel_checks:
+  - assembly_equivalence
+  - building_lifecycle_path_shape
+  - mutation_red_manifest
+path_exists:
+  - brick_protocol/support/operator/assembly.py
+  - brick_protocol/support/checkers/check_assembly_equivalence.py
+  - brick_protocol/support/checkers/check_building_lifecycle_path_shape.py
+  - brick_protocol/support/checkers/check_build_forward_action.py
+  - brick_protocol/support/checkers/profiles/graphdecl_fix.yaml
+text_contains:
+  - path: brick_protocol/support/operator/assembly.py
+    texts:
+      - DEFAULT_MODEL_REF_BY_ADAPTER
+      - proposed-building-graph.json
+  - path: brick_protocol/support/checkers/check_assembly_equivalence.py
+    texts:
+      - "graph declaration omitted model did not inherit adapter default_model_ref"
+      - "brick build --graph-decl help did not document action=stop default"
+      - "proposal was not persisted under the Building work/ recording path"
+  - path: brick_protocol/support/operator/cli.py
+    texts:
+      - "Declaration action defaults to stop"
+      - "work/proposed-building-graph.json"
+      - "resolve_build_action("
+      - "Shorthand for --action forward"
+  - path: brick_protocol/support/operator/assembly.py
+    texts:
+      - "def resolve_build_action"
+      - "priority CLI > file > default stop"
+  - path: brick_protocol/support/checkers/check_building_lifecycle_path_shape.py
+    texts:
+      - '("work", "proposed-building-graph.json")'
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - future provider behavior
+  - future Building correctness

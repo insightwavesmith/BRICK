@@ -1,0 +1,1246 @@
+"""Single Agent brain connection support surface for SIMPLE-RUN-0.
+
+Agent Adapter connects an Agent Object to an admitted brain surface. It is
+support mechanics only: it does not own Agent meaning, choose Link Movement,
+create default GateFacts, judge success or quality, store credentials, or run
+tools/hooks.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import re
+import shutil
+import signal
+import socket
+import subprocess
+import tempfile
+import time
+from collections.abc import Callable, Iterable, Mapping, Sequence
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
+
+from brick_protocol.agent.return_fact import ALWAYS_SECRET_KEYS as _ALWAYS_SECRET_KEYS
+from brick_protocol.agent.return_fact import TOP_LEVEL_VERDICT_KEYS as _TOP_LEVEL_VERDICT_KEYS
+from brick_protocol.agent.return_fact import TRANSITION_CONCERN_ALLOWED_KEYS as _TRANSITION_CONCERN_ALLOWED_KEYS
+from brick_protocol.agent.return_fact import TRANSITION_CONCERN_KINDS as _TRANSITION_CONCERN_KINDS
+from brick_protocol.brick.work import parse_required_return_shape
+from brick_protocol.brick.spec import WriteScope, WriteScopeContext
+
+
+# adapter_constants is a PURE constant leaf (no intra-package imports). The
+# symbols below are the ones agent_adapter's OWN surviving body consumes at
+# runtime (capability literals, adapter refs, model-ref defaults, the
+# read-tier/read-write policy refs, the observed/retired write sets, the
+# capability table, the repo root). Callers that need a moved constant import
+# adapter_constants directly -- this is no longer a re-export facade.
+from .adapter_constants import (
+    ADAPTER_LOCAL,
+    ADAPTER_CODEX_LOCAL,
+    ADAPTER_CODEX_FUGU_LOCAL,
+    ADAPTER_CLAUDE_LOCAL,
+    ADAPTER_GEMINI_LOCAL,
+    ADAPTER_CHAT_SESSION,
+    READ_WRITE_TOOL_POLICY_REF,
+    WRITE_TIER_TOOL_POLICY_REFS,
+    READ_TIER_TOOL_POLICY_REFS,
+    KNOWN_TOOL_POLICY_REFS,
+    ADAPTER_CAPABILITY_READ,
+    ADAPTER_CAPABILITY_WRITE,
+    ADAPTER_CAPABILITY_REVIEW,
+    ADAPTER_CAPABILITY_WEB,
+    ADAPTER_CAPABILITY_LITERALS,
+    MODEL_REF_DEFAULT,
+    MODEL_REF_CODEX_DEFAULT,
+    MODEL_REF_CLAUDE_INHERIT,
+    MODEL_REF_GEMINI_DEFAULT,
+    MODEL_REF_GEMINI_FLASH,
+    MODEL_REF_GEMINI_LOCAL_FLASH,
+    MODEL_REF_SAKANA_FUGU,
+    MODEL_REF_SAKANA_FUGU_ULTRA,
+    _RETIRED_WRITE_ADAPTER_REFS,
+    _OBSERVED_WRITE_ADAPTER_REFS,
+    ALLOWED_ADAPTER_REFS,
+    _ADAPTER_CAPABILITIES,
+    _REPO_ROOT,
+)
+
+_EFFECTIVE_WRITE_OBSERVATION_MARKER_ATTR = "_brick_protocol_effective_write_observed_cwd"
+# REDO (Smith 0623 struct-surgery): the adapter exposes RAW effective-write request
+# inputs only -- it derives no reason-token facts. brick_protocol/support/recording derives the
+# named write-policy facts (missing_brick_write_scope / identity-only / missing
+# read-write tool policy / missing adapter write capability) from these raw inputs.
+_EFFECTIVE_WRITE_REQUEST_RAW_ATTR = "_brick_protocol_effective_write_request_raw_inputs"
+ALLOWED_SESSION_CONTINUITY_MODES = frozenset(
+    {
+        "none",
+        "continue_if_available",
+        "start_or_continue",
+        "fork_from_available",
+    }
+)
+
+_DEFAULT_PROOF_LIMITS = (
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+)
+_DEFAULT_NOT_PROVEN = (
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+)
+_RETURN_LABEL_FIELDS = frozenset(
+    {
+        "blocked_or_missing_evidence",
+        "integration_risks",
+        "made_changes",
+        "narrowly_proven",
+        "no_changes_reason",
+        "not_proven",
+        "observed_evidence",
+        "open_questions",
+        "proof_limits",
+        "remaining_delta",
+        "required_outputs",
+        "review_needed",
+        "risks",
+        "transition_concern_evidence",
+        "worker_assignments",
+    }
+)
+_RETURN_LIST_FIELDS = frozenset(
+    {
+        "blocked_or_missing_evidence",
+        "evidence_refs",
+        "integration_risks",
+        "made_changes",
+        "narrowly_proven",
+        "not_proven",
+        "observed_evidence",
+        "open_questions",
+        "proof_limits",
+        "remaining_delta",
+        "required_outputs",
+        "review_needed",
+        "risks",
+        "worker_assignments",
+    }
+)
+_RETURN_JSON_FIELDS = frozenset({"transition_concern_evidence"})
+_RETURN_WAIVER_FIELDS_BY_REQUIRED = {
+    "made_changes": ("no_changes_reason",),
+}
+from brick_protocol.support.connection.secret_text import (
+    RAW_SECRET_PATTERNS as _RAW_SECRET_PATTERNS,
+)
+# adapter_validation cluster (E2 split, extraction 2/7): Secret/text/JSON
+# cleaning + payload guard live in brick_protocol/support/connection/adapter_validation.py.
+# The symbols below are the ones agent_adapter's own body consumes at runtime
+# (_RAW_SESSION_PATTERNS + _SOURCE_FACT_BODY_LIMIT feed _redacted_diagnostic_excerpt
+# / _source_fact_bodies_for_prompt; the cleaners + payload guard are called from
+# connect_agent_brain and its helpers). Callers import adapter_validation directly.
+from .adapter_validation import (
+    _RAW_SESSION_PATTERNS,
+    _SOURCE_FACT_BODY_LIMIT,
+    _clean_agent_instruction_packet,
+    _clean_json_value,
+    _clean_link_handoff_refs,
+    _clean_optional_text,
+    _clean_source_fact_bodies,
+    _reject_forbidden_text,
+    _reject_secret_text,
+    _safe_excerpt,
+    _validate_returned_payload,
+    safe_source_fact_body,
+)
+
+# The subprocess runner + codex connect-stall watchdog + spawn journal +
+# token/text meter + provider preflight cluster lives in adapter_subprocess. The
+# only two symbols agent_adapter's own body still calls at runtime are the
+# command dispatchers (_run_or_delegate / _run_text_cli_command). Callers that
+# need a moved subprocess symbol import adapter_subprocess directly.
+from .adapter_subprocess import (
+    _run_or_delegate,
+    _run_text_cli_command,
+)
+
+# The model-ref normalization + casting->CLI-arg projection cluster lives in
+# adapter_model_casting (E2 split, extraction 4/7). agent_adapter's own body
+# calls only the casting-field accessors + the selected-model-ref normalizer.
+# Callers that need a moved casting symbol import adapter_model_casting directly.
+from .adapter_model_casting import (
+    _normalize_selected_model_ref,
+    _casting_fields,
+    _node_casting_fields,
+)
+
+# The native-grant resolution + gemini admin-policy TOML + work-envelope prompt
+# build + structured-return extraction cluster lives in adapter_grant_policy (E2
+# split, extraction 5/7). agent_adapter's own body no longer calls any of these
+# symbols directly (the work-envelope prompt + grant resolution flow runs inside
+# adapter_grant_policy / adapter_local_cli now), so there is NO import of it here.
+# Callers that need a grant-policy symbol import adapter_grant_policy directly.
+
+# Bare prompt -> text design-AI seams live in adapter_gemini_http. They are not
+# active Agent adapter dispatch paths.
+
+# The Local-CLI invocation cluster (argv assembly + local-callable stub +
+# output/nonzero-error extraction) lives in adapter_local_cli (E2 split,
+# extraction 7/7). agent_adapter's own connect_agent_brain dispatch calls the
+# local-callable + local-cli adapter entry points; the rest of the cluster is
+# reached by callers importing adapter_local_cli directly.
+from .adapter_local_cli import (
+    _cleanup_codex_continuity_homes_for_request_scope,
+    _invoke_local_callable,
+    _invoke_local_cli_adapter,
+)
+
+_GEMINI_SOURCE_FACT_BODY_LIMIT = 4000
+_CLAUDE_NONINTERACTIVE_SYSTEM_PROMPT = (
+    "You are a non-interactive Brick Protocol support evidence reviewer. "
+    "Do not use tools, do not call hooks, do not enter or discuss plan-mode "
+    "actions such as ExitPlanMode, and do not ask follow-up questions. "
+    "Return concise text matching the requested return shape. "
+    "Do not claim source truth, success judgment, quality judgment, or Movement authority."
+)
+_CLAUDE_READ_ONLY_SYSTEM_PROMPT = (
+    "You are a non-interactive Brick Protocol support evidence reviewer. "
+    "You MAY use only read-only repository tools (Read, Grep, Glob) to inspect "
+    "files, diffs, and declared evidence. Do not edit or write files, do not run "
+    "git mutations, do not call hooks or provider SDKs, do not use network beyond "
+    "the provider itself, do not enter or discuss plan-mode actions such as "
+    "ExitPlanMode, and do not ask follow-up questions. Return concise text matching "
+    "the requested return shape. Do not claim source truth, success judgment, "
+    "quality judgment, or Movement authority."
+)
+_CLAUDE_SCOPED_WRITE_SYSTEM_PROMPT = (
+    "You are a non-interactive Brick Protocol worker agent. "
+    "You MAY use only the tools allowed for this run (Read, Grep, Glob, Edit, Write, Bash). "
+    "Run Bash only from the adapter cwd for commands that stay inside the Brick-declared "
+    "write_scope and local checker/test surface. "
+    "Edit files ONLY inside the Brick-declared write_scope.allowed_paths; never edit "
+    "write_scope.forbidden_paths, the .git directory, or credential/config files. "
+    "Do not call hooks or provider SDKs, do not run git commit or git push, do not access "
+    "or print setup tokens, auth bodies, credentials, or raw provider sessions, do not enter "
+    "or discuss plan-mode actions, and do not ask follow-up questions. "
+    "Return concise text matching the requested return shape. "
+    "Do not claim source truth, success judgment, quality judgment, or Movement authority."
+)
+_GEMINI_READ_TOOL_NAMES = frozenset(
+    {
+        "glob",
+        "grep_search",
+        "list_directory",
+        "read_file",
+        "read_many_files",
+        "search_file_content",
+    }
+)
+_GEMINI_WEB_TOOL_NAMES = frozenset({"google_web_search", "web_fetch"})
+# GEMINI-CONTROLPLANE-EXEMPT-0622: gemini's OWN orchestration/completion control
+# plane. These names appear in stats.tools.byName when the gemini CLI finishes or
+# fans out internally, but they touch NO repo file and reach NO external surface,
+# so they are NEVER a read-tier violation and must not produce a false-positive HOLD.
+# They are deliberately NOT in the granted/admin-policy set (they are not a
+# capability the Brick grants) -- they are an always-benign exemption layered on top
+# of the granted set in the post-hoc refusal check.
+#   * complete_task  -- gemini signals task completion (control signal, no side effect)
+#   * invoke_agent   -- gemini delegates to an internal sub-agent (orchestration, no
+#                       repo/external write of its own)
+# DELIBERATELY EXCLUDED (stay governed / denied -- do NOT add):
+#   * exit_plan_mode -- the work-envelope prompt explicitly forbids it
+#     (adapter_grant_policy.py "Do not call exit_plan_mode..."); exempting it here
+#     would contradict that deny rule.
+#   * update_topic   -- not demonstrably side-effect-free; never a measured false
+#                       positive; stays a violation if reported.
+#   * google_web_search / web_fetch -- read EXTERNAL state; stay governed by the
+#                       granted set (web exempt ONLY when WEB capability is granted).
+#   * write_file / run_shell_command / replace -- real writes; grant only through
+#     effective_write, never through read/web/native control-plane exemptions.
+_GEMINI_BENIGN_CONTROL_TOOL_NAMES = frozenset({"complete_task", "invoke_agent"})
+_CANONICAL_TOOL_UNIVERSE_GEMINI = (
+    "exit_plan_mode",
+    "glob",
+    "google_web_search",
+    "grep_search",
+    "list_directory",
+    "read_file",
+    "read_many_files",
+    "replace",
+    "run_shell_command",
+    "search_file_content",
+    "update_topic",
+    "web_fetch",
+    "write_file",
+)
+_GEMINI_TOOLS_BY_NATIVE_CAPABILITY = {
+    ADAPTER_CAPABILITY_READ: _GEMINI_READ_TOOL_NAMES,
+    ADAPTER_CAPABILITY_WEB: _GEMINI_WEB_TOOL_NAMES,
+    ADAPTER_CAPABILITY_WRITE: frozenset(
+        {
+            "replace",
+            "run_shell_command",
+            "write_file",
+        }
+    ),
+}
+
+
+def adapter_capabilities(adapter_ref: str) -> tuple[str, ...]:
+    """Return v1 technical capabilities for an admitted adapter ref."""
+
+    ref = _clean_optional_text("adapter_ref", adapter_ref)
+    try:
+        capabilities = _ADAPTER_CAPABILITIES[ref]
+    except KeyError as exc:
+        raise ValueError("adapter_ref is not admitted for ADAPTER-CAPABILITY-REHOME-0") from exc
+    return tuple(
+        capability
+        for capability in (
+            ADAPTER_CAPABILITY_READ,
+            ADAPTER_CAPABILITY_WRITE,
+            ADAPTER_CAPABILITY_REVIEW,
+            ADAPTER_CAPABILITY_WEB,
+        )
+        if capability in capabilities
+    )
+
+
+def adapter_has_capability(adapter_ref: str, capability: str) -> bool:
+    """Check support-side technical capability only; this grants no authority."""
+
+    checked_capability = _clean_optional_text("adapter_capability", capability)
+    if checked_capability not in ADAPTER_CAPABILITY_LITERALS:
+        raise ValueError("adapter_capability is not admitted for ADAPTER-CAPABILITY-REHOME-0")
+    return checked_capability in adapter_capabilities(adapter_ref)
+
+
+def adapter_is_write_capable(adapter_ref: str) -> bool:
+    """Return whether the adapter can technically attempt writes."""
+
+    return adapter_has_capability(adapter_ref, ADAPTER_CAPABILITY_WRITE)
+
+
+@dataclass(frozen=True)
+class AgentAdapterRequest:
+    """Input passed to one Agent brain adapter without secret/session bodies."""
+
+    building_id: str
+    agent_object_ref: str
+    adapter_ref: str
+    brick_instance_ref: str
+    next_brick_instance_ref: str
+    # E2/S7 (mirror M2): the per-dial casting scalar (``selected_model_ref``) that
+    # used to be a NAMED field here is replaced by ONE opaque ``casting`` bag keyed
+    # by the node-level ``selected_*`` casting names. A ``@dataclass`` cannot splice
+    # a tuple into named fields, so a new casting dial would otherwise cost a new
+    # hand-typed scalar; the bag carries them all. The bag is built ONCE at the
+    # ``run._adapter_request_from_prepared`` seam and threaded verbatim. The
+    # ``selected_model_ref`` accessor below reads the bag, so every existing reader
+    # (and the per-adapter __post_init__ normalize) is byte-identical; the dial's
+    # NORMALIZED value is written back INTO the bag so the on-disk work-envelope
+    # carries the same resolved model the named scalar carried.
+    casting: Mapping[str, str] = field(default_factory=dict)
+    callable_ref: str = ""
+    prompt_refs: tuple[str, ...] = ()
+    skill_refs: tuple[str, ...] = ()
+    hook_refs: tuple[str, ...] = ()
+    tool_policy_refs: tuple[str, ...] = ()
+    discipline_refs: tuple[str, ...] = ()
+    input_packet_ref: str = ""
+    output_packet_ref: str = ""
+    work_statement: str = ""
+    comparison_rule: str = ""
+    required_return_shape: str = ""
+    # ⑤ STATIC KIND INSTRUCTION (the brick.md ## body). Plain text — the
+    # agent-readable how-to for this Brick kind, delivered to the prompt as its own
+    # labeled section (distinct from work_statement, for fault attribution) by
+    # adapter_grant_policy._build_prompt. Carried verbatim from the brick_row;
+    # cleaned + secret/session-reject-screened in __post_init__ like the other free
+    # text request fields.
+    brick_instruction_body: str = ""
+    # ④ RE-INSTRUCTION (Link-owned, carried by support). The corrected how-to a
+    # human/COO HOLD disposition carries to the retried target Brick; delivered to
+    # the prompt as its OWN labeled "re-instruction / correction" section (distinct
+    # from work_statement and from the static brick_instruction_body, for fault
+    # attribution) by adapter_grant_policy._build_prompt, ONLY when present. Carried
+    # verbatim from the target step packet; cleaned + secret/session-reject-screened
+    # in __post_init__ like the other free-text request fields. Empty on a normal
+    # (non-resume) run and on every step that is not the disposition's redo target.
+    re_instruction: str = ""
+    source_fact_bodies: Mapping[str, str] = field(default_factory=dict)
+    link_handoff_refs: Mapping[str, Any] = field(default_factory=dict)
+    agent_instruction_packet: Mapping[str, Any] = field(default_factory=dict)
+    write_scope: Mapping[str, Any] = field(default_factory=dict)
+    building_session_ref: str = ""
+    session_scope_ref: str = ""
+    session_continuity_mode: str = "none"
+    proof_limits: tuple[str, ...] = field(default_factory=tuple)
+    not_proven: tuple[str, ...] = field(default_factory=tuple)
+
+    def __getattr__(self, name: str) -> str:
+        """Generic per-dial casting accessor (E2/S7 -> S6★ generalization).
+
+        REPLACES the single ``selected_model_ref`` @property: any node-layer
+        ``selected_<base>`` casting key (the ``selected_*`` twin of a
+        ``CASTING_FIELDS`` descriptor) resolves out of the opaque ``casting`` bag,
+        so ``getattr(request, selected_key(descriptor))`` works for ALL dials —
+        model (byte-identical to the prior property), effort, and any new dial —
+        with no per-dial property. Absent from the bag -> empty string (the prior
+        scalar default). Non-casting names raise AttributeError as usual.
+
+        ``__getattr__`` runs only when normal attribute lookup fails, so the real
+        ``casting`` field (and every other dataclass field) is unaffected; reading
+        ``self.casting`` here cannot recurse."""
+
+        if name in _node_casting_fields():
+            return self.casting.get(name, "")
+        raise AttributeError(name)
+
+    def __post_init__(self) -> None:
+        adapter_ref = _validate_adapter_ref(self.adapter_ref)
+        object.__setattr__(self, "adapter_ref", adapter_ref)
+        mode = _clean_optional_text("session_continuity_mode", self.session_continuity_mode)
+        mode = mode or "none"
+        if mode not in ALLOWED_SESSION_CONTINUITY_MODES:
+            raise ValueError("session_continuity_mode is not admitted for SESSION-CONTINUITY-0")
+        object.__setattr__(self, "session_continuity_mode", mode)
+        # E2/S6★ (was S7/M2): normalize EVERY casting dial INSIDE the bag by
+        # LOOPING the single-source CASTING_FIELDS rather than hand-naming the model
+        # dial. Each carried ``selected_<base>`` value is cleaned text; the MODEL
+        # dial additionally runs ``_normalize_selected_model_ref`` (validate +
+        # default-fill) exactly as the prior named scalar did — identified by its
+        # ``default_ref == MODEL_REF_DEFAULT`` sentinel (data, not a dial-name
+        # literal). Other dials (effort) get clean/identity. The resolved values are
+        # written back into a fresh bag, so the work-envelope serialization and every
+        # reader see byte-identical model values; a NEW dial flows through with no edit.
+        casting = dict(self.casting)
+        for descriptor in _casting_fields():
+            key = "selected_" + descriptor.field_name.removeprefix("preferred_")
+            value = _clean_optional_text(key, casting.get(key, ""))
+            if descriptor.default_ref == MODEL_REF_DEFAULT:
+                value = _normalize_selected_model_ref(adapter_ref, value)
+            casting[key] = value
+        object.__setattr__(self, "casting", casting)
+
+        for field_name in (
+            "work_statement",
+            "comparison_rule",
+            "required_return_shape",
+            # ⑤ the static kind instruction is free text authored by human/agent; it
+            # passes through the SAME clean + secret/session-text reject as the other
+            # free-text request fields so a body cannot smuggle raw credentials or a
+            # provider session into the prompt.
+            "brick_instruction_body",
+            # ④ the re-instruction is free text authored by human/COO on the HOLD
+            # disposition row; same clean + secret/session-text reject so a
+            # correction cannot smuggle credentials or a provider session.
+            "re_instruction",
+            "building_session_ref",
+            "session_scope_ref",
+        ):
+            value = _clean_optional_text(field_name, getattr(self, field_name))
+            object.__setattr__(self, field_name, value)
+            _reject_forbidden_text(field_name, value)
+
+        if mode != "none" and (not self.building_session_ref or not self.session_scope_ref):
+            raise ValueError(
+                "continuity modes require provider-neutral building_session_ref and session_scope_ref"
+            )
+
+        object.__setattr__(
+            self,
+            "source_fact_bodies",
+            _clean_source_fact_bodies(self.source_fact_bodies),
+        )
+        object.__setattr__(
+            self,
+            "link_handoff_refs",
+            _clean_link_handoff_refs(self.link_handoff_refs),
+        )
+        object.__setattr__(
+            self,
+            "agent_instruction_packet",
+            _clean_agent_instruction_packet(
+                self.agent_instruction_packet,
+                agent_object_ref=self.agent_object_ref,
+            ),
+        )
+        cleaned_write_scope = WriteScope.clean(self.write_scope, _WRITE_SCOPE_CONTEXT)
+        object.__setattr__(self, "write_scope", cleaned_write_scope)
+        # REDO (Smith 0623 struct-surgery): the adapter EXPOSES raw effective-write
+        # request inputs; it RECORDS NO facts and DERIVES NO reason tokens. It stamps
+        # the RAW booleans (write_scope present, read-write tool policy present,
+        # adapter supports observed write) + the agent_object_ref onto the request so
+        # brick_protocol/support/recording (agent_step_observation.derive_effective_write_request_facts)
+        # can derive the named write-policy facts. The WriteScope SHAPE validation (a
+        # malformed write_scope is a definition-coherence error, not a runtime
+        # work-policy stop) stays a construction raise here (KEEP).
+        if cleaned_write_scope:
+            object.__setattr__(
+                self,
+                _EFFECTIVE_WRITE_REQUEST_RAW_ATTR,
+                _observe_effective_write_request_raw_inputs(self, cleaned_write_scope),
+            )
+
+
+@dataclass(frozen=True)
+class AgentAdapterResult:
+    """Returned payload from one adapter, before AgentFact collection."""
+
+    request: AgentAdapterRequest
+    returned_value: Any
+    proof_limits: tuple[str, ...] = field(default_factory=tuple)
+    not_proven: tuple[str, ...] = field(default_factory=tuple)
+    # TrackA-A1 METER side-channel (SUPPORT FACT only): per-step codex token usage
+    # parsed from `codex exec --json`. This rides ALONGSIDE returned_value, never
+    # INSIDE it -- the adapter meter writer reads this; AgentFact.returned and the
+    # Link facts never see it. None when the adapter emitted no usage. NO quality
+    # or fault label is attached.
+    adapter_usage: Mapping[str, Any] | None = None
+    # REDO (Smith 0623 struct-surgery) raw side-channel: the adapter EXPOSES the raw
+    # it already saw -- it RECORDS NO facts. This rides ALONGSIDE returned_value,
+    # never INSIDE it. brick_protocol/support/recording (agent_step_observation) DERIVES the named
+    # per-step facts from this raw. Keys (see agent_step_observation):
+    #   non_granted_gemini_tool_names      -> observed_non_granted_gemini_tools fact
+    #   ignored_forbidden_return_key_names -> ignored_forbidden_return_key fact
+    # Empty mapping when the adapter saw none of these.
+    adapter_raw_observations: Mapping[str, Any] = field(default_factory=dict)
+    # Full provider/local-CLI output text side-channel. This is support raw
+    # evidence only: it rides alongside returned_value and never inside it.
+    adapter_output_text: str = ""
+
+
+class AgentAdapterParked(RuntimeError):
+    """Typed support signal: chat-session work is parked, not invoked."""
+
+    def __init__(self, request: AgentAdapterRequest) -> None:
+        super().__init__("chat-session adapter parked work envelope before provider invocation")
+        self.request = request
+        self.parked_kind = "chat_session_parked"
+        self.proof_limits = (
+            "chat-session adapter park signal only",
+            "no CLI or provider invocation attempted",
+            "not Agent returned payload",
+            "not AgentFact",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+        )
+        self.not_proven = (
+            "chat session pickup behavior",
+            "future submit or resume behavior",
+            "semantic correctness of parked work",
+            "caller/COO disposition after parked frontier observation",
+        )
+
+
+@dataclass(frozen=True)
+class LocalCliSpec:
+    """Allowlisted local CLI command shape behind an adapter ref."""
+
+    adapter_ref: str
+    brain_surface_ref: str
+    executable_name: str
+    version_args: tuple[str, ...]
+    invocation_args_kind: str
+    default_model_ref: str = MODEL_REF_DEFAULT
+    # PROVIDER-ROUTING -c OVERRIDES (DATA, no judgment). Extra ``-c key=value``
+    # codex config-override pairs the spawn path appends verbatim to the codex-exec
+    # argv, AFTER the existing approval/sandbox -c knobs and BEFORE the casting
+    # model/effort args. EMPTY tuple is the default, so every existing spec's argv
+    # is BYTE-IDENTICAL; only the sakana variant carries a non-empty override set
+    # (model_provider + model catalog). Each pair is concatenated as-is by
+    # adapter_local_cli -- support routes the data, it makes no provider decision.
+    extra_config_overrides: tuple[tuple[str, str], ...] = ()
+    opaque_resource_paths_on_wire: bool = False
+    proof_limits: tuple[str, ...] = field(default_factory=lambda: _DEFAULT_PROOF_LIMITS)
+    not_proven: tuple[str, ...] = field(default_factory=lambda: _DEFAULT_NOT_PROVEN)
+
+
+@dataclass(frozen=True)
+class LocalCliProbe:
+    """Redacted local CLI availability evidence."""
+
+    adapter_ref: str
+    brain_surface_ref: str
+    executable_name: str
+    executable_path: str
+    version_text: str
+    proof_limits: tuple[str, ...] = field(default_factory=tuple)
+    not_proven: tuple[str, ...] = field(default_factory=tuple)
+
+
+@dataclass(frozen=True)
+class LocalCliCompleted:
+    """Small command completion record used before AgentFact collection."""
+
+    args: tuple[str, ...]
+    return_code: int
+    stdout: str
+    stderr: str
+    # TrackA-A1 METER (SUPPORT FACT only): per-turn codex token usage parsed from
+    # the `codex exec --json` JSONL stdout (last turn.completed.usage), already
+    # mapped onto the allowlisted token-counter key names. None means "no usage
+    # observed" -- older codex without --json, or no turn.completed event. This
+    # field NEVER flows into AgentFact.returned or any Link field; it is a Brick-
+    # axis meter input carrying NO quality/fault label.
+    adapter_usage: Mapping[str, Any] | None = None
+    # Provider/runtime side-channel observations. These ride alongside the
+    # returned Agent payload and must never carry credential bodies or raw
+    # provider session ids.
+    adapter_raw_observations: Mapping[str, Any] = field(default_factory=dict)
+
+
+
+
+AgentBrainCallable = Callable[[AgentAdapterRequest], Any]
+CommandRunner = Callable[..., LocalCliCompleted]
+
+
+def _sakana_fugu_config_overrides() -> tuple[tuple[str, str], ...]:
+    """Resolve the codex-fugu-local provider-routing -c overrides as DATA.
+
+    The MINIMAL routing switch is ``model_provider="sakana"`` -- that one pair is
+    always present (it flips codex onto the Sakana provider). The Sakana model
+    catalog path is resolved DETERMINISTICALLY at ``~/.codex/fugu.json`` (the
+    codex CLI's own catalog location); the ``model_catalog_json`` pair is appended
+    ONLY when that file actually resolves to a real path, otherwise it is omitted
+    (per the plan: keep just the provider switch when the catalog is absent). This
+    is path resolution, not a provider decision -- codex's own
+    ``auth.command`` resolves the Sakana key, which never enters BRICK.
+    """
+
+    overrides: list[tuple[str, str]] = [
+        ("-c", 'model_provider="sakana"'),
+        # Reasoning-effort floor. The Sakana catalog (~/.codex/fugu.json) lists
+        # ONLY {high, xhigh} as supported_reasoning_levels for fugu / fugu-ultra
+        # (no low/medium), and the codex-fugu launcher always pins "high". Carry
+        # the same DATA default; a node's effort dial (later in argv) still wins
+        # to bump xhigh.
+        ("-c", 'model_reasoning_effort="high"'),
+        # Sakana's Responses API (wire_api="responses") rejects codex's built-in
+        # image_generation / apps tools (it answers "Invalid value:
+        # 'image_generation'. Supported values are: 'function' and 'custom'").
+        # The codex-fugu launcher disables BOTH, so carry the same DATA toggles
+        # here -- otherwise every real Fugu turn fails turn.failed at the provider.
+        ("-c", "features.image_generation=false"),
+        ("-c", "features.apps=false"),
+        # Stall guard. A half-open Sakana HTTPS stream (socket ESTABLISHED, no new
+        # data) leaves codex exec asleep in a stream read-wait; the user's
+        # ~/.codex/config.toml pins stream_idle_timeout_ms=7200000 (2h), but an
+        # ISOLATED build dispatch runs --ignore-user-config and so drops that file,
+        # falling back to codex's default (unknown / possibly long). Pin an explicit
+        # SHORT idle so a stalled Fugu node self-fails in ~5min instead of zombieing
+        # the whole building (Fugu's own stall post-mortem: bound the idle, don't
+        # wait 2h). A node still gets its full adapter_timeout_seconds wall-clock for
+        # legitimate long turns -- this caps only the NO-OUTPUT gap.
+        ("-c", "stream_idle_timeout_ms=300000"),
+    ]
+    catalog_path = Path.home() / ".codex" / "fugu.json"
+    if catalog_path.is_file():
+        overrides.append(("-c", f'model_catalog_json="{catalog_path.as_posix()}"'))
+    return tuple(overrides)
+
+
+_LOCAL_CLI_SPECS: Mapping[str, LocalCliSpec] = {
+    ADAPTER_CODEX_LOCAL: LocalCliSpec(
+        adapter_ref=ADAPTER_CODEX_LOCAL,
+        brain_surface_ref="brain-surface:codex-local-cli",
+        executable_name="codex",
+        version_args=("--version",),
+        invocation_args_kind="codex-exec-readonly",
+        default_model_ref=MODEL_REF_CODEX_DEFAULT,
+    ),
+    # codex-fugu-local: SAME codex executable + codex-exec invocation kind as
+    # codex-local; the ONLY difference is the provider-routing -c overrides carried
+    # as DATA (model_provider="sakana" + the Sakana model catalog). Default model is
+    # model:sakana:fugu (the Sakana catalog slug). codex-local above is untouched.
+    ADAPTER_CODEX_FUGU_LOCAL: LocalCliSpec(
+        adapter_ref=ADAPTER_CODEX_FUGU_LOCAL,
+        brain_surface_ref="brain-surface:codex-fugu-local-cli",
+        executable_name="codex",
+        version_args=("--version",),
+        invocation_args_kind="codex-exec-readonly",
+        default_model_ref=MODEL_REF_SAKANA_FUGU_ULTRA,
+        extra_config_overrides=_sakana_fugu_config_overrides(),
+        opaque_resource_paths_on_wire=True,
+    ),
+    ADAPTER_CLAUDE_LOCAL: LocalCliSpec(
+        adapter_ref=ADAPTER_CLAUDE_LOCAL,
+        brain_surface_ref="brain-surface:claude-code-local-cli",
+        executable_name="claude",
+        version_args=("--version",),
+        invocation_args_kind="claude-plan-json",
+        default_model_ref=MODEL_REF_CLAUDE_INHERIT,
+    ),
+    ADAPTER_GEMINI_LOCAL: LocalCliSpec(
+        adapter_ref=ADAPTER_GEMINI_LOCAL,
+        brain_surface_ref="brain-surface:gemini-local-cli",
+        executable_name="gemini",
+        version_args=("--version",),
+        invocation_args_kind="gemini-p-json-flash",
+        default_model_ref=MODEL_REF_GEMINI_LOCAL_FLASH,
+    ),
+}
+
+# Gemini Generative Language HTTP API (grounded, not guessed):
+#   POST https://generativelanguage.googleapis.com/v1beta/models/<model>:generateContent
+#   header  x-goog-api-key: <API_KEY>   (key from env, never committed)
+#   body    {"contents":[{"parts":[{"text": <prompt>}]}]}
+#   text    candidates[0].content.parts[0].text
+_GEMINI_API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
+_GEMINI_API_MODEL_FALLBACK = "gemini-3.5-flash"
+# Env var names checked in order (decision 1): GEMINI_API_KEY then GOOGLE_API_KEY.
+_GEMINI_API_KEY_ENV_VARS = ("GEMINI_API_KEY", "GOOGLE_API_KEY")
+
+
+def connect_agent_brain(
+    request: AgentAdapterRequest,
+    *,
+    local_callables: Mapping[str, AgentBrainCallable] | None = None,
+    command_runner: CommandRunner | None = None,
+    cwd: Path | str | None = None,
+    timeout_seconds: int = 120,
+) -> AgentAdapterResult:
+    """Connect one Agent Object request to its selected brain adapter."""
+
+    if not isinstance(request, AgentAdapterRequest):
+        raise TypeError("request must be AgentAdapterRequest")
+    if request.adapter_ref not in ALLOWED_ADAPTER_REFS:
+        raise ValueError("adapter_ref is not admitted for SIMPLE-RUN-0")
+    if request.adapter_ref == ADAPTER_CHAT_SESSION:
+        raise AgentAdapterParked(request)
+    dispatch_cwd = Path(cwd) if cwd is not None else _REPO_ROOT
+    _consume_effective_write_observation_path(request, cwd=dispatch_cwd)
+    # TrackA-A1 METER: only the local-CLI codex path emits token usage today. The
+    # local-callable path carries no per-turn usage, so it stays None.
+    adapter_usage: Mapping[str, Any] | None = None
+    observed_non_granted_gemini_tools: tuple[str, ...] = ()
+    adapter_cli_raw_observations: Mapping[str, Any] = {}
+    adapter_output_text = ""
+    if request.adapter_ref == ADAPTER_LOCAL:
+        returned_value = _invoke_local_callable(request, local_callables)
+        proof_limits = _merge_texts(_DEFAULT_PROOF_LIMITS, request.proof_limits)
+        not_proven = _merge_texts(_DEFAULT_NOT_PROVEN, request.not_proven)
+    else:
+        # Local-CLI dispatch: codex-local, codex-fugu-local, claude-local, and
+        # gemini-local all route through the SAME _invoke_local_cli_adapter ->
+        # _invoke_local_cli path. codex-fugu-local resolves to the codex-exec
+        # invocation kind (identical to codex-local); its provider-routing -c
+        # overrides ride on the spec as DATA and are appended in adapter_local_cli.
+        (
+            returned_value,
+            proof_limits,
+            not_proven,
+            adapter_usage,
+            observed_non_granted_gemini_tools,
+            adapter_cli_raw_observations,
+            adapter_output_text,
+        ) = _invoke_local_cli_adapter(
+            request,
+            cwd=dispatch_cwd,
+            timeout_seconds=timeout_seconds,
+            command_runner=command_runner,
+        )
+    # REDO (Smith 0623 struct-surgery): the adapter STRIPS a top-level verdict key so
+    # it cannot poison the structured return (minimal return-shaping the adapter is
+    # allowed to do -- removing it keeps the payload uncorrupted), while still
+    # hard-raising on secret keys / raw credential text (KEEP). It RECORDS NOTHING:
+    # the stripped raw key names ride back as RAW on the side-channel so
+    # brick_protocol/support/recording records the ``ignored_forbidden_return_key`` fact. Brick
+    # comparison + the Link gate compute the real verdict from the structured return.
+    ignored_keys = _validate_returned_payload("returned_value", returned_value)
+    if ignored_keys and isinstance(returned_value, Mapping):
+        stripped = dict(returned_value)
+        for raw_key in ignored_keys:
+            stripped.pop(raw_key, None)
+        returned_value = stripped
+    raw_observations: dict[str, Any] = {}
+    if observed_non_granted_gemini_tools:
+        raw_observations["non_granted_gemini_tool_names"] = list(
+            observed_non_granted_gemini_tools
+        )
+    raw_observations.update(adapter_cli_raw_observations)
+    cleanup_observations = _cleanup_adapter_continuity_state_if_terminal(request)
+    raw_observations.update(cleanup_observations)
+    if ignored_keys:
+        raw_observations["ignored_forbidden_return_key_names"] = [
+            str(raw_key) for raw_key in ignored_keys
+        ]
+    return AgentAdapterResult(
+        request=request,
+        returned_value=returned_value,
+        proof_limits=proof_limits,
+        not_proven=not_proven,
+        adapter_usage=adapter_usage,
+        adapter_raw_observations=raw_observations,
+        adapter_output_text=adapter_output_text,
+    )
+
+
+def local_cli_adapter_refs() -> tuple[str, ...]:
+    """Return the allowlisted local CLI adapter refs."""
+
+    return tuple(_LOCAL_CLI_SPECS)
+
+
+def supported_model_ref_examples(adapter_ref: str) -> tuple[str, ...]:
+    """Return documented model ref examples for an adapter.
+
+    Model availability is provider/local-app state. These refs describe the
+    admitted selection grammar only and are not availability proof.
+    """
+
+    if adapter_ref in _RETIRED_WRITE_ADAPTER_REFS:
+        raise ValueError("adapter_ref is retired and not admitted as an active adapter")
+    if adapter_ref == ADAPTER_CODEX_LOCAL:
+        return (
+            MODEL_REF_CODEX_DEFAULT,
+            "model:codex:<codex-cli-model-name>",
+        )
+    if adapter_ref == ADAPTER_CODEX_FUGU_LOCAL:
+        return (
+            MODEL_REF_SAKANA_FUGU,
+            "model:sakana:<sakana-catalog-model-slug>",
+        )
+    if adapter_ref == ADAPTER_CLAUDE_LOCAL:
+        return (
+            MODEL_REF_CLAUDE_INHERIT,
+            "model:claude:sonnet",
+            "model:claude:opus",
+            "model:claude:haiku",
+            "model:claude:<claude-model-id>",
+        )
+    if adapter_ref == ADAPTER_GEMINI_LOCAL:
+        return (
+            MODEL_REF_GEMINI_DEFAULT,
+            MODEL_REF_GEMINI_LOCAL_FLASH,
+            "model:gemini:<gemini-model-id>",
+        )
+    if adapter_ref == ADAPTER_CHAT_SESSION:
+        return (MODEL_REF_DEFAULT,)
+    return (MODEL_REF_DEFAULT,)
+
+
+def agent_request_effective_write_raw_inputs(
+    request: AgentAdapterRequest,
+) -> Mapping[str, Any]:
+    """Return the RAW effective-write request inputs the adapter observed.
+
+    REDO (Smith 0623 struct-surgery): the adapter EXPOSES raw, it RECORDS nothing.
+    These are the raw booleans brick_protocol/support/recording
+    (``agent_step_observation.derive_effective_write_request_facts``) needs to derive
+    the named write-policy facts -- it is NOT a derived fact itself:
+
+      - ``write_scope_present``
+      - ``tool_policy_has_read_write``
+      - ``agent_object_ref``
+      - ``adapter_supports_observed_write``
+
+    An empty mapping means no write_scope was declared (nothing to observe)."""
+
+    if not isinstance(request, AgentAdapterRequest):
+        raise TypeError("request must be AgentAdapterRequest")
+    return dict(getattr(request, _EFFECTIVE_WRITE_REQUEST_RAW_ATTR, {}))
+
+
+def agent_request_effective_write(request: AgentAdapterRequest) -> bool:
+    """Return whether this adapter request opens observed workspace write."""
+
+    if not isinstance(request, AgentAdapterRequest):
+        raise TypeError("request must be AgentAdapterRequest")
+    return (
+        bool(request.write_scope)
+        and bool(set(request.tool_policy_refs).intersection(WRITE_TIER_TOOL_POLICY_REFS))
+        and _adapter_ref_supports_observed_write(request.adapter_ref)
+    )
+
+
+def agent_request_read_tier(request: AgentAdapterRequest) -> bool:
+    """Return whether this non-write request admits read-only repo inspection.
+
+    Read/write tier is NOT a support-side authority over the tool-policy label.
+    The uniform rule across codex-local/claude-local/gemini-local is: if the
+    request does not open observed workspace write AND it carries a known,
+    tool-bearing Agent policy (every ref in KNOWN_TOOL_POLICY_REFS, at least
+    one present), the adapter opens the read-only browse tier -- regardless of
+    which read/write policy label it is. A read-only Brick paired with a
+    tool-capable Agent therefore browses read-only. Effective-write requests
+    still take the write path (early return). Ambiguous requests -- no tool
+    policy, or any unknown policy ref -- fail closed to the none tier. Only
+    codex/claude/gemini local adapters can reach the read tier.
+    """
+
+    if not isinstance(request, AgentAdapterRequest):
+        raise TypeError("request must be AgentAdapterRequest")
+    if agent_request_effective_write(request):
+        return False
+    tool_policy_refs = set(request.tool_policy_refs)
+    if not tool_policy_refs:
+        return False
+    if any(ref not in KNOWN_TOOL_POLICY_REFS for ref in tool_policy_refs):
+        return False
+    if not tool_policy_refs.intersection(READ_TIER_TOOL_POLICY_REFS):
+        return False
+    return request.adapter_ref in {
+        ADAPTER_CODEX_LOCAL,
+        ADAPTER_CODEX_FUGU_LOCAL,
+        ADAPTER_CLAUDE_LOCAL,
+        ADAPTER_GEMINI_LOCAL,
+    }
+
+
+def _read_tier_policy_refs_for_request(request: AgentAdapterRequest) -> frozenset[str]:
+    if request.adapter_ref == ADAPTER_GEMINI_LOCAL:
+        return KNOWN_TOOL_POLICY_REFS
+    return READ_TIER_TOOL_POLICY_REFS
+
+
+def probe_local_cli_adapter(
+    adapter_ref: str,
+    *,
+    timeout_seconds: int = 10,
+    command_runner: CommandRunner | None = None,
+) -> LocalCliProbe:
+    """Detect a local CLI and collect redacted version evidence."""
+
+    spec = _local_cli_spec(adapter_ref)
+    executable_path = spec.executable_name if command_runner is not None else shutil.which(spec.executable_name)
+    if not executable_path:
+        raise FileNotFoundError(f"local CLI executable not found for {adapter_ref}")
+    completed = _run_or_delegate(
+        (executable_path, *spec.version_args),
+        _REPO_ROOT,
+        timeout_seconds,
+        command_runner,
+    )
+    if completed.return_code != 0:
+        raise ValueError(f"local CLI version probe failed for {adapter_ref}")
+    version_text = _safe_excerpt(completed.stdout or completed.stderr)
+    _reject_secret_text("version_text", version_text)
+    return LocalCliProbe(
+        adapter_ref=spec.adapter_ref,
+        brain_surface_ref=spec.brain_surface_ref,
+        executable_name=spec.executable_name,
+        executable_path=executable_path,
+        version_text=version_text,
+        proof_limits=spec.proof_limits,
+        not_proven=spec.not_proven,
+    )
+
+
+# ONBOARDING-PROVIDER-PREFLIGHT-0: friendly install hints per local CLI.
+# Plain Korean, no jargon, no stack-trace. message_ko tells the beginner WHAT is
+# wrong and the ONE line to fix it. These are support-side onboarding hints only;
+# they prove no provider availability and choose no Movement.
+_PROVIDER_INSTALL_HINT_KO: Mapping[str, str] = {
+    ADAPTER_CODEX_LOCAL: (
+        "codex가 설치돼 있지 않아요. 터미널에 이걸 붙여넣어 설치하세요: "
+        "npm install -g @openai/codex"
+    ),
+    ADAPTER_CLAUDE_LOCAL: (
+        "claude가 설치돼 있지 않아요. 터미널에 이걸 붙여넣어 설치하세요: "
+        "npm install -g @anthropic-ai/claude-code"
+    ),
+    ADAPTER_GEMINI_LOCAL: (
+        "gemini가 설치돼 있지 않아요. 터미널에 이걸 붙여넣어 설치하세요: "
+        "npm install -g @google/gemini-cli"
+    ),
+}
+_PROVIDER_LOGIN_HINT_KO: Mapping[str, str] = {
+    ADAPTER_CODEX_LOCAL: "codex login",
+    ADAPTER_CLAUDE_LOCAL: "claude (실행 후 안내에 따라 로그인)",
+    ADAPTER_GEMINI_LOCAL: "gemini (실행 후 안내에 따라 로그인)",
+}
+
+
+def _local_cli_spec(adapter_ref: str) -> LocalCliSpec:
+    if adapter_ref in _RETIRED_WRITE_ADAPTER_REFS:
+        raise ValueError("adapter_ref is retired and not admitted as an active adapter")
+    try:
+        return _LOCAL_CLI_SPECS[adapter_ref]
+    except KeyError as exc:
+        raise ValueError("adapter_ref is not a local CLI adapter") from exc
+
+
+def _run_text_cli(
+    args: Sequence[str],
+    *,
+    timeout_seconds: int,
+    command_runner: CommandRunner | None,
+) -> LocalCliCompleted:
+    if not args:
+        raise ValueError("text CLI args must not be empty")
+    executable = Path(str(args[0])).name
+    if executable not in {"codex", "claude"}:
+        raise ValueError("text CLI executable is not allowlisted")
+    for index, item in enumerate(args):
+        text = str(item)
+        if "\x00" in text:
+            raise ValueError("text CLI arg contains unsupported control text")
+        if index != len(args) - 1:
+            _reject_secret_text("text_cli_arg", text)
+    if command_runner is not None:
+        return command_runner(args, _REPO_ROOT, timeout_seconds)
+    return _run_text_cli_command(args, cwd=_REPO_ROOT, timeout_seconds=timeout_seconds)
+
+
+def _raw_text_from_completed(
+    label: str,
+    output_text: str,
+    completed: LocalCliCompleted,
+) -> str:
+    if completed.return_code != 0:
+        raise ValueError(f"{label} command returned non-zero")
+    if not output_text.strip():
+        raise ValueError(f"{label} was empty")
+    _reject_secret_text(label, output_text)
+    return output_text
+
+
+def _transition_concern_schema_rules() -> tuple[str, ...]:
+    allowed_keys = ", ".join(sorted(_TRANSITION_CONCERN_ALLOWED_KEYS))
+    allowed_kinds = ", ".join(sorted(_TRANSITION_CONCERN_KINDS))
+    return (
+        "If there is no real transition concern, return transition_concern_evidence as null or omit it; never return an empty object {}.",
+        "If you return transition_concern_evidence, it must be one JSON object using only these keys: "
+        + allowed_keys
+        + ".",
+        "transition_concern_evidence.concern_ref must start with 'transition-concern:'.",
+        "transition_concern_evidence.concern_kind must be one of: " + allowed_kinds + ".",
+        "transition_concern_evidence.binding must be the JSON literal false.",
+        "transition_concern_evidence.reason_refs must be a non-empty list of strings.",
+        "transition_concern_evidence.related_boundary_refs may name only Brick boundaries such as brick-..., brick:..., brick-boundary:..., brick-instance:..., or building-boundary:....",
+        "If transition_concern_evidence.concern_kind is verification_gap, related_boundary_refs must be empty or name a building-boundary: sentinel; never name a reroute-capable Brick node such as brick-..., brick:..., brick-boundary:..., or brick-instance:....",
+        "For a reproduced defect, set related_boundary_refs to the upstream work node (not yourself/sentinel); put env/runtime constraints in not_proven, not a concern; reason_refs must not be /tmp filesystem paths.",
+        "Do not put observation, disposition_note, candidate_pending_target_ref, secondary_concern_kind, route_target, target_ref, or movement inside transition_concern_evidence.",
+    )
+
+
+def _required_return_shape_fields(value: Any) -> tuple[str, ...]:
+    return tuple(
+        dict.fromkeys(
+            field
+            for field in parse_required_return_shape(value)
+            if field not in _ALWAYS_SECRET_KEYS
+            and field not in _TOP_LEVEL_VERDICT_KEYS
+        )
+    )
+
+
+def _return_field_waivers(required_fields: Iterable[str]) -> tuple[str, ...]:
+    waiver_fields: list[str] = []
+    for field in required_fields:
+        waiver_fields.extend(_RETURN_WAIVER_FIELDS_BY_REQUIRED.get(field, ()))
+    return tuple(dict.fromkeys(waiver_fields))
+
+
+def _allowed_return_fields(value: Any) -> tuple[str, ...]:
+    required = _required_return_shape_fields(value)
+    return tuple(dict.fromkeys((*required, *_return_field_waivers(required))))
+
+
+def _redacted_diagnostic_excerpt(value: str, *, limit: int) -> str:
+    text = value
+    for pattern in (*_RAW_SECRET_PATTERNS, *_RAW_SESSION_PATTERNS):
+        text = pattern.sub("[redacted]", text)
+    return _safe_excerpt(text, limit=limit)
+
+
+def _try_json_value(value: str) -> Any:
+    text = value.strip()
+    if not text or text[0] not in "[{":
+        return None
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        return None
+
+
+def _source_fact_bodies_for_prompt(
+    request: AgentAdapterRequest,
+    spec: LocalCliSpec,
+) -> Mapping[str, str]:
+    limit = (
+        _GEMINI_SOURCE_FACT_BODY_LIMIT
+        if spec.adapter_ref == ADAPTER_GEMINI_LOCAL
+        else _SOURCE_FACT_BODY_LIMIT
+    )
+    return {
+        ref: safe_source_fact_body(body, limit=limit)
+        for ref, body in request.source_fact_bodies.items()
+    }
+
+
+def _validate_adapter_ref(value: Any) -> str:
+    adapter_ref = _clean_optional_text("adapter_ref", value)
+    if not adapter_ref:
+        raise ValueError("adapter_ref must not be blank")
+    if adapter_ref in _RETIRED_WRITE_ADAPTER_REFS:
+        raise ValueError("adapter_ref is retired and not admitted as an active adapter")
+    if adapter_ref not in ALLOWED_ADAPTER_REFS:
+        raise ValueError("adapter_ref is not admitted for SIMPLE-RUN-0")
+    return adapter_ref
+
+
+def _observe_effective_write_request_raw_inputs(
+    request: AgentAdapterRequest,
+    write_scope: Mapping[str, Any],
+) -> Mapping[str, Any]:
+    # REDO (Smith 0623 struct-surgery): support = move(carry) + record. The adapter
+    # EXPOSES the RAW request inputs only; it derives NO reason-token facts and stops
+    # NOTHING. brick_protocol/support/recording
+    # (agent_step_observation.derive_effective_write_request_facts) DERIVES the named
+    # write-policy facts (missing_brick_write_scope /
+    # legacy_adapter_identity_only_not_authority / missing_agent_write_policy /
+    # missing_adapter_write_capability) from these booleans.
+    #
+    # The WriteScope SHAPE validation (KEEP: a malformed write_scope is a
+    # definition-coherence error, not a runtime work-policy stop) stays a raise.
+    WriteScope.validate("write_scope", write_scope, _WRITE_SCOPE_CONTEXT)
+    return {
+        "write_scope_present": bool(write_scope),
+        "tool_policy_has_read_write": bool(
+            set(request.tool_policy_refs).intersection(WRITE_TIER_TOOL_POLICY_REFS)
+        ),
+        "agent_object_ref": request.agent_object_ref,
+        "adapter_supports_observed_write": _adapter_ref_supports_observed_write(
+            request.adapter_ref
+        ),
+    }
+
+
+def _adapter_ref_supports_observed_write(adapter_ref: str) -> bool:
+    return adapter_ref in _OBSERVED_WRITE_ADAPTER_REFS
+
+
+def _mark_effective_write_observation_path(request: AgentAdapterRequest, cwd: Path) -> None:
+    if agent_request_effective_write(request):
+        object.__setattr__(
+            request,
+            _EFFECTIVE_WRITE_OBSERVATION_MARKER_ATTR,
+            cwd.resolve().as_posix(),
+        )
+
+
+def _consume_effective_write_observation_path(
+    request: AgentAdapterRequest,
+    *,
+    cwd: Path,
+) -> None:
+    if not agent_request_effective_write(request):
+        return
+    observed_cwd = getattr(request, _EFFECTIVE_WRITE_OBSERVATION_MARKER_ATTR, "")
+    if not observed_cwd:
+        raise ValueError("effective write requires write observation before adapter execution")
+    if observed_cwd != cwd.resolve().as_posix():
+        raise ValueError("effective write observation cwd must match adapter execution cwd")
+    object.__setattr__(request, _EFFECTIVE_WRITE_OBSERVATION_MARKER_ATTR, "")
+
+
+def _cleanup_adapter_continuity_state_if_terminal(request: AgentAdapterRequest) -> Mapping[str, Any]:
+    """Best-effort adapter-owned continuity cleanup when the declared next boundary closes."""
+
+    if not _declared_next_ref_is_closed(request.next_brick_instance_ref):
+        return {}
+    observations: dict[str, Any] = {
+        "codex_continuity_home_cleanup_requested": True,
+    }
+    try:
+        observations.update(
+            _cleanup_codex_continuity_homes_for_request_scope(request)
+        )
+    except OSError as exc:
+        observations["codex_continuity_home_cleanup_error_type"] = type(exc).__name__
+    return observations
+
+
+def _declared_next_ref_is_closed(next_ref: str) -> bool:
+    text = next_ref.strip()
+    return (
+        text == "closed"
+        or text == "building-boundary:closed"
+        or (text.startswith("building-boundary:") and text.endswith("-closed"))
+    )
+
+
+# Brick WriteScope value-object discipline (E2/S9): the SHAPE + path-safety rules
+# live on the BRICK axis (brick_protocol/brick/spec.py). The two support-mechanic coercers it
+# delegates to (deep JSON clean + raw credential/session rejection) are injected
+# here so the axis never imports support; accept/reject + error text stay
+# byte-identical to the prior agent_adapter-local helpers.
+_WRITE_SCOPE_CONTEXT = WriteScopeContext(
+    clean_json=_clean_json_value,
+    reject_secret_text=_reject_secret_text,
+)
+
+
+def _merge_texts(*values: Any) -> tuple[str, ...]:
+    merged: list[str] = []
+    for value in values:
+        for item in _text_tuple(value):
+            if item not in merged:
+                merged.append(item)
+    return tuple(merged)
+
+
+def _text_tuple(value: Any) -> tuple[str, ...]:
+    if value is None:
+        return ()
+    if isinstance(value, str):
+        value = (value,)
+    if not isinstance(value, (list, tuple)):
+        raise TypeError("text value must be text or text sequence")
+    result: list[str] = []
+    for index, item in enumerate(value):
+        if not isinstance(item, str) or not item.strip():
+            raise ValueError(f"text value {index} must be non-empty text")
+        result.append(item.strip())
+    return tuple(result)
+
+
+__all__ = [
+    "ADAPTER_CAPABILITY_LITERALS",
+    "ADAPTER_CAPABILITY_READ",
+    "ADAPTER_CAPABILITY_REVIEW",
+    "ADAPTER_CAPABILITY_WEB",
+    "ADAPTER_CAPABILITY_WRITE",
+    "ADAPTER_CLAUDE_LOCAL",
+    "ADAPTER_CHAT_SESSION",
+    "ADAPTER_CODEX_FUGU_LOCAL",
+    "ADAPTER_CODEX_LOCAL",
+    "ADAPTER_GEMINI_LOCAL",
+    "ADAPTER_LOCAL",
+    "ALLOWED_ADAPTER_REFS",
+    "ALLOWED_SESSION_CONTINUITY_MODES",
+    "AgentAdapterRequest",
+    "AgentAdapterParked",
+    "AgentAdapterResult",
+    "AgentBrainCallable",
+    "CommandRunner",
+    "LocalCliCompleted",
+    "LocalCliProbe",
+    "LocalCliSpec",
+    "KNOWN_TOOL_POLICY_REFS",
+    "READ_TIER_TOOL_POLICY_REFS",
+    "READ_WRITE_TOOL_POLICY_REF",
+    "adapter_capabilities",
+    "adapter_has_capability",
+    "adapter_is_write_capable",
+    "agent_request_effective_write",
+    "agent_request_read_tier",
+    "connect_agent_brain",
+    "local_cli_adapter_refs",
+    "probe_local_cli_adapter",
+    "safe_source_fact_body",
+    "supported_model_ref_examples",
+]

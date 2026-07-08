@@ -1,0 +1,33 @@
+schema: checker-profile/v1
+profile_id: sakana-wire-packet
+description: Fixture-only Sakana prompt packet path-label redaction profile for codex-fugu-local.
+kernel_checks:
+  - sakana_wire_packet
+path_exists:
+  - brick_protocol/support/connection/adapter_grant_policy.py
+  - brick_protocol/support/checkers/lib/sakana_wire_packet_check.py
+  - brick_protocol/support/checkers/profiles/sakana_wire_packet.yaml
+text_contains:
+  - path: brick_protocol/support/connection/adapter_grant_policy.py
+    texts:
+      - def _sakana_instruction_packet_for_prompt
+      - opaque_resource_paths_on_wire
+      - Remove repo path labels from the Sakana wire copy only
+  - path: brick_protocol/support/checkers/lib/sakana_wire_packet_check.py
+    texts:
+      - run_sakana_wire_packet
+      - non-sakana codex-local prompt packet did not preserve resource path labels
+      - codex-fugu-local adapter_ref alone removed resource path labels
+      - hook_resources
+      - mutation-RED failed
+proof_limits:
+  - support evidence only
+  - fixture-only prompt rendering
+  - no live provider CLI
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - live Sakana provider acceptance
+  - future provider policy

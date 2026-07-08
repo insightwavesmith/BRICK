@@ -1,0 +1,23 @@
+contract_projection:
+  owner: Brick
+  module: Brick.building
+  contract: BuildingWork
+  authority: projection_only
+  python_surface: brick_protocol/brick/building.py
+  allowed_public_fields:
+    - work_units
+    - nested_building_refs
+  # invariant (enforced in brick_protocol/brick/building.py BuildingWork.__post_init__): a
+  # BuildingWork must name at least one work fact — at least one of work_units /
+  # nested_building_refs must be non-empty.
+  required_cardinality: at_least_one(work_units, nested_building_refs)
+  field_rules:
+    work_units: text_tuple
+    nested_building_refs: text_tuple
+  closed_boundary:
+    foreign_axis_fields: blocked
+    execution_driver_fields: blocked
+    aggregate_judgment_fields: blocked
+  verifier:
+    - check_axis_contract_projection.py
+    # residual contract guards tracked in checker-consolidation-and-builder-plan-0602.md (not all built yet)

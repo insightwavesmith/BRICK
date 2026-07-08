@@ -39,7 +39,7 @@ cd ~/BRICK && brick build --task "첫 실행을 support evidence only로 기록�
 실제 저장소를 바꾸는 작업은 auth 뒤에 `--real-provider`를 붙이거나,
 명시적인 observed-write adapter를 고른 다음 실행하세요.
 `run_building_intake`, `assemble`, `launch_assembled_building`, `goal-approve`는
-support/operator helper 또는 고급/내부 경로이지 별도 고객 실행 루트가
+brick_protocol/support/operator helper 또는 고급/내부 경로이지 별도 고객 실행 루트가
 아닙니다.
 
 AI/운영자가 그대로 확인할 줄입니다. 이 표는 quickstart의 S0~S5 전체
@@ -73,13 +73,13 @@ verdict-bearing 노드에서 provider-backed adapter가 필요할 수 있어, pr
 이 checker 초록불도 support evidence일 뿐이고, phase PASS나 Building closure를
 혼자 증명하지 않습니다.
 
-Start here: [quickstart](support/docs/references/quickstart.md) · [setup](support/docs/references/setup.md) · [repository invite issuance](support/docs/references/repo-invite-issuance.md) · [three-axis overview](support/docs/references/three-axis-overview.md)
+Start here: [quickstart](brick_protocol/support/docs/references/quickstart.md) · [setup](brick_protocol/support/docs/references/setup.md) · [repository invite issuance](brick_protocol/support/docs/references/repo-invite-issuance.md) · [three-axis overview](brick_protocol/support/docs/references/three-axis-overview.md)
 
 You do not author task files for the common path: SPEAK your task as text
 through `brick build --task`. That is the official public first-run surface.
 Preset task runs use `brick build --task ... --preset ...`. For design-first or
 multi-lane work, the official way to construct and launch a Building is the
-`assemble()` / `build()` / `fan()` Python DSL (`support/operator/assembly.py`)
+`assemble()` / `build()` / `fan()` Python DSL (`brick_protocol/support/operator/assembly.py`)
 plus `run_building_plan()`. Hand-authored `graph_packet` JSON via
 `brick build --graph <packet.json>` is retired from the public customer CLI
 surface now that sibling independence, per-node `write_scope`, and mid-graph
@@ -119,9 +119,9 @@ Axes: Brick / Agent / Link only.
 ## More
 
 - Release export, release gate, and dashboard deploy (Vercel static / Docker
-  realtime): [release-and-deploy.md](support/docs/references/release-and-deploy.md)
-- Operator session status-inbox watch loop: [operator-status-inbox.md](support/docs/references/operator-status-inbox.md)
+  realtime): [release-and-deploy.md](brick_protocol/support/docs/references/release-and-deploy.md)
+- Operator session status-inbox watch loop: [operator-status-inbox.md](brick_protocol/support/docs/references/operator-status-inbox.md)
 - Repository role, source boundary, physical-surface history, and the
-  historical governed-goal disposition note: [repository-history-and-structure.md](support/docs/references/repository-history-and-structure.md)
-- Full architecture / module map: [architecture-map.md](support/docs/references/architecture-map.md)
-- Rules and contributor boundaries: [rules-and-boundaries.md](support/docs/references/rules-and-boundaries.md)
+  historical governed-goal disposition note: [repository-history-and-structure.md](brick_protocol/support/docs/references/repository-history-and-structure.md)
+- Full architecture / module map: [architecture-map.md](brick_protocol/support/docs/references/architecture-map.md)
+- Rules and contributor boundaries: [rules-and-boundaries.md](brick_protocol/support/docs/references/rules-and-boundaries.md)

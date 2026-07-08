@@ -1,0 +1,51 @@
+schema: checker-profile/v1
+profile_id: gate-policy-action-single-source
+description: Link-owned gate-sequence policy action vocabulary guard. ADMITTED_POLICY_ACTIONS, ON_MISSING_REQUIRED_FACTS_ACTIONS, ON_SUFFICIENT_ACTIONS, and normalize_gate_policy_action live in brick_protocol/link/gate.py; support may import or re-export them but must not re-state the all-action or partition member sets. Includes mutation-RED probes for a re-stated all-action tuple and partition set, plus a false-RED guard for a lone action comparison. Fails closed.
+kernel_checks:
+  - gate_policy_action_single_source
+path_exists:
+  - brick_protocol/link/gate.py
+  - brick_protocol/support/operator/gate_sequence.py
+  - brick_protocol/support/operator/plan_validation.py
+  - brick_protocol/support/recording/spine_projection.py
+  - brick_protocol/support/recording/claims_link.py
+  - brick_protocol/support/checkers/check_gate_policy_action_single_source.py
+  - brick_protocol/support/checkers/profiles/gate_policy_action_single_source.yaml
+text_contains:
+  - path: brick_protocol/link/gate.py
+    texts:
+      - ADMITTED_POLICY_ACTIONS
+      - ON_MISSING_REQUIRED_FACTS_ACTIONS
+      - ON_SUFFICIENT_ACTIONS
+      - def normalize_gate_policy_action
+  - path: brick_protocol/support/operator/gate_sequence.py
+    texts:
+      - from brick_protocol.link.gate import (
+      - normalize_gate_policy_action
+  - path: brick_protocol/support/operator/plan_validation.py
+    texts:
+      - ON_MISSING_REQUIRED_FACTS_ACTIONS
+      - ON_SUFFICIENT_ACTIONS
+      - normalize_gate_policy_action
+  - path: brick_protocol/support/recording/spine_projection.py
+    texts:
+      - from brick_protocol.link.gate import ADMITTED_POLICY_ACTIONS
+  - path: brick_protocol/support/recording/claims_link.py
+    texts:
+      - from brick_protocol.link.gate import ADMITTED_POLICY_ACTIONS
+  - path: brick_protocol/support/checkers/check_gate_policy_action_single_source.py
+    texts:
+      - find_policy_action_restatements
+      - find_normalization_reimplementations
+      - mutation RED observed
+      - local case-normalization core were rejected
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+  - not provider proof
+not_proven:
+  - that any individual gate policy action is semantically correct
+  - that runtime gate sequencing chooses the right declared action

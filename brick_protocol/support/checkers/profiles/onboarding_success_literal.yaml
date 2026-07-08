@@ -1,0 +1,51 @@
+schema: checker-profile/v1
+profile_id: onboarding_success_literal
+description: Onboarding S0 success literal profile pin over docs, installer, and checker source.
+path_exists:
+  - README.md
+  - brick_protocol/support/docs/references/quickstart.md
+  - brick_protocol/support/onboarding/install.sh
+  - brick_protocol/support/checkers/check_onboarding_success_literal.py
+  - brick_protocol/support/checkers/profiles/onboarding_success_literal.yaml
+text_contains:
+  - path: README.md
+    texts:
+      - "5) 설치 점검 완료"
+      - "quickstart의 S0~S5"
+      - "brick doctor"
+  - path: brick_protocol/support/docs/references/quickstart.md
+    texts:
+      - "5) 설치 점검 완료"
+      - "brick doctor"
+  - path: brick_protocol/support/onboarding/install.sh
+    texts:
+      - "5) 설치 점검 완료"
+      - "5) 설치 점검 실패"
+      - '"$brick_entry" verify'
+      - "선검사 (preflight):"
+  - path: brick_protocol/support/checkers/check_onboarding_success_literal.py
+    texts:
+      - 'SUCCESS_LITERAL = "5) 설치 점검 완료"'
+      - 'FAILURE_LITERAL = "5) 설치 점검 실패"'
+      - 'STALE_VERIFY_STEP_LITERAL = "7) 설치 점검"'
+      - 'STALE_ENTRYPOINT_STEP_LITERAL = "5) brick 진입점"'
+      - 'STALE_INIT_STEP_LITERAL = "6) brick init"'
+      - "PREFLIGHT_NEEDLES = ("
+      - "onboarding_success_literal"
+text_absent:
+  - path: brick_protocol/support/onboarding/install.sh
+    texts:
+      - "7) 설치 점검"
+      - "5) brick 진입점"
+      - "6) brick init"
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+  - does not execute install.sh or prove fresh-machine install behavior
+not_proven:
+  - fresh-machine install behavior
+  - provider credential readiness
+  - repository invitation acceptance

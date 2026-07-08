@@ -1,0 +1,57 @@
+schema: checker-profile/v1
+profile_id: charter-injection
+description: The declared project vessel's README charter is injected into EVERY role's runtime instruction packet (work/qa/closure lanes), reaches the built codex+claude prompt, and stamps the charter_ref evidence field. Closes the discipline-audit-0618 0% charter-injection gap. Injection (soft) only — not enforcement.
+kernel_checks:
+  - charter_injection
+path_exists:
+  - brick_protocol/support/checkers/check_charter_injection.py
+  - brick_protocol/support/checkers/profiles/charter_injection.yaml
+  - brick_protocol/support/connection/agent_resources.py
+  - brick_protocol/support/operator/run.py
+  - brick_protocol/support/operator/walker_kernel.py
+  - brick_protocol/support/operator/project_declaration.py
+  - brick_protocol/support/recording/capture.py
+  - project/brick-protocol/README.md
+  - project/brick-protocol/project.json
+text_contains:
+  - path: brick_protocol/support/connection/agent_resources.py
+    texts:
+      - _CHARTER_RESOURCE_KIND
+      - def _charter_resources
+      - charter_resources
+      - load_project_declaration
+      # graceful degrade: a charter problem degrades to no injection, never a crash
+      - Loudly-nothing
+      # evidence mirror: charter_ref stamped at the top level next to agent_object_ref
+      - instruction["charter_ref"]
+  - path: brick_protocol/support/operator/run.py
+    texts:
+      - CHARTER-INJECT
+      - project_ref_for_building_root
+      - resolved_project_ref
+  - path: brick_protocol/support/operator/walker_kernel.py
+    texts:
+      - CHARTER-INJECT
+      - project_ref_for_building_root
+      - step_fixture["project_ref"]
+  - path: brick_protocol/support/checkers/check_charter_injection.py
+    texts:
+      - PROBE_CHARTER_SENTINEL
+      - run_fire_probes
+      - charter_resources EMPTY for a declared project vessel
+      - injection must be add-only
+  - path: brick_protocol/support/checkers/module_registry.yaml
+    texts:
+      - brick_protocol/support/checkers/check_charter_injection.py
+proof_limits:
+  - support evidence only
+  - charter injection is a soft work-packet seam, not enforcement
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - charter text truthfulness
+  - that the Agent obeyed the charter
+  - provider quality
+  - semantic correctness of future Building work

@@ -1,0 +1,161 @@
+kind: LinkGateContractProjection
+bal_owner: Link
+module: Link.gate
+contract: GateFact Contract Criteria
+projection_only: true
+standalone_gate_axis: false
+
+upstream_module: Link
+upstream_contract: GateFact sufficiency under Link boundary
+verifiers:
+  - gate movement-choice forbidden checker
+  - Link import smoke
+  - local py_compile
+
+public_fact:
+  name: GateFact
+  owner: Link
+  fields:
+    - stage
+    - sufficiency
+    - checked_public_fact
+    - required_public_facts
+    - missing_required_facts
+    - reason
+    - evidence_reference
+
+stage_literals:
+  - transfer
+  - carry
+  - movement
+
+sufficiency_literals:
+  - sufficient
+  - insufficient
+  - missing_required_facts
+
+declared_gate_refs:
+  - gate_ref: link-gate:default-transition
+    meaning: work contract return shape and honest report channel sufficiency
+    default_for_compact_preset: true
+  - gate_ref: link-gate:strict
+    meaning: stricter mechanical evidence fields before transition
+  - gate_ref: link-gate:human
+    meaning: human disposition evidence required before transition resumes
+    # Disposition evidence arrives via the Link row's route_decision_basis --
+    # a GENERIC decision-evidence container (the name is historical; it is not
+    # only for reroute decisions).
+  - gate_ref: link-gate:coo
+    meaning: COO disposition evidence required before transition resumes
+    # Disposition evidence arrives via the Link row's route_decision_basis
+    # (same generic decision-evidence container as link-gate:human above).
+  - gate_ref: link-gate:expansion-approval
+    meaning: out-of-walk expansion approval evidence before an approved revision is used
+    # Approval evidence is intended for work/expansion-approvals.jsonl; raw/link.jsonl
+    # remains walk-time replay evidence, not the expansion approval audit sink.
+
+# --- GATE WORD MAP (vocabulary, 0610) ---------------------------------------
+# Four word families touch "gates"; they are NOT the same thing:
+#   - link-gate:* refs (this file's declared_gate_refs): WIRED gates --
+#     declared on Link rows and actually EVALUATED at run time.
+#   - gate_concept_profile tokens (presets/<name>.md frontmatter): PRESET
+#     LABELS. Since 0610 (Link gate wiring) they are TRANSLATED into real
+#     declared link-gate:* refs at materialization, with the translation
+#     recorded as gate_concept_provenance on the Link row.
+#   - gate_sequence_policy (a Link-row object, run by
+#     brick_protocol/support/operator/gate_sequence.py): the ONLY mechanism that can produce
+#     a hold policy action at run time.
+#   - human_gates (brick_protocol/brick/templates/building-design-contract.yaml):
+#     a design-table DECLARATION in the human/AI building-design contract,
+#     not a runtime surface.
+# The hold ladder -- ONE condition seen through three lenses:
+#   hold (gate-sequence policy action) -> paused (Link transition_lifecycle
+#   state) -> link_paused (frontier observation kind).
+# -----------------------------------------------------------------------------
+
+post_d_base_gate_matrix:
+  status: admitted operating matrix; does not add new GateFact literals
+  base_default_excludes:
+    - link-gate:human
+  concepts:
+    - concept_ref: default-transition
+      live_surface: link-gate:default-transition
+      meaning: structural honest-return sufficiency
+      must_not:
+        - select among multiple candidate Buildings
+        - judge quality
+        - judge success
+    - concept_ref: strict-evidence
+      live_surface: link-gate:strict
+      meaning: stricter mechanical evidence sufficiency
+      must_not:
+        - judge quality
+        - judge success
+        - choose target
+    - concept_ref: fan-in-wait-all
+      live_surface: declared graph fan-in observation/frontier
+      meaning: wait for all required declared sources or expose missing/held source frontier
+      gatefact_literal: none
+      must_not:
+        - silently skip missing source
+        - make Building look complete when join did not run
+    - concept_ref: coo-review
+      live_surface: link-gate:coo
+      meaning: COO disposition evidence required before transition resumes
+      must_not:
+        - invent undeclared target
+        - replace Link Movement
+    - concept_ref: portfolio-policy
+      live_surface: brick_protocol/support/operator/driver.py declared portfolio policy
+      meaning: adopt one declared Building candidate under declared Link/portfolio policy
+      gatefact_literal: none
+      must_not:
+        - create a new Building
+        - auto-select by model preference
+        - let support choose next Building
+    - concept_ref: human-review
+      live_surface: link-gate:human
+      meaning: exceptional Smith/human disposition evidence
+      base_default: false
+      must_not:
+        - become default preset gate
+        - become support authority
+
+allowed_facts:
+  - stage
+  - sufficiency
+  - checked_public_fact
+  - required_public_facts
+  - missing_required_facts
+  - reason
+  - evidence_reference
+
+allowed:
+  - record Link-side sufficiency for public facts
+  - record missing required public facts
+  - record evidence reference when supplied
+  - remain input evidence that Link may consider separately
+
+forbidden_ownership:
+  - standalone Gate axis
+  - fourth axis
+  - Movement authority
+  - destination choice
+  - route choice
+  - rollback choice
+  - retry choice
+  - hold choice
+  - next target choice
+  - quality judgment
+  - success judgment
+  - failure judgment
+  - outcome verdict
+  - runtime execution
+  - storage truth
+
+proof_limits:
+  - GateFact reports sufficiency only
+  - GateFact does not choose Movement
+  - GateFact is not source truth
+  - GateFact is not success judgment
+  - GateFact is not quality judgment

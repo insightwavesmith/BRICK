@@ -1,0 +1,31 @@
+schema: checker-profile/v1
+profile_id: preflight-injection-survival
+description: Task-order preflight survives both build() and assemble() graph front doors for write-requested work nodes.
+kernel_checks:
+  - preflight_injection_survival
+path_exists:
+  - brick_protocol/support/checkers/check_preflight_injection_survival.py
+  - brick_protocol/support/operator/task_order_preflight.py
+  - brick_protocol/support/operator/assembly.py
+text_contains:
+  - path: brick_protocol/support/operator/assembly.py
+    texts:
+      - nodes_from_assembly_specs
+      - _raise_task_order_preflight_violations
+  - path: brick_protocol/support/operator/task_order_preflight.py
+    texts:
+      - def nodes_from_assembly_specs
+      - write_requested
+  - path: brick_protocol/support/checkers/check_profile.py
+    texts:
+      - preflight_injection_survival
+proof_limits:
+  - support checker evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic completeness of task-order prose lint
+  - provider behavior
+  - future Building correctness

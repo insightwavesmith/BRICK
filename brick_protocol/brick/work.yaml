@@ -1,0 +1,18 @@
+contract_projection:
+  owner: Brick
+  module: Brick.work
+  contract: BrickWork
+  authority: projection_only
+  python_surface: brick_protocol/brick/work.py
+  allowed_public_fields:
+    - work_statement
+    - comparison_rule
+    - required_return_shape
+    - source_facts
+  closed_boundary:
+    foreign_axis_fields: blocked
+    execution_state: blocked
+    verdict_fields: blocked
+  verifier:
+    - check_axis_contract_projection.py
+    # residual contract guards tracked in checker-consolidation-and-builder-plan-0602.md (not all built yet)

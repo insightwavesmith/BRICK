@@ -1,0 +1,532 @@
+schema: checker-profile/v1
+profile_id: read-side-projection-boundary
+description: Consolidated read-side projection/boundary profile (PASS-2 fold of dashboard_read_side_view, design_toolkit_and_mcp, project_orchestration_ledger, reporter_notification_projection, run_surface_split).
+kernel_checks:
+  - package_path_admission
+  - axis_contract_projection
+  - building_lifecycle_path_shape
+  - building_map_graph
+  - reporter_notification_projection
+  - dashboard_productization_projection
+  - mcp_stdio_smoke
+  - connect_config_launch
+  - codex_projection_native
+  - claude_projection_native
+  - install_script_lint
+  - release_export_exclusion
+  - release_gate_contract
+  - wheel_smoke
+  - product_no_smith_residue
+path_exists:
+  - brick_protocol/support/onboarding/install.sh
+  - brick_protocol/support/onboarding/release_export.sh
+  - brick_protocol/support/onboarding/release_gate.sh
+  - brick_protocol/brick/building_plans/fixture-retired-adapter-plan-0.yaml
+  - brick_protocol/support/checkers/profiles/read_side_projection_boundary.yaml
+  - AGENTS.md
+  - brick_protocol/support/operator/building_operation.py
+  - AGENTS.md
+  - brick_protocol/support/connection/building_design_toolkit.py
+  - brick_protocol/support/connection/mcp_projection.py
+  - brick_protocol/support/connection/connect.py
+  - AGENTS.md
+  - brick_protocol/support/operator/building_operation.py
+  - AGENTS.md
+  - brick_protocol/support/operator/reporter.py
+  - brick_protocol/support/operator/report_sinks.py
+  - brick_protocol/support/dashboard/DEPLOY.md
+  - AGENTS.md
+  - brick_protocol/support/operator/run.py
+  - brick_protocol/support/operator/contracts.py
+  - brick_protocol/support/operator/evidence_assembly.py
+  - brick_protocol/support/operator/plan_graph.py
+  - brick_protocol/support/operator/plan_validation.py
+  - brick_protocol/support/operator/primitives.py
+  - brick_protocol/support/operator/write_observation.py
+  - brick_protocol/support/recording/contracts.py
+  - brick_protocol/support/recording/raw_claim_trace.py
+  - brick_protocol/support/recording/step_outputs.py
+path_absent:
+  # No new operator-surface module, no per-slice checker. DASHBOARD-SURFACE-0
+  # admits the vendored brick_protocol/support/dashboard runtime + brick_protocol/support/operator/dashboard_export.py
+  # read projection + the report-sink:dashboard branch on the existing report_sinks.py.
+  - brick_protocol/support/operator/project_orchestration_ledger.py
+  - brick_protocol/support/operator/dashboard_view.py
+  - brick_protocol/support/checkers/check_dashboard_read_side_view0.py
+  - brick_protocol/support/checkers/check_design_toolkit_and_mcp0.py
+  - brick_protocol/brick/tasks
+  - brick_protocol/support/operator/project_orchestration_ledger.py
+  - brick_protocol/support/checkers/check_project_orchestration_ledger0.py
+  - brick_protocol/support/operator/slack_reporter.py
+  - brick_protocol/support/operator/report_delivery.py
+  - brick_protocol/support/operator/report_delivery
+  - brick_protocol/support/operator/report_queue.py
+  - brick_protocol/support/operator/report_scheduler.py
+  - brick_protocol/support/operator/thread_wake.py
+  - brick_protocol/support/operator/dashboard_server.py
+  - brick_protocol/support/checkers/check_run_surface_split0.py
+  - brick_protocol/support/run.py
+path_absent_glob:
+  - brick_protocol/support/checkers/check_project_orchestration_ledger0.py
+  - brick_protocol/support/operator/report_delivery/**
+text_contains:
+  # The read-only renderer is a function on the EXISTING operator surface and it
+  # reuses the EXISTING packet/export (no new fact class). ELEGANT-REFACTOR P3d:
+  # the renderer + ledger packet lifted to operator/ledger_projection.py behind
+  # the building_operation facade (location-pin-follows-rehome; still a support
+  # read projection, no new dashboard runtime).
+  - path: brick_protocol/support/operator/ledger_projection.py
+    texts:
+      - def render_project_orchestration_ledger_view
+      - def project_orchestration_ledger_packet
+      - PROJECT_ORCHESTRATION_LEDGER_EXPORT
+      - READ-ONLY support projection over already-written Building evidence
+      # The VIEW projects the current Brick / Agent / Link frontier per row.
+      - Rows (current Brick / Agent / Link frontier)
+      - current_brick_ref
+      - current_agent_ref
+      - link latest_movement
+      - current_link_target_ref
+      - frontier_kind / board_state
+      # Evidence refs are projected per row.
+      - evidence_refs
+      # The non-liveness proof limit is carried into the rendered view.
+      - not a provider-liveness proof
+      - whether a provider process is currently alive
+      - "read-only view: exposes no source-truth-edit surface"
+  # AGENTS.md declares the read-side view boundary.
+  - path: AGENTS.md
+    texts:
+      - DASHBOARD-READ-SIDE-VIEW
+  - path: brick_protocol/support/connection/building_design_toolkit.py
+    texts:
+      - render_building_design_context
+      - caller_or_coo_declared_only
+      - not Movement authority
+      # H1 THE BOARD: the single read-only manifest unifying the four catalogs.
+      # Each literal below is load-bearing: dropping a section from the returned
+      # manifest (or removing its builder) deletes the matching string here and
+      # turns this profile RED (the drop-a-section Mutation-RED). The five
+      # `"<section>": <section>,` needles pin the actual RETURN-DICT WIRING, so a
+      # section cannot vanish from the manifest while its builder lingers.
+      - def render_building_board
+      - def render_building_board_json
+      - '"kind": "building-board"'
+      - '"section_refs": ["bricks", "agents", "links", "presets", "shapes"]'
+      - '"bricks": bricks,'
+      - '"agents": agents,'
+      - '"links": links,'
+      - '"presets": presets,'
+      - '"shapes": shapes,'
+      - def _board_bricks
+      - def _board_agents
+      - def _board_links
+      - def _board_presets
+      - def _board_shapes
+      - def _board_forbidden_return_keys
+      - '"required_return_shape": required_return_shape'
+      - '"forbidden_return_keys": _board_forbidden_return_keys('
+      - '"writer_capable": _agent_is_writer(agent_object)'
+      - '"movements": movements,'
+      - '"gates": gates,'
+      - '"carry_fields": _board_public_fact_fields('
+      - '"transition_fields": _board_public_fact_fields('
+      - graph_topology
+      - '"catalog_counts": {'
+      # The board's read-only envelope: it AUTHORS / DECIDES nothing.
+      - the board unifies the four catalogs for reading; it changes none of them
+      - it does not select the active shape
+  - path: brick_protocol/support/connection/mcp_projection.py
+    texts:
+      - "brick-protocol://building/design/context"
+      - brick_protocol_render_building_design_context
+      - choose Building shape
+  - path: AGENTS.md
+    texts:
+      - PROJECT-ORCHESTRATION-LEDGER-0
+  # ELEGANT-REFACTOR P3d: the orchestration-ledger projection lifted to
+  # operator/ledger_projection.py (and building_index_packet to evidence_status.py)
+  # behind the building_operation facade (pin-follows-rehome).
+  - path: brick_protocol/support/operator/ledger_projection.py
+    texts:
+      - def project_orchestration_ledger_packet
+      - observe_building_frontier
+      - reads existing Building evidence roots only
+      - not project ledger owner
+      - not dashboard runtime
+      - not Movement authority
+      - latest_movement is raw observed Link evidence only
+  - path: brick_protocol/support/operator/evidence_status.py
+    texts:
+      - building_index_packet
+  - path: AGENTS.md
+    texts:
+      - REPORTER-NOTIFICATION-PROJECTION-0 four support-only report sinks
+      - brick_protocol/support/operator/reporter.py
+      - brick_protocol/support/operator/report_sinks.py
+      - report-sink:operator-wake-local
+      - report-sink:slack
+      - report-sink:dashboard
+      - The admitted slice may read persisted Building / portfolio evidence
+      - Slack and dashboard
+      - real delivery are gated by environment credentials plus the caller-declared
+      - target selector, route input, scheduler / queue / retry runtime
+      - four-sink ceiling
+  - path: brick_protocol/support/operator/reporter.py
+    texts:
+      - def render_report_packet
+      - def emit_report_packet
+      - def dry_run_report_delivery_packet
+      - def validate_report_packet
+      - def reporter_negative_probe_observations
+      - def reporter_owner_vocabulary_probe_observations
+      - def reporter_delivery_wake_probe_observations
+      - def reporter_delivery_pre_surface_probe_observations
+      - def report_event_policy_from_plan
+      - def render_building_event_report_packet
+      - def emit_building_event_report_packet
+      - def emit_building_event_for_policy
+      - def _structure_diagram_text
+      - structure_diagram
+      - def reporter_event_hook_probe_observations
+      - FORBIDDEN_REPORT_PACKET_FIELDS
+      - OBSERVED_BOARD_STATES
+      - BUILDING_EVENT_KINDS
+      - building_started
+      - intervention_required
+      - building_finished
+      - delivery_observation
+      - TRANSITION_LIFECYCLE_DISPOSITION_OWNERS
+      - OPERATOR_WAKE_LOCAL_SINK_REF
+      - operator_wake_targets
+      - source_truth
+      - evidence_refs_present
+      - report packet is not AgentFact
+      - report packet is not Link transfer / carry / Movement
+      - report delivery pre-surface dry-run only
+      - does not write project/brick-protocol/status/inbox
+      - not real Slack delivery
+      - valid_local_inbox_dry_run
+      - valid_operator_wake_dry_run
+      - valid_slack_dry_run
+      - bad_unadmitted_sink_ref
+      - bad_slack_channel_id_field
+      - bad_slack_bot_token_field
+      - absent_policy_defaults_to_local_env_gated_sinks
+      - current_work_kind
+      - current_lane
+      - valid_opt_in_policy
+      - bad_step_completed_event
+      - not driver input
+      - bad_source_truth_true
+      - bad_movement_choice_field
+      - bad_target_choice_field
+      - bad_success_field
+      - bad_complete_field
+      - bad_complete_state
+      - bad_driver_input_field
+      - bad_required_disposition_owner_human
+      - bad_resume_route_field
+      - bad_raw_secret_field
+      - valid_operator_wake_target
+      - bad_operator_wake_secret
+      - bad_operator_wake_resume_route
+      - bad_operator_wake_target_kind
+      - human_review_waiting_fallback
+      - human_review_waiting_invalid_lifecycle_human
+  - path: brick_protocol/support/checkers/check_profile.py
+    texts:
+      - reporter_notification_projection
+      - dashboard_productization_projection
+  - path: brick_protocol/support/operator/dashboard_export.py
+    texts:
+      - def bake_dashboard_data_json
+      - DEFAULT_DASHBOARD_PUBLIC_DATA_PATH
+      - dashboard bake packet source_truth must be false
+      - not scheduler/queue/retry runtime
+  - path: brick_protocol/support/dashboard/server/index.mjs
+    texts:
+      - const RAW_INGEST_SECRET = process.env.INGEST_SECRET
+      - const IS_PRODUCTION = process.env.NODE_ENV === 'production'
+      - function ingestRefusesInProduction()
+      - NORMALIZED_INGEST_SECRET === 'dev-secret'
+      - if (ingestRefusesInProduction())
+      - function verifyIngestSignature(req, body)
+      - x-ingest-signature
+      - x-ingest-timestamp
+      - x-ingest-event-id
+      - seenEventIds.has(eventId)
+      - msg.event_id !== signatureCheck.eventId
+      - function rejectSequenceRollback(ref, msg)
+  - path: brick_protocol/support/dashboard/DEPLOY.md
+    texts:
+      - Cloud Run Plus IAP
+      - Generic Docker Behind An Authenticating Reverse Proxy
+      - Bare Node
+      - PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=brick_protocol/support/import_identity
+      - python3 brick_protocol/support/operator/dashboard_export.py --bake-public
+      - --min-instances=0
+      - x-ingest-secret
+      - missing or still equal to the development fallback
+      - The source of truth stays in the repo ledger
+  # ELEGANT-REFACTOR P3a: run_reporter_notification_projection (and its output
+  # strings) moved into the checker-runner sublayer; the location pin follows the
+  # behavior-identical rehome (checker-pin-follows-rehome standard).
+  - path: brick_protocol/support/checkers/lib/kernel_checks.py
+    texts:
+      - reporter negative probe(s)
+      - owner vocabulary probe(s)
+      - delivery wake probe(s)
+      - label parity map(s)
+      - Slack message shape assertion(s)
+      - auto-wire assertion(s)
+      - no-scheduler source file(s)
+      - local inbox write
+      - operator wake write
+      - event hook probe(s)
+      - raw secret shaped field
+      - unadmitted sink reject
+  - path: brick_protocol/support/operator/report_sinks.py
+    texts:
+      - LABEL_MAP_PATH
+      - LOCAL_INBOX_SINK_REF
+      - OPERATOR_WAKE_LOCAL_SINK_REF
+      - SLACK_SINK_REF
+      - SLACK_BOT_TOKEN_ENV
+      - SLACK_CHANNEL_ID_ENV
+      - ADMITTED_SINK_REFS
+      - SINK_FORBIDDEN_PACKET_FIELDS
+      - DRY_RUN_SINK_PROOF_LIMITS
+      - SLACK_DRY_RUN_PROOF_LIMITS
+      - SLACK_REAL_DELIVERY_PROOF_LIMITS
+      - OPERATOR_WAKE_TARGET_KINDS
+      - '"complete"'
+      - def deliver_report_packet
+      - def dry_run_report_packet
+      - def _slack_message_text
+      - def _slack_brick_received_reply_text
+      - def _slack_gate_passed_reply_text
+      - def _slack_lane_label
+      - def send_slack_report_packet
+      - def validate_slack_delivery_environment
+      - def write_local_inbox_packet
+      - def write_operator_wake_packet
+      - DASHBOARD_SA_KEY_PATH_ENV
+      - SLACK_THREAD_REPLY_EVENT_KINDS
+      - SLACK_THREAD_TS_REQUIRED_EVENT_KINDS
+      - SLACK_THREAD_FALLBACK_TOP_LEVEL_EVENT_KINDS
+      - def _dashboard_openssl_sign_rs256
+      - openssl
+      - dgst
+      - "-sha256"
+      - "-sign"
+      - def validate_operator_wake_targets
+      - def _validate_packet_for_sink
+      - def _validate_slack_packet
+      - external_delivery_allowed
+      - not_attempted_non_real_vessel
+      - not_attempted_missing_thread_ts
+      - def _packet_allows_external_delivery
+      - 시작했어요. 진행되는 대로 여기 댓글로 알려드릴게요.
+      - "잠깐 멈췄어요. 살펴봐 주세요. (담당:"
+      - ✅ 다 됐어요!
+      - 단계 끝났어요
+      - 넘어가요
+      - 마무리예요
+      - "담당:"
+      - COO 확인
+      - project/brick-protocol/status/inbox
+      - report sink packet source_truth must be false
+      - validates admitted sink refs without writing local status inbox packets
+      - validates Slack packet shape without reading Slack credentials
+      - real Slack delivery requires allow_real_slack_delivery=True
+      - records only environment presence and status classes
+      - not provider delivery
+      - operator_wake_targets
+      - raw_secret
+      - not automatic resume
+      - not route input
+  - path: brick_protocol/support/operator/label_map.json
+    texts:
+      - brick-report-label-map/v1
+      - 작업
+      - 워커
+      - 멈춤·개입 필요
+  - path: brick_protocol/support/dashboard/src/data/labels.js
+    texts:
+      - brick_protocol/support/operator/label_map.json
+      - reroute
+      - 호출자 또는 COO
+  - path: AGENTS.md
+    texts:
+      - brick_protocol/support/operator/evidence_assembly.py
+  - path: brick_protocol/support/operator/run.py
+    texts:
+      - def build_minimal_crossing
+      - def run_building_once
+      - def run_building_plan
+      - write_accumulated_building_evidence
+      - write_single_building_evidence
+      - selected_adapter_ref must be declared by caller or Building Plan step
+      - _validate_no_payload_forbidden("returned", returned, _RETURN_FORBIDDEN_KEYS)
+  - path: brick_protocol/support/operator/evidence_assembly.py
+    texts:
+      - write_accumulated_building_evidence
+      - write_single_building_evidence
+      - write_raw_and_claim_trace
+      - write_step_outputs
+  - path: brick_protocol/support/operator/write_observation.py
+    texts:
+      - _write_adapter_observation_before
+      - _adapter_result_with_write_observation
+      # REDO (Smith 0623): the write observer produces RAW only -- the
+      # written-vs-scope classification moved to brick.comparison and the named
+      # facts to brick_protocol/support/recording. The RAW sensitive-path observer + the kept
+      # ``.git`` floor raise live here now.
+      - _raw_sensitive_path_writes
+  - path: brick_protocol/support/operator/primitives.py
+    texts:
+      - _RETURN_FORBIDDEN_KEYS
+  # E2/S4: the Link route-replay forbidden-key vocabulary (which carries
+  # 'completed') moved from primitives.py into the Link single-source API at
+  # brick_protocol/link/spec.py (mirror M12). The text pin follows the rehome to its new home
+  # (behavior-identical move; the vocabulary is unchanged member-for-member).
+  - path: brick_protocol/link/spec.py
+    texts:
+      - completed
+  - path: brick_protocol/support/recording/step_outputs.py
+    texts:
+      - write_step_outputs
+      - bp.step_output.route_request
+  - path: brick_protocol/support/recording/raw_claim_trace.py
+    texts:
+      - write_raw_and_claim_trace
+      - evidence/claim_trace/link/movement_trace.json
+text_absent:
+  # The renderer must not introduce a runtime server / scheduler / source-truth
+  # write-back surface. The view returns a string and reads existing evidence.
+  # ELEGANT-REFACTOR P3d: the renderer lifted to operator/ledger_projection.py
+  # behind the building_operation facade; the no-server negative pin follows the
+  # rehome so it still polices the actual renderer location.
+  - path: brick_protocol/support/operator/ledger_projection.py
+    texts:
+      - def write_project_orchestration_ledger_view
+      - def serve_project_orchestration_ledger
+      - def edit_project_orchestration_ledger
+      - HTTPServer
+      - def run_dashboard_server
+  - path: brick_protocol/support/checkers/check_profile.py
+    texts:
+      - os.system
+      - eval(
+      - exec(
+  - path: brick_protocol/support/operator/reporter.py
+    texts:
+      - from brick_protocol.support.operator.run
+      - from brick_protocol.support.operator.driver
+      - connect_agent_brain
+      - make_gate_fact
+      - MovementFact(
+      - GateFact(
+      - AgentFact(
+  - path: brick_protocol/support/operator/report_sinks.py
+    texts:
+      - Popen
+      - shell=True
+      - check_output
+      - requests
+      - httpx
+      - socket
+      - HTTPServer
+      - sqlite
+      - webhook
+      - Thread
+      - Queue
+      - Movement 판단 아님
+      - frontier=
+      - brick=
+  - path: brick_protocol/support/operator/driver.py
+    texts:
+      - status/inbox
+      - report_sinks
+      - reporter.py
+      - LOCAL_INBOX_SINK_REF
+  - path: brick_protocol/support/operator/run.py
+    texts:
+      - "def _write_accumulated_step_outputs"
+      - "def _write_accumulated_raw_and_claim_trace"
+      - "def _accumulated_lifecycle_packet"
+      - "def _accumulated_building_map_packet"
+      - "def _observable_files"
+      - "def _validate_observed_write_paths"
+      - "def _graph_execution_order"
+      - "def _validate_route_replay_plan_for_link_row"
+      - "_first_text(prepared.agent_object.adapter_refs)"
+  - path: brick_protocol/support/checkers/check_profile.py
+    texts:
+      - os.system
+      - eval(
+      - exec(
+  - path: brick_protocol/support/recording/step_outputs.py
+    texts:
+      - support.operator
+      - operator.primitives
+# CLEAN-YARD v3 (Smith 0611): the standing dogfood evidence this profile used
+# to pin (design-toolkit-and-mcp-0-0526 / project-orchestration-ledger-0-0528
+# building roots, status/project-orchestration-ledger.json export, the 0528
+# audit-era step outputs) left for the frozen museum. The SAME properties are
+# now EXECUTED here: this case creates a temp vessel with the S2 verb, drives
+# the REAL intake (stubbed write-capable adapter) to a complete building INSIDE
+# it, asserts the retired pin property tables (building-map shape, declaration
+# chain + task placement, preset-expansion declared values, step-output
+# envelopes, orchestration-ledger packet/row shape incl. generated_at +
+# last_evidence_at + link_disposition + 'not process liveness proof', rendered
+# ledger view, PROGRESS render over the EMPTY vessel (0 buildings) and the
+# 1-building vessel, effective-write step-output shape incl.
+# worktree_observation), and removes the vessel in finally.
+intake_evidence_projection_case:
+  - label: clean-yard-read-side-projection
+    vessel_id: checker-projection-fixture-vessel
+    chain_preset_ref: building-chain-preset:brick-protocol-engine-feature-hard
+    # Retired p9-dogfood preset-expansion pins (structure_template_integrity):
+    # the same declared values must appear on a FRESH engine-feature-hard
+    # expansion. (The 4th retired needle -- the archived 0526 review sheet
+    # path -- is frozen-history content the CURRENT catalog no longer expands;
+    # physicality of expanded refs is enforced by
+    # check_brick_template_catalog_restructure.)
+    expected_preset_expansion:
+      chain_preset_catalog_source: dogfood_chain_presets
+      canonical_chain_preset_ref: building-chain-preset:brick-protocol-engine-feature-hard
+      common_basis_ref: building-chain-preset:high-risk-change-inspected
+proof_limits:
+  - support evidence only
+  - read-side view backstop checks renderer SHAPE and boundary text, not semantic correctness
+  - the rendered view is a static projection over already-written evidence, not a runtime
+  - not source truth
+  - not source-truth write-back / edit surface
+  - not a dashboard runtime / server / scheduler
+  - not a provider-liveness proof
+  - generated_at and rows[].last_evidence_at are recency/observation fields (snapshot build time and newest recorded evidence timestamp), not process liveness
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+  - profile pass is not source truth
+  - four support-only report sinks only
+  - not route input
+not_proven:
+  - semantic correctness of the projected Building states
+  - whether a provider process is currently alive
+  - dashboard UI readiness
+  - future provider or subagent behavior
+  - MCP client behavior
+  - semantic fitness of future selected shapes
+  - automatic Building Plan authoring
+  - cross-participant synchronization
+  - semantic correctness of Building states
+  - delivery reliability
+  - stale evidence snapshot behavior
+  - external notification behavior
+  - reporter packet usefulness for every future Building type
+  - future semantic correctness of Building outputs
+  - future provider behavior
+  - production runtime readiness
