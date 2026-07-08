@@ -456,8 +456,8 @@ proof limit: 통합 방향 승인은 support evidence only; green/dogfood 전 wa
 | ⑥a | 정본 문서 | `route-v2-sealed-materialization-architecture.md` | ⑤와 병렬 가능, 문서 only | ✓ landed `47cf35a4b`; R0 evidence: `project/brick-protocol/status/kernel/route-v2-sealed-materialization-architecture.md` |
 | ⑥b | checker fence | `route_v2_sealed_materialization.yaml` + `fixtures/route_v2/**` | ⑥a 이후 병렬 가능, fixtures owner 하나 | ✓ landed `47cf35a4b`; declarative profile pins concern seal / gate-Movement separation / delta-QA facts |
 | ⑥c | read-only view builder | `brick_protocol/support/operator/route_v2_views.py` + `check_route_v2_views.py` + dogfood status record | ⑥a/⑥b schema 확정 후 | ✓ landed `134ad9550`; dogfood recorded at `project/brick-protocol/status/kernel/dogfood/0708-route-v2-view-dogfood.md`; ⑥d/⑥e still HOLD |
-| ⑥d | route_materialization 확장 검토 | route_replay_plan view/provenance 확장 여부 | HOLD, human gate | ☐ |
-| ⑥e | walker integration | walker_kernel/walker_resume integration | HOLD, 최고위험 | ☐ |
+| ⑥d | route_materialization 확장 검토 | route_replay_plan view/provenance 확장 여부 | HOLD, human gate | ☐ human-gate packet prepared at `project/brick-protocol/status/kernel/route-v2-human-gate-packet-0709.md`; approval required before Building |
+| ⑥e | walker integration | walker_kernel/walker_resume integration | HOLD, 최고위험 | ☐ human-gate packet prepared at `project/brick-protocol/status/kernel/route-v2-human-gate-packet-0709.md`; approval required before Building |
 
 ⑥c R2 read-only view builder candidate:
 
@@ -508,7 +508,18 @@ not touched:
 proof limit:
   support evidence only; not source truth, not success judgment, not quality judgment, not Movement authority, not walker integration approval.
 next gate:
-  prepare ⑥d/⑥e human-gate packet before any walker integration Building.
+  ⑥d/⑥e human-gate packet prepared at project/brick-protocol/status/kernel/route-v2-human-gate-packet-0709.md.
+  Smith/human approval is still required before any route_materialization or walker integration Building.
+```
+
+⑥d/⑥e human-gate packet — 2026-07-09 KST:
+
+```text
+packet: project/brick-protocol/status/kernel/route-v2-human-gate-packet-0709.md
+purpose: prepare Smith/human decision before any held ⑥d route_materialization extension or ⑥e walker integration Building.
+state: held_for_human_gate; not implementation approval; not Movement; not success/quality judgment.
+recommended candidate: ⑥d route_materialization review first, then ⑥e walker integration only after ⑥d evidence is green or explicitly deemed unnecessary.
+not opened by the packet: route_materialization.py changes, walker_kernel.py / walker_resume.py changes, link/** changes, agent/return_fact.py changes.
 ```
 
 ### 5.4 병렬 전략
@@ -677,7 +688,7 @@ Then:
 ⑥c route_v2 read-only view builder + read-only view dogfood
 ⑩a cleanup scope / invariants doc
 ⑩b~⑩g cleanup/UX phases after ⑤/⑥ closure
-⑥d/⑥e only after human gate
+⑥d/⑥e only after Smith/human approval of `project/brick-protocol/status/kernel/route-v2-human-gate-packet-0709.md`
 ```
 
 ---
