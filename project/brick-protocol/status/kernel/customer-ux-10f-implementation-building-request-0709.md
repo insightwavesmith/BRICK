@@ -155,8 +155,10 @@ P4. project new requires explicit charter confirmation before stamping.
 P5. project list/show are read-only and do not mutate project vessels.
 P6. progress default is read-only; progress --write matches generate_project_progress output.
 P7. project/progress output contains no raw secret/session/provider credential values.
-P8. existing project_declaration / intake_project_vessel / intake_evidence_projection
-    behavior stays green.
+P8. existing project_declaration / intake_project_vessel_case /
+    intake_evidence_projection_case kernel-check behavior stays green
+    (these are kernel_check CASE names, not standalone --profile names; they run
+    inside their host profiles, see the commands below).
 P9. CLI import identity still works from outside repo (existing check_import_identity_modes guard).
 P10. No new source truth, success/quality, or Movement fields are introduced.
 ```
@@ -167,8 +169,10 @@ Required commands before landing:
 python3 -m compileall -q brick_protocol
 python3 brick_protocol/support/checkers/check_profile.py --profile core
 python3 brick_protocol/support/checkers/check_profile.py --profile <focused-new-or-extended-profile>
-python3 brick_protocol/support/checkers/check_profile.py --profile intake_project_vessel
-python3 brick_protocol/support/checkers/check_profile.py --profile intake_evidence_projection
+# intake_project_vessel_case / intake_evidence_projection_case are kernel checks,
+# not profiles. Run their host profiles instead (verified live 2026-07-09):
+python3 brick_protocol/support/checkers/check_profile.py --profile building_skill_preset_intake_adapter_gate
+python3 brick_protocol/support/checkers/check_profile.py --profile read_side_projection_boundary
 # clean detached worktree when landing code/resource changes:
 python3 brick_protocol/support/checkers/check_profile.py --all
 git diff --check
