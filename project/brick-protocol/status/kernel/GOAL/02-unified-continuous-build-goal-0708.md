@@ -218,7 +218,7 @@ STEP 5. 에이전트 선택(agent + strength)
 | ⑤b | cleanup checker fence | external selected_* 금지, common preset selected_* 금지, gate_state_not_movement, no-success-fields, deep-design casting RED fixtures | ✓ pushed `28cfda632` |
 | ⑤c | 오염 표면 정리 | `postmortem.md` selected_* 제거, `four-llm` product alias 제외/격리, deep-design return casting 제거 | ✓ pushed `28cfda632` |
 | ⑤d | 메뉴/API | `building_call_menus.py`, brick/agent-role/intensity/strength/graph motif menu | 수습 완료 예정: 이번 direct 예외 slice로만 마감, 이후 실무는 Building-only |
-| ⑤e | 발주서작성 preset/Brick/Agent | `building-call-authoring` preset, 전용 Brick/return, 발주서 전용 Agent skill(prompt) | ☐ |
+| ⑤e | 발주서작성 preset/Brick/Agent | `building-call-authoring` preset, 전용 Brick/return, 발주서 전용 Agent skill(prompt) | HOLD: Building 산출 WIP 있음, repair 후에도 checker/enforcement gaps 남음 |
 | ⑤f | authoring module | `building_call_authoring.py`, `building_call_authoring_return_v1`, 순서 위반 checker | ☐ |
 | ⑤g | lowering layer | `building_call.py`, `building_call_cases.yaml`, confirmed-only lowering, provenance | ☐ |
 | ⑤h | direct escape hatch | triage/admission/fast_confirm, quick_fix/quick_check만 direct | ☐ |
@@ -258,6 +258,38 @@ Local untracked Building evidence remains intentionally uncommitted:
   project/brick-protocol/buildings/building-call-v11-cleanup-first-0708a/
   project/brick-protocol/status/inbox/*building-call-v11-cleanup-first-0708a*.json
 Reason: evidence includes local absolute/session-temp refs and is support evidence, not product source.
+```
+
+
+⑤e Building-driven attempt status:
+
+```text
+primary Building: building-call-authoring-0708e
+primary WIP ref: refs/brick/wip/building-call-authoring-0708e @ b51d7ebec
+primary frontier: link_paused at closure/human gate
+repair Building: building-call-authoring-0708e-repair
+repair WIP ref: refs/brick/wip/building-call-authoring-0708e-repair @ 6356964d
+repair frontier: link_paused at closure/human gate
+COO landing judgment: HOLD, do not land WIP yet.
+
+Narrowly proven by evidence:
+- Building, not COO, performed ⑤e implementation attempts in sandbox/worktree.
+- Primary WIP added preset, Brick kind/return shape, Agent skill/prompt, catalog/admission/profile wiring.
+- Repair WIP added dedicated order-author Agent Object and widened forbidden_return_keys.
+
+Blocking observations before landing:
+- repair closure returned transition_concern_evidence concern_kind=implementation_gap.
+- code-attack QA found full --all red in declaration_enforcement_parity and agent packet boundary fixtures.
+- return.yaml forbidden_return_keys were widened beyond current enforcement parity without an admitted enforcement-surface change.
+- new order-author leader/read Agent Object changes candidate packet exact fixture expectations.
+- ⑤f/⑤g/⑤h remain out of scope and undone.
+
+Next movement candidate:
+- Do not manually patch. Open a new declared repair Building with explicit scope:
+  A) reconcile forbidden_return_keys vs actual Agent return enforcement, or narrow doc keys back to enforced set;
+  B) update candidate-packet/profile expectations for agent-object:order-author if order-author is admitted;
+  C) rerun focused profiles and decide whether --all is required before landing;
+  D) only then land WIP/ref or superseding repair ref.
 ```
 
 ⑤d menu/API 수습 slice:
