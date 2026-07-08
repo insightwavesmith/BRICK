@@ -91,10 +91,10 @@ Proof limit: 이 절은 운영정책 support evidence이며 source truth·성공
 | ④a | C1 import canonicalization | ✓ | `af60198cb` 포함, origin/main 착지 |
 | ④b | C2 physical root unification | ✓ | `7b99b8f7f`, `brick_protocol/*`, top-level import 실패 확인 |
 | ④c | C3 문서/human gate | 부분 완료 | C3 상태문서 착지. BRICK-CONSTITUTION 물리 루트 조항은 Smith human gate 전까지 HOLD |
-| ⑤ | 발주서/빌딩콜 v1.1 | 부분 착지 | `building-call-v11-cleanup-first-0708a` frontier complete 관측. ⑤b/⑤c tracked cleanup slice는 `28cfda632`로 push. ⑤d~⑤j 남음 |
+| ⑤ | 발주서/빌딩콜 v1.1 | 부분 착지 | ⑤a~⑤h 착지(⑤b/⑤c `28cfda632`, ⑤f `298b28a86`, ⑤g `201e502d3`, ⑤h `569458a0d`). ⑤i docs/examples·⑤j dogfood 남음 |
 | ⑥ | Route V2 sealed materialization | 부분 착지 | R0/R1 sealed materialization checker/document slice `47cf35a4b` 착지. ⑥c R2 view builder 대기, ⑥d/⑥e HOLD |
 | ⑦ | route/walker integration | HOLD | checker green + human gate + route_materialization view 안정 후에만 |
-| ⑧ | 발주서작성 preset/Agent/menu/lowering | 대기 | ⑤d 수습 후 ⑤e~⑤j는 COO 직접 구현 금지, declared Building/sandbox로 진행 |
+| ⑧ | 발주서작성 preset/Agent/menu/lowering | 부분 착지 | ⑤d~⑤h declared Building으로 착지. 남은 ⑤i/⑤j도 COO 직접 구현 금지, declared Building/sandbox로 진행 |
 | ⑨ | dogfood/골 closure | 대기 | quick direct + order_authoring + Route V2 view/checker 증거까지 모은 뒤 closure |
 
 ---
