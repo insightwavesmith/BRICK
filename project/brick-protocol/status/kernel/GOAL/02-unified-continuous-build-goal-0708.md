@@ -457,7 +457,7 @@ proof limit: 통합 방향 승인은 support evidence only; green/dogfood 전 wa
 | ⑥b | checker fence | `route_v2_sealed_materialization.yaml` + `fixtures/route_v2/**` | ⑥a 이후 병렬 가능, fixtures owner 하나 | ✓ landed `47cf35a4b`; declarative profile pins concern seal / gate-Movement separation / delta-QA facts |
 | ⑥c | read-only view builder | `brick_protocol/support/operator/route_v2_views.py` + `check_route_v2_views.py` + dogfood status record | ⑥a/⑥b schema 확정 후 | ✓ landed `134ad9550`; dogfood recorded at `project/brick-protocol/status/kernel/dogfood/0708-route-v2-view-dogfood.md`; ⑥d/⑥e still HOLD |
 | ⑥d | route_materialization 확장 검토 | route_replay_plan view/provenance 확장 여부 | reviewed, no code change needed | ✓ review disposition at `project/brick-protocol/status/kernel/route-v2-6d-materialization-review-0709.md`; current route_materialization sufficient as R2 view/provenance input |
-| ⑥e | walker integration | walker_kernel/walker_resume integration | design next, implementation still gated | ☐ next candidate `route-v2-6e-walker-integration-design-0709`; no walker implementation before declared Building/proof |
+| ⑥e | walker integration | walker_kernel/walker_resume integration | design produced, implementation still gated | ◐ design evidence at `route-v2-6e-walker-integration-design-0709.md`; implementation remains HOLD pending explicit declared Building/proof |
 
 ⑥c R2 read-only view builder candidate:
 
@@ -542,6 +542,18 @@ negative probes: success_judgment, support_chosen_movement, provider_endpoint, a
 disposition: route_materialization.py sufficient as-is for R2 -> ⑥e design input; no code change warranted in ⑥d.
 next Route V2 candidate: ⑥e walker integration design Building.
 still not proven: walker integration behavior, automatic repair/replay execution.
+```
+
+⑥e walker integration design — 2026-07-09 KST:
+
+```text
+design: project/brick-protocol/status/kernel/route-v2-6e-walker-integration-design-0709.md
+recommended shape: SHAPE A read-only advisory overlay.
+seam: append dynamic_walker_evidence.route_v2_view_observations as non-binding sibling evidence after walker classification/recording; do not feed walker control flow.
+live-code correction: route_policy is not currently direct walker input, so ⑥e must use declared/proven policy input or record absent/blocked; support must not silently load a default policy.
+recording correction: reroute_adoption_record and hold_record are contract-derived closed shapes; do not nest Route V2 view inside them unless recording contracts/checkers are explicitly extended.
+implementation state: HOLD; requires explicit declared Building/worktree and negative probes before touching walker_kernel.py/walker_resume.py.
+still not proven: runtime walker integration, resume read-back parity, exact checker profile home, automatic repair/replay execution.
 ```
 
 ### 5.4 병렬 전략
@@ -636,7 +648,7 @@ project-creation already exists: brick_protocol/agent/skills/project-creation/SK
 |---|---|---|---|---|
 | ⑩a | cleanup scope / invariants doc | `project/brick-protocol/status/kernel/cleanup-scope-invariants-0709.md` | docs-simple-review 가능 | ✓ doc prepared; shapes/building_plans/tasks/skills/project vessel no-delete/no-move invariants recorded |
 | ⑩b | blocks 정리 | `project/brick-protocol/status/kernel/blocks-retained-map-0709.md` | docs-only map done | ✓ map prepared: 8 retained / 0 archive / 0 supersede / 0 delete. 모든 block related_presets 실존, runtime reader 0, admission checker가 corpus를 admit. 삭제/이동 불필요 |
-| ⑩c | building_plans 위치 결정 | keep vs move under templates decision; if move then path constants/checkers/admission/profile migration | Building 중 | load-bearing. 단순 `git mv` 금지. `check_package_path_admission.py`와 reader/checker 동시 변경 필요 |
+| ⑩c | building_plans 위치 결정 | `project/brick-protocol/status/kernel/building-plans-location-decision-0709.md` | docs decision complete | ✓ KEEP for now; no move/delete/archive; future migration requires declared Building with reader/checker/admission/profile proof |
 | ⑩d | skills ship-copy 정리 | `project/brick-protocol/status/kernel/skills-ship-copy-drift-map-0709.md` | docs-only drift map done | ✓ map prepared: common 7, identical 5, real drift candidate `building-coordination`, checker/pin overlay candidate `building-sizing-method`, agent-only maybe-ship candidates recorded, `.DS_Store` residue observed |
 | ⑩e | COO 발주 스킬체인 정합 | `project/brick-protocol/status/kernel/coo-order-chain-consistency-0709.md` | docs-only consistency map done | ✓ map prepared: Quick Path policy aligned across brick-task-author/building-call-authoring/building_call.py/building_call_menus.py; watch items recorded for building-coordination ship-copy drift, brick-task-author selected_* example context, building-sizing-method checker overlay |
 | ⑩f | customer UX layer | install -> create project -> buildings -> progress board -> project definition flow; first-run copy/spec/checker plan | Building 대, design-first | 이미 있는 project-creation/progress_projection 위에 UX 층을 얹는다. 새 runtime/queue/scheduler 금지 |
@@ -684,8 +696,20 @@ doc: project/brick-protocol/status/kernel/coo-order-chain-consistency-0709.md
 observed aligned policy: direct_preset escape hatch only for quick_check/quick_fix with direct_preset_admission + fast_confirm; order_authoring default; human_gate_first for critical/destructive/credential/high-impact cases.
 positive surfaces: brick-task-author source+ship-copy, building-call-authoring source, building_call.py, building_call_authoring.py, building_call_menus.py.
 watch items: building-coordination ship-copy drift; brick-task-author selected_* example context needs focused classification; building-sizing-method template checker overlay must not be blind-synced.
-next cleanup candidate: cleanup-10e-order-chain-consistency-0709a Building, or ⑩c building_plans keep/move decision doc.
+next cleanup candidate: cleanup-10e-order-chain-consistency-0709a Building, ⑩f customer UX design, or ⑩g dogfood vessel separation human-gate packet.
 proof limit: support evidence only; no skill/prompt/hook/projection changed.
+```
+
+⑩c building_plans location decision — 2026-07-09 KST:
+
+```text
+doc: project/brick-protocol/status/kernel/building-plans-location-decision-0709.md
+decision: KEEP for now.
+measured surface: brick_protocol/brick/building_plans/ has 4 fixture/example plan files.
+reason: current refs from package path admission, building_plans_boundary_sweep, core/link_routing_behavioral/building_operator_driver0 profiles, onboarding/quickstart docs, onboard.py, run.py, coo_operating_chain.py, and orchestration_packet.py make this path load-bearing.
+forbidden shortcut: no simple git mv under templates; no delete/archive now.
+future migration: declared Building only, with reader/checker/admission/profile/docs migration and clean detached --all proof.
+remaining_delta: ⑩f customer UX layer; ⑩g dogfood vessel separation; optional ⑩e repair candidate.
 ```
 
 ### 7.4 direct preset vs Building 판정 규칙
@@ -758,8 +782,8 @@ Then:
 ⑩b blocks retained/archive/superseded map — done at `project/brick-protocol/status/kernel/blocks-retained-map-0709.md` (8 retained, 0 archive/supersede/delete)
 ⑩d skills ship-copy drift map — done at `project/brick-protocol/status/kernel/skills-ship-copy-drift-map-0709.md`
 ⑩e COO order-chain consistency map — done at `project/brick-protocol/status/kernel/coo-order-chain-consistency-0709.md`
-⑩c/⑩f/⑩g cleanup/UX phases remain; next candidate cleanup-10e-order-chain-consistency-0709a Building or ⑩c building_plans keep/move decision doc
-⑥d route_materialization review — done at `project/brick-protocol/status/kernel/route-v2-6d-materialization-review-0709.md` (no code change needed); next Route V2 candidate ⑥e walker integration design Building
+⑩c building_plans decision — done at `project/brick-protocol/status/kernel/building-plans-location-decision-0709.md` (KEEP for now; no move/delete/archive); ⑩f/⑩g cleanup/UX phases remain; next candidate ⑩f customer UX design or ⑩g dogfood vessel separation human-gate packet, with cleanup-10e-order-chain-consistency-0709a still optional
+⑥d route_materialization review — done at `project/brick-protocol/status/kernel/route-v2-6d-materialization-review-0709.md` (no code change needed); ⑥e walker integration design produced at `project/brick-protocol/status/kernel/route-v2-6e-walker-integration-design-0709.md`; implementation remains HOLD pending explicit declared Building/proof
 ```
 
 ---
