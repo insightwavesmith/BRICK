@@ -696,7 +696,7 @@ doc: project/brick-protocol/status/kernel/coo-order-chain-consistency-0709.md
 observed aligned policy: direct_preset escape hatch only for quick_check/quick_fix with direct_preset_admission + fast_confirm; order_authoring default; human_gate_first for critical/destructive/credential/high-impact cases.
 positive surfaces: brick-task-author source+ship-copy, building-call-authoring source, building_call.py, building_call_authoring.py, building_call_menus.py.
 watch items: building-coordination ship-copy drift; brick-task-author selected_* example context needs focused classification; building-sizing-method template checker overlay must not be blind-synced.
-next cleanup candidate: ⑩f implementation Building, ⑩g Smith decision record, or optional cleanup-10e-order-chain-consistency-0709a Building.
+next cleanup candidate: ⑩f implementation Building request prepared; next operational step is declared ⑩f Building intake/run, ⑩g Smith decision record, or optional cleanup-10e-order-chain-consistency-0709a Building.
 proof limit: support evidence only; no skill/prompt/hook/projection changed.
 ```
 
@@ -735,6 +735,18 @@ recommended gate choice: Option A KEEP + clarify wording only; no filesystem mig
 forbidden shortcut: no move/delete/archive while active GOAL/status/building/inbox evidence lives here.
 other options: Option B design split map only; Option C high-risk migration Building only after explicit approval; Option D delete/archive rejected.
 state: held_for_human_gate; Smith decision required to close ⑩g as KEEP or open a future split/migration Building.
+```
+
+⑩f implementation Building request — 2026-07-09 KST:
+
+```text
+doc: project/brick-protocol/status/kernel/customer-ux-10f-implementation-building-request-0709.md
+building_candidate: customer-ux-10f-cli-tie-0709
+recommended_chain_preset_ref: building-chain-preset:brick-protocol-engine-feature-hard
+route_family_candidate: preset_guided_graph
+scope: implement thin `brick project new/list/show` and `brick progress [--write]` CLI tie over existing project_creation/progress_projection, with checker coverage.
+direct_preset: rejected (multi-file support-code/checker/docs, customer-facing CLI, non-TTY and secret-safety behavior).
+state: ready_for_declared_building_intake; no code changed by this packet.
 ```
 
 ### 7.4 direct preset vs Building 판정 규칙
@@ -807,7 +819,7 @@ Then:
 ⑩b blocks retained/archive/superseded map — done at `project/brick-protocol/status/kernel/blocks-retained-map-0709.md` (8 retained, 0 archive/supersede/delete)
 ⑩d skills ship-copy drift map — done at `project/brick-protocol/status/kernel/skills-ship-copy-drift-map-0709.md`
 ⑩e COO order-chain consistency map — done at `project/brick-protocol/status/kernel/coo-order-chain-consistency-0709.md`
-⑩c building_plans decision — done at `project/brick-protocol/status/kernel/building-plans-location-decision-0709.md` (KEEP for now; no move/delete/archive). ⑩f customer UX design — done at `project/brick-protocol/status/kernel/customer-ux-layer-design-0709.md` (core gap = missing brick project/progress CLI tie; implementation pending). ⑩g dogfood vessel separation packet — done at `project/brick-protocol/status/kernel/dogfood-vessel-separation-human-gate-0709.md` (recommended Option A KEEP+clarify; held_for_human_gate). Remaining: ⑩f implementation Building, ⑩g Smith decision, ⑥e/⑦ route-walker implementation/proof, optional cleanup-10e-order-chain-consistency-0709a
+⑩c building_plans decision — done at `project/brick-protocol/status/kernel/building-plans-location-decision-0709.md` (KEEP for now; no move/delete/archive). ⑩f customer UX design — done at `project/brick-protocol/status/kernel/customer-ux-layer-design-0709.md` (core gap = missing brick project/progress CLI tie; implementation pending). ⑩g dogfood vessel separation packet — done at `project/brick-protocol/status/kernel/dogfood-vessel-separation-human-gate-0709.md` (recommended Option A KEEP+clarify; held_for_human_gate). Remaining: declared ⑩f implementation Building run/landing, ⑩g Smith decision, ⑥e/⑦ route-walker implementation/proof, optional cleanup-10e-order-chain-consistency-0709a
 ⑥d route_materialization review — done at `project/brick-protocol/status/kernel/route-v2-6d-materialization-review-0709.md` (no code change needed); ⑥e walker integration design produced at `project/brick-protocol/status/kernel/route-v2-6e-walker-integration-design-0709.md`; implementation remains HOLD pending explicit declared Building/proof
 ```
 
