@@ -160,6 +160,7 @@ from brick_protocol.support.checkers.lib.kernel_checks import (
     run_dashboard_productization_projection,
     run_brick_cli_entrypoint_smoke,
     run_sakana_wire_packet,
+    run_building_call_authoring_contract,
 )
 from brick_protocol.support.checkers.lib.mutation_red_manifest_check import run_mutation_red_manifest
 from brick_protocol.support.checkers.lib.install_release_export_lint_check import run_wheel_smoke
@@ -376,6 +377,7 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "graph_draft_rules",
         "brick_protocol.support.checkers.check_graph_draft_rules",
     ),
+    "building_call_authoring_contract": run_building_call_authoring_contract,
     "preflight_injection_survival": _repo_main(
         "preflight_injection_survival",
         "brick_protocol.support.checkers.check_preflight_injection_survival",

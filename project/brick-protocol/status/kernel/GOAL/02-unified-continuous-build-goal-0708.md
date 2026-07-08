@@ -219,7 +219,7 @@ STEP 5. 에이전트 선택(agent + strength)
 | ⑤c | 오염 표면 정리 | `postmortem.md` selected_* 제거, `four-llm` product alias 제외/격리, deep-design return casting 제거 | ✓ pushed `28cfda632` |
 | ⑤d | 메뉴/API | `building_call_menus.py`, brick/agent-role/intensity/strength/graph motif menu | 수습 완료 예정: 이번 direct 예외 slice로만 마감, 이후 실무는 Building-only |
 | ⑤e | 발주서작성 preset/Brick/Agent | `building-call-authoring` preset, 전용 Brick/return, 발주서 전용 Agent skill(prompt) | landed candidate: repair-2 green, 착지/푸시 검증 중 |
-| ⑤f | authoring module | `building_call_authoring.py`, `building_call_authoring_return_v1`, 순서 위반 checker | ☐ |
+| ⑤f | authoring module | `building_call_authoring.py`, `building_call_authoring_return_v1`, 순서 위반 checker | landed candidate: Building `building-call-authoring-0708f`, clean --all green |
 | ⑤g | lowering layer | `building_call.py`, `building_call_cases.yaml`, confirmed-only lowering, provenance | ☐ |
 | ⑤h | direct escape hatch | triage/admission/fast_confirm, quick_fix/quick_check만 direct | ☐ |
 | ⑤i | docs/skill examples | brick-task-author/building-call Quick Path, 4개 worked examples, 메뉴얼 규칙 | ☐ |
@@ -299,6 +299,21 @@ module admission: check_package_path_admission.py + module_registry.yaml
 purpose: read-only product menu for order-authoring sequence, Brick menu, Agent role menu, work intensity, agent strength, graph motif, routing mode
 proof: render_building_call_menus import/invariant smoke rc=0; compileall rc=0; check_profile.py --profile building_call_menus rc=0; git diff --check rc=0
 limits: this is a direct COO cleanup exception already in progress; after this slice, ⑤e~⑤j and Route V2 work must be Building-driven.
+```
+
+⑤f authoring module Building slice:
+
+```text
+building_id: building-call-authoring-0708f
+surface: brick_protocol/support/operator/building_call_authoring.py
+checker/profile: brick_protocol/support/checkers/profiles/building_call_authoring.yaml
+fixtures:
+  positive: brick_protocol/support/checkers/fixtures/building_call_authoring/positive_return.json
+  negative sequence violation: brick_protocol/support/checkers/fixtures/building_call_authoring/negative_sequence_violation.json
+purpose: draft-only validation/normalization for building_call_authoring_return_v1 and the fixed STEP1_SCOPE -> STEP2_BUILDING_INTENSITY -> STEP3_STRUCTURE -> STEP4_PER_BRICK_INTENSITY -> STEP5_AGENT_CANDIDATES sequence.
+coverage repair: reroute pass tightened validation to reject unknown top-level fields, scan every declared return field for forbidden draft exposure, and catch embedded/case-varied provider/model/adapter markers.
+checker evidence: clean review worktree observed compileall rc=0, git diff --check rc=0, focused ⑤f profiles green, and check_profile.py --all rc=0 with 57/57 profile passes and real red observations=0. building_call_authoring_contract rejects unknown top-level, remaining_delta exposure, forbidden_exposure_scan key, and embedded case-varied exposure probes.
+limits: no launch authorization, no lowering, no route/walker integration, no source truth, no success judgment, no quality judgment, no Movement authority. ⑤g/⑤h/⑤i/⑤j remain out of scope.
 ```
 
 ---

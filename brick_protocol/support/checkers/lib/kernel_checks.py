@@ -229,6 +229,104 @@ def call_main(check_id: str, module_name: str, argv: list[str] | None) -> Kernel
     return KernelResult(check_id=check_id, inspected=1, output=output)
 
 
+def run_building_call_authoring_contract(repo: Path) -> KernelResult:
+    """Validate the ⑤f positive fixture and reject the sequence-violation fixture."""
+
+    from brick_protocol.support.operator.building_call_authoring import (
+        AUTHORING_STEP_REFS,
+        BuildingCallAuthoringValidationError,
+        normalize_building_call_authoring_return,
+        render_authoring_sequence_rule,
+        validate_building_call_authoring_return,
+    )
+
+    fixture_root = repo / "brick_protocol/support/checkers/fixtures/building_call_authoring"
+    positive_path = fixture_root / "positive_return.json"
+    negative_path = fixture_root / "negative_sequence_violation.json"
+    positive = json.loads(positive_path.read_text(encoding="utf-8"))
+    negative = json.loads(negative_path.read_text(encoding="utf-8"))
+
+    normalized = normalize_building_call_authoring_return(positive)
+    if normalized["five_step_order"] != list(AUTHORING_STEP_REFS):
+        raise ProfileError("building_call_authoring_contract: positive fixture order was not preserved")
+
+    negative_violations = validate_building_call_authoring_return(negative)
+    if not negative_violations:
+        raise ProfileError(
+            "building_call_authoring_contract: negative sequence fixture was accepted"
+        )
+    if not any("five_step_order must be exactly" in item for item in negative_violations):
+        raise ProfileError(
+            "building_call_authoring_contract: negative fixture did not trip the sequence-order violation"
+        )
+    try:
+        normalize_building_call_authoring_return(negative)
+    except BuildingCallAuthoringValidationError:
+        pass
+    else:
+        raise ProfileError(
+            "building_call_authoring_contract: negative fixture normalization did not fail closed"
+        )
+
+    sequence_rule = render_authoring_sequence_rule()
+    if sequence_rule["step_refs"] != list(AUTHORING_STEP_REFS):
+        raise ProfileError("building_call_authoring_contract: sequence-rule render drifted")
+
+    unknown_top_level = dict(positive)
+    unknown_top_level["route_target_hint"] = "brick-next"
+    unknown_violations = validate_building_call_authoring_return(unknown_top_level)
+    if not any("unknown top-level field(s): route_target_hint" in item for item in unknown_violations):
+        raise ProfileError(
+            "building_call_authoring_contract: unknown top-level field probe was accepted"
+        )
+
+    remaining_delta_exposure = dict(positive)
+    remaining_delta_exposure["remaining_delta"] = ["please use adapter:codex-local now"]
+    remaining_delta_violations = validate_building_call_authoring_return(remaining_delta_exposure)
+    if not any(
+        "forbidden draft value marker at remaining_delta[0]" in item
+        for item in remaining_delta_violations
+    ):
+        raise ProfileError(
+            "building_call_authoring_contract: remaining_delta adapter exposure probe was accepted"
+        )
+
+    nested_scan_exposure = dict(positive)
+    nested_scan_exposure["forbidden_exposure_scan"] = {"Selected_Adapter_Ref": "absent"}
+    nested_scan_violations = validate_building_call_authoring_return(nested_scan_exposure)
+    if not any(
+        "forbidden draft key: forbidden_exposure_scan.Selected_Adapter_Ref" in item
+        for item in nested_scan_violations
+    ):
+        raise ProfileError(
+            "building_call_authoring_contract: forbidden_exposure_scan key probe was accepted"
+        )
+
+    embedded_case_exposure = dict(positive)
+    embedded_case_exposure["scope_draft"] = {
+        **positive["scope_draft"],
+        "note": "Operator asked for Adapter:codex-local",
+    }
+    embedded_case_violations = validate_building_call_authoring_return(embedded_case_exposure)
+    if not any(
+        "forbidden draft value marker at scope_draft.note" in item
+        for item in embedded_case_violations
+    ):
+        raise ProfileError(
+            "building_call_authoring_contract: embedded case-varied adapter exposure probe was accepted"
+        )
+
+    return KernelResult(
+        check_id="building_call_authoring_contract",
+        inspected=6,
+        output=(
+            "positive fixture accepted; negative sequence-violation fixture rejected; "
+            "unknown top-level, remaining_delta exposure, forbidden_exposure_scan key, "
+            "and embedded case-varied exposure probes rejected"
+        ),
+    )
+
+
 
 
 

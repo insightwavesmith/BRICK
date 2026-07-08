@@ -1,0 +1,87 @@
+{
+  "observed_evidence": [
+    "task-source:inline-statement"
+  ],
+  "five_step_order": [
+    "STEP1_SCOPE",
+    "STEP2_BUILDING_INTENSITY",
+    "STEP3_STRUCTURE",
+    "STEP4_PER_BRICK_INTENSITY",
+    "STEP5_AGENT_CANDIDATES"
+  ],
+  "scope_draft": {
+    "step_ref": "STEP1_SCOPE",
+    "target_area": "Building Call authoring validator",
+    "source_facts": [
+      "GOAL ⑤f"
+    ],
+    "allowed_path_candidates": [
+      "brick_protocol/support/operator/building_call_authoring.py"
+    ],
+    "forbidden_path_candidates": [
+      ".git/**"
+    ],
+    "missing_fields": []
+  },
+  "building_intensity_routing_draft": {
+    "step_ref": "STEP2_BUILDING_INTENSITY",
+    "intensity": "normal",
+    "routing_mode": "order_authoring",
+    "draft_only": true
+  },
+  "structure_draft": {
+    "step_ref": "STEP3_STRUCTURE",
+    "bricks": [
+      {
+        "brick_ref": "brick-implement-authoring-validator",
+        "brick_kind": "work",
+        "role_need": "worker",
+        "capability_need": "source_write",
+        "write_need": true
+      }
+    ],
+    "edges": [
+      {
+        "from": "building-boundary:",
+        "to": "brick-implement-authoring-validator",
+        "movement_literal": "forward"
+      }
+    ],
+    "gate_state": "draft"
+  },
+  "per_brick_intensity_draft": {
+    "step_ref": "STEP4_PER_BRICK_INTENSITY",
+    "bricks": [
+      {
+        "brick_ref": "brick-implement-authoring-validator",
+        "intensity": "normal",
+        "work_statement": "Implement draft-only authoring validation.",
+        "return_need": "building_call_authoring_return_v1",
+        "proof_obligation": "positive and negative sequence fixtures"
+      }
+    ]
+  },
+  "agent_candidates_draft": {
+    "step_ref": "STEP5_AGENT_CANDIDATES",
+    "candidates": [
+      {
+        "role_need": "worker",
+        "strength": "default",
+        "write_need": true
+      }
+    ]
+  },
+  "launch_confirmation_state": "not_confirmed",
+  "forbidden_exposure_scan": {
+    "selected_casting_refs": "absent",
+    "runtime_profile_details": "absent",
+    "route_or_walker_details": "absent"
+  },
+  "remaining_delta": [
+    "COO or caller confirmation required before any later lowering."
+  ],
+  "not_proven": [
+    "future lowering behavior",
+    "future Building execution behavior"
+  ]
+}

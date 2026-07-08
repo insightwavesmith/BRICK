@@ -1,0 +1,73 @@
+schema: checker-profile/v1
+profile_id: building-call-authoring
+description: GOAL ⑤f draft-only Building Call authoring return validation and sequence-violation fixture coverage.
+kernel_checks:
+  - building_call_authoring_contract
+  - package_path_admission
+  - axis_crossing_elegance
+path_exists:
+  - brick_protocol/support/operator/building_call_authoring.py
+  - brick_protocol/support/checkers/fixtures/building_call_authoring/positive_return.json
+  - brick_protocol/support/checkers/fixtures/building_call_authoring/negative_sequence_violation.json
+  - brick_protocol/support/checkers/profiles/building_call_authoring.yaml
+  - brick_protocol/support/checkers/module_registry.yaml
+text_contains:
+  - path: brick_protocol/support/operator/building_call_authoring.py
+    texts:
+      - AUTHORING_RETURN_SCHEMA_VERSION = "building-call-authoring-return-v1"
+      - AUTHORING_STEP_REFS
+      - STEP1_SCOPE
+      - STEP2_BUILDING_INTENSITY
+      - STEP3_STRUCTURE
+      - STEP4_PER_BRICK_INTENSITY
+      - STEP5_AGENT_CANDIDATES
+      - building_call_authoring_return_v1
+      - validate_building_call_authoring_return
+      - normalize_building_call_authoring_return
+      - not Building launch authorization
+      - not lowering
+      - not source truth
+      - not success judgment
+      - not quality judgment
+      - not Movement authority
+  - path: brick_protocol/support/checkers/fixtures/building_call_authoring/positive_return.json
+    texts:
+      - '"STEP1_SCOPE"'
+      - '"STEP2_BUILDING_INTENSITY"'
+      - '"STEP3_STRUCTURE"'
+      - '"STEP4_PER_BRICK_INTENSITY"'
+      - '"STEP5_AGENT_CANDIDATES"'
+      - '"launch_confirmation_state": "not_confirmed"'
+  - path: brick_protocol/support/checkers/fixtures/building_call_authoring/negative_sequence_violation.json
+    texts:
+      - '"STEP1_SCOPE"'
+      - '"STEP3_STRUCTURE"'
+      - '"STEP2_BUILDING_INTENSITY"'
+      - This fixture must be rejected because STEP2 and STEP3 are mixed.
+  - path: brick_protocol/support/checkers/check_profile.py
+    texts:
+      - building_call_authoring_contract
+  - path: brick_protocol/support/checkers/module_registry.yaml
+    texts:
+      - brick_protocol/support/operator/building_call_authoring.py
+      - GOAL ⑤f draft-only Building Call authoring return validation and sequence-violation fixture coverage
+text_absent:
+  - path: brick_protocol/support/operator/building_call_authoring.py
+    texts:
+      - route_materialization.py
+      - walker_kernel.py
+      - walker_resume.py
+      - def run_building_plan
+      - run_building_plan(
+      - compose_building(
+      - materialize_transition_concern_disposition
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic fitness of future authored Building call requests
+  - future lowering behavior
+  - future Building execution behavior
