@@ -15,7 +15,7 @@ Live repo: /Users/smith/projects/BRICK
 Current pushed base at 작성 시점: 69988d815ed77bb6b2006c04c37c2083d473e3df
 C2 import-unify base: 7b99b8f7fd4e00a94d797620c4905afd9f957f7c
 C3 status docs base: 3bce21bf4e58932b6233a1360ec3ce3825df286c
-GOAL ⑤/⑥ updates: 6100e3eb6, fb765bdc3, 197b7df51, 69988d815, 28cfda632
+GOAL ⑤/⑥ updates: 6100e3eb6, fb765bdc3, 197b7df51, 69988d815, 28cfda632, 82a1b9699, 47cf35a4b
 ```
 
 Source hierarchy:
@@ -87,12 +87,12 @@ Proof limit: 이 절은 운영정책 support evidence이며 source truth·성공
 |---|---|---|---|
 | ① | repo/worktree 위생 | ✓ | 0708 기준 정리 완료. 단 현재 active building 변경물이 main checkout에 남아 있어 착지 전 분리 관리 필요 |
 | ② | 소형 필수 수리 | ✓ | 게이트 .DS_Store, Rule13 durable evidence 등 기존 origin 착지 |
-| ③ | 캐스팅 전환 | ✓ | fable5 기본 퇴장, opus/fugu/codex/gemini 역할 재정렬 |
+| ③ | 캐스팅 전환 | ✓ | fable5 active dispatch 퇴장 착지 `82a1b9699`; opus/sonnet 사용 가능성 probe 확인 |
 | ④a | C1 import canonicalization | ✓ | `af60198cb` 포함, origin/main 착지 |
 | ④b | C2 physical root unification | ✓ | `7b99b8f7f`, `brick_protocol/*`, top-level import 실패 확인 |
 | ④c | C3 문서/human gate | 부분 완료 | C3 상태문서 착지. BRICK-CONSTITUTION 물리 루트 조항은 Smith human gate 전까지 HOLD |
 | ⑤ | 발주서/빌딩콜 v1.1 | 부분 착지 | `building-call-v11-cleanup-first-0708a` frontier complete 관측. ⑤b/⑤c tracked cleanup slice는 `28cfda632`로 push. ⑤d~⑤j 남음 |
-| ⑥ | Route V2 sealed materialization | ☐ 준비 | prompt/GOAL 반영 완료. ⑥a/⑥b 병렬 가능, ⑥d/⑥e HOLD |
+| ⑥ | Route V2 sealed materialization | 부분 착지 | R0/R1 sealed materialization checker/document slice `47cf35a4b` 착지. ⑥c R2 view builder 대기, ⑥d/⑥e HOLD |
 | ⑦ | route/walker integration | HOLD | checker green + human gate + route_materialization view 안정 후에만 |
 | ⑧ | 발주서작성 preset/Agent/menu/lowering | 대기 | ⑤d 수습 후 ⑤e~⑤j는 COO 직접 구현 금지, declared Building/sandbox로 진행 |
 | ⑨ | dogfood/골 closure | 대기 | quick direct + order_authoring + Route V2 view/checker 증거까지 모은 뒤 closure |
@@ -221,7 +221,7 @@ STEP 5. 에이전트 선택(agent + strength)
 | ⑤d | 메뉴/API | `building_call_menus.py`, brick/agent-role/intensity/strength/graph motif menu | 수습 완료 예정: 이번 direct 예외 slice로만 마감, 이후 실무는 Building-only |
 | ⑤e | 발주서작성 preset/Brick/Agent | `building-call-authoring` preset, 전용 Brick/return, 발주서 전용 Agent skill(prompt) | landed candidate: repair-2 green, 착지/푸시 검증 중 |
 | ⑤f | authoring module | `building_call_authoring.py`, `building_call_authoring_return_v1`, 순서 위반 checker | ✓ pushed `298b28a86`, clean --all green |
-| ⑤g | lowering layer | `building_call.py`, `building_call_cases.yaml`, confirmed-only lowering, provenance | ☐ |
+| ⑤g | lowering layer | `building_call.py`, `building_call_cases.yaml`, confirmed-only lowering, provenance | agent_incomplete: `building-call-lowering-0708g` work step returned, QA `adapter:claude-local`/`model:claude:sonnet` exited 143; not landed |
 | ⑤h | direct escape hatch | triage/admission/fast_confirm, quick_fix/quick_check만 direct | ☐ |
 | ⑤i | docs/skill examples | brick-task-author/building-call Quick Path, 4개 worked examples, 메뉴얼 규칙 | ☐ |
 | ⑤j | dogfood | quick_check direct, quick_fix direct, order_authoring path 각 1회 증거 | ☐ |
@@ -302,6 +302,32 @@ proof: render_building_call_menus import/invariant smoke rc=0; compileall rc=0; 
 limits: this is a direct COO cleanup exception already in progress; after this slice, ⑤e~⑤j and Route V2 work must be Building-driven.
 ```
 
+0708 landing update — model lane / Route V2:
+
+```text
+fable5-token-retire-0708h:
+  frontier: complete
+  landed commit: 82a1b9699 model-lane: retire fable5 active dispatch
+  effect: adapter:claude-local rejects model:claude:claude-fable-5 as retired from active dispatch; model:claude:claude-opus-4-8, model:claude:sonnet, and model:claude:opus remain accepted by the validation probe.
+  clean proof: temp detached worktree at 47cf35a4b observed compileall OK, git diff --check OK, focused model_lane_matching_discipline / agent_axis_behavioral / graph_draft profiles green, and check_profile.py --all rc=0.
+
+route-v2-r0-r1-0708g:
+  frontier: complete
+  landed commit: 47cf35a4b route-v2: add sealed materialization checks
+  effect: R0 canonical sealed-materialization architecture doc and R1 checker/profile/fixtures are now in origin/main; forbidden integration paths were not touched.
+  clean proof: temp detached worktree at 47cf35a4b observed compileall OK, git diff --check OK, focused route_v2_sealed_materialization / structure_template_integrity / core profiles green, and check_profile.py --all rc=0.
+
+constitution-active-roots-0708g:
+  frontier: agent_incomplete
+  adapter error: code-attack-qa used adapter:claude-local + model:claude:sonnet, dispatched claude-sonnet-5, local_cli_nonzero, return_code=143.
+  disposition candidate: reroute QA/relaunch through a working adapter/model lane; do not patch BRICK-CONSTITUTION.md directly as COO.
+
+building-call-lowering-0708g:
+  frontier: agent_incomplete
+  adapter error: code-attack-qa used adapter:claude-local + model:claude:sonnet, dispatched claude-sonnet-5, local_cli_nonzero, return_code=143.
+  disposition candidate: reroute QA over the existing sandbox output or relaunch ⑤g with a working adapter/model lane; do not land lowering changes until QA/gate evidence returns.
+```
+
 ⑤f authoring module Building slice:
 
 ```text
@@ -360,8 +386,8 @@ proof limit: 통합 방향 승인은 support evidence only; green/dogfood 전 wa
 
 | Phase | 이름 | 산출물 | 병렬성 | 상태 |
 |---|---|---|---|---|
-| ⑥a | 정본 문서 | `route-v2-sealed-materialization-architecture.md` | ⑤와 병렬 가능, 문서 only | R0 evidence: `project/brick-protocol/status/kernel/route-v2-sealed-materialization-architecture.md` |
-| ⑥b | checker fence | `route_v2_sealed_materialization.yaml` + `fixtures/route_v2/**` | ⑥a 이후 병렬 가능, fixtures owner 하나 | R1 evidence: declarative profile pins concern seal / gate-Movement separation / delta-QA facts |
+| ⑥a | 정본 문서 | `route-v2-sealed-materialization-architecture.md` | ⑤와 병렬 가능, 문서 only | ✓ landed `47cf35a4b`; R0 evidence: `project/brick-protocol/status/kernel/route-v2-sealed-materialization-architecture.md` |
+| ⑥b | checker fence | `route_v2_sealed_materialization.yaml` + `fixtures/route_v2/**` | ⑥a 이후 병렬 가능, fixtures owner 하나 | ✓ landed `47cf35a4b`; declarative profile pins concern seal / gate-Movement separation / delta-QA facts |
 | ⑥c | read-only view builder | `brick_protocol/support/operator/route_v2_views.py` | ⑥a/⑥b schema 확정 후 | ☐ |
 | ⑥d | route_materialization 확장 검토 | route_replay_plan view/provenance 확장 여부 | HOLD, human gate | ☐ |
 | ⑥e | walker integration | walker_kernel/walker_resume integration | HOLD, 최고위험 | ☐ |
