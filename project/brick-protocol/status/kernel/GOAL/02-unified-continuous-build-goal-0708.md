@@ -456,8 +456,8 @@ proof limit: 통합 방향 승인은 support evidence only; green/dogfood 전 wa
 | ⑥a | 정본 문서 | `route-v2-sealed-materialization-architecture.md` | ⑤와 병렬 가능, 문서 only | ✓ landed `47cf35a4b`; R0 evidence: `project/brick-protocol/status/kernel/route-v2-sealed-materialization-architecture.md` |
 | ⑥b | checker fence | `route_v2_sealed_materialization.yaml` + `fixtures/route_v2/**` | ⑥a 이후 병렬 가능, fixtures owner 하나 | ✓ landed `47cf35a4b`; declarative profile pins concern seal / gate-Movement separation / delta-QA facts |
 | ⑥c | read-only view builder | `brick_protocol/support/operator/route_v2_views.py` + `check_route_v2_views.py` + dogfood status record | ⑥a/⑥b schema 확정 후 | ✓ landed `134ad9550`; dogfood recorded at `project/brick-protocol/status/kernel/dogfood/0708-route-v2-view-dogfood.md`; ⑥d/⑥e still HOLD |
-| ⑥d | route_materialization 확장 검토 | route_replay_plan view/provenance 확장 여부 | HOLD, human gate | ☐ human-gate packet prepared at `project/brick-protocol/status/kernel/route-v2-human-gate-packet-0709.md`; approval required before Building |
-| ⑥e | walker integration | walker_kernel/walker_resume integration | HOLD, 최고위험 | ☐ human-gate packet prepared at `project/brick-protocol/status/kernel/route-v2-human-gate-packet-0709.md`; approval required before Building |
+| ⑥d | route_materialization 확장 검토 | route_replay_plan view/provenance 확장 여부 | human gate approved | ✓ Smith approved COO Option B at `project/brick-protocol/status/kernel/route-v2-human-gate-approval-0709.md`; next Building candidate: ⑥d route_materialization review |
+| ⑥e | walker integration | walker_kernel/walker_resume integration | HOLD, 최고위험 | ☐ conditionally sequenced after ⑥d; still no immediate walker implementation approval |
 
 ⑥c R2 read-only view builder candidate:
 
@@ -520,6 +520,17 @@ purpose: prepare Smith/human decision before any held ⑥d route_materialization
 state: held_for_human_gate; not implementation approval; not Movement; not success/quality judgment.
 recommended candidate: ⑥d route_materialization review first, then ⑥e walker integration only after ⑥d evidence is green or explicitly deemed unnecessary.
 not opened by the packet: route_materialization.py changes, walker_kernel.py / walker_resume.py changes, link/** changes, agent/return_fact.py changes.
+```
+
+⑥d/⑥e human-gate approval — 2026-07-09 KST:
+
+```text
+approval: project/brick-protocol/status/kernel/route-v2-human-gate-approval-0709.md
+Smith decision: "휴먼게이트 너의 의견대로한다."
+interpreted option: Option B — open ⑥d route_materialization review first; open ⑥e walker integration only after ⑥d evidence is green or explicitly unnecessary.
+next Building candidate: route-v2-6d-route-materialization-review-0709
+still held: immediate walker_kernel.py / walker_resume.py implementation, link/** changes, agent/return_fact.py changes, new route_scope.py, new route_v2_engine.py.
+proof limit: support evidence only; not Movement, not implementation, not success/quality judgment.
 ```
 
 ### 5.4 병렬 전략
@@ -725,7 +736,7 @@ Then:
 ⑩b blocks retained/archive/superseded map — done at `project/brick-protocol/status/kernel/blocks-retained-map-0709.md` (8 retained, 0 archive/supersede/delete)
 ⑩d skills ship-copy drift map — done at `project/brick-protocol/status/kernel/skills-ship-copy-drift-map-0709.md`
 ⑩c/⑩e~⑩g cleanup/UX phases remain; next candidate ⑩d-repair-1 Building or ⑩e COO order-chain consistency design
-⑥d/⑥e only after Smith/human approval of `project/brick-protocol/status/kernel/route-v2-human-gate-packet-0709.md`
+⑥d route_materialization review approved by Smith at `project/brick-protocol/status/kernel/route-v2-human-gate-approval-0709.md`; ⑥e walker integration remains HOLD until ⑥d green or unnecessary
 ```
 
 ---
