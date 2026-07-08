@@ -58,6 +58,29 @@ walker/run/link/AgentFact 변경은 human gate 전까지 HOLD한다.
 
 ---
 
+
+## 1.1 COO 운영권한 고정 — 0708 update
+
+```text
+COO는 실무 수행자가 아니다.
+COO는 운영, 경계감시, 판단, gate/disposition, Building 조율만 한다.
+구현/삭제/수정/검증 실무는 declared Building으로 진행한다.
+COO가 직접 live checkout에서 source/code/resource를 고치는 방식은 이 현재 진행 중인 slice 이후 금지한다.
+새 작업은 task intake -> declared Building -> sandbox/worktree execution -> evidence review -> COO/Smith disposition 순서를 탄다.
+```
+
+적용 시점:
+
+```text
+현재 이미 시작된 ⑤d menu/API 수습 이후부터 적용.
+이후 ⑤e~⑤j 및 Route V2 R0/R1/R2는 COO 직접 구현이 아니라 Building으로 진행한다.
+GOAL 문서/status 갱신, evidence 판독, gate 판단은 COO 운영 작업으로 허용한다.
+```
+
+Proof limit: 이 절은 운영정책 support evidence이며 source truth·성공/품질·Movement 권한이 아니다.
+
+---
+
 ## 2. 전체 상태판
 
 | # | 트랙 | 상태 | 현재 판단 |
@@ -71,7 +94,7 @@ walker/run/link/AgentFact 변경은 human gate 전까지 HOLD한다.
 | ⑤ | 발주서/빌딩콜 v1.1 | 부분 착지 | `building-call-v11-cleanup-first-0708a` frontier complete 관측. ⑤b/⑤c tracked cleanup slice는 `28cfda632`로 push. ⑤d~⑤j 남음 |
 | ⑥ | Route V2 sealed materialization | ☐ 준비 | prompt/GOAL 반영 완료. ⑥a/⑥b 병렬 가능, ⑥d/⑥e HOLD |
 | ⑦ | route/walker integration | HOLD | checker green + human gate + route_materialization view 안정 후에만 |
-| ⑧ | 발주서작성 preset/Agent/menu/lowering | 대기 | ⑤ cleanup-first 종료 후 ⑤d~⑤j 순서로 진행 |
+| ⑧ | 발주서작성 preset/Agent/menu/lowering | 대기 | ⑤d 수습 후 ⑤e~⑤j는 COO 직접 구현 금지, declared Building/sandbox로 진행 |
 | ⑨ | dogfood/골 closure | 대기 | quick direct + order_authoring + Route V2 view/checker 증거까지 모은 뒤 closure |
 
 ---
@@ -194,7 +217,7 @@ STEP 5. 에이전트 선택(agent + strength)
 | ⑤a | 정책/용어 고정 | order_authoring 기본, direct_preset 2-FIX, 순서 규율, selected_* 외부 금지 | ✓ |
 | ⑤b | cleanup checker fence | external selected_* 금지, common preset selected_* 금지, gate_state_not_movement, no-success-fields, deep-design casting RED fixtures | ✓ pushed `28cfda632` |
 | ⑤c | 오염 표면 정리 | `postmortem.md` selected_* 제거, `four-llm` product alias 제외/격리, deep-design return casting 제거 | ✓ pushed `28cfda632` |
-| ⑤d | 메뉴/API | `building_call_menus.py`, brick/agent-role/intensity/strength/graph motif menu | ☐ |
+| ⑤d | 메뉴/API | `building_call_menus.py`, brick/agent-role/intensity/strength/graph motif menu | 수습 완료 예정: 이번 direct 예외 slice로만 마감, 이후 실무는 Building-only |
 | ⑤e | 발주서작성 preset/Brick/Agent | `building-call-authoring` preset, 전용 Brick/return, 발주서 전용 Agent skill(prompt) | ☐ |
 | ⑤f | authoring module | `building_call_authoring.py`, `building_call_authoring_return_v1`, 순서 위반 checker | ☐ |
 | ⑤g | lowering layer | `building_call.py`, `building_call_cases.yaml`, confirmed-only lowering, provenance | ☐ |
@@ -235,6 +258,17 @@ Local untracked Building evidence remains intentionally uncommitted:
   project/brick-protocol/buildings/building-call-v11-cleanup-first-0708a/
   project/brick-protocol/status/inbox/*building-call-v11-cleanup-first-0708a*.json
 Reason: evidence includes local absolute/session-temp refs and is support evidence, not product source.
+```
+
+⑤d menu/API 수습 slice:
+
+```text
+surface: brick_protocol/support/operator/building_call_menus.py
+checker: brick_protocol/support/checkers/profiles/building_call_menus.yaml
+module admission: check_package_path_admission.py + module_registry.yaml
+purpose: read-only product menu for order-authoring sequence, Brick menu, Agent role menu, work intensity, agent strength, graph motif, routing mode
+proof: render_building_call_menus import/invariant smoke rc=0; compileall rc=0; check_profile.py --profile building_call_menus rc=0; git diff --check rc=0
+limits: this is a direct COO cleanup exception already in progress; after this slice, ⑤e~⑤j and Route V2 work must be Building-driven.
 ```
 
 ---
@@ -353,7 +387,7 @@ Immediate:
 ```text
 A. Active ⑤ building-call-v11-cleanup-first-0708a closure 추적: complete frontier observed.
 B. ⑤b/⑤c 변경물 검증/commit/push: done at 28cfda632.
-C. 다음은 ⑤d menus/API부터 진행. Route V2 R0/R1은 sandbox 병렬 후보.
+C. 현재 이미 시작된 ⑤d menus/API 수습까지만 직접 마감 가능. 그 이후 ⑤e~⑤j와 Route V2 R0/R1/R2는 declared Building/sandbox로 진행.
 ```
 
 Parallel candidate after active ⑤ is stable or via sandbox immediately:

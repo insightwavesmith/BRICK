@@ -503,6 +503,10 @@ GRAPH_DRAFT0_TARGETS = {
     "brick_protocol/support/operator/graph_draft.py",
 }
 
+BUILDING_CALL_MENUS0_TARGETS = {
+    "brick_protocol/support/operator/building_call_menus.py",
+}
+
 # anchoring-defense (#draft-diff): the draft->launched flip diff surface. Pure
 # support operator mechanics: it reads two graph-decl files, splits shape-flip vs
 # casting-flip aggregates, appends an append-only flip ledger under <brick_home>,
@@ -2099,6 +2103,9 @@ def allowed_path(path: str) -> bool:
         return True
 
     if clean in GRAPH_DRAFT0_TARGETS:
+        return True
+
+    if clean in BUILDING_CALL_MENUS0_TARGETS:
         return True
 
     if clean in DRAFT_DIFF0_TARGETS:

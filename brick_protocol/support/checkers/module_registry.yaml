@@ -1770,6 +1770,16 @@ modules:
     decomposition_target: ""
     pinned_by: graph-draft profile (graph_draft_rules kernel check + no-autolaunch text_absent pins)
 
+  - module: brick_protocol/support/operator/building_call_menus.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_call_menus profile (read-only product menus for GOAL ⑤d; no lowering, no launch, no route/walker integration)
+
   - module: brick_protocol/support/operator/draft_diff.py
     layer: operator
     role: operator

@@ -1,0 +1,65 @@
+schema: checker-profile/v1
+profile_id: building-call-menus
+description: GOAL ⑤d Building Call read-only product menu surface.
+kernel_checks:
+  - package_path_admission
+  - axis_crossing_elegance
+path_exists:
+  - brick_protocol/support/operator/building_call_menus.py
+  - brick_protocol/support/checkers/profiles/building_call_menus.yaml
+  - brick_protocol/support/checkers/module_registry.yaml
+text_contains:
+  - path: brick_protocol/support/operator/building_call_menus.py
+    texts:
+      - MENU_SCHEMA_VERSION = "building-call-menus-v1"
+      - ORDER_AUTHORING_SEQUENCE_V1
+      - BRICK_MENU_V1
+      - AGENT_ROLE_MENU_V1
+      - WORK_INTENSITY_MENU_V1
+      - AGENT_STRENGTH_MENU_V1
+      - GRAPH_MOTIF_MENU_V1
+      - ROUTING_MODE_MENU_V1
+      - EXPOSURE_POLICY_V1
+      - def render_building_call_menus(
+      - def get_building_call_menu_section(
+      - STEP1_SCOPE -> STEP2_BUILDING_INTENSITY -> STEP3_STRUCTURE -> STEP4_PER_BRICK_INTENSITY -> STEP5_AGENT_CANDIDATES
+      - direct_quick_check
+      - direct_quick_fix
+      - order_authoring
+      - human_gate_first
+      - not launch authorization
+  - path: brick_protocol/support/checkers/check_package_path_admission.py
+    texts:
+      - BUILDING_CALL_MENUS0_TARGETS
+      - brick_protocol/support/operator/building_call_menus.py
+  - path: brick_protocol/support/checkers/module_registry.yaml
+    texts:
+      - brick_protocol/support/operator/building_call_menus.py
+      - building_call_menus profile
+text_absent:
+  - path: brick_protocol/support/operator/building_call_menus.py
+    texts:
+      - selected_adapter_ref
+      - selected_model_ref
+      - selected_reasoning_effort_ref
+      - chain_preset_ref
+      - runtime_profile
+      - route_materialization
+      - walker_kernel
+      - walker_resume
+      - movement_choice
+      - route_target
+      - "provider:"
+      - "model:"
+      - "adapter:"
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic fitness of future Building Call authoring requests
+  - future authoring module behavior
+  - future lowering behavior
+  - future Building execution behavior
