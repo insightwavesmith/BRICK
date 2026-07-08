@@ -789,6 +789,7 @@ TEMPLATE0_BRICK_TEMPLATE_DIRS = {
 }
 TEMPLATE0_BRICK_KINDS = {
     "axis-attack-qa",
+    "building-call-authoring",
     "closure",
     "code-attack-qa",
     "deep-design",

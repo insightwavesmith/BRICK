@@ -1778,7 +1778,7 @@ modules:
     imports_axis: []
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
-    pinned_by: building_call_menus profile (read-only product menus for GOAL ⑤d; no lowering, no launch, no route/walker integration)
+    pinned_by: building_call_menus profile (GOAL ⑤d/⑤e Building Call read-only product menu and draft-only order-authoring surfaces; no lowering, no launch, no route/walker integration)
 
   - module: brick_protocol/support/operator/draft_diff.py
     layer: operator

@@ -1,0 +1,38 @@
+{
+  "object_ref": "agent-object:order-author",
+  "name": "order-author",
+  "lane": "leader",
+  "callable_performer_refs": [
+    "callable:local:agent-invoke0-smoke"
+  ],
+  "prompt_refs": [
+    "prompt:building-call-authoring"
+  ],
+  "skill_refs": [
+    "skill:building-call-authoring"
+  ],
+  "hook_refs": [
+    "hook:instruction-chain-read",
+    "hook:leader-write-need-gate",
+    "hook:unsafe-mutation-guard",
+    "hook:resource-ref-redaction",
+    "hook:token-cost-discipline"
+  ],
+  "tool_policy_refs": [
+    "tool-policy:leader-coordination"
+  ],
+  "discipline_refs": [
+    "discipline:closed-agentfact",
+    "discipline:proof-limits",
+    "discipline:model-lane-matching"
+  ],
+  "adapter_refs": [
+    "adapter:local",
+    "adapter:codex-local",
+    "adapter:claude-local",
+    "adapter:gemini-local"
+  ],
+  "preferred_adapter_ref": "adapter:claude-local",
+  "preferred_model_ref": "model:claude:claude-opus-4-8",
+  "preferred_reasoning_effort_ref": "effort:xhigh"
+}

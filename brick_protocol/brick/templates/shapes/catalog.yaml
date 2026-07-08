@@ -65,6 +65,8 @@ physical_template_classification:
       reason: Canonical primary return template for building-step-template:closure.
     - path: brick_protocol/brick/templates/bricks/deep-design/return.yaml
       reason: Canonical primary return template for building-step-template:deep-design.
+    - path: brick_protocol/brick/templates/bricks/building-call-authoring/return.yaml
+      reason: Canonical primary return template for building-step-template:building-call-authoring.
   shared_base:
     - path: brick_protocol/brick/templates/building-design-contract.yaml
       reason: Building-level human<->COO design-contract table (templates root since T-FLATTEN 0611; building-level by design, so deliberately NOT a brick sheet under bricks/).

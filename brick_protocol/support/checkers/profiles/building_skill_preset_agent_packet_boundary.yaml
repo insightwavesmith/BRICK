@@ -37,9 +37,9 @@ text_contains:
 # to pick/rank one, the no-forbidden-pick-field assertion goes RED; the case also
 # re-asserts that _resolve_agent_for_need still RAISES for the ambiguous need.
 agent_candidate_packet_case:
-  # MULTI: leader / write_need=false -> 5 candidates -> ambiguous -> COO decision.
+  # MULTI: leader / write_need=false -> 6 candidates -> ambiguous -> COO decision.
   # All qualifying leaders are listed (none omitted); each match_reason is mechanical.
-  - label: multi-leader-coordination-five-candidates
+  - label: multi-leader-coordination-six-candidates
     role_need: leader
     write_need: false
     selected_adapter_ref: adapter:codex-local
@@ -49,6 +49,7 @@ agent_candidate_packet_case:
       - agent-object:coo
       - agent-object:cto-lead
       - agent-object:design-lead
+      - agent-object:order-author
       - agent-object:pm-lead
       - agent-object:qa-lead
     rejected_selected_adapter_refs:

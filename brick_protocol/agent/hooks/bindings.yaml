@@ -27,6 +27,13 @@
       "hook:resource-ref-redaction",
       "hook:token-cost-discipline"
     ],
+    "agent-object:order-author": [
+      "hook:instruction-chain-read",
+      "hook:leader-write-need-gate",
+      "hook:unsafe-mutation-guard",
+      "hook:resource-ref-redaction",
+      "hook:token-cost-discipline"
+    ],
     "agent-object:design-lead": [
       "hook:instruction-chain-read",
       "hook:leader-write-need-gate",

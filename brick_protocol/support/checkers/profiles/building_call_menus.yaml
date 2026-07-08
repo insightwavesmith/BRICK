@@ -1,11 +1,18 @@
 schema: checker-profile/v1
 profile_id: building-call-menus
-description: GOAL ⑤d Building Call read-only product menu surface.
+description: GOAL ⑤d/⑤e Building Call read-only product menu and draft-only order-authoring surfaces.
 kernel_checks:
   - package_path_admission
   - axis_crossing_elegance
 path_exists:
   - brick_protocol/support/operator/building_call_menus.py
+  - brick_protocol/brick/templates/presets/building-call-authoring.md
+  - brick_protocol/brick/templates/bricks/building-call-authoring/brick.md
+  - brick_protocol/brick/templates/bricks/building-call-authoring/return.yaml
+  - brick_protocol/agent/skills/building-call-authoring/SKILL.md
+  - brick_protocol/agent/prompts/building-call-authoring.md
+  - brick_protocol/agent/objects/order-author.yaml
+  - brick_protocol/agent/hooks/bindings.yaml
   - brick_protocol/support/checkers/profiles/building_call_menus.yaml
   - brick_protocol/support/checkers/module_registry.yaml
 text_contains:
@@ -28,6 +35,84 @@ text_contains:
       - order_authoring
       - human_gate_first
       - not launch authorization
+  - path: brick_protocol/brick/templates/presets/building-call-authoring.md
+    texts:
+      - "preset_ref: building-chain-preset:building-call-authoring"
+      - "step_template_ref: building-step-template:building-call-authoring"
+      - "brick_spec_ref: brick_protocol/brick/templates/bricks/building-call-authoring/brick.md"
+      - STEP1 scope, STEP2 whole-building intensity/routing, STEP3 structure, STEP4 per-Brick intensity, and STEP5 Agent candidates/strength
+      - not launch authorization
+      - not lowering
+  - path: brick_protocol/brick/templates/bricks/building-call-authoring/brick.md
+    texts:
+      - "brick_kind: building-call-authoring"
+      - "brick_word: building-call-authoring"
+      - "requires_brick_write_scope: no"
+      - "agent_object_hint_ref: agent-object:order-author"
+      - "brick_protocol/brick/templates/bricks/building-call-authoring/return.yaml"
+      - "link_movement_literal: forward"
+      - STEP1 scope
+      - STEP2 whole-building intensity/routing
+      - STEP3 structure
+      - STEP4 per-Brick intensity
+      - STEP5 Agent candidates/strength
+      - Do not confirm, lower, launch
+      - Agent-plane content is limited to role_need, capability_need, and write_need
+      - "`observed_evidence`, `five_step_order`, `scope_draft`, `building_intensity_routing_draft`, `structure_draft`, `per_brick_intensity_draft`, `agent_candidates_draft`, `launch_confirmation_state`, `forbidden_exposure_scan`, `remaining_delta`, `not_proven`"
+  - path: brick_protocol/brick/templates/bricks/building-call-authoring/return.yaml
+    texts:
+      - "template_ref: brick-template:building-call-authoring-return"
+      - Keep this list limited to keys currently enforced by Agent return_fact
+      - "template_kind: building_call_authoring_return_shape"
+      - "building-step-template:building-call-authoring"
+      - five_step_order
+      - scope_draft
+      - building_intensity_routing_draft
+      - structure_draft
+      - per_brick_intensity_draft
+      - agent_candidates_draft
+      - launch_confirmation_state
+      - forbidden_exposure_scan
+      - remaining_delta
+      - not Building launch authorization
+      - not lowering
+      - movement_choice
+      - route_target
+      - lowering
+  - path: brick_protocol/agent/skills/building-call-authoring/SKILL.md
+    texts:
+      - "name: building-call-authoring"
+      - STEP1 scope
+      - STEP2 whole-building intensity/routing
+      - STEP3 structure
+      - STEP4 per-Brick intensity
+      - STEP5 Agent candidates/strength
+      - This skill drafts only.
+      - Agent-plane content is limited to role_need, capability_need, and write_need
+      - forbidden_exposure_scan
+  - path: brick_protocol/agent/prompts/building-call-authoring.md
+    texts:
+      - Building Call Authoring Prompt Resource
+      - STEP1 scope
+      - STEP2 whole-building intensity/routing
+      - STEP3 structure
+      - STEP4 per-Brick intensity
+      - STEP5 Agent candidates/strength
+      - Draft only.
+  - path: brick_protocol/agent/objects/order-author.yaml
+    texts:
+      - '"object_ref": "agent-object:order-author"'
+      - '"name": "order-author"'
+      - '"lane": "leader"'
+      - '"prompt:building-call-authoring"'
+      - '"skill:building-call-authoring"'
+      - '"tool-policy:leader-coordination"'
+      - '"preferred_adapter_ref": "adapter:claude-local"'
+      - '"preferred_model_ref": "model:claude:claude-opus-4-8"'
+  - path: brick_protocol/agent/hooks/bindings.yaml
+    texts:
+      - '"agent-object:order-author"'
+      - "hook:leader-write-need-gate"
   - path: brick_protocol/support/checkers/check_package_path_admission.py
     texts:
       - BUILDING_CALL_MENUS0_TARGETS
@@ -35,7 +120,7 @@ text_contains:
   - path: brick_protocol/support/checkers/module_registry.yaml
     texts:
       - brick_protocol/support/operator/building_call_menus.py
-      - building_call_menus profile
+      - GOAL ⑤d/⑤e Building Call read-only product menu and draft-only order-authoring surfaces
 text_absent:
   - path: brick_protocol/support/operator/building_call_menus.py
     texts:
@@ -43,6 +128,71 @@ text_absent:
       - selected_model_ref
       - selected_reasoning_effort_ref
       - chain_preset_ref
+      - runtime_profile
+      - route_materialization
+      - walker_kernel
+      - walker_resume
+      - movement_choice
+      - route_target
+      - "provider:"
+      - "model:"
+      - "adapter:"
+  - path: brick_protocol/brick/templates/presets/building-call-authoring.md
+    texts:
+      - selected_adapter_ref
+      - selected_model_ref
+      - selected_reasoning_effort_ref
+      - runtime_profile
+      - route_materialization
+      - walker_kernel
+      - walker_resume
+      - movement_choice
+      - route_target
+      - "provider:"
+      - "model:"
+      - "adapter:"
+  - path: brick_protocol/brick/templates/bricks/building-call-authoring/brick.md
+    texts:
+      - selected_adapter_ref
+      - selected_model_ref
+      - selected_reasoning_effort_ref
+      - runtime_profile
+      - route_materialization
+      - walker_kernel
+      - walker_resume
+      - movement_choice
+      - route_target
+      - "provider:"
+      - "model:"
+      - "adapter:"
+  - path: brick_protocol/brick/templates/bricks/building-call-authoring/return.yaml
+    texts:
+      - runtime_profile
+      - route_materialization
+      - walker_kernel
+      - walker_resume
+      - "provider:"
+      - "model:"
+      - "adapter:"
+  - path: brick_protocol/agent/skills/building-call-authoring/SKILL.md
+    texts:
+      - selected_adapter_ref
+      - selected_model_ref
+      - selected_reasoning_effort_ref
+      - runtime_profile
+      - route_materialization
+      - walker_kernel
+      - walker_resume
+      - movement_choice
+      - route_target
+      - "provider:"
+      - "model:"
+      - "adapter:"
+  - path: brick_protocol/agent/prompts/building-call-authoring.md
+    texts:
+      - selected_adapter_ref
+      - selected_model_ref
+      - selected_reasoning_effort_ref
       - runtime_profile
       - route_materialization
       - walker_kernel

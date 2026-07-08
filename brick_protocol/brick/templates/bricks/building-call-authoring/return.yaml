@@ -1,0 +1,62 @@
+template_ref: brick-template:building-call-authoring-return
+owner_axis: Brick
+template_kind: building_call_authoring_return_shape
+maps_to: AgentFact.returned
+step_template_refs:
+  - building-step-template:building-call-authoring
+required_return_shape:
+  - observed_evidence
+  - five_step_order
+  - scope_draft
+  - building_intensity_routing_draft
+  - structure_draft
+  - per_brick_intensity_draft
+  - agent_candidates_draft
+  - launch_confirmation_state
+  - forbidden_exposure_scan
+  - remaining_delta
+  - not_proven
+# HANDOFF subset carried inline to closure or a later human/COO review boundary.
+# Common envelope (observed_evidence, not_proven, proof_limits, received_work_ref)
+# stays LOCAL. Every field here is a member of required_return_shape above.
+carries_forward_fields:
+  - five_step_order
+  - scope_draft
+  - building_intensity_routing_draft
+  - structure_draft
+  - per_brick_intensity_draft
+  - agent_candidates_draft
+  - launch_confirmation_state
+  - forbidden_exposure_scan
+  - remaining_delta
+next_link_input_sections:
+  - public facts available for Link
+  - missing facts for Link Gate
+  - handoff refs
+  - not_proven
+# Keep this list limited to keys currently enforced by Agent return_fact
+# TOP_LEVEL_VERDICT_KEYS / ALWAYS_SECRET_KEYS. Draft-only order-authoring
+# bans launch/lowering/selected-casting semantics in prose and profile fences,
+# but does not declare unenforced keys here.
+forbidden_return_keys:
+  - success
+  - failure
+  - approved
+  - quality
+  - good_enough
+  - movement_choice
+  - route_target
+proof_limits:
+  - Brick-owned return-shape data resource only
+  - draft-only order-authoring evidence
+  - not Building launch authorization
+  - not lowering
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - future Building Plan correctness
+  - semantic fitness of the authored order
+  - future lowering behavior
+  - future Building execution behavior

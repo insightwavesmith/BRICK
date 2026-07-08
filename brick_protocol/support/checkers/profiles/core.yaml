@@ -85,6 +85,7 @@ path_allowlist:
       - brick_protocol/support/checkers/profiles/driver_public_intake_seal.yaml
       - brick_protocol/support/checkers/profiles/building_operator_driver0.yaml
       - brick_protocol/support/checkers/profiles/building_automation.yaml
+      - brick_protocol/support/checkers/profiles/building_call_menus.yaml
       - brick_protocol/support/checkers/profiles/brick_cli_entrypoint.yaml
       - brick_protocol/support/checkers/profiles/building_skill_preset_carry_boundary.yaml
       - brick_protocol/support/checkers/profiles/building_skill_preset_agent_packet_boundary.yaml

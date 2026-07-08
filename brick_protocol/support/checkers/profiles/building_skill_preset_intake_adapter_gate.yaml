@@ -104,7 +104,7 @@ preset_building_completion_case:
         - coo:all-presets-completion-smoke
       human_review_refs:
         - human-review:all-presets-completion-smoke
-    expected_preset_count: 29
+    expected_preset_count: 30
     expected_frontier_kind: complete
     expected_portfolio_frontier_kind: complete
     expected_preset_refs:
@@ -116,6 +116,7 @@ preset_building_completion_case:
       - building-chain-preset:brick-protocol-engine-feature-hard
       - building-chain-preset:brick-protocol-portfolio-driver
       - building-chain-preset:brick-protocol-post-d-cleanup
+      - building-chain-preset:building-call-authoring
       - building-chain-preset:design-build-parallel
       - building-chain-preset:design-contract-only
       - building-chain-preset:docs-simple-review
