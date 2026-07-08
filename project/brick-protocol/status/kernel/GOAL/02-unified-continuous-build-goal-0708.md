@@ -288,7 +288,7 @@ Resolved blocking observations:
 - building_skill_preset_intake_adapter_gate is green after updating expected preset count/ref list to 30 including building-chain-preset:building-call-authoring.
 
 Still out of scope:
-- ⑤f/⑤g/⑤h remain undone and must proceed through declared Building work.
+- ⑤f/⑤g/⑤h are now landed through declared Building work; ⑤i/⑤j remain undone and must proceed through declared Building work.
 ```
 
 ⑤d menu/API 수습 slice:
@@ -327,7 +327,7 @@ building-call-lowering-0708g:
   WIP anchor: refs/brick/wip/building-call-lowering-0708g @ 792a4c34bc3cc298944286bc35bcc1bb8cb6caee.
   COO disposition: WIP anchor was applied to a clean detached review worktree on top of current HEAD; stale GOAL conflict was discarded; code/checker surfaces were verified independently.
   landing proof before main commit: compileall OK, git diff --check OK, building_call_lowering / building_call_authoring / building_call_menus / structure_template_integrity focused profiles green, and check_profile.py --all rc=0 in /tmp/brick-review-lowering-73593.
-  proof limit: this lands the ⑤g lowering support surface; it does not prove ⑤h direct escape hatch, ⑤i docs/examples, ⑤j dogfood, future request semantic fitness, source truth, success, quality, or Movement authority.
+  proof limit: this lands the ⑤g lowering support surface; it does not prove ⑤i docs/examples, ⑤j dogfood, future request semantic fitness, source truth, success, quality, or Movement authority.
 
 building-call-direct-escape-0708h:
   frontier: focused implementation evidence recorded.
@@ -352,7 +352,7 @@ fixtures:
 purpose: draft-only validation/normalization for building_call_authoring_return_v1 and the fixed STEP1_SCOPE -> STEP2_BUILDING_INTENSITY -> STEP3_STRUCTURE -> STEP4_PER_BRICK_INTENSITY -> STEP5_AGENT_CANDIDATES sequence.
 coverage repair: reroute pass tightened validation to reject unknown top-level fields, scan every declared return field for forbidden draft exposure, and catch embedded/case-varied provider/model/adapter markers.
 checker evidence: clean review worktree observed compileall rc=0, git diff --check rc=0, focused ⑤f profiles green, and check_profile.py --all rc=0 with 57/57 profile passes and real red observations=0. building_call_authoring_contract rejects unknown top-level, remaining_delta exposure, forbidden_exposure_scan key, and embedded case-varied exposure probes.
-limits: no launch authorization, no lowering, no route/walker integration, no source truth, no success judgment, no quality judgment, no Movement authority. ⑤g/⑤h/⑤i/⑤j remain out of scope.
+limits: no launch authorization, no lowering, no route/walker integration, no source truth, no success judgment, no quality judgment, no Movement authority. ⑤i/⑤j remain out of scope.
 ```
 
 ---
