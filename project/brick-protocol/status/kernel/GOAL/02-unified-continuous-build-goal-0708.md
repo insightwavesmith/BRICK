@@ -612,13 +612,23 @@ project-creation already exists: brick_protocol/agent/skills/project-creation/SK
 
 | Phase | 이름 | 산출물 | 라우팅 | 상태/주의 |
 |---|---|---|---|---|
-| ⑩a | cleanup scope / invariants doc | directory map, load-bearing refs, allowed/superseded surfaces, no-delete/archive rule | docs-simple-review 가능 | 문서 only. shapes 유지, blocks 검토, project vessel 분리 타이밍 고정 |
+| ⑩a | cleanup scope / invariants doc | `project/brick-protocol/status/kernel/cleanup-scope-invariants-0709.md` | docs-simple-review 가능 | ✓ doc prepared; shapes/building_plans/tasks/skills/project vessel no-delete/no-move invariants recorded |
 | ⑩b | blocks 정리 | `templates/blocks` archive/superseded plan or retained motif map | Building 소~중 | support direct refs 0건이지만 preset 의미 참조 가능. 삭제보다 archive/superseded 우선 |
 | ⑩c | building_plans 위치 결정 | keep vs move under templates decision; if move then path constants/checkers/admission/profile migration | Building 중 | load-bearing. 단순 `git mv` 금지. `check_package_path_admission.py`와 reader/checker 동시 변경 필요 |
 | ⑩d | skills ship-copy 정리 | agent/skills source -> ship copy -> live projection sync plan; drift repair | Building 중 | 정본은 agent/skills. templates/skills는 ship 사본/배포면으로 명확히 하거나 support packaging 위치로 재배치 |
 | ⑩e | COO 발주 스킬체인 정합 | COO ordering prompt, building-call-authoring skill, building-coordination/task_intake, hooks/projections update | Building 중 | ⑤h direct escape hatch 결과 반영. "small=direct preset candidate, large=order_authoring/building"을 스킬체인에 반영 |
 | ⑩f | customer UX layer | install -> create project -> buildings -> progress board -> project definition flow; first-run copy/spec/checker plan | Building 대, design-first | 이미 있는 project-creation/progress_projection 위에 UX 층을 얹는다. 새 runtime/queue/scheduler 금지 |
 | ⑩g | `project/brick-protocol` dogfood vessel 분리 | dogfood evidence/status vessel separation plan and migration | Building 대 + human gate | ⑤/⑥/⑩f 이후. active GOAL/status/inbox가 여기 있으므로 즉시 이동/삭제 금지 |
+
+⑩a cleanup scope / invariants — 2026-07-09 KST:
+
+```text
+doc: project/brick-protocol/status/kernel/cleanup-scope-invariants-0709.md
+measured: building_plans, templates/blocks, templates/shapes, templates/tasks, templates/skills, agent/skills, project/brick-protocol, project_creation, progress_projection.
+recorded invariants: no blind delete, no simple building_plans git-mv, no shapes deletion, no templates/skills blind delete, no project vessel move before human gate, no cleanup mixed into Route V2 ⑥d/⑥e.
+next cleanup candidate: ⑩b blocks retained/archive/superseded map; alternate ⑩d skills ship-copy drift map if COO order-chain consistency is prioritized.
+proof limit: support evidence only; no cleanup implementation completed.
+```
 
 ### 7.4 direct preset vs Building 판정 규칙
 
@@ -686,8 +696,8 @@ Then:
 ⑤i docs/examples
 ⑤j dogfood (observed; quick_fix artifact landed in origin/main as `6d7a0acf5`; sandbox output ref `f0e75cae`는 도달 불가)
 ⑥c route_v2 read-only view builder + read-only view dogfood
-⑩a cleanup scope / invariants doc
-⑩b~⑩g cleanup/UX phases after ⑤/⑥ closure
+⑩a cleanup scope / invariants doc — prepared at `project/brick-protocol/status/kernel/cleanup-scope-invariants-0709.md`
+⑩b~⑩g cleanup/UX phases after ⑤/⑥ closure; next candidate ⑩b blocks retained/archive/superseded map or ⑩d skills ship-copy drift map
 ⑥d/⑥e only after Smith/human approval of `project/brick-protocol/status/kernel/route-v2-human-gate-packet-0709.md`
 ```
 
