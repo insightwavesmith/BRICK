@@ -546,9 +546,6 @@ adapter_model_selection_case:
   - adapter_ref: adapter:claude-local
     selected_model_ref: model:claude:sonnet
     expected_cli_arg: claude-sonnet-5
-  - adapter_ref: adapter:claude-local
-    selected_model_ref: model:claude:claude-fable-5
-    expected_cli_arg: claude-fable-5
   - adapter_ref: adapter:gemini-local
     selected_model_ref: model:gemini:gemini-3.5-flash
     expected_cli_arg: gemini-3.5-flash
@@ -562,6 +559,8 @@ adapter_model_selection_rejects:
     selected_model_ref: model:codex:gpt-test
   - adapter_ref: adapter:claude-local
     selected_model_ref: model:claude:unknown
+  - adapter_ref: adapter:claude-local
+    selected_model_ref: model:claude:claude-fable-5
   - adapter_ref: adapter:local
     selected_model_ref: model:codex:gpt-test
   - adapter_ref: adapter:gemini-local

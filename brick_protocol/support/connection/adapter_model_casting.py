@@ -34,6 +34,8 @@ from .adapter_validation import _reject_secret_text
 if TYPE_CHECKING:
     from .agent_adapter import AgentAdapterRequest, LocalCliSpec
 
+_RETIRED_ACTIVE_MODEL_REFS = frozenset({"model:claude:claude-fable-5"})
+
 
 # Lazy CASTING_FIELDS / NODE_CASTING_FIELDS access (E2/S6★). ``agent.spec``
 # re-exports THIS module's brain catalog, so a top-level import of the casting
@@ -150,6 +152,8 @@ def _validate_model_ref_for_adapter(adapter_ref: str, model_ref: str) -> None:
     model_id = model_ref.removeprefix(expected_prefix)
     if not model_id:
         raise ValueError("selected_model_ref must include a model id")
+    if model_ref in _RETIRED_ACTIVE_MODEL_REFS:
+        raise ValueError("selected_model_ref model id is retired from active dispatch")
     _reject_secret_text("selected_model_ref", model_ref)
     if not re.fullmatch(r"[A-Za-z0-9._:-]+", model_id):
         raise ValueError("selected_model_ref model id contains unsupported characters")

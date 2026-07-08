@@ -1,6 +1,6 @@
 schema: checker-profile/v1
 profile_id: model-lane-matching-discipline
-description: Agent model-lane matching discipline reconciliation pin for 0705/0706 fable-class and fugu policy.
+description: Agent model-lane matching discipline pin for 0708 fable retirement and fugu policy.
 kernel_checks:
   - model_lane_matching_discipline
 path_exists:
@@ -14,14 +14,16 @@ text_contains:
       - codex = default implementation, finishing, and code QA lane
       - claude sonnet (xhigh effort) = default investigation, axis analysis, and evidence QA lane
       - gemini = default low-risk review lens; never assign heavy work by default
-      - claude-fable-5 = admitted design/synthesis casting when explicitly cast, not an absolute lane-model ban; design-lead default is now model:claude:claude-opus-4-8 xhigh (0708 fable5 토큰 소진 — 기본만 opus 전환, fable5 클래스 명시 캐스팅은 유지)
+      - claude-fable-5 = retired from active Building dispatch; design/synthesis and important Claude QA use model:claude:claude-opus-4-8 xhigh (0708 fable5 토큰 소진)
       - codex-fugu-local / model:sakana:fugu-ultra = admitted high-depth work/design tier when explicitly cast
       - Code-attack-QA and closure may escalate by declared, risk-proportional casting
       - work and code QA start on Codex
       - investigation/evidence QA start on Claude Sonnet
       - broad low-risk review
-      - explicit
-      - code-attack-QA / closure elevation
+      - Direct active selection of
+      - model:claude:claude-fable-5 is retired
+      - engine-side or very-important claude QA on model:claude:claude-opus-4-8 xhigh
+      - replacing the prior fable5 branch and the prior sonnet QA default
   - path: brick_protocol/agent/objects/design-lead.yaml
     texts:
       - '"preferred_adapter_ref": "adapter:claude-local"'
@@ -31,6 +33,10 @@ text_absent:
     texts:
       - fable5 = never a Building / workflow lane model
       - fable5 = never a lane model
+      - claude-fable-5 = admitted design/synthesis casting when explicitly cast
+      - engine-side or very-important claude QA on claude-fable-5 xhigh
+      - fable5 클래스 명시 캐스팅은 유지
+      - Fable-class use is admitted
 proof_limits:
   - checker profile support evidence only
   - not source truth

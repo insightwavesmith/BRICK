@@ -95,7 +95,7 @@ def _tier_lens(tier_ref: str, lens_ref: str) -> dict[str, str]:
     return {"casting_tier_ref": tier_ref, "casting_lens_ref": lens_ref}
 
 
-FABLE5 = _tier_lens(CASTING_TIER_PLAN, CASTING_LENS_DESIGN)
+PLAN_DESIGN = _tier_lens(CASTING_TIER_PLAN, CASTING_LENS_DESIGN)
 FUGU = _tier_lens(CASTING_TIER_DEEP, CASTING_LENS_WORK)
 FUGU_DESIGN = _tier_lens(CASTING_TIER_DEEP, CASTING_LENS_DESIGN)
 CODEX = _tier_lens(CASTING_TIER_STANDARD, CASTING_LENS_WORK)
@@ -141,8 +141,8 @@ def answer_fingerprint(sizing_answers: Mapping[str, Any]) -> str:
 # only — none of this chooses Movement, route, sufficiency, success, or quality.
 # ---------------------------------------------------------------------------
 # work 상위-두뇌 승격 후보 집합 = fugu-ultra 단독 (복잡 work 승격=푸구 단독, §K).
-# fable5는 여기서 제거됨: fable5는 기획(design/deep-design) 라인 전용이고, work·QA
-# 승격 후보가 아니다 (Smith 0707 오후 판정 — §K: codex 개발 제외·work=opus/fugu).
+# fable5는 여기서 제거됨: plan-tier는 기획(design/deep-design) 라인 전용이고, work·QA
+# 승격 후보가 아니다 (Smith 0708 token-retire update — §K: codex 개발 제외·work=opus/fugu).
 # 이 집합은 RED-3 deep-tier timeout 게이트의 대상 모델 집합이기도 하다.
 DEEP_TIER_MODEL_REFS = frozenset(
     {"model:sakana:fugu-ultra"}
@@ -213,9 +213,9 @@ _RULE4_FAN_CONVERGENCE = "RULE4-FAN-CONVERGENCE"
 # SIZING_QUESTION_IDS (the required-8 contract stays exactly 8) and NOT added to
 # SIZING_ANSWER_ENUMS. Absent → 0 → width 1 (safe default). (§A1.2/§A2/§E.)
 WIDTH_SIGNALS_KEY = "width_signals"
-_DESIGN_FAN_LADDER: tuple[Mapping[str, str], ...] = (FABLE5, FUGU_DESIGN, CODEX_DESIGN)
+_DESIGN_FAN_LADDER: tuple[Mapping[str, str], ...] = (PLAN_DESIGN, FUGU_DESIGN, CODEX_DESIGN)
 _DESIGN_FAN_CONCERN_TAILS: tuple[str, ...] = (
-    "design-fable5",
+    "design-plan",
     "design-fugu",
     "design-codex",
 )
@@ -809,7 +809,7 @@ def _shape_nodes(
     if deep:
         # Rule ③ — 어려움+싼 work 조합이면 deep-design 자동 제안. We always prepend
         # for the deep tier (covers the hard+cheap AND hard+fugu case).
-        nodes.append({"kind": "deep-design", "work_statement": DEEP_DESIGN_STMT, **FABLE5})
+        nodes.append({"kind": "deep-design", "work_statement": DEEP_DESIGN_STMT, **PLAN_DESIGN})
         rows.append(
             {
                 "rule_id": "rule3-deep-design-inserted",

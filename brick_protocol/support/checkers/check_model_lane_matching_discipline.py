@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Pin the model-lane matching discipline against stale absolute bans.
+"""Pin the model-lane matching discipline against retired fable dispatch.
 
 Support checker mechanics only. This observes the Agent-owned discipline text
 and Agent Object defaults; it does not call providers, choose lanes, choose
@@ -23,23 +23,29 @@ _OLD_ABSOLUTE_BANS = (
     "fable5 = never a lane model",
     "fable5 = never a Building",
 )
+_RETIRED_ACTIVE_ALLOWANCES = (
+    "claude-fable-5 = admitted design/synthesis casting when explicitly cast",
+    "engine-side or very-important claude QA on claude-fable-5 xhigh",
+    "fable5 클래스 명시 캐스팅은 유지",
+    "Fable-class use is admitted",
+)
 _REQUIRED_TEXT = (
     "Smith, 0702; reconciled\n0705/0706",
     "codex = default implementation, finishing, and code QA lane",
     "claude sonnet (xhigh effort) = default investigation, axis analysis, and evidence QA lane",
     "gemini = default low-risk review lens; never assign heavy work by default",
-    "claude-fable-5 = admitted design/synthesis casting when explicitly cast, not an absolute lane-model ban; design-lead default is now model:claude:claude-opus-4-8 xhigh (0708 fable5 토큰 소진 — 기본만 opus 전환, fable5 클래스 명시 캐스팅은 유지)",
+    "claude-fable-5 = retired from active Building dispatch; design/synthesis and important Claude QA use model:claude:claude-opus-4-8 xhigh (0708 fable5 토큰 소진)",
     "codex-fugu-local / model:sakana:fugu-ultra = admitted high-depth work/design tier when explicitly cast",
     "Code-attack-QA and closure may escalate by declared, risk-proportional casting",
     "work and code QA start on Codex",
     "investigation/evidence QA start on Claude Sonnet",
     "broad low-risk review\nstays Gemini-shaped",
-    "explicit\ncode-attack-QA / closure elevation",
+    "Direct active selection of\nmodel:claude:claude-fable-5 is retired",
     # 0707 tier reconciliation rows (walk-results-adopted-0707 K/G/I).
     "codex excluded from development; opus-4.8 xhigh for simple-to-medium work",
     "codex leaves the work and repair lanes only and finishes walking its current building",
-    "engine-side or very-important claude QA on claude-fable-5 xhigh",
-    "other claude QA on model:claude:claude-opus-4-8 xhigh, replacing the prior sonnet QA default",
+    "engine-side or very-important claude QA on model:claude:claude-opus-4-8 xhigh",
+    "replacing the prior fable5 branch and the prior sonnet QA default",
     "claude-local concurrency 1 is the safe line",
     "attach-QA recovery is the standard salvage",
 )
@@ -78,6 +84,9 @@ def _check_text(text: str) -> list[str]:
     for banned in _OLD_ABSOLUTE_BANS:
         if banned in text:
             violations.append(f"stale absolute fable-class ban remains: {banned!r}")
+    for retired in _RETIRED_ACTIVE_ALLOWANCES:
+        if retired in text:
+            violations.append(f"retired active fable dispatch allowance remains: {retired!r}")
     for required in _REQUIRED_TEXT:
         if required not in text:
             violations.append(f"missing reconciled model-lane clause: {required!r}")
@@ -90,35 +99,35 @@ def _check_design_lead_default(repo: Path) -> list[str]:
     if design_lead.get("preferred_adapter_ref") != "adapter:claude-local":
         violations.append(
             "design-lead preferred_adapter_ref must remain adapter:claude-local "
-            "for the admitted fable-class default"
+            "for the active Claude design/synthesis default"
         )
     if design_lead.get("preferred_model_ref") != "model:claude:claude-opus-4-8":
         violations.append(
             "design-lead preferred_model_ref must remain model:claude:claude-opus-4-8 "
-            "for the admitted design/synthesis default"
+            "for the active design/synthesis default"
         )
     return violations
 
 
 def _mutation_red_probe(text: str) -> str:
-    missing_allowance = text.replace(
-        "claude-fable-5 = admitted design/synthesis casting when explicitly cast, not an absolute lane-model ban; design-lead default is now model:claude:claude-opus-4-8 xhigh (0708 fable5 토큰 소진 — 기본만 opus 전환, fable5 클래스 명시 캐스팅은 유지)",
+    missing_retirement = text.replace(
+        "claude-fable-5 = retired from active Building dispatch; design/synthesis and important Claude QA use model:claude:claude-opus-4-8 xhigh (0708 fable5 토큰 소진)",
         "",
     )
-    old_ban = text.replace(
-        "claude-fable-5 = admitted design/synthesis casting when explicitly cast, not an absolute lane-model ban; design-lead default is now model:claude:claude-opus-4-8 xhigh (0708 fable5 토큰 소진 — 기본만 opus 전환, fable5 클래스 명시 캐스팅은 유지)",
-        "fable5 = never a Building / workflow lane model (operator orchestration only)",
+    active_allowance = text.replace(
+        "claude-fable-5 = retired from active Building dispatch; design/synthesis and important Claude QA use model:claude:claude-opus-4-8 xhigh (0708 fable5 토큰 소진)",
+        "claude-fable-5 = admitted design/synthesis casting when explicitly cast",
     )
-    missing_allowance_red = bool(_check_text(missing_allowance))
-    old_ban_red = bool(_check_text(old_ban))
-    if not (missing_allowance_red and old_ban_red):
+    missing_retirement_red = bool(_check_text(missing_retirement))
+    active_allowance_red = bool(_check_text(active_allowance))
+    if not (missing_retirement_red and active_allowance_red):
         raise ModelLaneMatchingDisciplineError(
             "mutation RED failed: "
-            f"missing_allowance_red={missing_allowance_red}, old_ban_red={old_ban_red}"
+            f"missing_retirement_red={missing_retirement_red}, active_allowance_red={active_allowance_red}"
         )
     return (
-        "mutation RED observed: removing the fable-class allowance and "
-        "reintroducing the old absolute fable5 ban both reject."
+        "mutation RED observed: removing the fable retirement and "
+        "reintroducing active fable dispatch both reject."
     )
 
 
@@ -133,7 +142,7 @@ def check(repo: Path, discipline_path: Path) -> list[str]:
     if violations:
         raise ModelLaneMatchingDisciplineError("\n- ".join(violations))
     return [
-        "model-lane matching discipline green: reconciled 0705/0706 clauses observed.",
+        "model-lane matching discipline green: fable retired from active dispatch and opus target observed.",
         _mutation_red_probe(text),
         _PROOF_LIMIT,
     ]

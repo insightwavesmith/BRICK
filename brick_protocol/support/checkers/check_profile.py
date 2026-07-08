@@ -854,13 +854,12 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
     # The external bare-launch lives in the checker layer (kernel_checks.py),
     # never in mcp_projection.py, which owns no execution surface.
     "mcp_stdio_smoke": run_mcp_stdio_smoke,
-    # R9-MODELLANE-0706E. Executes the Agent discipline reconciliation pin
+    # R9-MODELLANE-0708. Executes the Agent discipline reconciliation pin
     # IN-PROCESS: the model-lane discipline must preserve the 0702
-    # codex/sonnet/gemini defaults while admitting the 0705/0706 design-lead
-    # fable-class default, risk-proportional code-attack-QA/closure elevation,
-    # and fugu high-depth tier. The checker carries two built-in mutation-RED
-    # probes: removing the fable-class allowance REDs, and reintroducing the old
-    # absolute "fable5 never lane model" wording REDs.
+    # codex/sonnet/gemini defaults while retiring active fable dispatch,
+    # pinning Opus 4.8 for Claude design / important QA, and keeping the fugu
+    # high-depth tier. The checker carries built-in mutation-RED probes for
+    # removing the retirement row or reintroducing active fable allowance.
     "model_lane_matching_discipline": _repo_main(
         "model_lane_matching_discipline",
         "brick_protocol.support.checkers.check_model_lane_matching_discipline",

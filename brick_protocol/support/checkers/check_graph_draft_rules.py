@@ -252,8 +252,8 @@ SPLIT_WORK_ANSWERS: Mapping[str, Any] = {
 }
 
 # P32 fixture — a NON-escalated QA fan: walker_adjacent no, failure_cost low, no
-# contract vocab, medium difficulty → the ``else OPUS48_QA`` casting arm. (The
-# escalated WALKER_COMPLEX fixture only ever exercised the fable5 arm.)
+# contract vocab, medium difficulty → the standard QA casting arm. (The
+# escalated WALKER_COMPLEX fixture exercises the same active Opus QA target.)
 NONESC_QA_ANSWERS: Mapping[str, str] = {
     "walker_adjacent": "no",
     "size": "medium",
@@ -852,9 +852,8 @@ def _violations(repo: Path) -> list[str]:
         )
 
     # P32 — G1 non-escalated arm live-fire: a NON-escalated QA fan casts the
-    # code-attack-qa lens as opus-4-8 (the ``else OPUS48_QA`` arm). WALKER_COMPLEX
-    # is escalated, so it only exercised the fable5 arm; this fixture drives the
-    # previously-unfired opus-4-8 arm (1st-pass QA obs: OPUS48_QA arm 미구동).
+    # code-attack-qa lens as opus-4-8. WALKER_COMPLEX is escalated; this fixture
+    # keeps the ordinary medium QA path pinned to the same active Opus target.
     nonesc = draft_graph_declaration(
         "간단 정리 작업 — 표준 medium.",
         NONESC_QA_ANSWERS,
@@ -1003,7 +1002,7 @@ def _violations(repo: Path) -> list[str]:
     # carrying fable5 and drops the "재도입 → opus-4-8 정규화" row suffix.
     _original_qa_branch_casting = _graph_draft._qa_branch_casting
     try:
-        _graph_draft._qa_branch_casting = lambda _kind: _graph_draft.FABLE5
+        _graph_draft._qa_branch_casting = lambda _kind: _graph_draft.PLAN_DESIGN
         normalized_probe = draft_graph_declaration(
             "QA fable5 재도입 정규화 프로브",
             NONESC_QA_ANSWERS,
@@ -1077,7 +1076,7 @@ def _violations(repo: Path) -> list[str]:
         "sakana",
     )
     for _name in (
-        "FABLE5",
+        "PLAN_DESIGN",
         "FUGU",
         "FUGU_DESIGN",
         "CODEX",
