@@ -91,7 +91,7 @@ Proof limit: 이 절은 운영정책 support evidence이며 source truth·성공
 | ④a | C1 import canonicalization | ✓ | `af60198cb` 포함, origin/main 착지 |
 | ④b | C2 physical root unification | ✓ | `7b99b8f7f`, `brick_protocol/*`, top-level import 실패 확인 |
 | ④c | C3 문서/human gate | ✓ | C3 상태문서 착지 + Smith 승인 후 BRICK-CONSTITUTION active physical roots 조항 착지. Proof limit: support evidence only |
-| ⑤ | 발주서/빌딩콜 v1.1 | ✓ | ⑤a~⑤j 착지/관찰 완료(⑤b/⑤c `28cfda632`, ⑤f `298b28a86`, ⑤g `201e502d3`, ⑤h `569458a0d`, ⑤i `15ecf8bcc`, ⑤j dogfood evidence `f0e75cae`). Proof limit: support evidence only |
+| ⑤ | 발주서/빌딩콜 v1.1 | ✓ | ⑤a~⑤j 착지/관찰 완료(⑤b/⑤c `28cfda632`, ⑤f `298b28a86`, ⑤g `201e502d3`, ⑤h `569458a0d`, ⑤i `15ecf8bcc`, ⑤j dogfood evidence `6d7a0acf5`; sandbox output refs `e8b6f953`/`f0e75cae`는 origin/main에 도달하지 않는 sandbox-worktree ref다). Proof limit: support evidence only |
 | ⑥ | Route V2 sealed materialization | 부분 착지 | R0/R1 sealed materialization checker/document slice `47cf35a4b` 착지. ⑥c R2 read-only view builder landed `134ad9550`; read-only view dogfood recorded at `project/brick-protocol/status/kernel/dogfood/0708-route-v2-view-dogfood.md`; ⑥d/⑥e HOLD |
 | ⑦ | route/walker integration | HOLD | checker green + human gate + route_materialization view 안정 후에만 |
 | ⑧ | 발주서작성 preset/Agent/menu/lowering | ✓ | ⑤d~⑤j declared Building/sandbox 경로로 관찰 완료. COO 직접 구현 금지 원칙 유지 |
@@ -223,8 +223,8 @@ STEP 5. 에이전트 선택(agent + strength)
 | ⑤f | authoring module | `building_call_authoring.py`, `building_call_authoring_return_v1`, 순서 위반 checker | ✓ pushed `298b28a86`, clean --all green |
 | ⑤g | lowering layer | `building_call.py`, fixture cases, confirmed-only lowering, provenance | ✓ landed candidate from `building-call-lowering-0708g` WIP; clean review worktree `--all` green before main landing |
 | ⑤h | direct escape hatch | triage/admission/fast_confirm, quick_fix/quick_check만 direct | ✓ focused proof green in `building-call-direct-escape-0708h` |
-| ⑤i | docs/skill examples | brick-task-author/building-call Quick Path, 4개 worked examples, 메뉴얼 규칙 | ✓ landed `e8b6f953` via repair2; clean worktree focused profiles + `check_profile.py --all` rc=0 |
-| ⑤j | dogfood | quick_check direct, quick_fix direct, order_authoring path 각 1회 증거 | ✓ observed via sandbox Buildings; quick_fix repaired from fake-landing RED to scoped diff commit `f0e75cae` |
+| ⑤i | docs/skill examples | brick-task-author/building-call Quick Path, 4개 worked examples, 메뉴얼 규칙 | ✓ origin/main 착지 commit `15ecf8bcc` (sandbox output ref `e8b6f953`는 도달 불가); clean worktree focused profiles + `check_profile.py --all` rc=0 |
+| ⑤j | dogfood | quick_check direct, quick_fix direct, order_authoring path 각 1회 증거 | ✓ observed via sandbox Buildings; quick_fix artifact origin/main 착지 commit `6d7a0acf5` (sandbox output ref `f0e75cae`는 도달 불가) |
 
 ### 4.4 현재 active building
 
@@ -335,6 +335,7 @@ building-call-lowering-0708g:
 building-call-docs-examples-0708i-repair2:
   frontier: complete
   output commit: e8b6f9530baf4be0160814d77c45c953ff7acaac
+  origin/main landing commit: 15ecf8bcc (the e8b6f953 sandbox output ref is NOT reachable in origin/main; the same content landed under 15ecf8bcc)
   surfaces: brick_protocol/agent/skills/brick-task-author/SKILL.md, brick_protocol/brick/templates/skills/brick-task-author/SKILL.md, brick_protocol/agent/skills/building-call-authoring/SKILL.md, brick_protocol/support/checkers/profiles/building_call_menus.yaml
   effect: Agent-source and ship-copy brick-task-author Quick Path sections match and contain the four explicit examples: direct quick_check, direct quick_fix, order_authoring, human_gate_first / forbidden direct. Building-call-authoring skill carries equivalent labels and exposure limits.
   proof: clean detached worktree applied e8b6f953; compileall OK; git diff --check OK; focused profiles building_call_menus, building_call_authoring, building_skill_preset_agent_resource_boundary green; check_profile.py --all rc=0.
@@ -372,6 +373,7 @@ quick_fix direct repair:
   building_id: building-call-0708j-quick-fix-direct-dogfood-repair
   frontier: complete
   output commit: f0e75cae08cfe6e8cd80cb414c73cb09ece507a7
+  origin/main landing commit: 6d7a0acf5 (the f0e75cae sandbox output ref is NOT reachable in origin/main; the quick_fix artifact landed under 6d7a0acf5)
   landed artifact: project/brick-protocol/status/kernel/dogfood/0708j-quick-fix-direct.md
   evidence_root: /Users/smith/.brick/project/brick-protocol/buildings/building-call-0708j-quick-fix-direct-dogfood-repair
   interpretation: quick_fix direct path can produce a scoped sandbox diff and avoid fake-landing.
@@ -671,7 +673,7 @@ Then:
 ⑤g lowering layer
 ⑤h direct escape hatch
 ⑤i docs/examples
-⑤j dogfood (observed; quick_fix artifact landed as `f0e75cae`)
+⑤j dogfood (observed; quick_fix artifact landed in origin/main as `6d7a0acf5`; sandbox output ref `f0e75cae`는 도달 불가)
 ⑥c route_v2 read-only view builder + read-only view dogfood
 ⑩a cleanup scope / invariants doc
 ⑩b~⑩g cleanup/UX phases after ⑤/⑥ closure
