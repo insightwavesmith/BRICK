@@ -73,6 +73,7 @@ PARENTS_BINDING_REGISTRY = {
     "brick_protocol/support/checkers/check_resume_disposition_surface.py": {3},
     "brick_protocol/support/checkers/check_resume_replay_disposition_mirror.py": {3},
     "brick_protocol/support/checkers/check_return_field_merge_set_parity.py": {3},
+    "brick_protocol/support/checkers/check_route_v2_views.py": {3},
     "brick_protocol/support/checkers/check_rule13_durable_evidence_ref.py": {3},
     "brick_protocol/support/checkers/check_session_continuity_adapter.py": {3},
     "brick_protocol/support/checkers/check_step_output_evidence_field_set_parity.py": {3},
