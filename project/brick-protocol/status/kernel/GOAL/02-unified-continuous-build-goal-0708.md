@@ -129,11 +129,12 @@ top-level import support/agent/brick/link: rc=1 each, expected fail
 check_profile.py --all: rc=0, passed_count=55
 ```
 
-### 3.2 남은 human gate
+### 3.2 human gate 승인 — 2026-07-08
 
 ```text
-BRICK-CONSTITUTION.md에 active physical roots 조항을 넣을지 여부.
-권고: 발주서/빌딩콜 v1.1 cleanup-first를 먼저 닫고, 헌법 물리루트 조항은 별도 소형 패치.
+Smith 승인 1: BRICK-CONSTITUTION.md active physical roots 조항 추가 승인.
+진행 방식: COO 직접 구현 금지 원칙에 따라 별도 declared Building으로 문서 패치/검증/착지.
+proof limit: human approval 기록은 support evidence only; source truth·성공/품질·Movement 권한이 아니다.
 ```
 
 ---
@@ -219,7 +220,7 @@ STEP 5. 에이전트 선택(agent + strength)
 | ⑤c | 오염 표면 정리 | `postmortem.md` selected_* 제거, `four-llm` product alias 제외/격리, deep-design return casting 제거 | ✓ pushed `28cfda632` |
 | ⑤d | 메뉴/API | `building_call_menus.py`, brick/agent-role/intensity/strength/graph motif menu | 수습 완료 예정: 이번 direct 예외 slice로만 마감, 이후 실무는 Building-only |
 | ⑤e | 발주서작성 preset/Brick/Agent | `building-call-authoring` preset, 전용 Brick/return, 발주서 전용 Agent skill(prompt) | landed candidate: repair-2 green, 착지/푸시 검증 중 |
-| ⑤f | authoring module | `building_call_authoring.py`, `building_call_authoring_return_v1`, 순서 위반 checker | landed candidate: Building `building-call-authoring-0708f`, clean --all green |
+| ⑤f | authoring module | `building_call_authoring.py`, `building_call_authoring_return_v1`, 순서 위반 checker | ✓ pushed `298b28a86`, clean --all green |
 | ⑤g | lowering layer | `building_call.py`, `building_call_cases.yaml`, confirmed-only lowering, provenance | ☐ |
 | ⑤h | direct escape hatch | triage/admission/fast_confirm, quick_fix/quick_check만 direct | ☐ |
 | ⑤i | docs/skill examples | brick-task-author/building-call Quick Path, 4개 worked examples, 메뉴얼 규칙 | ☐ |
@@ -338,19 +339,21 @@ Agent concern
 → checker green 후에만 walker integration
 ```
 
-### 5.2 핵심 금지선
+### 5.2 핵심 금지선 / human gate 승인 — 2026-07-08
 
 ```text
+Smith 승인 2: Route V2를 실제 엔진(walker_kernel)에 통합하는 방향 승인.
+조건: R0/R1/R2 green + dogfood 이후에만 walker_kernel 통합 Building을 연다.
+현재 즉시 허용: R0 sealed materialization architecture, R1 route_v2 checker/fixtures, R2 route_v2_views.py.
+현재 계속 HOLD: route_materialization.py 변경, walker_kernel.py / walker_resume.py 변경, link/* 변경, agent/return_fact.py 변경.
 DO NOT create new engine.
-DO NOT create new route_scope.py unless human gate approves.
+DO NOT create new route_scope.py unless later human gate explicitly approves.
 DO NOT add new concern_kind.
 DO NOT reroute verification_gap.
 DO NOT hide factual claims from QA.
 DO NOT use hold as Movement.
-DO NOT edit walker_kernel.py in small slice.
-DO NOT edit walker_resume.py in small slice.
-DO NOT edit agent/return_fact.py in small slice.
 DO NOT merge Route V2 work into building_call track.
+proof limit: 통합 방향 승인은 support evidence only; green/dogfood 전 walker 통합 착수 권한이 아니다.
 ```
 
 ### 5.3 ⑥ 세부 페이즈
