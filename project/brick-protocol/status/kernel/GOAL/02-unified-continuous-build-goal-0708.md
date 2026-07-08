@@ -456,7 +456,81 @@ building_finished
 
 ---
 
-## 7. 다음 실행 순서
+## 7. ⑩ 후속 CLEANUP / customer UX layer — ⑤/⑥ 이후 실행
+
+Status: planned after current Building Call / Route V2 slices. 이 절은 source truth·성공/품질·Movement 권한이 아니라 후속 Building 운영지도다.
+
+### 7.1 사용자 요구 재분해
+
+```text
+목표: 현재 작업(⑤/⑥)을 닫은 뒤, COO 발주 체인·스킬체인·디렉토리 중복·루트/프로젝트 vessel·고객 UX 층을 별도 cleanup phase로 정리한다.
+핵심 기준: 작은 일은 direct preset 후보로 보되, 구조/여러 축/admission/checker/경로 이동이 걸리면 Building으로 보낸다.
+COO 역할: 운영/판단/Building 조율만 한다. 실제 이동·삭제·구현·검증은 declared Building/sandbox로 진행한다.
+```
+
+### 7.2 live tree 근거
+
+```text
+brick_protocol/brick/building_plans/ exists. It is load-bearing: onboard.py, run.py, coo_operating_chain.py, orchestration_packet.py, check_package_path_admission.py, building_plan_graph_check, adapter_capability checks, and profile YAMLs reference brick_protocol/brick/building_plans.
+brick_protocol/brick/templates/blocks/ exists. Current support/operator direct references were not observed; presets mention blocks/motifs. Treat as cleanup/archive candidate, not source deletion by assumption.
+brick_protocol/brick/templates/shapes/ exists and is load-bearing: catalog/shapes are consumed by template catalog/checkers/operator readers. Do not delete as "duplicate" without a dedicated Building proving replacement.
+brick_protocol/brick/templates/tasks/ exists and already lives under the Brick axis template surface. Keep unless a later Building proves better naming/placement.
+brick_protocol/brick/templates/skills/ exists as ship copy. agent/skills/ is the Agent-axis source. APPLY-LIST defines agent -> template -> live sync. Drift observed for brick-task-author and building-coordination, so cleanup is synchronization/repackaging, not blind deletion.
+project/brick-protocol/ exists as the current dogfood project vessel carrying buildings/status/GOAL. It should not be conflated with product source, but immediate removal would break active evidence/status.
+project-creation already exists: brick_protocol/agent/skills/project-creation/SKILL.md and brick_protocol/support/operator/project_creation.py. progress projection exists: brick_protocol/support/operator/progress_projection.py. Missing piece is customer-facing UX flow tying install -> project creation -> buildings/status/progress board -> project definition.
+```
+
+### 7.3 ⑩ 세부 페이즈
+
+| Phase | 이름 | 산출물 | 라우팅 | 상태/주의 |
+|---|---|---|---|---|
+| ⑩a | cleanup scope / invariants doc | directory map, load-bearing refs, allowed/superseded surfaces, no-delete/archive rule | docs-simple-review 가능 | 문서 only. shapes 유지, blocks 검토, project vessel 분리 타이밍 고정 |
+| ⑩b | blocks 정리 | `templates/blocks` archive/superseded plan or retained motif map | Building 소~중 | support direct refs 0건이지만 preset 의미 참조 가능. 삭제보다 archive/superseded 우선 |
+| ⑩c | building_plans 위치 결정 | keep vs move under templates decision; if move then path constants/checkers/admission/profile migration | Building 중 | load-bearing. 단순 `git mv` 금지. `check_package_path_admission.py`와 reader/checker 동시 변경 필요 |
+| ⑩d | skills ship-copy 정리 | agent/skills source -> ship copy -> live projection sync plan; drift repair | Building 중 | 정본은 agent/skills. templates/skills는 ship 사본/배포면으로 명확히 하거나 support packaging 위치로 재배치 |
+| ⑩e | COO 발주 스킬체인 정합 | COO ordering prompt, building-call-authoring skill, building-coordination/task_intake, hooks/projections update | Building 중 | ⑤h direct escape hatch 결과 반영. "small=direct preset candidate, large=order_authoring/building"을 스킬체인에 반영 |
+| ⑩f | customer UX layer | install -> create project -> buildings -> progress board -> project definition flow; first-run copy/spec/checker plan | Building 대, design-first | 이미 있는 project-creation/progress_projection 위에 UX 층을 얹는다. 새 runtime/queue/scheduler 금지 |
+| ⑩g | `project/brick-protocol` dogfood vessel 분리 | dogfood evidence/status vessel separation plan and migration | Building 대 + human gate | ⑤/⑥/⑩f 이후. active GOAL/status/inbox가 여기 있으므로 즉시 이동/삭제 금지 |
+
+### 7.4 direct preset vs Building 판정 규칙
+
+```text
+direct preset 후보:
+  - 문서-only, 단일 표면, 경로/admission/checker 영향 없음
+  - quick_check / quick_fix 범위
+  - direct_preset_admission + fast_confirm 필요
+
+Building 필수:
+  - directory move / git mv / package path admission 변경
+  - checker/profile/fixture/module_registry 동시 변경
+  - Agent skill source vs ship copy 동기화
+  - prompt/hook/projection 3면 정합
+  - project vessel / customer UX / first-run workflow
+  - human gate 또는 root/status/evidence migration
+```
+
+### 7.5 금지/보류
+
+```text
+- shapes 삭제 금지: 현재 load-bearing.
+- building_plans 이동을 단순 정리로 처리 금지: 여러 reader/checker/admission 경로를 동시 갱신해야 한다.
+- templates/skills blind delete 금지: agent/skills 정본과 ship/live 사본의 3면 동기화 계약이 있다.
+- project/brick-protocol 즉시 삭제/이동 금지: 현재 GOAL/status/building evidence vessel이다. 분리는 human gate 후 별도 Building.
+- 과거 설계문서 삭제 금지: 필요하면 archive/superseded 표시.
+- cleanup을 ⑤/⑥ active work와 섞지 말 것.
+```
+
+### 7.6 proof limits
+
+```text
+이 ⑩ 절은 cleanup 작업을 완료하지 않는다.
+디렉토리 이동, 스킬 동기화, UX 구현, project vessel 분리는 아직 not_proven이다.
+완료 증거는 각 Building의 changed_files, checker profile, clean worktree --all, GOAL/status update, 그리고 필요한 human gate 기록으로만 인정한다.
+```
+
+---
+
+## 8. 다음 실행 순서
 
 Immediate:
 
@@ -484,12 +558,14 @@ Then:
 ⑤i docs/examples
 ⑤j dogfood
 ⑥c route_v2 read-only view builder
+⑩a cleanup scope / invariants doc
+⑩b~⑩g cleanup/UX phases after ⑤/⑥ closure
 ⑥d/⑥e only after human gate
 ```
 
 ---
 
-## 8. Proof limits
+## 9. Proof limits
 
 ```text
 - This unified GOAL is support evidence only.
