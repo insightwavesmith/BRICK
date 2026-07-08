@@ -16,11 +16,21 @@ text_contains:
       - gate_sequence_decision
       - write_scope_commit_gate
       - hold_lifecycle
+      - goal5b_external_building_call_selected_fields
+      - goal5b_common_preset_selected_fields
+      - goal5b_gate_state_not_movement
+      - goal5b_launch_result_verdict_fields
+      - goal5b_deep_design_provider_neutral_casting
       - S11-declared-plan-revision-forged-hash
       - S11-plan-expansion-duplicate-step
       - S11-route-materialization-mismatch
       - S11-step-output-disk-fallback
       - S11-gate-sequence-sideways-action
+      - goal5b-external-building-call-selected-fields
+      - goal5b-common-preset-selected-fields
+      - goal5b-gate-state-not-movement
+      - goal5b-launch-result-verdict-fields
+      - goal5b-deep-design-provider-neutral-casting
 proof_limits:
   - checker profile support evidence only
   - not source truth

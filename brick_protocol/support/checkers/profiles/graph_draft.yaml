@@ -9,6 +9,8 @@ path_exists:
   - brick_protocol/support/checkers/profiles/graph_draft.yaml
   - brick_protocol/support/operator/cli.py
   - brick_protocol/support/operator/draft_diff.py
+  - brick_protocol/brick/templates/bricks/deep-design/brick.md
+  - brick_protocol/brick/templates/bricks/deep-design/return.yaml
 text_contains:
   - path: brick_protocol/support/operator/graph_draft.py
     texts:
@@ -134,6 +136,16 @@ text_contains:
       - "graph-draft RED: the default <brick_home> ledger/prereg path bypassed the repo-outside guard when BRICK_HOME was inside the repo (repo 안 산출 금지, D2)"
       - "graph-draft RED: tier/lens casting constants reintroduced provider literals (provider-neutral B branch)"
       - "graph-draft RED: emitted graph_draft nodes leaked literal provider casting keys (provider-neutral B branch)"
+  - path: brick_protocol/brick/templates/bricks/deep-design/return.yaml
+    texts:
+      - "casting_tier_ref: str"
+      - "casting_lens_ref: str"
+      - "depth_need: str"
+      - "write_need: str"
+  - path: brick_protocol/brick/templates/bricks/deep-design/brick.md
+    texts:
+      - "provider-neutral casting_tier_ref/casting_lens_ref"
+      - "`casting_tier_ref`, `casting_lens_ref`, `depth_need`, `write_need`, and `timeout_seconds`"
 text_absent:
   - path: brick_protocol/support/operator/graph_draft.py
     texts:
@@ -150,6 +162,14 @@ text_absent:
       - "from brick_protocol.support.operator.driver"
       - "os.system"
       - "\"action\": \"forward\""
+  - path: brick_protocol/brick/templates/bricks/deep-design/return.yaml
+    texts:
+      - "adapter: str"
+      - "model: str"
+      - "effort: str"
+  - path: brick_protocol/brick/templates/bricks/deep-design/brick.md
+    texts:
+      - "`adapter`, `model`, `effort`"
 proof_limits:
   - support evidence only
   - not source truth

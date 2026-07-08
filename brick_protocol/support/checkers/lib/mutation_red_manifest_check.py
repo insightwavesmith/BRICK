@@ -42,6 +42,11 @@ EXPECTED_SURFACES = frozenset(
         "build_unify_model_alias_loud",
         "plan_result_side_channel_carry_strip",
         "plan_result_side_channel_carry_partial",
+        "goal5b_external_building_call_selected_fields",
+        "goal5b_common_preset_selected_fields",
+        "goal5b_gate_state_not_movement",
+        "goal5b_launch_result_verdict_fields",
+        "goal5b_deep_design_provider_neutral_casting",
     }
 )
 MIN_AUDIT_MUTANTS = 5

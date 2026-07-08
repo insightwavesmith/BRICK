@@ -37,6 +37,8 @@ path_exists:
   - brick_protocol/brick/templates/presets/quick-check.md
   - brick_protocol/brick/templates/presets/design-contract-only.md
   - brick_protocol/brick/templates/presets/onboarding-example-graph.md
+  - brick_protocol/brick/templates/presets/postmortem.md
+  - brick_protocol/brick/templates/presets/four-llm-standard-graph.md
   - brick_protocol/link/gate.py
   - brick_protocol/link/gate.yaml
   - brick_protocol/link/movement.py
@@ -265,6 +267,27 @@ text_contains:
       - "concept_ref: portfolio-policy"
       - "brick_protocol/support/operator/driver.py declared portfolio policy"
       - "base_default: false"
+  # GOAL 0708 cleanup-first scoped fence: common postmortem must not expose
+  # concrete casting fields; the four-llm dogfood preset remains a named
+  # dogfood exception and is pinned as non-common.
+  - path: brick_protocol/support/checkers/profiles/structure_template_integrity.yaml
+    texts:
+      - "GOAL ⑤b fence: external building-call authoring surfaces must not expose selected_adapter_ref / selected_model_ref / selected_reasoning_effort_ref."
+      - "GOAL ⑤b fence: common presets must not expose selected_adapter_ref / selected_model_ref / selected_reasoning_effort_ref."
+      - "GOAL ⑤b fence: gate_state / held_for_coo_review / hold are lifecycle or gate-state words, not Movement literals."
+      - "GOAL ⑤b fence: launch/result packets must not expose success / target_success / quality / movement_choice / route_target."
+      - "GOAL ⑤b fence: deep-design partition casting stays provider-neutral through casting_tier_ref / casting_lens_ref / depth_need / write_need."
+  - path: brick_protocol/brick/templates/presets/four-llm-standard-graph.md
+    texts:
+      - "catalog_scope: brick_protocol_dogfood"
+      - "preset_ref: building-chain-preset:four-llm-standard-graph"
+  - path: brick_protocol/brick/templates/bricks/deep-design/return.yaml
+    texts:
+      - "forbidden_return_keys:"
+      - "success"
+      - "quality"
+      - "movement_choice"
+      - "route_target"
 text_absent:
   - path: brick_protocol/support/checkers/check_brick_template_catalog_restructure.py
     texts:
@@ -278,6 +301,14 @@ text_absent:
   - path: brick_protocol/support/operator/plan_rendering.py
     texts:
       - split catalog must declare shape_refs
+  - path: brick_protocol/brick/templates/presets/postmortem.md
+    texts:
+      - selected_adapter_ref
+      - selected_model_ref
+      - selected_reasoning_effort_ref
+  - path: brick_protocol/brick/templates/bricks/deep-design/return.yaml
+    texts:
+      - target_success
   # CLEAN-YARD v3 (Smith 0611): the two 0530/0531 status/kernel history
   # records left for the frozen museum with their cascade_sweep anti-stale
   # text_absent guards (pin follows file); disposition recorded in

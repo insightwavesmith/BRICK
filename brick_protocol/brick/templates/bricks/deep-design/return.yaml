@@ -50,11 +50,11 @@ partition_plan_shape:
         forbidden: []                # forbidden path globs
       returns_field: str             # return field the branch reports through
       sibling_independent: bool      # true = no sibling-evidence dependency
-      casting:                       # declared branch casting
-        adapter: str                 # adapter ref tail
-        model: str                   # model ref; deep tier ⇒ timeout≥10800 (RED-3)
-        effort: str                  # effort ref tail; xhigh 동시>2 = WARN-1
-        timeout_seconds: int         # per-branch timeout request (RED-3)
+      casting_tier_ref: str          # provider-neutral casting tier, e.g. casting-tier:deep
+      casting_lens_ref: str          # provider-neutral lens, e.g. casting-lens:code-attack
+      depth_need: str                # declared depth need; deep tier keeps timeout>=10800 (RED-3)
+      write_need: str                # declared write need, separate from adapter capability
+      timeout_seconds: int           # per-branch timeout request (RED-3)
   done_line: str                     # stage-2 finish line (2단 필수 — RED-5)
   residual_owner: str                # owner of the residue past done_line (RED-5)
   qa_plan:                           # stage-2 QA plan

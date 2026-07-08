@@ -69,6 +69,26 @@ surfaces:
     fixture_path: brick_protocol/support/checkers/lib/brick_cli_entrypoint_check.py
     fixture_identifier: build-unify D5 model-alias loud rejection (표18)
     incident_anchor: project/brick-protocol/status/kernel/operator-ergonomics-wave-0705.md 표18 모델 별칭의 조용한 증발
+  - surface: goal5b_external_building_call_selected_fields
+    fixture_path: brick_protocol/support/checkers/profiles/structure_template_integrity.yaml
+    fixture_identifier: "GOAL ⑤b fence: external building-call authoring surfaces must not expose selected_adapter_ref / selected_model_ref / selected_reasoning_effort_ref."
+    incident_anchor: project/brick-protocol/status/kernel/GOAL/01-continuous-build-goal-0708.md GOAL ⑤b external selected_* fence
+  - surface: goal5b_common_preset_selected_fields
+    fixture_path: brick_protocol/support/checkers/profiles/structure_template_integrity.yaml
+    fixture_identifier: "GOAL ⑤b fence: common presets must not expose selected_adapter_ref / selected_model_ref / selected_reasoning_effort_ref."
+    incident_anchor: project/brick-protocol/status/kernel/GOAL/01-continuous-build-goal-0708.md GOAL ⑤b common preset selected_* fence
+  - surface: goal5b_gate_state_not_movement
+    fixture_path: brick_protocol/support/checkers/profiles/structure_template_integrity.yaml
+    fixture_identifier: "GOAL ⑤b fence: gate_state / held_for_coo_review / hold are lifecycle or gate-state words, not Movement literals."
+    incident_anchor: project/brick-protocol/status/kernel/GOAL/01-continuous-build-goal-0708.md GOAL ⑤b gate_state-not-Movement fence
+  - surface: goal5b_launch_result_verdict_fields
+    fixture_path: brick_protocol/support/checkers/profiles/structure_template_integrity.yaml
+    fixture_identifier: "GOAL ⑤b fence: launch/result packets must not expose success / target_success / quality / movement_choice / route_target."
+    incident_anchor: project/brick-protocol/status/kernel/GOAL/01-continuous-build-goal-0708.md GOAL ⑤b no launch/result verdict fields fence
+  - surface: goal5b_deep_design_provider_neutral_casting
+    fixture_path: brick_protocol/support/checkers/profiles/graph_draft.yaml
+    fixture_identifier: "graph-draft RED: emitted graph_draft nodes leaked literal provider casting keys (provider-neutral B branch)"
+    incident_anchor: project/brick-protocol/status/kernel/GOAL/01-continuous-build-goal-0708.md GOAL ⑤b deep-design provider-neutral casting fence
 audit_mutants:
   - mutant_id: S11-declared-plan-revision-forged-hash
     surface: declared_plan_revision
@@ -135,3 +155,28 @@ audit_mutants:
     fixture_path: brick_protocol/support/checkers/check_building_operator_driver0.py
     fixture_identifier: w1-direct-close-anchor partial-copy mutation-RED
     audit_anchor: r2-carry-0706n D3 mutation RED (partial hand-copy drops _report_event_observations across anchor replace())
+  - mutant_id: goal5b-external-building-call-selected-fields
+    surface: goal5b_external_building_call_selected_fields
+    fixture_path: brick_protocol/support/checkers/profiles/structure_template_integrity.yaml
+    fixture_identifier: "GOAL ⑤b fence: external building-call authoring surfaces must not expose selected_adapter_ref / selected_model_ref / selected_reasoning_effort_ref."
+    audit_anchor: building-call-v11-cleanup-first-0708a reroute concern (external selected_* fence missing)
+  - mutant_id: goal5b-common-preset-selected-fields
+    surface: goal5b_common_preset_selected_fields
+    fixture_path: brick_protocol/support/checkers/profiles/structure_template_integrity.yaml
+    fixture_identifier: "GOAL ⑤b fence: common presets must not expose selected_adapter_ref / selected_model_ref / selected_reasoning_effort_ref."
+    audit_anchor: building-call-v11-cleanup-first-0708a reroute concern (common preset selected_* fence)
+  - mutant_id: goal5b-gate-state-not-movement
+    surface: goal5b_gate_state_not_movement
+    fixture_path: brick_protocol/support/checkers/profiles/structure_template_integrity.yaml
+    fixture_identifier: "GOAL ⑤b fence: gate_state / held_for_coo_review / hold are lifecycle or gate-state words, not Movement literals."
+    audit_anchor: building-call-v11-cleanup-first-0708a reroute concern (gate_state/hold-is-not-Movement fence missing)
+  - mutant_id: goal5b-launch-result-verdict-fields
+    surface: goal5b_launch_result_verdict_fields
+    fixture_path: brick_protocol/support/checkers/profiles/structure_template_integrity.yaml
+    fixture_identifier: "GOAL ⑤b fence: launch/result packets must not expose success / target_success / quality / movement_choice / route_target."
+    audit_anchor: building-call-v11-cleanup-first-0708a reroute concern (launch/result verdict fields fence missing)
+  - mutant_id: goal5b-deep-design-provider-neutral-casting
+    surface: goal5b_deep_design_provider_neutral_casting
+    fixture_path: brick_protocol/support/checkers/profiles/graph_draft.yaml
+    fixture_identifier: "graph-draft RED: emitted graph_draft nodes leaked literal provider casting keys (provider-neutral B branch)"
+    audit_anchor: building-call-v11-cleanup-first-0708a reroute concern (deep-design casting mutation-RED row missing)

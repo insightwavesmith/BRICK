@@ -8,21 +8,17 @@ steps:
   - step_template_ref: building-step-template:work
     brick_spec_ref: brick_protocol/brick/templates/bricks/work/brick.md
     target_word: parallel_recon
-    selected_adapter_ref: adapter:codex-local
   - step_template_ref: building-step-template:code-attack-qa
     step_alias: reproduction-lens
     brick_spec_ref: brick_protocol/brick/templates/bricks/code-attack-qa/brick.md
     target_word: fan_in_final_gate
-    selected_adapter_ref: adapter:codex-local
   - step_template_ref: building-step-template:review
     step_alias: evidence-claim-review
     brick_spec_ref: brick_protocol/brick/templates/bricks/review/brick.md
     target_word: fan_in_final_gate
-    selected_adapter_ref: adapter:codex-local
   - step_template_ref: building-step-template:closure
     brick_spec_ref: brick_protocol/brick/templates/bricks/closure/brick.md
     target_word: closure
-    selected_adapter_ref: adapter:codex-local
 gate_concept_profile:
   - strict-evidence
   - fan-in-wait-all
