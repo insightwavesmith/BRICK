@@ -91,10 +91,10 @@ Proof limit: 이 절은 운영정책 support evidence이며 source truth·성공
 | ④a | C1 import canonicalization | ✓ | `af60198cb` 포함, origin/main 착지 |
 | ④b | C2 physical root unification | ✓ | `7b99b8f7f`, `brick_protocol/*`, top-level import 실패 확인 |
 | ④c | C3 문서/human gate | 부분 완료 | C3 상태문서 착지. BRICK-CONSTITUTION 물리 루트 조항은 Smith human gate 전까지 HOLD |
-| ⑤ | 발주서/빌딩콜 v1.1 | 부분 착지 | ⑤a~⑤h 착지(⑤b/⑤c `28cfda632`, ⑤f `298b28a86`, ⑤g `201e502d3`, ⑤h `569458a0d`). ⑤i docs/examples·⑤j dogfood 남음 |
+| ⑤ | 발주서/빌딩콜 v1.1 | 부분 착지 | ⑤a~⑤h 착지(⑤b/⑤c `28cfda632`, ⑤f `298b28a86`, ⑤g `201e502d3`, ⑤h `569458a0d`). ⑤i docs/examples 착지, ⑤j dogfood 남음 |
 | ⑥ | Route V2 sealed materialization | 부분 착지 | R0/R1 sealed materialization checker/document slice `47cf35a4b` 착지. ⑥c R2 view builder 대기, ⑥d/⑥e HOLD |
 | ⑦ | route/walker integration | HOLD | checker green + human gate + route_materialization view 안정 후에만 |
-| ⑧ | 발주서작성 preset/Agent/menu/lowering | 부분 착지 | ⑤d~⑤h declared Building으로 착지. 남은 ⑤i/⑤j도 COO 직접 구현 금지, declared Building/sandbox로 진행 |
+| ⑧ | 발주서작성 preset/Agent/menu/lowering | 부분 착지 | ⑤d~⑤h declared Building으로 착지. 남은 ⑤j도 COO 직접 구현 금지, declared Building/sandbox로 진행 |
 | ⑨ | dogfood/골 closure | 대기 | quick direct + order_authoring + Route V2 view/checker 증거까지 모은 뒤 closure |
 
 ---
@@ -223,7 +223,7 @@ STEP 5. 에이전트 선택(agent + strength)
 | ⑤f | authoring module | `building_call_authoring.py`, `building_call_authoring_return_v1`, 순서 위반 checker | ✓ pushed `298b28a86`, clean --all green |
 | ⑤g | lowering layer | `building_call.py`, fixture cases, confirmed-only lowering, provenance | ✓ landed candidate from `building-call-lowering-0708g` WIP; clean review worktree `--all` green before main landing |
 | ⑤h | direct escape hatch | triage/admission/fast_confirm, quick_fix/quick_check만 direct | ✓ focused proof green in `building-call-direct-escape-0708h` |
-| ⑤i | docs/skill examples | brick-task-author/building-call Quick Path, 4개 worked examples, 메뉴얼 규칙 | ☐ |
+| ⑤i | docs/skill examples | brick-task-author/building-call Quick Path, 4개 worked examples, 메뉴얼 규칙 | ✓ landed `e8b6f953` via repair2; clean worktree focused profiles + `check_profile.py --all` rc=0 |
 | ⑤j | dogfood | quick_check direct, quick_fix direct, order_authoring path 각 1회 증거 | ☐ |
 
 ### 4.4 현재 active building
@@ -288,7 +288,7 @@ Resolved blocking observations:
 - building_skill_preset_intake_adapter_gate is green after updating expected preset count/ref list to 30 including building-chain-preset:building-call-authoring.
 
 Still out of scope:
-- ⑤f/⑤g/⑤h are now landed through declared Building work; ⑤i/⑤j remain undone and must proceed through declared Building work.
+- ⑤f/⑤g/⑤h/⑤i are now landed through declared Building work; ⑤j remains undone and must proceed through declared Building work.
 ```
 
 ⑤d menu/API 수습 slice:
@@ -327,7 +327,15 @@ building-call-lowering-0708g:
   WIP anchor: refs/brick/wip/building-call-lowering-0708g @ 792a4c34bc3cc298944286bc35bcc1bb8cb6caee.
   COO disposition: WIP anchor was applied to a clean detached review worktree on top of current HEAD; stale GOAL conflict was discarded; code/checker surfaces were verified independently.
   landing proof before main commit: compileall OK, git diff --check OK, building_call_lowering / building_call_authoring / building_call_menus / structure_template_integrity focused profiles green, and check_profile.py --all rc=0 in /tmp/brick-review-lowering-73593.
-  proof limit: this lands the ⑤g lowering support surface; it does not prove ⑤i docs/examples, ⑤j dogfood, future request semantic fitness, source truth, success, quality, or Movement authority.
+  proof limit: this lands the ⑤g lowering support surface; it does not prove ⑤j dogfood, future request semantic fitness, source truth, success, quality, or Movement authority.
+
+building-call-docs-examples-0708i-repair2:
+  frontier: complete
+  output commit: e8b6f9530baf4be0160814d77c45c953ff7acaac
+  surfaces: brick_protocol/agent/skills/brick-task-author/SKILL.md, brick_protocol/brick/templates/skills/brick-task-author/SKILL.md, brick_protocol/agent/skills/building-call-authoring/SKILL.md, brick_protocol/support/checkers/profiles/building_call_menus.yaml
+  effect: Agent-source and ship-copy brick-task-author Quick Path sections match and contain the four explicit examples: direct quick_check, direct quick_fix, order_authoring, human_gate_first / forbidden direct. Building-call-authoring skill carries equivalent labels and exposure limits.
+  proof: clean detached worktree applied e8b6f953; compileall OK; git diff --check OK; focused profiles building_call_menus, building_call_authoring, building_skill_preset_agent_resource_boundary green; check_profile.py --all rc=0.
+  proof limit: docs/skill/checker support evidence only; no dogfood execution, no launch authorization, no route/walker integration, no source truth, no success judgment, no quality judgment, no Movement authority. ⑤j remains out of scope.
 
 building-call-direct-escape-0708h:
   frontier: focused implementation evidence recorded.
@@ -337,7 +345,7 @@ building-call-direct-escape-0708h:
   effect: direct_preset_admission + fast_confirm lowers only quick_fix -> building-chain-preset:fast-fix and quick_check -> building-chain-preset:quick-check. Default triage evidence stays order_authoring; standard_delivery, missing fast_confirm, red flag, critical red flag, selected_*, provider/model/adapter, and malformed red-flag probes are rejected.
   proof: compileall rc=0; check_profile.py --profile building_call_direct_escape rc=0; check_profile.py --profile building_call_lowering rc=0; git diff --check rc=0; check_profile.py --all rc=0.
   coverage repair: reroute pass tightened direct-preset validation so dict/list-of-dict/bool/int red_flags or critical_red_flags no longer collapse to an empty list, and bare model/provider/model_ref/provider_ref/adapter_ref request fields are rejected alongside selected_* fields.
-  proof limit: support triage/lowering evidence only; no launch authorization, no route/walker integration, no source truth, no success judgment, no quality judgment, no Movement authority. ⑤i/⑤j remain out of scope.
+  proof limit: support triage/lowering evidence only; no launch authorization, no route/walker integration, no source truth, no success judgment, no quality judgment, no Movement authority. ⑤j remains out of scope.
 ```
 
 ⑤f authoring module Building slice:
@@ -352,7 +360,7 @@ fixtures:
 purpose: draft-only validation/normalization for building_call_authoring_return_v1 and the fixed STEP1_SCOPE -> STEP2_BUILDING_INTENSITY -> STEP3_STRUCTURE -> STEP4_PER_BRICK_INTENSITY -> STEP5_AGENT_CANDIDATES sequence.
 coverage repair: reroute pass tightened validation to reject unknown top-level fields, scan every declared return field for forbidden draft exposure, and catch embedded/case-varied provider/model/adapter markers.
 checker evidence: clean review worktree observed compileall rc=0, git diff --check rc=0, focused ⑤f profiles green, and check_profile.py --all rc=0 with 57/57 profile passes and real red observations=0. building_call_authoring_contract rejects unknown top-level, remaining_delta exposure, forbidden_exposure_scan key, and embedded case-varied exposure probes.
-limits: no launch authorization, no lowering, no route/walker integration, no source truth, no success judgment, no quality judgment, no Movement authority. ⑤i/⑤j remain out of scope.
+limits: no launch authorization, no lowering, no route/walker integration, no source truth, no success judgment, no quality judgment, no Movement authority. ⑤j remains out of scope.
 ```
 
 ---

@@ -10,6 +10,8 @@ path_exists:
   - brick_protocol/brick/templates/bricks/building-call-authoring/brick.md
   - brick_protocol/brick/templates/bricks/building-call-authoring/return.yaml
   - brick_protocol/agent/skills/building-call-authoring/SKILL.md
+  - brick_protocol/agent/skills/brick-task-author/SKILL.md
+  - brick_protocol/brick/templates/skills/brick-task-author/SKILL.md
   - brick_protocol/agent/prompts/building-call-authoring.md
   - brick_protocol/agent/objects/order-author.yaml
   - brick_protocol/agent/hooks/bindings.yaml
@@ -87,9 +89,40 @@ text_contains:
       - STEP3 structure
       - STEP4 per-Brick intensity
       - STEP5 Agent candidates/strength
+      - Building Call v1.1 Quick Path Examples
+      - direct quick_check
+      - direct quick_fix
+      - order_authoring
+      - human_gate_first / forbidden direct
+      - direct_preset admission plus `fast_confirm`
+      - not launch authorization
+      - success or quality judgment, Movement authority, route target authority
+      - adapter/model/provider/selected_* exposure
       - This skill drafts only.
       - Agent-plane content is limited to role_need, capability_need, and write_need
       - forbidden_exposure_scan
+  - path: brick_protocol/agent/skills/brick-task-author/SKILL.md
+    texts:
+      - Building Call v1.1 Quick Path
+      - direct quick_check
+      - direct quick_fix
+      - order_authoring
+      - human_gate_first / forbidden direct
+      - direct_preset admission
+      - "`fast_confirm`"
+      - launch authorization, success/quality judgment, Movement authority
+      - route_target authority, adapter/model/provider/selected_* 노출을 만들지 않는다
+  - path: brick_protocol/brick/templates/skills/brick-task-author/SKILL.md
+    texts:
+      - Building Call v1.1 Quick Path
+      - direct quick_check
+      - direct quick_fix
+      - order_authoring
+      - human_gate_first / forbidden direct
+      - direct_preset admission
+      - "`fast_confirm`"
+      - launch authorization, success/quality judgment, Movement authority
+      - route_target authority, adapter/model/provider/selected_* 노출을 만들지 않는다
   - path: brick_protocol/agent/prompts/building-call-authoring.md
     texts:
       - Building Call Authoring Prompt Resource
