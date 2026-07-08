@@ -98,11 +98,14 @@ def run(repo: Path) -> str:
     if "brick_protocol/support/operator/walker_kernel.py" not in policy_packet["forbidden_surfaces"]:
         raise AssertionError("policy packet lost walker forbidden surface")
 
-    for bad in (
+    forbidden_payload_keys = (
         {"movement": "reroute"},
+        {"movement_choice": "reroute"},
         {"success": True},
+        {"quality": "good"},
         {"route_target": "brick-work"},
-    ):
+    )
+    for bad in forbidden_payload_keys:
         payload = {
             "concern_ref": "transition-concern:route-v2-view-bad",
             "concern_kind": "implementation_gap",
@@ -117,7 +120,7 @@ def run(repo: Path) -> str:
         else:
             raise AssertionError(f"forbidden payload key accepted: {bad}")
 
-    return "route_v2_views passed: implementation_gap materialization view, verification_gap non-reroute view, gate/movement separation, delta-QA preservation, and forbidden key probes inspected"
+    return "route_v2_views passed: implementation_gap materialization view, verification_gap non-reroute view, gate/movement separation, delta-QA preservation, and forbidden key probes inspected for success/quality/Movement/route_target"
 
 
 def main(argv: list[str] | None = None) -> int:

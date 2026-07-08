@@ -92,10 +92,10 @@ Proof limit: 이 절은 운영정책 support evidence이며 source truth·성공
 | ④b | C2 physical root unification | ✓ | `7b99b8f7f`, `brick_protocol/*`, top-level import 실패 확인 |
 | ④c | C3 문서/human gate | ✓ | C3 상태문서 착지 + Smith 승인 후 BRICK-CONSTITUTION active physical roots 조항 착지. Proof limit: support evidence only |
 | ⑤ | 발주서/빌딩콜 v1.1 | ✓ | ⑤a~⑤j 착지/관찰 완료(⑤b/⑤c `28cfda632`, ⑤f `298b28a86`, ⑤g `201e502d3`, ⑤h `569458a0d`, ⑤i `15ecf8bcc`, ⑤j dogfood evidence `f0e75cae`). Proof limit: support evidence only |
-| ⑥ | Route V2 sealed materialization | 부분 착지 | R0/R1 sealed materialization checker/document slice `47cf35a4b` 착지. ⑥c R2 read-only view builder landed `134ad9550`; ⑥d/⑥e HOLD |
+| ⑥ | Route V2 sealed materialization | 부분 착지 | R0/R1 sealed materialization checker/document slice `47cf35a4b` 착지. ⑥c R2 read-only view builder landed `134ad9550`; read-only view dogfood recorded at `project/brick-protocol/status/kernel/dogfood/0708-route-v2-view-dogfood.md`; ⑥d/⑥e HOLD |
 | ⑦ | route/walker integration | HOLD | checker green + human gate + route_materialization view 안정 후에만 |
 | ⑧ | 발주서작성 preset/Agent/menu/lowering | ✓ | ⑤d~⑤j declared Building/sandbox 경로로 관찰 완료. COO 직접 구현 금지 원칙 유지 |
-| ⑨ | dogfood/골 closure | 부분 완료 | Building Call quick direct + order_authoring dogfood 관찰 완료. Route V2 view/checker 및 remaining gates 이후 parent closure |
+| ⑨ | dogfood/골 closure | 부분 완료 | Building Call quick direct + order_authoring dogfood 관찰 완료. Route V2 read-only view dogfood 관찰 완료. remaining human gates/cleanup 이후 parent closure |
 
 ---
 
@@ -453,7 +453,7 @@ proof limit: 통합 방향 승인은 support evidence only; green/dogfood 전 wa
 |---|---|---|---|---|
 | ⑥a | 정본 문서 | `route-v2-sealed-materialization-architecture.md` | ⑤와 병렬 가능, 문서 only | ✓ landed `47cf35a4b`; R0 evidence: `project/brick-protocol/status/kernel/route-v2-sealed-materialization-architecture.md` |
 | ⑥b | checker fence | `route_v2_sealed_materialization.yaml` + `fixtures/route_v2/**` | ⑥a 이후 병렬 가능, fixtures owner 하나 | ✓ landed `47cf35a4b`; declarative profile pins concern seal / gate-Movement separation / delta-QA facts |
-| ⑥c | read-only view builder | `brick_protocol/support/operator/route_v2_views.py` + `check_route_v2_views.py` | ⑥a/⑥b schema 확정 후 | ✓ landed `134ad9550`; candidate green in sandbox worktree `/tmp/brick-route-v2-views-0708c` |
+| ⑥c | read-only view builder | `brick_protocol/support/operator/route_v2_views.py` + `check_route_v2_views.py` + dogfood status record | ⑥a/⑥b schema 확정 후 | ✓ landed `134ad9550`; dogfood recorded at `project/brick-protocol/status/kernel/dogfood/0708-route-v2-view-dogfood.md`; ⑥d/⑥e still HOLD |
 | ⑥d | route_materialization 확장 검토 | route_replay_plan view/provenance 확장 여부 | HOLD, human gate | ☐ |
 | ⑥e | walker integration | walker_kernel/walker_resume integration | HOLD, 최고위험 | ☐ |
 
@@ -489,6 +489,24 @@ proof:
   - python3 brick_protocol/support/checkers/check_profile.py --profile core
 proof limits:
   support evidence only; not source truth, not success judgment, not quality judgment, not Movement authority, not walker integration approval.
+```
+
+⑥c Route V2 read-only view dogfood — 2026-07-09 KST:
+
+```text
+dogfood record: project/brick-protocol/status/kernel/dogfood/0708-route-v2-view-dogfood.md
+observed implementation_gap:
+  eligible=true; requested_route_scope=implementation_only; materialization_view.materialized=true; gate_state=paused; movement_candidate=reroute; delta_qa_fact preserved.
+observed verification_gap:
+  non_reroute=true; eligible=false; match_state=non_reroute_concern_kind; materialization_view=null; gate_state=held_for_coo_review; delta_qa_fact preserved.
+forbidden key probes:
+  success, quality, movement, movement_choice, route_target rejected before rendering.
+not touched:
+  route_materialization.py, walker_kernel.py, walker_resume.py, link/**, agent/return_fact.py, route_scope.py, route_v2_engine.py.
+proof limit:
+  support evidence only; not source truth, not success judgment, not quality judgment, not Movement authority, not walker integration approval.
+next gate:
+  prepare ⑥d/⑥e human-gate packet before any walker integration Building.
 ```
 
 ### 5.4 병렬 전략
@@ -654,7 +672,7 @@ Then:
 ⑤h direct escape hatch
 ⑤i docs/examples
 ⑤j dogfood (observed; quick_fix artifact landed as `f0e75cae`)
-⑥c route_v2 read-only view builder
+⑥c route_v2 read-only view builder + read-only view dogfood
 ⑩a cleanup scope / invariants doc
 ⑩b~⑩g cleanup/UX phases after ⑤/⑥ closure
 ⑥d/⑥e only after human gate
