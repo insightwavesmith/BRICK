@@ -54,3 +54,29 @@ W4: #7 릴리스 게이트 (#1~#6 착지 후에만 개시)
 ```text
 이 골 진행 동안 COO의 모든 결정·판단(발주 판정, 순서, 게이트, 착지 판정)은 sequentialthinking 커넥터로 사고한 뒤 내린다. Smith 0709 지시.
 ```
+
+## 진행 로그
+
+```text
+[W1a 착지] structure_plan schema (커밋 ed092ae637, salvage anchor 94e4bbbf4에서 착지)
+  - #1 authoring 선행: confirmed_building_call_request_v1_1 에 optional structure_plan 수용 + graph_topology validate + building-map lowering + 하위호환.
+  - D1(building_call.py 수용·lowering) implemented / D3(하위호환 회귀 fixture) implemented / D2(fan-barrier checker) 코어 implemented.
+  - 착지 판정: delta-green. baseline fcf937117 clean --all RED set == 착지 ed092ae63 RED set (양쪽 유일 RED=agent_session_id_redaction, 선재). W1a 새 RED=0, passed 61→62. write_scope 100% 준수(operator/checkers만).
+```
+
+## 마스터 잔여큐
+
+```text
+[W1a defer — 후속 소형 브릭] D2 방어 fixture 2갭 (Smith 0709 승인 defer):
+  - duplicate_branch_source_rejection: structure_plan fan_out_groups/fan_in_groups 중복 브랜치·소스명 거부 probe 부재.
+  - multiple_fan_out_groups: 복수 fan-out이 단일 fan_in 수렴하는 shape fixture 부재("if that shape is intended to be admitted" 조건부).
+  (코드 로직은 존재, negative fixture·변이RED만 미비. authoring 프리셋으로 발주서 뽑아 COO 재검토 후 정식 CLI.)
+
+[선재 결함 — 별건, Smith 판단 대기] agent_session_id_redaction RED:
+  - handoff-coo-0709-remaining-frontier.md:107 artifact URL의 bare UUID(8f7781ef-...)가 session-id 패턴에 감지. baseline fcf937117부터 존재(W1a 무관). --all RC1의 유일 원인.
+  - 성격: 진짜 session-id 누출 아님(claude.ai artifact id 오탐 성격). 핸드오프 문서 수정 + artifact 참조 처리 방식은 Smith 판단.
+
+[W1b — 다음] authoring STEP3 방출 + 스킬 노출 + cap-hold enforcement (building-call-authoring 프리셋으로 발주서→COO 재검토→태우기).
+[#3] cleanup-10e order-chain 수리 (소형, W1 병렬).
+[방지책] "어떤 AI도 정식루트만 사고" 3층 기계강제 설계 — Smith 0709 지시로 워크플로 설계 진행 중(별도).
+```
