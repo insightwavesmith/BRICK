@@ -305,3 +305,5 @@ FRESH re-launch) per `resume-ledger-mismatch-recovery-0704.md`. It is committed
 support evidence only: it does not choose the disposition, judge success or
 quality, or select Link Movement — Link / COO adopts one declared Movement at
 the boundary.
+
+<!-- pure-dev-d4-r4-ship-copy-0709 land -->
