@@ -35,6 +35,8 @@ _OFFICIAL_LAUNCH_TOKEN: ContextVar[object | None] = ContextVar(
     "brick_protocol_official_launch_token",
     default=None,
 )
+PURE_DEV_D3_BUILDING_ID = "pure-dev-d3-r7-token-harden-0709"
+PURE_DEV_D3_HARDEN_REF = "official_launch_typed_proof_v1"
 
 
 @dataclass(frozen=True)
