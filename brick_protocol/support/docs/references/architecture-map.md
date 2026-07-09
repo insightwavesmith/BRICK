@@ -3,9 +3,13 @@
 Date: 2026-06-24.
 Status: support record / navigational reference only. NOT source truth, NOT
 success judgment, NOT quality judgment, NOT Movement authority.
-Supersedes the 0529 engine blueprint (the 34-checker era) as the CURRENT
-architecture reference; that blueprint moved to the frozen HISTORY repo with the
-rest of the unpinned historical spec and no longer resolves on this tree.
+Refresh note (2026-07-09): this map predates the 0705 constitution Rules 11-13,
+the 0708 active-physical-roots amendment, and later Route V2 / customer-UX
+status work. Treat module-family and flow descriptions as a stale navigational
+snapshot until a dedicated architecture-map refresh re-measures the current tree.
+At publication, superseded the 0529 engine blueprint (the 34-checker era) as
+the architecture reference; that blueprint moved to the frozen HISTORY repo with
+the rest of the unpinned historical spec and no longer resolves on this tree.
 
 This page answers two fresh-clone questions: "which module does what?" and
 "how does one run flow end to end?". Every module named here exists on the
