@@ -16,6 +16,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from typing import Any, Mapping
 
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -23,7 +24,14 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 from brick_protocol.support.checkers.lib.yaml_subset import KernelResult, ProfileError
-from brick_protocol.support.operator.import_identity import resolve_operator_identity
+from brick_protocol.support.operator.import_identity import (
+    mint_official_launch_token,
+    official_launch_token_observation,
+    reset_official_launch_token,
+    resolve_operator_identity,
+    suppress_official_launch_token_for_probe,
+)
+from brick_protocol.support.operator.walker_frontier import _dynamic_frontier_write_plan
 
 
 PARENTS_BINDING_REGISTRY = {
@@ -264,6 +272,91 @@ print(json.dumps({
         return 1
 
 
+def _assert_official_launch_token_fixture() -> int:
+    suppress_token = suppress_official_launch_token_for_probe()
+    try:
+        absent = official_launch_token_observation()
+        if absent.get("token_present") is not False:
+            raise ProfileError("official-launch token fixture observed token before mint")
+        if absent.get("absence_action") != "record_only_no_raise":
+            raise ProfileError("official-launch token absence is not observe-only")
+    finally:
+        reset_official_launch_token(suppress_token)
+
+    token = mint_official_launch_token()
+    try:
+        present = official_launch_token_observation()
+        if present.get("token_present") is not True:
+            raise ProfileError("official-launch token fixture did not observe minted token")
+    finally:
+        reset_official_launch_token(token)
+
+    suppress_token = suppress_official_launch_token_for_probe()
+    try:
+        reset = official_launch_token_observation()
+        if reset.get("token_present") is not False:
+            raise ProfileError("official-launch token fixture leaked after reset")
+    finally:
+        reset_official_launch_token(suppress_token)
+    return 1
+
+
+def _assert_official_launch_walker_wiring(repo: Path) -> int:
+    kernel_text = (repo / "brick_protocol/support/operator/walker_kernel.py").read_text(
+        encoding="utf-8"
+    )
+    frontier_text = (repo / "brick_protocol/support/operator/walker_frontier.py").read_text(
+        encoding="utf-8"
+    )
+    if "official_launch_observation = official_launch_token_observation()" not in kernel_text:
+        raise ProfileError("official-launch token observation is not minted at walker entry")
+    if kernel_text.count("official_launch_observation=official_launch_observation") < 4:
+        raise ProfileError(
+            "official-launch token observation is not threaded through every frontier path"
+        )
+    if '"official_launch_token_observation": dict(official_launch_observation)' not in kernel_text:
+        raise ProfileError(
+            "official-launch token observation is not recorded in normal dynamic walker evidence"
+        )
+    if "official_launch_observation: Mapping[str, Any]" not in frontier_text:
+        raise ProfileError(
+            "official-launch token observation is not a required frontier write-plan input"
+        )
+    if '"official_launch_token_observation": dict(official_launch_observation)' not in frontier_text:
+        raise ProfileError(
+            "official-launch token observation is not recorded in frontier dynamic walker evidence"
+        )
+
+    observation: Mapping[str, Any] = {
+        "kind": "official_launch_token_observation",
+        "token_present": False,
+        "observation_mode": "observe_only",
+        "absence_action": "record_only_no_raise",
+    }
+    plan = _dynamic_frontier_write_plan(
+        {"plan_ref": "building-plan:test"},
+        reroute_records=[],
+        node_budget={},
+        node_landings={},
+        official_launch_observation=observation,
+        held=True,
+        hold_record={"hold_reason": "adapter_error_frontier"},
+        fan_in_wait_all_observations=[],
+        has_fan_groups=False,
+    )
+    evidence = plan.get("dynamic_walker_evidence")
+    if not isinstance(evidence, Mapping):
+        raise ProfileError("frontier write-plan did not attach dynamic_walker_evidence")
+    recorded = evidence.get("official_launch_token_observation")
+    if recorded != dict(observation):
+        raise ProfileError(
+            "frontier write-plan did not preserve observe-only official-launch token evidence"
+        )
+    if evidence.get("held") is not True:
+        raise ProfileError("frontier write-plan fixture did not preserve held state")
+    return 1
+
+
 def run_import_identity_modes(repo: Path) -> KernelResult:
     source_identity = resolve_operator_identity(repo / "brick_protocol/support/operator/cli.py")
     if source_identity.mode != "source" or source_identity.repo_root != repo.resolve():
@@ -294,6 +387,8 @@ def run_import_identity_modes(repo: Path) -> KernelResult:
         + _assert_guard_removal_probe_fires(repo)
         + _assert_bad_marker_rejected(repo)
         + _assert_installed_mode_fixture(repo)
+        + _assert_official_launch_token_fixture()
+        + _assert_official_launch_walker_wiring(repo)
     )
     return KernelResult(
         check_id="import_identity_modes",

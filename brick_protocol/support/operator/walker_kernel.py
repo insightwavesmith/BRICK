@@ -68,6 +68,7 @@ from brick_protocol.support.operator.plan_validation import (
     _task_source_ref_from_plan,
     validate_declared_building_plan,
 )
+from brick_protocol.support.operator.import_identity import official_launch_token_observation
 from brick_protocol.support.operator.primitives import (
     _REPO_ROOT,
     _merge_texts,
@@ -1113,6 +1114,7 @@ def process_one_node(
                 reroute_records=reroute_records,
                 node_budget=node_budget,
                 node_landings=node_landings,
+                official_launch_observation=official_launch_observation,
                 held=False,
                 hold_record=None,
                 cascade_depth=cascade_depth,
@@ -1174,6 +1176,7 @@ def process_one_node(
             reroute_records=reroute_records,
             node_budget=node_budget,
             node_landings=node_landings,
+            official_launch_observation=official_launch_observation,
             held=False,
             hold_record=None,
             cascade_depth=cascade_depth,
@@ -1352,6 +1355,7 @@ def _run_dynamic_graph_walker(
     if _optional_text_from_mapping(plan, "plan_shape") != "graph":
         raise ValueError("walker_mode='dynamic' requires a plan_shape: graph Building Plan")
     repo_root_path = Path(repo_root).resolve()
+    official_launch_observation = official_launch_token_observation()
 
     # FORWARD path reuses the existing graph -> execution_order linearization.
     # LIVE RUN ADMISSION is STRICT about write grants (require_write_need_marker,
@@ -1846,6 +1850,7 @@ def _run_dynamic_graph_walker(
                 reroute_records=reroute_records,
                 node_budget=node_budget,
                 node_landings=node_landings,
+                official_launch_observation=official_launch_observation,
                 held=False,
                 hold_record=None,
                 cascade_depth=int(item.get("cascade_depth", 0)),
@@ -1895,6 +1900,7 @@ def _run_dynamic_graph_walker(
             reroute_records=reroute_records,
             node_budget=node_budget,
             node_landings=node_landings,
+            official_launch_observation=official_launch_observation,
             held=outcome.fan_dispatch_child_timeout_record is not None,
             hold_record=(
                 _dispatch_child_timeout_hold_record(
@@ -3106,6 +3112,7 @@ def _run_dynamic_graph_walker(
         "reroute_adoption_records": list(reroute_records),
         "node_reroute_budgets": dict(node_budget),
         "node_reroute_landings": dict(node_landings),
+        "official_launch_token_observation": dict(official_launch_observation),
         "held": held,
         "hold": hold_record or fan_in_hold_record or {},
         "proof_limits": list(PROOF_LIMITS),

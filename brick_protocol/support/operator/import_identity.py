@@ -9,15 +9,21 @@ from __future__ import annotations
 
 import sys
 import tomllib
+from contextvars import ContextVar, Token
 from dataclasses import dataclass
 from importlib import metadata
 from pathlib import Path
+from typing import Any
 
 
 PROJECT_DISTRIBUTION_NAME = "brick-protocol"
 SOURCE_MARKER_REL = Path("pyproject.toml")
 IMPORT_IDENTITY_REL = Path(".")
 SOURCE_IMPORT_PACKAGE_REL = Path("brick_protocol/__init__.py")
+_OFFICIAL_LAUNCH_TOKEN: ContextVar[object | None] = ContextVar(
+    "brick_protocol_official_launch_token",
+    default=None,
+)
 
 
 @dataclass(frozen=True)
@@ -111,3 +117,46 @@ def install_source_import_paths(identity: OperatorImportIdentity) -> None:
         if entry_text not in sys.path:
             sys.path.insert(0, entry_text)
 
+
+def mint_official_launch_token() -> Token[object | None]:
+    """Mint a process-local official-launch token for one CLI dispatch."""
+
+    return _OFFICIAL_LAUNCH_TOKEN.set(object())
+
+
+def reset_official_launch_token(token: Token[object | None]) -> None:
+    """Reset the process-local official-launch token after CLI dispatch."""
+
+    _OFFICIAL_LAUNCH_TOKEN.reset(token)
+
+
+def suppress_official_launch_token_for_probe() -> Token[object | None]:
+    """Temporarily shadow any inherited launch token for direct-call probes."""
+
+    return _OFFICIAL_LAUNCH_TOKEN.set(None)
+
+
+def official_launch_token_observation() -> dict[str, Any]:
+    """Observe token presence without authorizing or rejecting the walk."""
+
+    present = _OFFICIAL_LAUNCH_TOKEN.get() is not None
+    return {
+        "kind": "official_launch_token_observation",
+        "token_present": present,
+        "observation_mode": "observe_only",
+        "absence_action": "record_only_no_raise",
+        "token_source": "brick_protocol.support.operator.cli.main",
+        "proof_limits": [
+            "process-scoped contextvars.ContextVar observation only",
+            "not packet-supplied",
+            "not credential or secret evidence",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+        ],
+        "not_proven": [
+            "complete runtime process integrity outside this Python context",
+            "future launcher behavior",
+        ],
+    }
