@@ -927,6 +927,7 @@ docs_drift_landing_commit: bbbc6dd20
 docs_drift_scope: AGENTS constitution rule count/date drift + architecture-map stale refresh note only.
 authoring_architecture_building: building-call-authoring-architecture-plan-0709a complete; follow-up phase is design review -> possible dev fan-out -> fan-in QA -> closure, not immediate direct implementation.
 remaining_to_parent_closure: closed by `project/brick-protocol/status/kernel/parent-goal-closure-0709.md`; remaining_not_proven list preserved for future Buildings.
+remaining_frontier_successor: the 7 remaining_not_proven items are adopted by `project/brick-protocol/status/kernel/GOAL/03-remaining-frontier-goal-0709.md` (Smith 0709), waves W1 authoring -> W2 UX -> W3 structure/expansion -> W4 release.
 proof_limit: support evidence only; not source truth, success judgment, quality judgment, or Movement authority.
 ```
 
