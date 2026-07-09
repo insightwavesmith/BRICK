@@ -1971,6 +1971,13 @@ def _stamp_node_gate_sequence_policies(
     mutable_nodes_by_handle: Mapping[BrickSpec, dict[str, Any]],
     edge_refs: Mapping[EdgeSpec, str],
 ) -> list[Mapping[str, Any]]:
+    """Stamp per-node gates onto the unique outgoing *Brick→Brick* completion edge.
+
+    Terminal nodes have zero EdgeSpec outs (boundary is not an EdgeSpec). Put
+    mid-walk holds on non-terminal nodes: ``gates: [coo-review|human-review]``.
+    Top-level ``gates: [human-review]`` covers final boundary separately.
+    """
+
     outgoing_by_handle: dict[BrickSpec, list[str]] = defaultdict(list)
     for edge_spec, edge_ref in edge_refs.items():
         outgoing_by_handle[edge_spec.source].append(edge_ref)
@@ -1984,7 +1991,9 @@ def _stamp_node_gate_sequence_policies(
             label = spec.alias or spec.kind
             raise ValueError(
                 f"brick gates for {label!r} require exactly one outgoing completion edge; "
-                f"observed {len(refs)}. Declare the gate_sequence_policy explicitly to disambiguate."
+                f"observed {len(refs)}. Declare the gate_sequence_policy explicitly to disambiguate. "
+                f"Hint: put gates on a non-terminal node (mid-walk hold); terminal/closure "
+                f"per-node gates are not admitted (use top-level gates: [human-review] for final)."
             )
         edge_ref = refs[0]
         edge = edge_by_ref.get(edge_ref)

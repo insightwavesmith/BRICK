@@ -42,11 +42,48 @@ _FORWARD_OVERRIDE_WARNING = (
     "warning: forward means continuing while recording an override for "
     "hold concern {reason!r}."
 )
-_DEAD_END_NEXT_COMMAND = (
+_DEAD_END_NEXT_HARVEST = (
     "next: run COO_GATE_HARVEST_SHA=<anchor> through the COO gate runner to "
     "harvest the orphan ledger tail, then author a new COO/human declaration "
     "only after the missing ledger rows are present."
 )
+_DEAD_END_NEXT_SALVAGE = (
+    "next: this pause is not an approval-hold ledger. Do not expect resume. "
+    "Salvage WIP (refs/brick-salvage or wip anchor) or re-fire with mid-node "
+    "gates: [coo-review|human-review] on a non-terminal graph-decl node so a "
+    "hold ledger is written. See OFFICIAL_ROUTE_MEMO mid-walk hold sketch."
+)
+_DEAD_END_NEXT_EVIDENCE = (
+    "next: frontier is evidence_incomplete. Inspect evidence_root / dynamic plan "
+    "before resume. Salvage if the walk-on closed without a hold ledger."
+)
+_DEAD_END_NEXT_PLAN = (
+    "next: dynamic plan/evidence could not be read. Fix evidence root path or "
+    "repair the written plan, then re-run resume preflight."
+)
+# Back-compat alias used by older call sites / tests that import the name.
+_DEAD_END_NEXT_COMMAND = _DEAD_END_NEXT_HARVEST
+
+
+def _dead_end_payload(
+    kind: str,
+    *,
+    message_ko: str,
+    next_command: str,
+    extra: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Uniform dead_end fields for preflight and run_resume_declaration."""
+
+    payload: dict[str, Any] = {
+        "dead_end": True,
+        "dead_end_kind": kind,
+        "error_kind": "resume_declaration_dead_end",
+        "message_ko": message_ko,
+        "next_command": next_command,
+    }
+    if extra:
+        payload.update(dict(extra))
+    return payload
 
 
 def _frontier_key(preflight: Mapping[str, Any]) -> tuple[str, str, str]:
@@ -176,19 +213,32 @@ def run_resume_declaration(
         ],
     }
     if preflight.get("dead_end"):
+        kind = str(preflight.get("dead_end_kind") or "unknown")
         packet.update(
             {
                 "error_kind": "resume_declaration_dead_end",
-                "message_ko": "막다른 길: 수취-장부 꼬리 evidence가 아직 approval hold가 아닙니다.",
-                "next_command": _DEAD_END_NEXT_COMMAND,
+                "dead_end_kind": kind,
+                "message_ko": str(
+                    preflight.get("message_ko")
+                    or "막다른 길: resume 불가 (approval-hold ledger 없음 또는 evidence 불완전)."
+                ),
+                "next_command": str(
+                    preflight.get("next_command") or _DEAD_END_NEXT_SALVAGE
+                ),
             }
         )
+        if preflight.get("error_message"):
+            packet["error_message"] = preflight["error_message"]
         return packet
     if preflight.get("matched") is not True:
         packet.update(
             {
                 "error_kind": "resume_declaration_no_match",
                 "message_ko": "현재 hold/frontier에 맞는 disposition 선언이 없습니다.",
+                "next_command": (
+                    "next: adjust dispositions[].on to match hold_reason / frontier_reason, "
+                    "or stop. This is not a harvest problem if a hold ledger exists."
+                ),
             }
         )
         return packet
@@ -222,12 +272,15 @@ def run_resume_declaration(
         packet["rounds"].append(result)
         if result.get("error_kind") == "not_approval_hold":
             packet.update(
-                {
-                    "error_kind": "resume_declaration_dead_end",
-                    "runtime_error_kind": "not_approval_hold",
-                    "message_ko": "막다른 길: runtime frontier가 approval hold가 아닙니다.",
-                    "next_command": _DEAD_END_NEXT_COMMAND,
-                }
+                _dead_end_payload(
+                    "not_approval_hold",
+                    message_ko=(
+                        "막다른 길: runtime frontier가 approval hold가 아닙니다 "
+                        "(walk-on concern / 비-hold pause 가능)."
+                    ),
+                    next_command=_DEAD_END_NEXT_SALVAGE,
+                    extra={"runtime_error_kind": "not_approval_hold"},
+                )
             )
             return packet
         if not result.get("ok") or result.get("error_kind"):
@@ -265,11 +318,18 @@ def run_resume_declaration(
             )
             return packet
         if current_preflight.get("dead_end"):
+            kind = str(current_preflight.get("dead_end_kind") or "unknown")
             packet.update(
                 {
                     "error_kind": "resume_declaration_dead_end",
-                    "message_ko": "막다른 길: 다음 hold가 approval hold가 아닙니다.",
-                    "next_command": _DEAD_END_NEXT_COMMAND,
+                    "dead_end_kind": kind,
+                    "message_ko": str(
+                        current_preflight.get("message_ko")
+                        or "막다른 길: 다음 frontier에서 resume 불가."
+                    ),
+                    "next_command": str(
+                        current_preflight.get("next_command") or _DEAD_END_NEXT_SALVAGE
+                    ),
                 }
             )
             return packet
@@ -278,6 +338,10 @@ def run_resume_declaration(
                 {
                     "error_kind": "resume_declaration_no_match",
                     "message_ko": "다음 hold에 맞는 disposition 선언이 없습니다.",
+                    "next_command": (
+                        "next: adjust dispositions[].on for the next hold_reason, "
+                        "or stop the chain."
+                    ),
                 }
             )
             return packet
@@ -322,23 +386,45 @@ def preflight_resume_declaration(
         packet.update({"matched": True, "already_complete": True})
         return packet
     if frontier_kind == "evidence_incomplete":
-        packet["dead_end"] = True
+        packet.update(
+            _dead_end_payload(
+                "evidence_incomplete",
+                message_ko=(
+                    "막다른 길: frontier=evidence_incomplete. "
+                    "approval-hold ledger 유무와 무관하게 resume 불가 상태일 수 있음."
+                ),
+                next_command=_DEAD_END_NEXT_EVIDENCE,
+            )
+        )
         return packet
     try:
         _plan, evidence = _read_written_dynamic_plan(building_root)
     except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
         packet.update(
-            {
-                "dead_end": True,
-                "error_kind": type(exc).__name__,
-                "error_message": str(exc),
-            }
+            _dead_end_payload(
+                "plan_unreadable",
+                message_ko="막다른 길: written dynamic plan/evidence를 읽지 못했습니다.",
+                next_command=_DEAD_END_NEXT_PLAN,
+                extra={
+                    "error_message": str(exc),
+                    "read_error_kind": type(exc).__name__,
+                },
+            )
         )
         return packet
     hold_record_raw = evidence.get("hold") or {}
     hold_record = hold_record_raw if isinstance(hold_record_raw, Mapping) else {}
     if not hold_record:
-        packet["dead_end"] = True
+        packet.update(
+            _dead_end_payload(
+                "no_hold_ledger",
+                message_ko=(
+                    "막다른 길: approval-hold ledger가 없습니다 "
+                    "(closure walk-on concern 등). resume 대상이 아님."
+                ),
+                next_command=_DEAD_END_NEXT_SALVAGE,
+            )
+        )
         return packet
     allowed = hold_disposition_action_menu(hold_record, frontier_reason=frontier_reason)
     packet["allowed_disposition_actions"] = list(allowed)

@@ -1484,6 +1484,8 @@ def _render_resume(packet: dict[str, Any]) -> str:
                 f"matched: {'yes' if preflight.get('matched') else 'no'}",
             ]
         )
+        if preflight.get("dead_end_kind"):
+            lines.append(f"dead_end_kind: {preflight.get('dead_end_kind', '')}")
         if preflight.get("warning"):
             lines.append(str(preflight["warning"]))
     rounds = packet.get("rounds")
@@ -1495,6 +1497,8 @@ def _render_resume(packet: dict[str, Any]) -> str:
         lines.append(str(packet["next_command"]))
     if packet.get("error_kind"):
         lines.append(f"error_kind: {packet.get('error_kind', '')}")
+    if packet.get("dead_end_kind"):
+        lines.append(f"dead_end_kind: {packet.get('dead_end_kind', '')}")
     if packet.get("error_message"):
         lines.append(f"error_message: {packet.get('error_message', '')}")
     if packet.get("proof_limits"):

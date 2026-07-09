@@ -4,6 +4,10 @@ Date: 2026-07-09 KST.
 Parent: `02-unified-continuous-build-goal-0708.md` §11 parent closure의 `remaining_not_proven` 7항목을 부모로 상속.
 Proof limit: support evidence only; not source truth, not success/quality judgment, not Movement authority.
 
+> **실행 계단 갱신 (0709 밤):** route/resume dead_end 회귀를 critical path 입구에 끼운 통합 Goal Phase는  
+> **`04-goal-phases-0709-route-and-frontier.md`** 를 따른다. 이 파일(03)의 7 프론티어·W1–W4는 유지하되,  
+> **G0 Route Fuel → G1 Continuity 없이** authoring/prevention 본발사를 양산하지 않는다.
+
 ## 골 한 줄
 
 0709 parent closure 이후 남은 7 프론티어를, SHAPE/human-gate 경계를 지키며 전부 착지시킨다.

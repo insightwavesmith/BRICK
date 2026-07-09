@@ -1,0 +1,11 @@
+{
+  "building_ref": "/Users/smith/.brick/project/brick-protocol/buildings/g1-mid-hold-resume-dogfood-0709",
+  "author_ref": "coo:g1-dogfood-0709-b",
+  "chain": "until-terminal",
+  "adapter_timeout_seconds": 600,
+  "dispositions": [
+    {"on": "fake_landing_write_scope_diff_absent", "action": "forward"},
+    {"on": "gate_sequence_missing_required_facts:link-gate:coo", "action": "forward"},
+    {"on": "declared Link transition_lifecycle.state is paused", "action": "forward"}
+  ]
+}

@@ -1,0 +1,33 @@
+# G1 dogfood graph-decl — mid-walk coo-review hold then work/closure.
+# Official front door: brick build --graph-decl <this-file>
+# After hold: brick build resume --decl <resume json with matching on:>
+# Support fixture for route fuel continuity. Not source truth / Movement authority.
+declared_by: coo
+task: >
+  G1 continuity dogfood: design must stop on coo-review hold (missing disposition),
+  then COO resume forward continues to work+closure. Prefer no source mutation.
+  Return support evidence only.
+building_id: g1-mid-hold-resume-dogfood-0709
+adapter: adapter:local
+nodes:
+  - kind: design
+    work_statement: |
+      ## Deliverables
+      D1: produce a one-paragraph design note for resume continuity dogfood (no file edits)
+      ## Done Criteria
+      observed design note only
+    gates:
+      - coo-review
+  - kind: work
+    work_statement: |
+      ## Deliverables
+      D1: inspect brick_protocol/support/operator/resume_declaration.py for dead_end_kind presence
+      ## Done Criteria
+      observed whether dead_end_kind is referenced in source
+    write: true
+  - kind: closure
+    work_statement: |
+      ## Deliverables
+      D1: summarize design+work observations; no success/quality/Movement claims
+      ## Done Criteria
+      observed summary
