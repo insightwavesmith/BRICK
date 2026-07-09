@@ -1,0 +1,7 @@
+
+test_inject_and_rollback_restores_snapshot (tests.test_g3_g4.TestPolicy.test_inject_and_rollback_restores_snapshot) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.008s
+
+OK

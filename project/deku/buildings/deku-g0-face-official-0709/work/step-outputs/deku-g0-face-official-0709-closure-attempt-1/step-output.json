@@ -1,0 +1,257 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:deku-g0-face-official-0709::work/step-outputs/deku-g0-face-official-0709-closure-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-deku-g0-face-official-0709-closure",
+  "building_id": "deku-g0-face-official-0709",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-07-09T13:17:21.027388Z",
+  "id": "urn:bp:building:deku-g0-face-official-0709::work/step-outputs/deku-g0-face-official-0709-closure-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:deku-g0-face-official-0709-closure",
+  "recorded_at": "2026-07-09T13:17:21.027388Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:coo",
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:codex-local:deku-g0-face-official-0709",
+    "cli_version_text": "codex-cli 0.143.0",
+    "deferred_smith_review_queue": [
+      "Choose whether the official launch memo should name `.venv/bin/python -m unittest discover -s tests -v` or require bare `python3` dependency provisioning before future status refresh."
+    ],
+    "deliverable_crosscheck": [
+      {
+        "deliverable_ref": "work-1 Implement/verify G0 Face on /Users/smith/projects/deku.",
+        "diff_artifact_refs": [
+          "/Users/smith/projects/deku/deku_server.py",
+          "/Users/smith/projects/deku/deku_core/catalog.py",
+          "/Users/smith/projects/deku/deku_core/parse.py",
+          "/Users/smith/projects/deku/deku_core/session.py",
+          "/Users/smith/projects/deku/deku_core/no_blank.py",
+          "/Users/smith/projects/deku/deku_core/trajectory.py",
+          "/Users/smith/projects/deku/tests/test_g0_face.py"
+        ],
+        "evidence_refs": [
+          "work/step-outputs/deku-g0-face-official-0709-work-attempt-1/step-output.json"
+        ],
+        "implementation_status": "implemented"
+      },
+      {
+        "deliverable_ref": "work-2 Verify truncation 40960, parse, session, no-blank, trajectory C9.1.",
+        "diff_artifact_refs": [
+          "/Users/smith/projects/deku/deku_core/catalog.py",
+          "/Users/smith/projects/deku/deku_core/parse.py",
+          "/Users/smith/projects/deku/deku_core/session.py",
+          "/Users/smith/projects/deku/deku_core/no_blank.py",
+          "/Users/smith/projects/deku/deku_core/trajectory.py",
+          "/Users/smith/projects/deku/tests/test_g0_face.py"
+        ],
+        "evidence_refs": [
+          "/Users/smith/projects/deku/tests/test_g0_face.py:18",
+          "/Users/smith/projects/deku/tests/test_g0_face.py:30",
+          "/Users/smith/projects/deku/tests/test_g0_face.py:47",
+          "/Users/smith/projects/deku/tests/test_g0_face.py:56",
+          "/Users/smith/projects/deku/tests/test_g0_face.py:77"
+        ],
+        "implementation_status": "implemented"
+      },
+      {
+        "deliverable_ref": "work-3 Verify multi-turn conduct_history always includes assembler [policy]/[wiki] zones and fixes hist-or-bundle bug.",
+        "diff_artifact_refs": [
+          "/Users/smith/projects/deku/deku_server.py",
+          "/Users/smith/projects/deku/tests/test_g0_face.py"
+        ],
+        "evidence_refs": [
+          "/Users/smith/projects/deku/deku_server.py:123",
+          "/Users/smith/projects/deku/deku_server.py:140",
+          "/Users/smith/projects/deku/tests/test_g0_face.py:169"
+        ],
+        "implementation_status": "implemented"
+      },
+      {
+        "deliverable_ref": "work-4 Run: cd /Users/smith/projects/deku && python3 -m unittest discover -s tests -v.",
+        "diff_artifact_refs": [
+          "/Users/smith/projects/deku/tests/test_g0_face.py"
+        ],
+        "evidence_refs": [
+          "work/step-outputs/deku-g0-face-official-0709-work-attempt-1/step-output.json observed system python errors due missing fastapi and `.venv/bin/python -m unittest discover -s tests -v` as 27 tests OK"
+        ],
+        "implementation_status": "partial"
+      },
+      {
+        "deliverable_ref": "work-5 Return changed_files, commands_run, observed_evidence.",
+        "diff_artifact_refs": [
+          "work/step-outputs/deku-g0-face-official-0709-work-attempt-1/step-output.json"
+        ],
+        "evidence_refs": [
+          "work/step-outputs/deku-g0-face-official-0709-work-attempt-1/step-output.json"
+        ],
+        "implementation_status": "implemented"
+      },
+      {
+        "deliverable_ref": "closure-1 Synthesize G0 Exit narrowly_proven vs not_proven.",
+        "diff_artifact_refs": [
+          "closure-return:this-json"
+        ],
+        "evidence_refs": [
+          "work/step-outputs/deku-g0-face-official-0709-work-attempt-1/step-output.json",
+          "/Users/smith/projects/deku/docs/DEKU_STATUS.md:14",
+          "/Users/smith/projects/deku/docs/DEKU_STATUS.md:25"
+        ],
+        "implementation_status": "implemented"
+      },
+      {
+        "deliverable_ref": "closure-2 Update docs/DEKU_STATUS.md G0 section if needed.",
+        "diff_artifact_refs": [],
+        "evidence_refs": [
+          "/Users/smith/projects/deku/docs/DEKU_STATUS.md:59",
+          "closure observation: write_scope empty and closure Brick rules say this Brick writes no files"
+        ],
+        "implementation_status": "not_applicable_read_only"
+      }
+    ],
+    "evidence_refs": [
+      "support-packet:deku-g0-face-official-0709:agent-object:coo:output"
+    ],
+    "narrowly_proven": [
+      "G0 Face surfaces for catalog 40960, full parse/history, session binding, no-blank guard, trajectory structural validation, response/model/health truncation reporting, and multi-turn assembler policy/wiki conduct_history preservation are present in the inspected tree.",
+      "The project virtualenv unittest discovery path was observed green for 27 tests in the carried work output.",
+      "DEKU_STATUS.md already carries G0 Face as EXIT and keeps real Nemotron-loaded soak as not_proven."
+    ],
+    "next_target_candidates": [
+      "Declared documentation refresh Building for DEKU_STATUS.md launch memo command/test-count alignment.",
+      "Declared real-runtime soak Building for non-mock Nemotron 50x hello with MPS weights.",
+      "Declared live dogfood/baseline comparison Building after G0 evidence is carried forward."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Nemotron-loaded non-mock 50x hello soak with real MPS weights is not proven by the carried work; DEKU_STATUS.md:25 also lists it as remaining_not_proven.",
+      "Paid multi-worker live strategy/verify dogfood is not proven.",
+      "Paid single-best Opus/GPT baseline comparison is not proven.",
+      "External codex provider integration beyond local FastAPI/TestClient paths is not proven.",
+      "Semantic quality of the user-facing orchestration behavior is not proven by checker/test green alone.",
+      "The system python unittest command is not proven green because fastapi was missing in that interpreter.",
+      "DEKU_STATUS.md launch memo freshness is not fully proven because its test-count command line still says 26 tests OK while carried evidence observed 27 tests OK under the project virtualenv.",
+      "No documentation patch was applied by this closure because the active closure Brick has empty write_scope and read-only tool policy."
+    ],
+    "observed_evidence": [
+      "Carried work output at work/step-outputs/deku-g0-face-official-0709-work-attempt-1/step-output.json records made_changes=false, changed_files=[], and no source edit by that turn because the requested G0 behavior and regression coverage were already present.",
+      "Carried work output records `.venv/bin/python -m unittest discover -s tests -v` ran 27 tests with final output OK; system `python3 -m unittest discover -s tests -v` hit 6 errors because that interpreter lacks fastapi.",
+      "/Users/smith/projects/deku/deku_core/catalog.py:3 and /Users/smith/projects/deku/deku_core/catalog.py:4 set CONTEXT_WINDOW and TRUNCATION_LIMIT to 40960; /Users/smith/projects/deku/deku_core/catalog.py:27 emits truncation_policy.limit from TRUNCATION_LIMIT.",
+      "/Users/smith/projects/deku/deku_core/parse.py:52 parses request input/messages into a full message list and current user; /Users/smith/projects/deku/deku_core/parse.py:94 builds prior-turn history summary.",
+      "/Users/smith/projects/deku/deku_core/session.py:33 resolves sessions from metadata, previous_response_id, conversation, or a generated id; /Users/smith/projects/deku/deku_core/session.py:58 binds response ids to sessions.",
+      "/Users/smith/projects/deku/deku_core/no_blank.py:11 forces a non-empty user-facing answer for None, empty, None-string, and null-string results.",
+      "/Users/smith/projects/deku/deku_core/trajectory.py:12 declares the C9.1-style required top-level trajectory keys; /Users/smith/projects/deku/deku_core/trajectory.py:114 validates complete rows before append.",
+      "/Users/smith/projects/deku/deku_server.py:123 builds history from parsed messages, /Users/smith/projects/deku/deku_server.py:128 builds the assembler bundle, and /Users/smith/projects/deku/deku_server.py:140 preserves assembler zones plus [conversation_history] on multi-turn requests.",
+      "/Users/smith/projects/deku/deku_server.py:144 and /Users/smith/projects/deku/deku_server.py:153 record policy/wiki injection events with into_conduct_history true; /Users/smith/projects/deku/deku_server.py:174 passes conduct_history into run_conduct; /Users/smith/projects/deku/deku_server.py:183 applies ensure_user_answer.",
+      "/Users/smith/projects/deku/deku_server.py:284 exposes context_window and truncation_policy in response payloads; /Users/smith/projects/deku/deku_server.py:465 and /Users/smith/projects/deku/deku_server.py:477 expose catalog/health truncation surfaces.",
+      "/Users/smith/projects/deku/tests/test_g0_face.py:18 covers 40960 truncation; :30 covers full parse/history; :47 covers no-blank; :77 covers previous_response_id session binding; :90 covers app endpoint surfaces; :169 covers multi-turn policy/wiki conduct_history regression.",
+      "/Users/smith/projects/deku/docs/DEKU_STATUS.md:14 marks G0 Face EXIT, and /Users/smith/projects/deku/docs/DEKU_STATUS.md:25 keeps Nemotron-loaded non-mock 50x hello soak under remaining_not_proven.",
+      "/Users/smith/projects/deku/docs/DEKU_STATUS.md:59 still says `python3 -m unittest discover -s tests -v # 26 tests OK`, while carried work evidence observed 27 tests OK under `.venv/bin/python`. No doc edit was made by this read-only closure."
+    ],
+    "output_excerpt": "{\"observed_evidence\":[\"Carried work output at work/step-outputs/deku-g0-face-official-0709-work-attempt-1/step-output.json records made_changes=false, changed_files=[], and no source edit by that turn because the requested G0 behavior and regression coverage were already present.\",\"Carried work output records `.venv/bin/python -m unittest discover -s tests -v` ran 27 tests with final output OK; system `python3 -m unittest discover -s tests -v` hit 6 errors because that interpreter lacks fastapi.\",\"/Users/smith/projects/deku/deku_core/catalog.py:3 and /Users/smith/projects/deku/deku_core/cat...",
+    "parent_goal_delta_status": {
+      "closed_delta_refs": [
+        "work/step-outputs/deku-g0-face-official-0709-work-attempt-1/step-output.json observed `.venv/bin/python -m unittest discover -s tests -v` as 27 tests OK.",
+        "/Users/smith/projects/deku/deku_core/catalog.py:3-4 and deku_server.py:284-285 close the 40960 catalog/truncation observation slice.",
+        "/Users/smith/projects/deku/deku_server.py:123-183 and tests/test_g0_face.py:169-250 close the observed hist-or-bundle regression slice under mock/TestClient evidence."
+      ],
+      "evidence_refs": [
+        "work/step-outputs/deku-g0-face-official-0709-work-attempt-1/step-output.json",
+        "/Users/smith/projects/deku/docs/DEKU_STATUS.md:14",
+        "/Users/smith/projects/deku/docs/DEKU_STATUS.md:25",
+        "/Users/smith/projects/deku/docs/DEKU_STATUS.md:59",
+        "/Users/smith/projects/deku/tests/test_g0_face.py:18",
+        "/Users/smith/projects/deku/tests/test_g0_face.py:169"
+      ],
+      "matched_delta_refs": [
+        "G0 catalog/parse/session/no-blank/trajectory/harness surfaces: matched by code refs and tests/test_g0_face.py coverage.",
+        "G0 DEKU_STATUS projection: matched in docs/DEKU_STATUS.md:14 and remaining_not_proven entry at docs/DEKU_STATUS.md:25."
+      ],
+      "missing_delta_refs": [
+        "No recorded real MPS/Nemotron soak evidence was carried into this closure.",
+        "No recorded paid live worker/baseline comparison evidence was carried into this closure.",
+        "No diff artifact exists for a DEKU_STATUS.md launch memo refresh in this closure."
+      ],
+      "open_delta_refs": [
+        "Nemotron-loaded non-mock 50x hello soak remains open.",
+        "Paid multi-worker live dogfood remains open.",
+        "Paid single-best baseline comparison remains open.",
+        "DEKU_STATUS.md launch memo test-count/interpreter freshness remains open."
+      ],
+      "unknown_delta_refs": [
+        "Whether bare `python3` should be made green or the official memo should standardize on `.venv/bin/python` is not declared by this closure evidence."
+      ]
+    },
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "remaining_delta": [
+      "Run the real Nemotron-loaded non-mock 50x hello soak with real MPS weights and record the measured result.",
+      "Run paid multi-worker live strategy/verify dogfood and paid single-best baseline comparison in later declared Buildings.",
+      "Refresh DEKU_STATUS.md launch memo so the test command/evidence matches the observed virtualenv run count and interpreter requirement.",
+      "If the intended official launch command is still bare `python3 -m unittest discover -s tests -v`, either provision dependencies for that interpreter or update the memo to name `.venv/bin/python` as the measured command."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:codex-local",
+    "selected_model_ref": "model:codex:default",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:02:deku-g0-face-official-0709-closure",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:deku-g0-face-official-0709",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:deku-g0-face-official-0709-closure:attempt-1",
+  "step_ref": "deku-g0-face-official-0709-closure",
+  "subject": "deku-g0-face-official-0709-closure",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-07-09T13:17:21.027388Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

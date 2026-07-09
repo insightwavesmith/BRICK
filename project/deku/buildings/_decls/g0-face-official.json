@@ -1,0 +1,30 @@
+{
+  "building_id": "deku-g0-face-official-0709",
+  "declared_by": "coo-deku-session",
+  "author_ref": "coo:deku",
+  "action": "forward",
+  "adapter": "local",
+  "adapter_timeout_seconds": 600,
+  "output_root": "/Users/smith/projects/BRICK/project/deku/buildings",
+  "task": "# Deku G0 Face — official Building\n\n## Objective\nClose G0 Face Exit for project:deku on code at /Users/smith/projects/deku.\n\n## Deliverables\n1. Catalog context_window=40960 and truncation_policy.limit=40960 (not 10000).\n2. Full message parse + session bind + no blank answers.\n3. Trajectory C9.1 every turn.\n4. Multi-turn still injects policy/wiki into conduct history (not hist-only).\n5. `python3 -m unittest discover -s tests -v` green for G0 suite.\n\n## Hard constraints\nWrite scope: deku_core/, deku_server.py, deku.py, tests/, docs/DEKU_STATUS.md only.\nNo wiki product beyond G0 inject path. No G1+ feature expansion.\nMock profile OK for harness; do not require paid workers for G0 Exit.\n\n## Evidence\nRecord commands_run, changed_files, not_proven honestly.",
+  "write_scope": {
+    "allowed_paths": [
+      "/Users/smith/projects/deku/deku_core",
+      "/Users/smith/projects/deku/deku_server.py",
+      "/Users/smith/projects/deku/deku.py",
+      "/Users/smith/projects/deku/tests",
+      "/Users/smith/projects/deku/docs"
+    ],
+    "forbidden_paths": [".git/**", "vendor/**", "artifacts/**"]
+  },
+  "nodes": [
+    {
+      "kind": "work",
+      "work_statement": "Implement/verify G0 Face on /Users/smith/projects/deku: truncation 40960, parse, session, no-blank, trajectory C9.1, multi-turn conduct_history always includes assembler [policy]/[wiki] zones (fix hist-or-bundle bug). Run: cd /Users/smith/projects/deku && python3 -m unittest discover -s tests -v. Return changed_files + commands_run + observed_evidence."
+    },
+    {
+      "kind": "closure",
+      "work_statement": "Synthesize G0 Exit: narrowly_proven vs not_proven (Nemotron-loaded soak remains not_proven if mock). Update docs/DEKU_STATUS.md G0 section if needed."
+    }
+  ]
+}

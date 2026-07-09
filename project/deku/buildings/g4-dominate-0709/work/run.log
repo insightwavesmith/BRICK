@@ -1,0 +1,8 @@
+
+test_call_cap_violations_not_hardcoded_zero_when_over (tests.test_g3_g4.TestEval.test_call_cap_violations_not_hardcoded_zero_when_over) ... ok
+test_suite_measures_call_cap_and_pin50 (tests.test_g3_g4.TestEval.test_suite_measures_call_cap_and_pin50) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.069s
+
+OK

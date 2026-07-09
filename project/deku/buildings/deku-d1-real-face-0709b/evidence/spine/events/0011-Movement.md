@@ -1,0 +1,12 @@
+# Movement · seq 11 · ["Link"]
+- adopted_transition_concern_refs: []
+- axis_scope: ["Link"]
+- declared_movement: "forward"
+- event_type: "Movement"
+- gate_review_event_ref: "sufficiency-fact-movement:03:deku-d1-real-face-0709b-work"
+- not_adopted_transition_concern_refs: []
+- run_segment: 1
+- sequence_index: 11
+- source_fact_ref: "movement-fact:03:deku-d1-real-face-0709b-work"
+- spine_schema_version: "spine-v1"
+- target_boundary_ref: "brick:brick-deku-d1-real-face-0709b-code-attack-qa"

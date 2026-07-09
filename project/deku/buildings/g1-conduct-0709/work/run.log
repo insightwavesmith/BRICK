@@ -1,0 +1,11 @@
+
+test_exceed (tests.test_g1_g2.TestCallBudget.test_exceed) ... ok
+test_pin_survive (tests.test_g1_g2.TestMemoryPins.test_pin_survive) ... ok
+test_under_hard_cap (tests.test_g1_g2.TestAssembler.test_under_hard_cap) ... ok
+test_conduct_timeout_no_raise (tests.test_g1_g2.TestTimeoutGraceful.test_conduct_timeout_no_raise) ... ok
+test_server_timeout_no_crash (tests.test_g1_g2.TestTimeoutGraceful.test_server_timeout_no_crash) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.136s
+
+OK

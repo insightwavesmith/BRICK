@@ -1,0 +1,17 @@
+{
+  "building_id": "g0-face-0709",
+  "started_at": "2026-07-09T22:10:04",
+  "duration_s": 0.225,
+  "command": [
+    "python3",
+    "-m",
+    "unittest",
+    "tests.test_g0_face",
+    "-v"
+  ],
+  "exit_code": 0,
+  "stdout_tail": "",
+  "stderr_tail": "test_hello_no_blank (tests.test_g0_face.TestAppEndpoints.test_hello_no_blank) ... ok\ntest_models_and_healthz (tests.test_g0_face.TestAppEndpoints.test_models_and_healthz) ... ok\ntest_multi_turn_reference (tests.test_g0_face.TestAppEndpoints.test_multi_turn_reference) ... ok\ntest_trajectory_appended (tests.test_g0_face.TestAppEndpoints.test_trajectory_appended) ... ok\ntest_truncation_40960 (tests.test_g0_face.TestCatalog.test_truncation_40960) ... ok\ntest_none_and_empty (tests.test_g0_face.TestNoBlank.test_none_and_empty) ... ok\ntest_full_messages_not_last_only (tests.test_g0_face.TestParse.test_full_messages_not_last_only) ... ok\ntest_bind_previous_response (tests.test_g0_face.TestSession.test_bind_previous_response) ... ok\ntest_schema_and_append (tests.test_g0_face.TestTrajectory.test_schema_and_append) ... ok\n\n----------------------------------------------------------------------\nRan 9 tests in 0.164s\n\nOK\n",
+  "status": "complete",
+  "frontier": "complete"
+}

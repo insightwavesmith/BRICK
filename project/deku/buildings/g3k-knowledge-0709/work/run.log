@@ -1,0 +1,8 @@
+
+test_compile_slice_inject_log_shape (tests.test_g3_g4.TestWiki.test_compile_slice_inject_log_shape) ... ok
+test_no_hermes_skill_as_source_in_core (tests.test_g3_g4.TestHermesForbidden.test_no_hermes_skill_as_source_in_core) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.009s
+
+OK

@@ -1,0 +1,17 @@
+{
+  "building_id": "g4-dominate-0709",
+  "started_at": "2026-07-09T22:10:04",
+  "duration_s": 0.105,
+  "command": [
+    "python3",
+    "-m",
+    "unittest",
+    "tests.test_g3_g4.TestEval",
+    "-v"
+  ],
+  "exit_code": 0,
+  "stdout_tail": "",
+  "stderr_tail": "test_call_cap_violations_not_hardcoded_zero_when_over (tests.test_g3_g4.TestEval.test_call_cap_violations_not_hardcoded_zero_when_over) ... ok\ntest_suite_measures_call_cap_and_pin50 (tests.test_g3_g4.TestEval.test_suite_measures_call_cap_and_pin50) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.069s\n\nOK\n",
+  "status": "complete",
+  "frontier": "complete"
+}

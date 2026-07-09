@@ -1,0 +1,17 @@
+{
+  "building_id": "g3p-policy-0709",
+  "started_at": "2026-07-09T22:10:04",
+  "duration_s": 0.043,
+  "command": [
+    "python3",
+    "-m",
+    "unittest",
+    "tests.test_g3_g4.TestPolicy",
+    "-v"
+  ],
+  "exit_code": 0,
+  "stdout_tail": "",
+  "stderr_tail": "test_inject_and_rollback_restores_snapshot (tests.test_g3_g4.TestPolicy.test_inject_and_rollback_restores_snapshot) ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.008s\n\nOK\n",
+  "status": "complete",
+  "frontier": "complete"
+}

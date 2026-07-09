@@ -1,0 +1,62 @@
+{
+  "agent_binding_declarations": [
+    {
+      "agent_object_ref": "agent-object:dev",
+      "row_ref": "agent-row:deku-g1-g4-verify-official-0709-work",
+      "step_ref": "deku-g1-g4-verify-official-0709-work"
+    },
+    {
+      "agent_object_ref": "agent-object:coo",
+      "row_ref": "agent-row:deku-g1-g4-verify-official-0709-closure",
+      "step_ref": "deku-g1-g4-verify-official-0709-closure"
+    }
+  ],
+  "building_id": "deku-g1-g4-verify-official-0709",
+  "canonical_chain_preset_ref": "",
+  "chain_preset_catalog_scope": "",
+  "chain_preset_catalog_source": "",
+  "chain_preset_ref": "",
+  "common_basis_ref": "",
+  "compat_chain_preset_ref": "",
+  "composition_mode": "caller_or_coo_declared_graph_composition",
+  "expanded_brick_spec_refs": [
+    "brick_protocol/brick/templates/bricks/work/brick.md",
+    "brick_protocol/brick/templates/bricks/closure/brick.md"
+  ],
+  "expanded_brick_template_refs": [
+    "brick_protocol/brick/templates/bricks/work/return.yaml",
+    "brick_protocol/brick/templates/bricks/transition-concern-return.yaml",
+    "brick_protocol/brick/templates/bricks/closure/return.yaml"
+  ],
+  "expanded_step_template_refs": [
+    "building-step-template:work",
+    "building-step-template:closure"
+  ],
+  "kind": "preset_expansion_provenance",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "selected preset ref was not exposed by the plan"
+  ],
+  "plan_ref": "building-plan:composed-graph",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "support evidence only"
+  ],
+  "selected_preset_ref": "",
+  "selected_shape_ref": "",
+  "shape_catalog_ref": "brick-template-catalog:split-p3b-p4"
+}

@@ -1,0 +1,285 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:deku-g0-face-official-0709::work/step-outputs/deku-g0-face-official-0709-work-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:dev",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-deku-g0-face-official-0709-work",
+  "building_id": "deku-g0-face-official-0709",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-07-09T13:16:06.973803Z",
+  "id": "urn:bp:building:deku-g0-face-official-0709::work/step-outputs/deku-g0-face-official-0709-work-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:deku-g0-face-official-0709-work",
+  "recorded_at": "2026-07-09T13:16:06.973803Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:dev",
+    "blocked_or_missing_evidence": [
+      "No source edit was made because the requested G0 behavior and regression coverage were already present in the inspected tree.",
+      "The declared command using system python did not complete because that interpreter lacks fastapi; the project .venv command completed the same unittest discovery successfully.",
+      "Direct mutation under /Users/smith/projects/deku was not attempted because this session's writable roots list does not include that path."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "changed_files": [],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:deku-g0-face-official-0709",
+    "cli_version_text": "codex-cli 0.143.0",
+    "commands_run": [
+      {
+        "command": "pwd",
+        "cwd": "/Users/smith/.brick/worktrees/deku-g0-face-official-0709",
+        "observed_output": "/Users/smith/.brick/worktrees/deku-g0-face-official-0709"
+      },
+      {
+        "command": "rg --files -g 'SKILL.md' -g 'project/deku/**' -g 'tests/**' -g 'pyproject.toml' -g 'setup.py' -g 'AGENTS.md' -g 'BRICK-CONSTITUTION.md'",
+        "cwd": "/Users/smith/.brick/worktrees/deku-g0-face-official-0709",
+        "observed_output": "Found AGENTS.md, BRICK-CONSTITUTION.md, pyproject.toml, and declared skill files including brick_protocol/agent/skills/scoped-implementation/SKILL.md and brick_protocol/agent/skills/protocol-boundary-watch/SKILL.md."
+      },
+      {
+        "command": "ls -la /Users/smith/projects/deku",
+        "cwd": "/Users/smith/.brick/worktrees/deku-g0-face-official-0709",
+        "observed_output": "Deku project exists with deku.py, deku_server.py, deku_core/, tests/, docs/, vendor/, and .venv/."
+      },
+      {
+        "command": "sed -n '1,220p' brick_protocol/agent/skills/scoped-implementation/SKILL.md",
+        "cwd": "/Users/smith/.brick/worktrees/deku-g0-face-official-0709",
+        "observed_output": "scoped-implementation points to software-architecture Scoped implementation."
+      },
+      {
+        "command": "sed -n '1,260p' brick_protocol/agent/skills/protocol-boundary-watch/SKILL.md",
+        "cwd": "/Users/smith/.brick/worktrees/deku-g0-face-official-0709",
+        "observed_output": "Read three-axis boundary discipline for Brick/Agent/Link/support responsibilities."
+      },
+      {
+        "command": "sed -n '1,220p' BRICK-CONSTITUTION.md",
+        "cwd": "/Users/smith/.brick/worktrees/deku-g0-face-official-0709",
+        "observed_output": "Read current Brick Constitution rules and active physical roots."
+      },
+      {
+        "command": "sed -n '1,260p' brick_protocol/agent/skills/software-architecture/SKILL.md",
+        "cwd": "/Users/smith/.brick/worktrees/deku-g0-face-official-0709",
+        "observed_output": "Read Scoped implementation guidance: read governing checker/fixture first, reuse existing modules, keep edits scoped."
+      },
+      {
+        "command": "rg -n \"40960|trunc|parse|session|blank|C9\\.1|conduct_history|assembler|\\[policy\\]|\\[wiki\\]|hist|bundle\" /Users/smith/projects/deku",
+        "cwd": "/Users/smith/.brick/worktrees/deku-g0-face-official-0709",
+        "observed_output": "Found focused implementation and tests in deku_server.py, deku_core/, and tests/test_g0_face.py."
+      },
+      {
+        "command": "sed -n '1,280p' deku_server.py",
+        "cwd": "/Users/smith/projects/deku",
+        "observed_output": "Observed assembler bundle plus conversation_history construction and conduct call path."
+      },
+      {
+        "command": "sed -n '1,280p' tests/test_g0_face.py",
+        "cwd": "/Users/smith/projects/deku",
+        "observed_output": "Observed G0 tests including truncation, parse, no-blank, session, trajectory, app endpoints, and multi-turn policy/wiki conduct_history regression."
+      },
+      {
+        "command": "sed -n '1,180p' deku_core/parse.py",
+        "cwd": "/Users/smith/projects/deku",
+        "observed_output": "Observed full message parse and history_summary implementation."
+      },
+      {
+        "command": "git status --short",
+        "cwd": "/Users/smith/projects/deku",
+        "observed_output": "Repository already dirty before edits were made: modified deku.py, deku_server.py, docs/ARCHITECTURE_PLAN.md; untracked deku_core/, docs files, tests/, vendor/."
+      },
+      {
+        "command": "python3 -m unittest discover -s tests -v",
+        "cwd": "/Users/smith/projects/deku",
+        "observed_output": "Ran 27 tests; 6 errors because system python lacks fastapi."
+      },
+      {
+        "command": ".venv/bin/python -m unittest discover -s tests -v",
+        "cwd": "/Users/smith/projects/deku",
+        "observed_output": "Ran 27 tests; all passed with final output OK."
+      },
+      {
+        "command": "nl -ba deku_server.py | sed -n '108,185p'",
+        "cwd": "/Users/smith/projects/deku",
+        "observed_output": "Collected line evidence for parse/session/assembler conduct_history/run_conduct/no-blank path."
+      },
+      {
+        "command": "nl -ba tests/test_g0_face.py | sed -n '15,55p;75,125p;169,252p'",
+        "cwd": "/Users/smith/projects/deku",
+        "observed_output": "Collected line evidence for G0 tests and multi-turn policy/wiki regression test."
+      },
+      {
+        "command": "nl -ba deku_core/catalog.py | sed -n '1,80p'",
+        "cwd": "/Users/smith/projects/deku",
+        "observed_output": "Collected line evidence for 40960 catalog/truncation constants."
+      },
+      {
+        "command": "nl -ba deku_core/parse.py | sed -n '52,105p'",
+        "cwd": "/Users/smith/projects/deku",
+        "observed_output": "Collected line evidence for full parse and history summary."
+      },
+      {
+        "command": "nl -ba deku_core/no_blank.py | sed -n '1,80p'",
+        "cwd": "/Users/smith/projects/deku",
+        "observed_output": "Collected line evidence for no-blank guard."
+      },
+      {
+        "command": "nl -ba deku_core/session.py | sed -n '1,80p'",
+        "cwd": "/Users/smith/projects/deku",
+        "observed_output": "Collected line evidence for session binding."
+      },
+      {
+        "command": "nl -ba deku_core/trajectory.py | sed -n '1,180p'",
+        "cwd": "/Users/smith/projects/deku",
+        "observed_output": "Collected line evidence for trajectory schema/build/validate/append."
+      },
+      {
+        "command": "nl -ba deku_server.py | sed -n '272,290p;458,480p'",
+        "cwd": "/Users/smith/projects/deku",
+        "observed_output": "Collected line evidence for response, models, and healthz truncation/catalog surfaces."
+      },
+      {
+        "command": "git diff --name-only -- /Users/smith/projects/deku",
+        "cwd": "/Users/smith/projects/deku",
+        "observed_output": "Measured existing tracked dirty files: deku.py, deku_server.py, docs/ARCHITECTURE_PLAN.md. No file edits were made by this turn."
+      }
+    ],
+    "evidence_refs": [
+      "support-packet:deku-g0-face-official-0709:agent-object:dev:output"
+    ],
+    "handoff_refs": [],
+    "made_changes": false,
+    "no_changes_reason": "Requested implementation was already present and verified with the project .venv test run; no file change was necessary or made.",
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "filesystem-enforced source_write/probe_write separation",
+      "Provider quality is not proven.",
+      "Real non-mock Nemotron/model runtime behavior is not proven.",
+      "External codex provider integration beyond local FastAPI TestClient paths is not proven.",
+      "Untracked and pre-existing dirty files in /Users/smith/projects/deku were not attributed to this Agent turn."
+    ],
+    "observed_evidence": [
+      "deku_core/catalog.py:3 sets CONTEXT_WINDOW = 40960 and deku_core/catalog.py:4 sets TRUNCATION_LIMIT = 40960.",
+      "deku_server.py:284 and deku_server.py:285 expose context_window and truncation_policy limit in response payloads; deku_server.py:465 through deku_server.py:477 expose the same values through models and healthz.",
+      "deku_core/parse.py:52 through deku_core/parse.py:90 parses full request messages and preserves message_count/current_user.",
+      "deku_core/parse.py:94 through deku_core/parse.py:113 builds prior-turn history summary instead of last-question-only behavior.",
+      "deku_core/session.py:33 through deku_core/session.py:66 resolves session ids from metadata, previous_response_id, conversation, or a new generated session and persists response bindings.",
+      "deku_core/no_blank.py:11 through deku_core/no_blank.py:17 forces non-empty user-facing output for None, empty, None-string, and null-string answers.",
+      "deku_core/trajectory.py:12 through deku_core/trajectory.py:26 defines required C9.1-style top-level trajectory fields; deku_core/trajectory.py:67 through deku_core/trajectory.py:111 builds complete rows; deku_core/trajectory.py:114 through deku_core/trajectory.py:158 validates rows before append.",
+      "deku_server.py:123 through deku_server.py:143 builds assembler bundle first, then appends [conversation_history] when prior turns exist, preserving [policy]/[wiki] zones on multi-turn requests.",
+      "deku_server.py:144 through deku_server.py:160 records policy/wiki inject events with into_conduct_history true.",
+      "deku_server.py:174 through deku_server.py:183 passes conduct_history into run_conduct and applies ensure_user_answer to the result.",
+      "tests/test_g0_face.py:18 through tests/test_g0_face.py:27 covers truncation 40960.",
+      "tests/test_g0_face.py:30 through tests/test_g0_face.py:44 covers full message parse and history summary retention.",
+      "tests/test_g0_face.py:47 through tests/test_g0_face.py:53 covers no-blank output.",
+      "tests/test_g0_face.py:77 through tests/test_g0_face.py:87 covers previous_response_id session binding.",
+      "tests/test_g0_face.py:109 through tests/test_g0_face.py:117 covers models and healthz truncation/catalog surfaces.",
+      "tests/test_g0_face.py:169 through tests/test_g0_face.py:250 covers the multi-turn [policy]/[wiki] conduct_history regression and inject event logging.",
+      ".venv/bin/python -m unittest discover -s tests -v ran 27 tests in 0.308s with final output OK."
+    ],
+    "output_excerpt": "{ \"received_work_ref\": \"support-packet:deku-g0-face-official-0709:agent-object:dev:input\", \"received_deliverables_echo\": [ \"Implement/verify G0 Face on /Users/smith/projects/deku.\", \"Verify truncation 40960, parse, session, no-blank, trajectory C9.1.\", \"Verify multi-turn conduct_history always includes assembler [policy]/[wiki] zones and fixes hist-or-bundle bug.\", \"Run: cd /Users/smith/projects/deku && python3 -m unittest discover -s tests -v.\", \"Return changed_files, commands_run, observed_evidence.\" ], \"made_changes\": false, \"changed_files\": [], \"observed_evidence\": [ \"deku_core/catalog....",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "workspace write is limited by Brick-declared write_scope"
+    ],
+    "received_deliverables_echo": [
+      "Implement/verify G0 Face on /Users/smith/projects/deku.",
+      "Verify truncation 40960, parse, session, no-blank, trajectory C9.1.",
+      "Verify multi-turn conduct_history always includes assembler [policy]/[wiki] zones and fixes hist-or-bundle bug.",
+      "Run: cd /Users/smith/projects/deku && python3 -m unittest discover -s tests -v.",
+      "Return changed_files, commands_run, observed_evidence."
+    ],
+    "received_work_ref": "support-packet:deku-g0-face-official-0709:agent-object:dev:input",
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:codex-local",
+    "selected_model_ref": "model:codex:default",
+    "worktree_observation": {
+      "after_git_refs": {
+        "branch": "HEAD",
+        "head": "21d28569421d25fd15fdc7698fffc0ba72d076e4"
+      },
+      "after_git_status_paths": [],
+      "after_path_count": 5233,
+      "before_git_refs": {
+        "branch": "HEAD",
+        "head": "21d28569421d25fd15fdc7698fffc0ba72d076e4"
+      },
+      "before_git_status_paths": [],
+      "before_path_count": 5233,
+      "git_refs_moved": {},
+      "not_proven": [
+        "semantic correctness of file edits",
+        "complete diff attribution for pre-existing dirty paths"
+      ],
+      "observed_changed_files": [],
+      "proof_limits": [
+        "changed files are support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "write_scope": {
+        "allowed_paths": [
+          "."
+        ],
+        "forbidden_paths": [
+          ".git/**"
+        ]
+      }
+    }
+  },
+  "returned_fact_ref": "agent-fact:01:deku-g0-face-official-0709-work",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:deku-g0-face-official-0709",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:deku-g0-face-official-0709-work:attempt-1",
+  "step_ref": "deku-g0-face-official-0709-work",
+  "subject": "deku-g0-face-official-0709-work",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-07-09T13:16:06.973803Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

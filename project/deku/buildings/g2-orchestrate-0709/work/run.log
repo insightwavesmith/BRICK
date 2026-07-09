@@ -1,0 +1,13 @@
+
+test_access_modes (tests.test_g1_g2.TestAccessGroundVerify.test_access_modes) ... ok
+test_call_cap_violation_counted (tests.test_g1_g2.TestAccessGroundVerify.test_call_cap_violation_counted) ... ok
+test_greeting_single_call (tests.test_g1_g2.TestAccessGroundVerify.test_greeting_single_call) ... ok
+test_grounding_ungrounded_number (tests.test_g1_g2.TestAccessGroundVerify.test_grounding_ungrounded_number) ... ok
+test_invalid_plan_falls_back (tests.test_g1_g2.TestAccessGroundVerify.test_invalid_plan_falls_back) ... ok
+test_strategy_e2e_mock (tests.test_g1_g2.TestAccessGroundVerify.test_strategy_e2e_mock) ... ok
+test_strategy_with_verify_replan (tests.test_g1_g2.TestAccessGroundVerify.test_strategy_with_verify_replan) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.007s
+
+OK

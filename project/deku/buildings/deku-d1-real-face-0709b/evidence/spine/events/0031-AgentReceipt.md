@@ -1,0 +1,12 @@
+# AgentReceipt · seq 31 · ["Agent"]
+- agent_object_ref: "agent-object:coo"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-deku-d1-real-face-0709b-closure"
+- event_type: "AgentReceipt"
+- evidence_reference: "raw:agent:04"
+- received_work_ref: "brick-work:04:deku-d1-real-face-0709b-closure"
+- run_segment: 1
+- sequence_index: 31
+- source_fact_ref: "agent-fact:04:deku-d1-real-face-0709b-closure"
+- spine_schema_version: "spine-v1"
+- step_ref: "deku-d1-real-face-0709b-closure"

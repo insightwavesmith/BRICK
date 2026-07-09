@@ -1,0 +1,85 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:deku-g0-face-official-0709::raw/raw-manifest.json",
+  "building_id": "deku-g0-face-official-0709",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "entries": [
+    {
+      "axis_owner": "Brick",
+      "content_shape": "jsonl Brick work rows",
+      "path": "raw/brick-work.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:brick:02"
+      ],
+      "record_role": "primary",
+      "source": "brick_protocol/support/operator/run.py run_building_plan declared Brick rows"
+    },
+    {
+      "axis_owner": "Agent",
+      "content_shape": "jsonl Agent returned payload refs",
+      "path": "raw/agent-return.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:agent:01",
+        "raw:agent:02"
+      ],
+      "record_role": "primary",
+      "source": "brick_protocol/support/operator/run.py run_building_plan closed AgentFact returns"
+    },
+    {
+      "axis_owner": "Agent",
+      "content_shape": "jsonl Agent receipt rows",
+      "path": "raw/agent-received.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:agent-received:01",
+        "raw:agent-received:02"
+      ],
+      "record_role": "primary",
+      "source": "brick_protocol/support/operator/run.py preserved adapter-error receipt rows across resume"
+    },
+    {
+      "axis_owner": "Link",
+      "content_shape": "jsonl Link transition rows and frontier absence rows",
+      "path": "raw/link.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:link:01",
+        "raw:link:02",
+        "raw:link-graph:01:edge-deku-g0-face-official-0709-work-to-deku-g0-face-official-0709-closure",
+        "raw:link-graph:02:edge-deku-g0-face-official-0709-closure-to-boundary-closed"
+      ],
+      "record_role": "primary",
+      "source": "brick_protocol/support/operator/run.py declared Link rows and preserved adapter-error frontier rows"
+    }
+  ],
+  "generatedAtTime": "2026-07-09T13:21:43Z",
+  "id": "urn:bp:building:deku-g0-face-official-0709::raw/raw-manifest.json",
+  "raw_refs": [
+    "raw:brick:01",
+    "raw:agent:01",
+    "raw:link:01",
+    "raw:brick:02",
+    "raw:agent:02",
+    "raw:link:02",
+    "raw:agent-received:01",
+    "raw:agent-received:02",
+    "raw:link-graph:01:edge-deku-g0-face-official-0709-work-to-deku-g0-face-official-0709-closure",
+    "raw:link-graph:02:edge-deku-g0-face-official-0709-closure-to-boundary-closed"
+  ],
+  "recorded_at": "2026-07-09T13:21:43Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:deku-g0-face-official-0709",
+  "specversion": "1.0",
+  "subject": "raw/raw-manifest.json",
+  "time": "2026-07-09T13:21:43Z",
+  "type": "bp.raw_manifest"
+}

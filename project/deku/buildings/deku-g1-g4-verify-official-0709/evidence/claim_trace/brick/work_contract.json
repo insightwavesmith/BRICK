@@ -1,0 +1,269 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:deku-g1-g4-verify-official-0709::evidence/claim_trace/brick/work_contract.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-deku-g1-g4-verify-official-0709-work",
+        "comparison_rule": "Work Brick is the implementer — it does the declared implementation inside the Brick write scope, coding directly or using subagents/workflows as tools when the work is large or benefits from parallelism.",
+        "required_return_shape": "received_work_ref,received_deliverables_echo,made_changes,changed_files,observed_evidence,commands_run,blocked_or_missing_evidence,handoff_refs,not_proven",
+        "source_facts": [],
+        "work_statement": "Verify G1–G4 on /Users/smith/projects/deku. Run: cd /Users/smith/projects/deku && python3 -m unittest discover -s tests -v. If suite green and no code gap, return made_changes=false with no_changes_reason=already_landed_verified. If a real failing test needs a fix, change only write_scope paths. Capture commands_run and observed_evidence."
+      },
+      "fact_ref": "brick-work:01:deku-g1-g4-verify-official-0709-work",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: received_work_ref, received_deliverables_echo, made_changes, changed_files, observed_evidence, commands_run, blocked_or_missing_evidence, handoff_refs, not_proven",
+          "observed_return_fields: adapter_ref, agent_object_ref, blocked_or_missing_evidence, brain_surface_ref, changed_files, cli_call_ref, cli_version_text, commands_run, evidence_refs, handoff_refs, made_changes, no_changes_reason, not_proven, observed_evidence, output_excerpt, proof_limits, received_deliverables_echo, received_work_ref, returned_summary, selected_adapter_ref, selected_model_ref, worktree_observation",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Work Brick is the implementer — it does the declared implementation inside the Brick write scope, coding directly or using subagents/workflows as tools when the work is large or benefits from parallelism.",
+        "forbidden_shortcut_evidence": [
+          "brick_protocol/support/run did not classify Agent return",
+          "brick_protocol/support/run did not judge success or quality",
+          "brick_protocol/support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "received_work_ref,received_deliverables_echo,made_changes,changed_files,observed_evidence,commands_run,blocked_or_missing_evidence,handoff_refs,not_proven",
+        "work_reference": "Verify G1–G4 on /Users/smith/projects/deku. Run: cd /Users/smith/projects/deku && python3 -m unittest discover -s tests -v. If suite green and no code gap, return made_changes=false with no_changes_reason=already_landed_verified. If a real failing test needs a fix, change only write_scope paths. Capture commands_run and observed_evidence."
+      },
+      "fact_ref": "brick-comparison:01:deku-g1-g4-verify-official-0709-work",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:01:deku-g1-g4-verify-official-0709-work",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: received_work_ref, received_deliverables_echo, made_changes, changed_files, observed_evidence, commands_run, blocked_or_missing_evidence, handoff_refs, not_proven",
+          "observed_return_fields: adapter_ref, agent_object_ref, blocked_or_missing_evidence, brain_surface_ref, changed_files, cli_call_ref, cli_version_text, commands_run, evidence_refs, handoff_refs, made_changes, no_changes_reason, not_proven, observed_evidence, output_excerpt, proof_limits, received_deliverables_echo, received_work_ref, returned_summary, selected_adapter_ref, selected_model_ref, worktree_observation",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Work Brick is the implementer — it does the declared implementation inside the Brick write scope, coding directly or using subagents/workflows as tools when the work is large or benefits from parallelism.",
+        "forbidden_shortcut_evidence": [
+          "brick_protocol/support/run did not classify Agent return",
+          "brick_protocol/support/run did not judge success or quality",
+          "brick_protocol/support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "received_work_ref,received_deliverables_echo,made_changes,changed_files,observed_evidence,commands_run,blocked_or_missing_evidence,handoff_refs,not_proven",
+        "work_reference": "Verify G1–G4 on /Users/smith/projects/deku. Run: cd /Users/smith/projects/deku && python3 -m unittest discover -s tests -v. If suite green and no code gap, return made_changes=false with no_changes_reason=already_landed_verified. If a real failing test needs a fix, change only write_scope paths. Capture commands_run and observed_evidence."
+      },
+      "fact_ref": "brick-comparison:deku-g1-g4-verify-official-0709:deku-g1-g4-verify-official-0709-work",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-deku-g1-g4-verify-official-0709-closure",
+        "comparison_rule": "Closure Brick records evidence, narrowly_proven, not_proven, remaining_delta, and next candidate movement.",
+        "required_return_shape": "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence,deliverable_crosscheck",
+        "source_facts": [
+          "work/step-outputs/deku-g1-g4-verify-official-0709-work-attempt-1/step-output.json"
+        ],
+        "work_statement": "Synthesize G1–G4 Exit observation: narrowly_proven from unittest + prior G0 official building; remaining_not_proven for paid workers / Nemotron soak / worktree merge human_review on fake_landing. Do not claim commercial Dominate."
+      },
+      "fact_ref": "brick-work:02:deku-g1-g4-verify-official-0709-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, narrowly_proven, not_proven, remaining_delta, parent_goal_delta_status, next_target_candidates, deferred_smith_review_queue, transition_concern_evidence, deliverable_crosscheck",
+          "observed_return_fields: adapter_ref, agent_object_ref, brain_surface_ref, cli_call_ref, cli_version_text, deferred_smith_review_queue, deliverable_crosscheck, evidence_refs, narrowly_proven, next_target_candidates, not_proven, observed_evidence, output_excerpt, parent_goal_delta_status, proof_limits, remaining_delta, returned_summary, selected_adapter_ref, selected_model_ref, transition_concern_evidence",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Closure Brick records evidence, narrowly_proven, not_proven, remaining_delta, and next candidate movement.",
+        "forbidden_shortcut_evidence": [
+          "brick_protocol/support/run did not classify Agent return",
+          "brick_protocol/support/run did not judge success or quality",
+          "brick_protocol/support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence,deliverable_crosscheck",
+        "work_reference": "Synthesize G1–G4 Exit observation: narrowly_proven from unittest + prior G0 official building; remaining_not_proven for paid workers / Nemotron soak / worktree merge human_review on fake_landing. Do not claim commercial Dominate."
+      },
+      "fact_ref": "brick-comparison:02:deku-g1-g4-verify-official-0709-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:02:deku-g1-g4-verify-official-0709-closure",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, narrowly_proven, not_proven, remaining_delta, parent_goal_delta_status, next_target_candidates, deferred_smith_review_queue, transition_concern_evidence, deliverable_crosscheck",
+          "observed_return_fields: adapter_ref, agent_object_ref, brain_surface_ref, cli_call_ref, cli_version_text, deferred_smith_review_queue, deliverable_crosscheck, evidence_refs, narrowly_proven, next_target_candidates, not_proven, observed_evidence, output_excerpt, parent_goal_delta_status, proof_limits, remaining_delta, returned_summary, selected_adapter_ref, selected_model_ref, transition_concern_evidence",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Closure Brick records evidence, narrowly_proven, not_proven, remaining_delta, and next candidate movement.",
+        "forbidden_shortcut_evidence": [
+          "brick_protocol/support/run did not classify Agent return",
+          "brick_protocol/support/run did not judge success or quality",
+          "brick_protocol/support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence,deliverable_crosscheck",
+        "work_reference": "Synthesize G1–G4 Exit observation: narrowly_proven from unittest + prior G0 official building; remaining_not_proven for paid workers / Nemotron soak / worktree merge human_review on fake_landing. Do not claim commercial Dominate."
+      },
+      "fact_ref": "brick-comparison:deku-g1-g4-verify-official-0709:deku-g1-g4-verify-official-0709-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-07-09T13:21:48Z",
+  "id": "urn:bp:building:deku-g1-g4-verify-official-0709::evidence/claim_trace/brick/work_contract.json",
+  "recorded_at": "2026-07-09T13:21:48Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:deku-g1-g4-verify-official-0709",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/brick/work_contract.json",
+  "time": "2026-07-09T13:21:48Z",
+  "type": "bp.claim_trace"
+}

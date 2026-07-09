@@ -1,0 +1,57 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:deku-d1-real-face-0709b::work/building-work.json",
+  "building_id": "deku-d1-real-face-0709b",
+  "comparison_rule": "Work Brick is the implementer — it does the declared implementation inside the Brick write scope, coding directly or using subagents/workflows as tools when the work is large or benefits from parallelism.",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-07-09T14:14:40Z",
+  "id": "urn:bp:building:deku-d1-real-face-0709b::work/building-work.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "filesystem-enforced source_write/probe_write separation",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "plan_ref": "building-plan:composed-graph",
+  "proof_limits": [
+    "support CLI wrapper only",
+    "existing seams own run/checker behavior",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-07-09T14:14:40Z",
+  "required_return_shape": "received_work_ref,received_deliverables_echo,made_changes,changed_files,observed_evidence,commands_run,blocked_or_missing_evidence,handoff_refs,not_proven",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:deku-d1-real-face-0709b",
+  "source_facts": [],
+  "specversion": "1.0",
+  "step_refs": [
+    "deku-d1-real-face-0709b-work",
+    "deku-d1-real-face-0709b-code-attack-qa",
+    "deku-d1-real-face-0709b-work",
+    "deku-d1-real-face-0709b-closure"
+  ],
+  "subject": "work/building-work.json",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-07-09T14:14:40Z",
+  "type": "bp.building_work",
+  "work_statement": "D1 Real Face implementer: make mock-off Nemotron face green on shipped deku_server. Use /Users/smith/projects/deku/.venv/bin/python only. Run probes/real_path_probe.py --phase d1 --hellos 20 with DEKU_WORKER_MODE=local_double (or equivalent that still uses shipped dispatch_worker + real Nemotron load). Fix any load/path/import gaps inside write_scope. Produce non-blank hello≥20 + multi-turn evidence files. Do not use DEKU_FORCE_MOCK=1 for Exit proof."
+}

@@ -1,0 +1,117 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:deku-d1-real-face-0709b::raw/raw-manifest.json",
+  "building_id": "deku-d1-real-face-0709b",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "entries": [
+    {
+      "axis_owner": "Brick",
+      "content_shape": "jsonl Brick work rows",
+      "path": "raw/brick-work.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:brick:02",
+        "raw:brick:03",
+        "raw:brick:04"
+      ],
+      "record_role": "primary",
+      "source": "brick_protocol/support/operator/run.py run_building_plan declared Brick rows"
+    },
+    {
+      "axis_owner": "Agent",
+      "content_shape": "jsonl Agent returned payload refs",
+      "path": "raw/agent-return.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:agent:01",
+        "raw:agent:02",
+        "raw:agent:03",
+        "raw:agent:04"
+      ],
+      "record_role": "primary",
+      "source": "brick_protocol/support/operator/run.py run_building_plan closed AgentFact returns"
+    },
+    {
+      "axis_owner": "Agent",
+      "content_shape": "jsonl Agent receipt rows",
+      "path": "raw/agent-received.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:agent-received:01",
+        "raw:agent-received:02",
+        "raw:agent-received:03",
+        "raw:agent-received:04"
+      ],
+      "record_role": "primary",
+      "source": "brick_protocol/support/operator/run.py Agent receipt observations for completed steps"
+    },
+    {
+      "axis_owner": "Agent",
+      "content_shape": "jsonl full adapter output text side-channel rows",
+      "path": "raw/agent-output-text.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:agent-output-text:04"
+      ],
+      "record_role": "primary",
+      "source": "brick_protocol/support/operator/run.py adapter output text side-channel"
+    },
+    {
+      "axis_owner": "Link",
+      "content_shape": "jsonl Link Movement and transition refs",
+      "path": "raw/link.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:link:01",
+        "raw:link:02",
+        "raw:link:03",
+        "raw:link:04",
+        "raw:link-reroute:01",
+        "raw:link-graph:01:edge-deku-d1-real-face-0709b-work-to-deku-d1-real-face-0709b-code-attack-qa",
+        "raw:link-graph:02:edge-deku-d1-real-face-0709b-code-attack-qa-to-deku-d1-real-face-0709b-closure",
+        "raw:link-graph:03:edge-deku-d1-real-face-0709b-closure-to-boundary-closed"
+      ],
+      "record_role": "primary",
+      "source": "brick_protocol/support/operator/run.py run_building_plan declared Link rows"
+    }
+  ],
+  "generatedAtTime": "2026-07-09T14:14:40Z",
+  "id": "urn:bp:building:deku-d1-real-face-0709b::raw/raw-manifest.json",
+  "raw_refs": [
+    "raw:brick:01",
+    "raw:agent:01",
+    "raw:link:01",
+    "raw:brick:02",
+    "raw:agent:02",
+    "raw:link:02",
+    "raw:brick:03",
+    "raw:agent:03",
+    "raw:link:03",
+    "raw:brick:04",
+    "raw:agent:04",
+    "raw:link:04",
+    "raw:agent-received:01",
+    "raw:agent-received:02",
+    "raw:agent-received:03",
+    "raw:agent-received:04",
+    "raw:agent-output-text:04",
+    "raw:link-reroute:01",
+    "raw:link-graph:01:edge-deku-d1-real-face-0709b-work-to-deku-d1-real-face-0709b-code-attack-qa",
+    "raw:link-graph:02:edge-deku-d1-real-face-0709b-code-attack-qa-to-deku-d1-real-face-0709b-closure",
+    "raw:link-graph:03:edge-deku-d1-real-face-0709b-closure-to-boundary-closed"
+  ],
+  "recorded_at": "2026-07-09T14:14:40Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:deku-d1-real-face-0709b",
+  "specversion": "1.0",
+  "subject": "raw/raw-manifest.json",
+  "time": "2026-07-09T14:14:40Z",
+  "type": "bp.raw_manifest"
+}

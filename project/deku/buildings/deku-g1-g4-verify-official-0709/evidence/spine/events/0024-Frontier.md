@@ -1,0 +1,11 @@
+# Frontier · seq 24 · ["Link"]
+- axis_scope: ["Link"]
+- event_type: "Frontier"
+- frontier_kind: "complete"
+- frontier_reason: "declared closed boundary observed after paused frontier disposition"
+- not_proven: ["whether a provider process is currently alive","semantic correctness of current frontier","whether caller/COO should resume, reroute, or close","future Building outcome"]
+- observed_counts: {"adapter_error_records":0,"agent_received_records":2,"agent_return_records":2,"building_map_link_edges":2,"chat_session_park_records":0,"link_records":4,"parked_step_output_records":0,"work_envelope_records":0}
+- proof_limits: ["support frontier observation only","static evidence files only","not process liveness","not source truth","not success judgment","not quality judgment","not Movement authority","not route target choice","not pause/resume authority"]
+- run_segment: 1
+- sequence_index: 24
+- spine_schema_version: "spine-v1"

@@ -1,0 +1,208 @@
+{
+  "building_id": "deku-g0-face-official-0709",
+  "declared_plan_copy": {
+    "brick_steps": [
+      {
+        "completion_edge_ref": "edge:deku-g0-face-official-0709-work-to-deku-g0-face-official-0709-closure",
+        "rows": [
+          {
+            "axis": "Brick",
+            "brick_instance_ref": "brick-deku-g0-face-official-0709-work",
+            "brick_instruction_body": "## Work\n\nPerform the declared implementation or document work **inside the Brick write scope only**.\nYou are the implementer. Do the work yourself — but you are NOT limited to working alone: when the\nwork is large or benefits from parallel/independent effort, you MAY spawn subagents or workflows as\n**tools** (the same way a capable engineer delegates pieces), then merge their results into ONE set of\nchanges under this Brick's `write_scope`. Orchestrating helpers is a **capability, not a separate role** —\nyou remain the single responsible implementer, and you do NOT bear verdicts (sufficiency and quality\nstay the Link gate's and the human's).\n\nInput: the prior Brick's report (carried via the Link edge) plus this node's declared\n`work_statement`. The design report's `reading_scope_map` (when present) is an ordered,\nmost-important-first list of paths/dirs the design Brick recommends you START reading from — begin\nthere to orient quickly. It is GUIDANCE, not a fence: you MAY read further (any file) as the work\nrequires, and nothing enforces or limits your reads. Do the real work — implement / edit / write —\nwithin `write_scope` (the write fence is separate and hard; reading is unconstrained).\n\nReturn: fill the `required_return_shape` from the return_template\n(`brick_protocol/brick/templates/bricks/work/return.yaml`):\n`received_work_ref`, `received_deliverables_echo`, `made_changes`, `changed_files`,\n`observed_evidence`, `commands_run`, `blocked_or_missing_evidence`, `handoff_refs`, `not_proven`.\n(`no_changes_reason` is the `made_changes` waiver when no file/content change was made.)\n\n`received_deliverables_echo` restates the numbered deliverables you understood from the received\ncontract. It is an echo for later contract comparison only, not a sufficiency, quality, success,\napproval, or `good_enough` judgment.\n\nSelf-report / measurement coherence: `made_changes` states the factual write outcome, and support\noverwrites `changed_files` from the measured diff (write observation) — the two must never\ncontradict. If no real change landed, return `made_changes: false` with `no_changes_reason`; never\nreturn a complete-style narrative implying implementation while `changed_files` carries no real\ndiff artifact. Report that gap under `blocked_or_missing_evidence` / `not_proven` — a checker pin\nthat only exercises already-green paths is not implementation evidence (0702 fake-landing\npostmortem: work shipped pins only and self-reported complete).\n\nDo NOT return `success` / `failure` / `approved` / `quality` / `good_enough` / `movement_choice` / `route_target` —\nsufficiency + movement are the Link gate's; quality/success are the human's.\n\n> This `## Work` body IS delivered to the Agent in the prompt as the static kind instruction\n> (brick_protocol/support/connection/adapter_grant_policy._build_prompt, key `brick_instruction_body`), carried from\n> this file by the Builder (plan_rendering carries the ## body onto the step_template row; composition\n> stamps it onto the brick_row). It is a SEPARATE prompt section from the dynamic `work_statement`.\n> Each `required_return_shape` field is guarded to appear here with guidance, both directions, across\n> EVERY return template (check_bricks_spec_completeness._prose_return_shape_drift_violations), so this\n> body and the return.yaml cannot drift. The frontmatter carries Brick contract fields plus Builder\n> selection metadata (`requires_brick_write_scope`, `performer_lane_need`, `agent_object_hint_ref`,\n> `required_return_template_refs`, `link_movement_literal`) so the Builder can materialize declared BAL\n> rows. Keep this instruction GENERAL to the kind (building-specifics ride `work_statement`); do not\n> claim it raises quality — the Link gate checks sufficiency, quality is the human's.\n",
+            "brick_work_ref": "work:deku-g0-face-official-0709-work",
+            "capability_class": "source_write",
+            "carries_forward_fields": "made_changes,changed_files,commands_run,handoff_refs",
+            "comparison_rule": "Work Brick is the implementer — it does the declared implementation inside the Brick write scope, coding directly or using subagents/workflows as tools when the work is large or benefits from parallelism.",
+            "required_return_shape": "received_work_ref,received_deliverables_echo,made_changes,changed_files,observed_evidence,commands_run,blocked_or_missing_evidence,handoff_refs,not_proven",
+            "requires_brick_write_scope": true,
+            "row_ref": "brick-row:deku-g0-face-official-0709-work",
+            "work_statement": "Implement/verify G0 Face on /Users/smith/projects/deku: truncation 40960, parse, session, no-blank, trajectory C9.1, multi-turn conduct_history always includes assembler [policy]/[wiki] zones (fix hist-or-bundle bug). Run: cd /Users/smith/projects/deku && python3 -m unittest discover -s tests -v. Return changed_files + commands_run + observed_evidence.",
+            "write_scope": {
+              "allowed_paths": [
+                "."
+              ],
+              "forbidden_paths": [
+                ".git/**"
+              ]
+            }
+          },
+          {
+            "agent_object_ref": "agent-object:dev",
+            "axis": "Agent",
+            "row_ref": "agent-row:deku-g0-face-official-0709-work"
+          }
+        ],
+        "selected_adapter_ref": "adapter:codex-local",
+        "selected_model_ref": "model:codex:default",
+        "selected_reasoning_effort_ref": "effort:default",
+        "step_ref": "deku-g0-face-official-0709-work",
+        "step_template_ref": "building-step-template:work"
+      },
+      {
+        "completion_edge_ref": "edge:deku-g0-face-official-0709-closure-to-boundary-closed",
+        "rows": [
+          {
+            "axis": "Brick",
+            "brick_instance_ref": "brick-deku-g0-face-official-0709-closure",
+            "brick_instruction_body": "## Closure\n\nRecord the closure synthesis for the Building so the parent objective is carried across child phases —\n**without** judging success, quality, or Movement.\n\nInput: the prior Bricks' reports (carried via the Link edges) plus this node's declared\n`work_statement` / closure scope. Read the accumulated evidence and the parent objective; synthesize\nwhat was observed, what is narrowly proven, what remains, and where the work could go next.\n\nDo: assemble the closure from the carried evidence only. State `narrowly_proven` as the strictly\nevidence-backed slice (proof scope may narrow, but the objective scope must be carried forward).\nName concrete future work in `remaining_delta` and `next_target_candidates`. Express\n`parent_goal_delta_status` as a MAPPING whose keys are ONLY the six allowed sub-fields from the\nreturn_template — `matched_delta_refs`, `closed_delta_refs`, `open_delta_refs`,\n`missing_delta_refs`, `unknown_delta_refs`, `evidence_refs` — each holding plain-text refs.\nNever place a `status`, verdict, or free-text key INSIDE this mapping (a sub-key containing\n`status` is a forbidden return key and the whole return is rejected); it is observation\nlanguage, **not** a percentage or a verdict. Queue anything needing a human decision into\n`deferred_smith_review_queue`.\n\nReturn: fill the `required_return_shape` from the return_template\n(`brick_protocol/brick/templates/bricks/closure/return.yaml`):\n`observed_evidence`, `narrowly_proven`, `not_proven`, `remaining_delta`, `parent_goal_delta_status`,\n`next_target_candidates`, `deferred_smith_review_queue`, `transition_concern_evidence`,\n`deliverable_crosscheck`.\n(`not_proven` is next-target material, not a failure verdict.)\n\n`deliverable_crosscheck` lists every numbered task deliverable as an audit row\n(`deliverable_ref`, `implementation_status`, `diff_artifact_refs`, `evidence_refs`);\n`implementation_status` is observation language (`implemented` / `partial` / `not_implemented` /\n`not_applicable_read_only`), not a verdict. An implementation deliverable row with empty\n`diff_artifact_refs` must be accompanied by `transition_concern_evidence` (`implementation_gap`) —\nnever by a complete-style return, and never deferred to a human review queue as a substitute\n(0702 fake-landing postmortem).\nWhen prior Work returns include `received_deliverables_echo`, compare the original contract's\nnumbered deliverables, the Work echo, and the diff artifacts as three separate observations. Record\nany contract/echo/diff mismatch in `deliverable_crosscheck` without turning that comparison into\nsuccess, quality, approval, sufficiency, or Movement language.\n\n`transition_concern_evidence` (shape: `brick_protocol/brick/templates/bricks/transition-concern-return.yaml`)\nis **non-binding** Agent evidence — it carries `concern_ref`, `concern_kind`, `reason_refs`,\n`related_boundary_refs`, `binding: false`; it MUST NOT carry `movement` / `target` / `target_ref` /\n`route_target`. The forward Link carries this evidence onward; the concern never reroutes by itself.\nIf there is no real transition concern, return `transition_concern_evidence: null` or omit the field;\nnever return `{}` as a no-concern placeholder. An empty object is malformed concern evidence and may\npause at the Link frontier instead of closing.\nWhen you raise a concern for a REAL reproduced defect, aim `related_boundary_refs` at the upstream\nWORK node responsible (plain declared node id, `brick:<declared-node>`,\n`brick-instance:<declared-node>`, or `brick-boundary:<declared-node>`) — NOT yourself, NOT a\n`building-boundary:` sentinel. The engine silently walks-on a self-ref or sentinel, so no reroute\never fires. If the concern may be adopted, keep `reason_refs` current-ledger-local and resolvable\nfrom this Building's recorded rows; cite external files, prior Building evidence paths, URLs, or\npacket labels under `observed_evidence`, not `reason_refs`. A slash-containing `reason_refs`\naddress must name an existing step-output document under this Building's `work/step-outputs/`\nsubtree, with no `#fragment`; put step-output fragments, bare `file:line` citations,\nnon-step-output slash paths, document paths, and descriptive refs under `observed_evidence`, or use a\nslashless opaque token such as `observation:<id>`. Environment or runtime constraints (no\ntemp dir, write-scope limits, provider limits, read-only status, \"live not run\") are NOT defects —\nrecord them in `not_proven`, never as a `transition_concern`.\nIf `concern_kind` is `verification_gap`, it is non-reroute evidence: leave\n`related_boundary_refs` empty or use a `building-boundary:` sentinel, never an upstream Brick node.\n\nDo NOT return `success` / `failure` / `approved` / `quality` / `good_enough` / `movement_choice` / `route_target` —\nsufficiency + movement are the Link gate's; quality/success are the human's. This Brick writes no\nfiles and declares no source truth — it returns closure synthesis (observed facts + remaining delta)\nonly.\n\n> This `## Closure` body IS delivered to the Agent in the prompt as the static kind instruction\n> (brick_protocol/support/connection/adapter_grant_policy._build_prompt, key `brick_instruction_body`), carried from\n> this file by the Builder (plan_rendering carries the ## body onto the step_template row; composition\n> stamps it onto the brick_row). It is a SEPARATE prompt section from the dynamic `work_statement`.\n> Each `required_return_shape` field is guarded to appear here with guidance, both directions, across\n> EVERY return template (check_bricks_spec_completeness._prose_return_shape_drift_violations), so this\n> body and the return.yaml cannot drift. The frontmatter carries Brick contract fields plus Builder\n> selection metadata (`requires_brick_write_scope`, `performer_lane_need`, `agent_object_hint_ref`,\n> `required_return_template_refs`, `link_movement_literal`) so the Builder can materialize declared BAL\n> rows. Keep this instruction GENERAL to the kind (building-specifics ride `work_statement`); do not\n> claim it raises quality — the Link gate checks sufficiency, quality is the human's.\n",
+            "brick_work_ref": "work:deku-g0-face-official-0709-closure",
+            "capability_class": "read",
+            "carries_forward_fields": "narrowly_proven,remaining_delta,parent_goal_delta_status,next_target_candidates",
+            "comparison_rule": "Closure Brick records evidence, narrowly_proven, not_proven, remaining_delta, and next candidate movement.",
+            "required_return_shape": "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence,deliverable_crosscheck",
+            "row_ref": "brick-row:deku-g0-face-official-0709-closure",
+            "source_facts": [
+              "work/step-outputs/deku-g0-face-official-0709-work-attempt-1/step-output.json"
+            ],
+            "work_statement": "Synthesize G0 Exit: narrowly_proven vs not_proven (Nemotron-loaded soak remains not_proven if mock). Update docs/DEKU_STATUS.md G0 section if needed."
+          },
+          {
+            "agent_object_ref": "agent-object:coo",
+            "axis": "Agent",
+            "row_ref": "agent-row:deku-g0-face-official-0709-closure"
+          }
+        ],
+        "selected_adapter_ref": "adapter:codex-local",
+        "selected_model_ref": "model:codex:default",
+        "selected_reasoning_effort_ref": "effort:default",
+        "step_ref": "deku-g0-face-official-0709-closure",
+        "step_template_ref": "building-step-template:closure"
+      }
+    ],
+    "building_id": "deku-g0-face-official-0709",
+    "composition_mode": "caller_or_coo_declared_graph_composition",
+    "declared_by": "coo-deku-session",
+    "execution_order": [
+      "deku-g0-face-official-0709-work",
+      "deku-g0-face-official-0709-closure"
+    ],
+    "link_edges": [
+      {
+        "edge_ref": "edge:deku-g0-face-official-0709-work-to-deku-g0-face-official-0709-closure",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition"
+            ],
+            "movement": "forward",
+            "row_ref": "link-row:edge:deku-g0-face-official-0709-work-to-deku-g0-face-official-0709-closure",
+            "target_ref": "brick-deku-g0-face-official-0709-closure"
+          }
+        ],
+        "source_step_ref": "deku-g0-face-official-0709-work",
+        "target_step_ref": "deku-g0-face-official-0709-closure"
+      },
+      {
+        "edge_ref": "edge:deku-g0-face-official-0709-closure-to-boundary-closed",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition"
+            ],
+            "movement": "forward",
+            "row_ref": "link-row:edge:deku-g0-face-official-0709-closure-to-boundary-closed",
+            "target_ref": "building-boundary:closed"
+          }
+        ],
+        "source_step_ref": "deku-g0-face-official-0709-closure"
+      }
+    ],
+    "not_proven": [
+      "semantic fitness of selected shape",
+      "future Building run correctness",
+      "future Agent or provider quality"
+    ],
+    "owner_axis": "Brick",
+    "plan_ref": "building-plan:composed-graph",
+    "plan_shape": "graph",
+    "preset_expansion": {
+      "agent_object_refs": [
+        "agent-object:dev",
+        "agent-object:coo"
+      ],
+      "expanded_brick_spec_refs": [
+        "brick_protocol/brick/templates/bricks/work/brick.md",
+        "brick_protocol/brick/templates/bricks/closure/brick.md"
+      ],
+      "expanded_brick_template_refs": [
+        "brick_protocol/brick/templates/bricks/work/return.yaml",
+        "brick_protocol/brick/templates/bricks/transition-concern-return.yaml",
+        "brick_protocol/brick/templates/bricks/closure/return.yaml"
+      ],
+      "expanded_step_template_refs": [
+        "building-step-template:work",
+        "building-step-template:closure"
+      ],
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "selected preset ref was not declared unless separately present"
+      ],
+      "proof_limits": [
+        "support records caller / COO declared graph composition only",
+        "not automatic preset selection",
+        "not automatic shape selection",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "selected_shape_ref": null,
+      "selection_rule": "caller_or_coo_declared_only"
+    },
+    "proof_limits": [
+      "support evidence only",
+      "compose_building assembles caller / COO declared node and edge choices only",
+      "not automatic shape selection",
+      "not automatic Agent selection",
+      "not automatic gate selection",
+      "not support-chosen target",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "route_policy_provenance": {
+      "allowed_provenance": [
+        "constitutional-default",
+        "per-building",
+        "preset-default"
+      ],
+      "by_node": {
+        "deku-g0-face-official-0709-closure": {
+          "node_reroute_budget": "constitutional-default"
+        },
+        "deku-g0-face-official-0709-work": {
+          "node_reroute_budget": "constitutional-default"
+        }
+      },
+      "rule": "route reroute budget + closure routing policy are HUMAN Movement decisions; support records but never synthesizes them (provenance is constitutional-default for Smith-declared reroute defaults, preset-default for a reusable preset default, or per-building for a per-Building override, NEVER support)"
+    },
+    "selected_adapter_ref": "adapter:local",
+    "selected_model_ref": "model:default",
+    "selected_shape_ref": null,
+    "selection_rule": "caller_or_coo_declared_only",
+    "task_source_hash": "99b143e4f2a5ccba0b72374022d133c393484d342e4a6c943f645eb2e4912b8b",
+    "task_source_hash_algorithm": "sha256",
+    "task_source_hash_basis": "utf-8 inline task_statement body at materialization time",
+    "task_source_ref": "task-source:inline-statement",
+    "task_statement": "# Deku G0 Face — official Building\n\n## Objective\nClose G0 Face Exit for project:deku on code at /Users/smith/projects/deku.\n\n## Deliverables\n1. Catalog context_window=40960 and truncation_policy.limit=40960 (not 10000).\n2. Full message parse + session bind + no blank answers.\n3. Trajectory C9.1 every turn.\n4. Multi-turn still injects policy/wiki into conduct history (not hist-only).\n5. `python3 -m unittest discover -s tests -v` green for G0 suite.\n\n## Hard constraints\nWrite scope: deku_core/, deku_server.py, deku.py, tests/, docs/DEKU_STATUS.md only.\nNo wiki product beyond G0 inject path. No G1+ feature expansion.\nMock profile OK for harness; do not require paid workers for G0 Exit.\n\n## Evidence\nRecord commands_run, changed_files, not_proven honestly.\n"
+  },
+  "kind": "declared_building_plan_provenance",
+  "not_proven": [
+    "declared plan semantic correctness",
+    "future Agent or provider behavior"
+  ],
+  "plan_hash": "eb4be5d58a843a7e0be6fca305d0c97046ecc4c7622a9d89084f2d156027bc1b",
+  "plan_hash_algorithm": "sha256",
+  "plan_hash_basis": "canonical sorted-key JSON of the pure declared-building-plan copy (runtime walker state excluded)",
+  "plan_ref": "building-plan:composed-graph",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ]
+}

@@ -1,0 +1,186 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:deku-d1-real-face-0709b::work/step-outputs/deku-d1-real-face-0709b-work-attempt-1/step-output.json",
+  "adapter_dispatch_timing": {
+    "dispatch_ended_at": "2026-07-09T13:54:15Z",
+    "dispatch_started_at": "2026-07-09T13:49:07Z",
+    "duration_ms": 308275.899,
+    "timing_scope": "adapter_dispatch",
+    "timing_source": "brick_protocol/support/operator/walker_kernel.py:process_one_node"
+  },
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:dev",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-deku-d1-real-face-0709b-work",
+  "building_id": "deku-d1-real-face-0709b",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "adapter_dispatch_timing_raw_ref": "raw:adapter-dispatch-timing:deku-d1-real-face-0709b-work:attempt-1",
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-07-09T13:54:15.631998Z",
+  "id": "urn:bp:building:deku-d1-real-face-0709b::work/step-outputs/deku-d1-real-face-0709b-work-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "filesystem-enforced source_write/probe_write separation",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support CLI wrapper only",
+    "existing seams own run/checker behavior",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:deku-d1-real-face-0709b-work",
+  "recorded_at": "2026-07-09T13:54:15.631998Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:dev",
+    "blocked_or_missing_evidence": [
+      "Source mutation in /Users/smith/projects/deku was blocked by the session sandbox because the writable root is /Users/smith/.brick/worktrees/deku-d1-real-face-0709b.",
+      "The D1 probe passed, but local_double hello evidence still contains the user-facing phrase `Deku-1 mock worker` from deku_core/conduct.py:45."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "changed_files": [],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:deku-d1-real-face-0709b",
+    "cli_version_text": "codex-cli 0.143.0",
+    "commands_run": [
+      "sed -n '1,220p' BRICK-CONSTITUTION.md",
+      "sed -n '1,220p' brick_protocol/agent/skills/scoped-implementation/SKILL.md",
+      "sed -n '1,240p' brick_protocol/agent/skills/protocol-boundary-watch/SKILL.md",
+      "DEKU_WORKER_MODE=local_double /Users/smith/projects/deku/.venv/bin/python probes/real_path_probe.py --phase d1 --hellos 20",
+      "git status --short in /Users/smith/projects/deku",
+      "ls -l /var/folders/hm/3b5ry_rn3y18jk6bgy7w7z140000gn/T/grok-goal-c215b513459a/implementer",
+      "sed reads of d1-load-ok.txt, d1-healthz.txt, d1-multiturn.json",
+      "/Users/smith/projects/deku/.venv/bin/python inline JSON summary of d1-hellos.json",
+      "sed -n reads of deku.py, deku_server.py, deku_core/conduct.py",
+      "rg -n real path symbols in deku.py deku_server.py deku_core probes tests docs",
+      "apply_patch attempt on /Users/smith/projects/deku/deku_core/conduct.py rejected: writing outside of the project",
+      "nl -ba line evidence reads for deku_core/conduct.py, deku_server.py, probes/real_path_probe.py"
+    ],
+    "evidence_refs": [
+      "support-packet:deku-d1-real-face-0709b:agent-object:dev:output"
+    ],
+    "handoff_refs": [
+      "/var/folders/hm/3b5ry_rn3y18jk6bgy7w7z140000gn/T/grok-goal-c215b513459a/implementer/d1-load-ok.txt",
+      "/var/folders/hm/3b5ry_rn3y18jk6bgy7w7z140000gn/T/grok-goal-c215b513459a/implementer/d1-healthz.txt",
+      "/var/folders/hm/3b5ry_rn3y18jk6bgy7w7z140000gn/T/grok-goal-c215b513459a/implementer/d1-hellos.json",
+      "/var/folders/hm/3b5ry_rn3y18jk6bgy7w7z140000gn/T/grok-goal-c215b513459a/implementer/d1-multiturn.json"
+    ],
+    "made_changes": false,
+    "no_changes_reason": "The required D1 probe already passed before a source edit landed. A narrow source edit to remove mock-facing greeting text in /Users/smith/projects/deku/deku_core/conduct.py was attempted but blocked because /Users/smith/projects/deku is outside this session's writable root.",
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "filesystem-enforced source_write/probe_write separation",
+      "No source fix landed in /Users/smith/projects/deku due to sandbox write restriction.",
+      "Paid worker mode was not exercised; only DEKU_WORKER_MODE=local_double was measured.",
+      "D2-D4 phases were not run in this Brick; only D1 was measured."
+    ],
+    "observed_evidence": [
+      "Command `DEKU_WORKER_MODE=local_double /Users/smith/projects/deku/.venv/bin/python probes/real_path_probe.py --phase d1 --hellos 20` exited 0 with `{ \"hellos\": 20, \"blanks\": 0, \"loaded\": true, \"multi_nonblank\": true }` and `ALL_PHASES_OK ['d1']`.",
+      "Evidence file `/var/folders/hm/3b5ry_rn3y18jk6bgy7w7z140000gn/T/grok-goal-c215b513459a/implementer/d1-load-ok.txt`: loaded_in_s=25.7, profile=deku-1, worker=local_double.",
+      "Evidence file `/var/folders/hm/3b5ry_rn3y18jk6bgy7w7z140000gn/T/grok-goal-c215b513459a/implementer/d1-healthz.txt`: loaded=true, context_window=40960, truncation_limit=40960.",
+      "Evidence file `/var/folders/hm/3b5ry_rn3y18jk6bgy7w7z140000gn/T/grok-goal-c215b513459a/implementer/d1-hellos.json`: count=20, blank_count=0, HTTP statuses=[200].",
+      "Evidence file `/var/folders/hm/3b5ry_rn3y18jk6bgy7w7z140000gn/T/grok-goal-c215b513459a/implementer/d1-multiturn.json`: a1_preview=408, a2_preview=408, a2_blank=false.",
+      "probes/real_path_probe.py:34 removes DEKU_FORCE_MOCK for the probe; probes/real_path_probe.py:50 calls deku_server._ensure_loaded(); probes/real_path_probe.py:79-86 checks 20 hello responses and asserts blanks == 0; probes/real_path_probe.py:95-113 checks multi-turn nonblank.",
+      "deku_server.py:171-177 shows non-mock profile calls _ensure_loaded and wires worker_fn to shipped deku.dispatch_worker.",
+      "deku_core/conduct.py:44-45 still contains the local_double greeting body with `Deku-1 mock worker` text; attempted patch to change that wording was rejected by sandbox write policy."
+    ],
+    "output_excerpt": "{ \"received_work_ref\": \"support-packet:deku-d1-real-face-0709b:agent-object:dev:input\", \"received_deliverables_echo\": [ \"Run shipped Deku D1 real-path probe with /Users/smith/projects/deku/.venv/bin/python and DEKU_WORKER_MODE=local_double, without DEKU_FORCE_MOCK=1.\", \"Fix load/path/import gaps inside write_scope if found.\", \"Produce non-blank hello>=20 and multi-turn evidence files.\" ], \"made_changes\": false, \"no_changes_reason\": \"The required D1 probe already passed before a source edit landed. A narrow source edit to remove mock-facing greeting text in /Users/smith/projects/deku/deku_co...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "workspace write is limited by Brick-declared write_scope"
+    ],
+    "received_deliverables_echo": [
+      "Run shipped Deku D1 real-path probe with /Users/smith/projects/deku/.venv/bin/python and DEKU_WORKER_MODE=local_double, without DEKU_FORCE_MOCK=1.",
+      "Fix load/path/import gaps inside write_scope if found.",
+      "Produce non-blank hello>=20 and multi-turn evidence files."
+    ],
+    "received_work_ref": "support-packet:deku-d1-real-face-0709b:agent-object:dev:input",
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:codex-local",
+    "selected_model_ref": "model:codex:default",
+    "worktree_observation": {
+      "after_git_refs": {
+        "branch": "HEAD",
+        "head": "5cd969be11386f6807a050d4d89d3d0e7036a1bd"
+      },
+      "after_git_status_paths": [],
+      "after_path_count": 5241,
+      "before_git_refs": {
+        "branch": "HEAD",
+        "head": "5cd969be11386f6807a050d4d89d3d0e7036a1bd"
+      },
+      "before_git_status_paths": [],
+      "before_path_count": 5241,
+      "git_refs_moved": {},
+      "not_proven": [
+        "semantic correctness of file edits",
+        "complete diff attribution for pre-existing dirty paths"
+      ],
+      "observed_changed_files": [],
+      "proof_limits": [
+        "changed files are support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "write_scope": {
+        "allowed_paths": [
+          "."
+        ],
+        "forbidden_paths": [
+          ".git/**"
+        ]
+      }
+    }
+  },
+  "returned_fact_ref": "agent-fact:01:deku-d1-real-face-0709b-work",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:deku-d1-real-face-0709b",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:deku-d1-real-face-0709b-work:attempt-1",
+  "step_ref": "deku-d1-real-face-0709b-work",
+  "subject": "deku-d1-real-face-0709b-work",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-07-09T13:54:15.631998Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

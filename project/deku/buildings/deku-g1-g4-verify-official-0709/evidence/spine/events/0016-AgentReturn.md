@@ -1,0 +1,13 @@
+# AgentReturn · seq 16 · ["Agent"]
+- agent_object_ref: "agent-object:coo"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-deku-g1-g4-verify-official-0709-closure"
+- event_type: "AgentReturn"
+- observed_fields: ["received_work","returned"]
+- returned_fact_ref: "agent-fact:02:deku-g1-g4-verify-official-0709-closure"
+- route_request_ref: ""
+- run_segment: 1
+- sequence_index: 16
+- spine_schema_version: "spine-v1"
+- step_output_ref: "step-output:deku-g1-g4-verify-official-0709-closure:attempt-1"
+- step_ref: "deku-g1-g4-verify-official-0709-closure"

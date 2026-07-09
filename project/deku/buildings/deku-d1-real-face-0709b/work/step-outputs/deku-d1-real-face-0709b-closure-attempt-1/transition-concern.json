@@ -1,0 +1,82 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:deku-d1-real-face-0709b::work/step-outputs/deku-d1-real-face-0709b-closure-attempt-1/transition-concern.json",
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "binding": false,
+  "building_id": "deku-d1-real-face-0709b",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-07-09T14:14:39.031262Z",
+  "id": "urn:bp:building:deku-d1-real-face-0709b::work/step-outputs/deku-d1-real-face-0709b-closure-attempt-1/transition-concern.json",
+  "link_role": "non-binding Agent transition concern evidence only",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "transition concern semantic correctness",
+    "Link disposition correctness",
+    "automatic repair/replay execution"
+  ],
+  "proof_limits": [
+    "support CLI wrapper only",
+    "existing seams own run/checker behavior",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "transition_concern_evidence is Agent returned evidence only",
+    "not Link Movement",
+    "not Link target choice",
+    "not route policy matching",
+    "not route materialization",
+    "not automatic repair/replay execution",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-07-09T14:14:39.031262Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:deku-d1-real-face-0709b",
+  "specversion": "1.0",
+  "step_output_ref": "work/step-outputs/deku-d1-real-face-0709b-closure-attempt-1/step-output.json",
+  "step_ref": "deku-d1-real-face-0709b-closure",
+  "subject": "deku-d1-real-face-0709b-closure",
+  "time": "2026-07-09T14:14:39.031262Z",
+  "transition_boundary": "Agent concern only; Link may adopt, not adopt, or override",
+  "transition_concern_ref": "transition-concern:deku-d1-real-face-0709b-closure:attempt-1",
+  "transition_concern_returned": {
+    "binding": false,
+    "concern_kind": "verification_gap",
+    "concern_ref": "transition-concern:deku-d1-real-face-0709b-d1-verification-gap",
+    "not_proven": [
+      "D1 50x non-mock hello soak is not proven by the observed raw artifacts.",
+      "D1 actual Nemotron routing decision validation is not proven by hello-only greeting-path artifacts."
+    ],
+    "proof_limits": [
+      "Non-binding Agent evidence only",
+      "Does not choose Movement, route target, sufficiency, success, or quality"
+    ],
+    "reason_refs": [
+      "observation:d1-raw-probe-count-20-not-50",
+      "observation:greeting-path-before-real-run",
+      "observation:local-double-worker-body"
+    ],
+    "related_boundary_refs": [
+      "building-boundary:deku-d1-real-face-0709b"
+    ]
+  },
+  "type": "bp.step_output.transition_concern"
+}

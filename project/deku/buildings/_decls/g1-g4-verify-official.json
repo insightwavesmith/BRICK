@@ -1,0 +1,29 @@
+{
+  "building_id": "deku-g1-g4-verify-official-0709",
+  "declared_by": "coo-deku-session",
+  "author_ref": "coo:deku",
+  "action": "forward",
+  "adapter": "local",
+  "adapter_timeout_seconds": 900,
+  "output_root": "/Users/smith/projects/BRICK/project/deku/buildings",
+  "task": "# Deku G1–G4 verification Building (project:deku)\n\n## Objective\nRun official vessel verification for G1 Conduct through G4 Dominate on code already under /Users/smith/projects/deku. G0 already has deku-g0-face-official-0709.\n\n## Deliverables\n1. Run full unittest suite: `cd /Users/smith/projects/deku && python3 -m unittest discover -s tests -v` (expect green).\n2. Confirm G1 surfaces: CallBudget, memory pins, assembler, timeout graceful tests pass.\n3. Confirm G2: access/grounding/verify replan≤1 tests pass; free-form plan OFF.\n4. Confirm G3-P/K: policy rollback restore + wiki adopt map + hermes forbidden.\n5. Confirm G4: pin_loss@50 measured, call_cap violations counted honestly, suite passes on mock personal path.\n6. Closure: list remaining_not_proven (paid soak, Nemotron-loaded 50×, multi-provider worktree merge).\n\n## Hard constraints\nPrefer verify-over-rewrite: if already green, made_changes=false with no_changes_reason.\nWrite scope only if a real test gap requires a fix under deku paths.\nVessel: project/deku/buildings.\n\n## Evidence\ncommands_run, observed_evidence paths, not_proven honest.",
+  "write_scope": {
+    "allowed_paths": [
+      "/Users/smith/projects/deku/deku_core",
+      "/Users/smith/projects/deku/deku_server.py",
+      "/Users/smith/projects/deku/tests",
+      "/Users/smith/projects/deku/docs"
+    ],
+    "forbidden_paths": [".git/**", "vendor/**", "artifacts/**"]
+  },
+  "nodes": [
+    {
+      "kind": "work",
+      "work_statement": "Verify G1–G4 on /Users/smith/projects/deku. Run: cd /Users/smith/projects/deku && python3 -m unittest discover -s tests -v. If suite green and no code gap, return made_changes=false with no_changes_reason=already_landed_verified. If a real failing test needs a fix, change only write_scope paths. Capture commands_run and observed_evidence."
+    },
+    {
+      "kind": "closure",
+      "work_statement": "Synthesize G1–G4 Exit observation: narrowly_proven from unittest + prior G0 official building; remaining_not_proven for paid workers / Nemotron soak / worktree merge human_review on fake_landing. Do not claim commercial Dominate."
+    }
+  ]
+}

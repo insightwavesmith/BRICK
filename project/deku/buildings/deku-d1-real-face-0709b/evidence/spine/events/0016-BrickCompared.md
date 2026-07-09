@@ -1,0 +1,15 @@
+# BrickCompared · seq 16 · ["Brick"]
+- alias_fact_refs: ["brick-comparison:deku-d1-real-face-0709b:deku-d1-real-face-0709b-work"]
+- axis_scope: ["Brick"]
+- comparison_evidence: ["adapter returned value is available for Brick comparison observation","required_return_fields: received_work_ref, received_deliverables_echo, made_changes, changed_files, observed_evidence, commands_run, blocked_or_missing_evidence, handoff_refs, not_proven","observed_return_fields: adapter_ref, agent_object_ref, blocked_or_missing_evidence, brain_surface_ref, changed_files, cli_call_ref, cli_version_text, commands_run, evidence_refs, handoff_refs, made_changes, no_changes_reason, not_proven, observed_evidence, output_excerpt, proof_limits, received_deliverables_echo, received_work_ref, returned_summary, selected_adapter_ref, selected_model_ref, worktree_observation","missing_return_fields: none"]
+- comparison_observation: "contract observation only; not success judgment"
+- comparison_rule: "Work Brick is the implementer — it does the declared implementation inside the Brick write scope, coding directly or using subagents/workflows as tools when the work is large or benefits from parallelism."
+- event_type: "BrickCompared"
+- forbidden_shortcut_evidence: ["brick_protocol/support/run did not classify Agent return","brick_protocol/support/run did not judge success or quality","brick_protocol/support/run used caller-supplied Link facts"]
+- observed_match_kind: "matched"
+- required_return_shape_evidence: "received_work_ref,received_deliverables_echo,made_changes,changed_files,observed_evidence,commands_run,blocked_or_missing_evidence,handoff_refs,not_proven"
+- run_segment: 1
+- sequence_index: 16
+- source_fact_ref: "brick-comparison:01:deku-d1-real-face-0709b-work"
+- spine_schema_version: "spine-v1"
+- work_reference: "D1 Real Face implementer: make mock-off Nemotron face green on shipped deku_server. Use /Users/smith/projects/deku/.venv/bin/python only. Run probes/real_path_probe.py --phase d1 --hellos 20 with DEKU_WORKER_MODE=local_double (or equivalent that still uses shipped dispatch_worker + real Nemotron load). Fix any load/path/import gaps inside write_scope. Produce non-blank hello≥20 + multi-turn evidence files. Do not use DEKU_FORCE_MOCK=1 for Exit proof."

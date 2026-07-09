@@ -1,0 +1,12 @@
+# Movement · seq 18 · ["Link"]
+- adopted_transition_concern_refs: []
+- axis_scope: ["Link"]
+- declared_movement: "forward"
+- event_type: "Movement"
+- gate_review_event_ref: "sufficiency-fact-movement:02:deku-g1-g4-verify-official-0709-closure"
+- not_adopted_transition_concern_refs: []
+- run_segment: 1
+- sequence_index: 18
+- source_fact_ref: "movement-fact:02:deku-g1-g4-verify-official-0709-closure"
+- spine_schema_version: "spine-v1"
+- target_boundary_ref: "brick:building-boundary:closed"

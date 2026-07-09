@@ -1,0 +1,21 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:deku-g1-g4-verify-official-0709::evidence/claim_trace/link/gate_receipt_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [],
+  "generatedAtTime": "2026-07-09T13:21:48Z",
+  "id": "urn:bp:building:deku-g1-g4-verify-official-0709::evidence/claim_trace/link/gate_receipt_trace.json",
+  "recorded_at": "2026-07-09T13:21:48Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:deku-g1-g4-verify-official-0709",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/gate_receipt_trace.json",
+  "time": "2026-07-09T13:21:48Z",
+  "type": "bp.claim_trace"
+}

@@ -1,0 +1,228 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:deku-d1-real-face-0709b::work/step-outputs/deku-d1-real-face-0709b-closure-attempt-1/step-output.json",
+  "adapter_dispatch_timing": {
+    "dispatch_ended_at": "2026-07-09T14:14:39Z",
+    "dispatch_started_at": "2026-07-09T14:13:24Z",
+    "duration_ms": 74168.608,
+    "timing_scope": "adapter_dispatch",
+    "timing_source": "brick_protocol/support/operator/walker_kernel.py:process_one_node"
+  },
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-deku-d1-real-face-0709b-closure",
+  "building_id": "deku-d1-real-face-0709b",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "adapter_dispatch_timing_raw_ref": "raw:adapter-dispatch-timing:deku-d1-real-face-0709b-closure:attempt-1",
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:04",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-07-09T14:14:39.031262Z",
+  "id": "urn:bp:building:deku-d1-real-face-0709b::work/step-outputs/deku-d1-real-face-0709b-closure-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support CLI wrapper only",
+    "existing seams own run/checker behavior",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:04:deku-d1-real-face-0709b-closure",
+  "recorded_at": "2026-07-09T14:14:39.031262Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:coo",
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:codex-local:deku-d1-real-face-0709b",
+    "cli_version_text": "codex-cli 0.143.0",
+    "deferred_smith_review_queue": [
+      "Smith/COO disposition may decide whether the observed D1 20-call local_double evidence is enough to update DEKU_STATUS now or whether the 50x/conductor-routing probe must run first."
+    ],
+    "deliverable_crosscheck": [
+      {
+        "deliverable_ref": "D1 Exit synthesis: narrowly_proven vs not_proven",
+        "diff_artifact_refs": [],
+        "evidence_refs": [
+          "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/probe-summary.json",
+          "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-healthz.txt",
+          "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-models.json",
+          "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-hellos.json",
+          "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-multiturn.json",
+          "/Users/smith/projects/deku/docs/DEKU_STATUS.md"
+        ],
+        "implementation_status": "implemented"
+      },
+      {
+        "deliverable_ref": "If Exit met, note DEKU_STATUS D1 update path",
+        "diff_artifact_refs": [],
+        "evidence_refs": [
+          "/Users/smith/projects/deku/docs/DEKU_STATUS.md",
+          "observation:candidate-update-path-docs-DEKU_STATUS-md"
+        ],
+        "implementation_status": "partial"
+      },
+      {
+        "deliverable_ref": "Do not advance D2 as complete",
+        "diff_artifact_refs": [],
+        "evidence_refs": [
+          "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/probe-summary.json",
+          "work/step-outputs/deku-d1-real-face-0709b-code-attack-qa-attempt-1/step-output.json carry summary"
+        ],
+        "implementation_status": "implemented"
+      }
+    ],
+    "evidence_refs": [
+      "support-packet:deku-d1-real-face-0709b:agent-object:coo:output"
+    ],
+    "narrowly_proven": [
+      "The D1 raw evidence proves a deku-1 profile process loaded Nemotron according to healthz and load artifact observations.",
+      "The observed /v1/models catalog reports 40960 context window and 40960 truncation limit for deku-1/deku-1-ultra.",
+      "The observed D1 hello soak count is 20, with zero blank responses in the artifact set.",
+      "The observed D1 multi-turn probe is nonblank on the second turn.",
+      "The observed D1 probe was run without DEKU_FORCE_MOCK according to probe code and raw load/profile artifacts, while using DEKU_WORKER_MODE=local_double."
+    ],
+    "next_target_candidates": [
+      "D1 status-projection update candidate: /Users/smith/projects/deku/docs/DEKU_STATUS.md with D1 raw evidence refs and remaining_not_proven adjusted to preserve the 20-vs-50 and conductor-routing limits.",
+      "D1 verification candidate: add/run a probe that records conduct trace selected_strategy/selected_slot for a non-greeting real Nemotron path and a 50-call nonblank soak if the 50x claim remains required.",
+      "D2 candidate only after D1 evidence/adoption is declared by caller/COO; this closure does not advance D2."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "50x hello soak is not proven in project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/*; the observed D1 count is 20.",
+      "The actual Nemotron conductor routing choice for greeting requests is not proven by the D1 artifacts; greeting inputs are routed through the greeting strategy before the later real_run path in /Users/smith/projects/deku/deku_core/conduct.py.",
+      "Worker semantic quality is not proven because D1 used local_double worker output bodies, not paid worker bodies.",
+      "D2, D3, and D4 real-path phases are not proven by this D1 evidence set.",
+      "DEKU_STATUS D1 update was not written by this closure brick; this session has read-only capability and the closure work statement declares no write scope.",
+      "Exit sufficiency, quality, project success, and next Movement are not proven by this Agent return."
+    ],
+    "observed_evidence": [
+      "work/step-outputs/deku-d1-real-face-0709b-code-attack-qa-attempt-1/step-output.json carry summary reports upstream D1 raw artifacts and QA findings.",
+      "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-load-ok.txt records loaded_in_s=24.3, profile=deku-1, worker=local_double.",
+      "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-healthz.txt records loaded=true, context_window=40960, truncation_limit=40960.",
+      "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-models.json records deku-1 and deku-1-ultra catalog entries with context_window=40960 and truncation_policy.limit=40960.",
+      "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-hellos.json records 20 hello requests, all HTTP 200 and nonblank.",
+      "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-multiturn.json records two-turn probe previews as nonblank with a2_blank=false.",
+      "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/probe-summary.json records d1 hellos=20, blanks=0, loaded=true, multi_nonblank=true.",
+      "/Users/smith/projects/deku/probes/real_path_probe.py lines 65-114 show D1 probes cover model catalog, healthz loaded/truncation, 20 hello calls, and a two-turn nonblank check.",
+      "/Users/smith/projects/deku/deku_server.py lines 163-190 route greeting inputs through strategy_id=greeting while profile deku-1 still loads Nemotron and worker_fn dispatch_worker.",
+      "/Users/smith/projects/deku/deku_core/conduct.py lines 86-99 set greeting max_calls=1 and take the greeting strategy before the later real Nemotron path at lines 198-215.",
+      "/Users/smith/projects/deku/docs/DEKU_STATUS.md currently records G0-G4 official buildings as complete and remaining_not_proven includes Nemotron-loaded non-mock 50x hello soak."
+    ],
+    "output_excerpt": "{\"observed_evidence\":[\"work/step-outputs/deku-d1-real-face-0709b-code-attack-qa-attempt-1/step-output.json carry summary reports upstream D1 raw artifacts and QA findings.\",\"project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-load-ok.txt records loaded_in_s=24.3, profile=deku-1, worker=local_double.\",\"project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-healthz.txt records loaded=true, context_window=40960, truncation_limit=40960.\",\"project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-models.json records deku-1 and deku-1-ultra catalog entries with context_...",
+    "parent_goal_delta_status": {
+      "closed_delta_refs": [
+        "D1 catalog/health/no-blank/multi-nonblank observations within the observed 20-call local_double D1 scope"
+      ],
+      "evidence_refs": [
+        "work/step-outputs/deku-d1-real-face-0709b-code-attack-qa-attempt-1/step-output.json",
+        "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-load-ok.txt",
+        "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-healthz.txt",
+        "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-models.json",
+        "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-hellos.json",
+        "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-multiturn.json",
+        "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/probe-summary.json",
+        "/Users/smith/projects/deku/docs/DEKU_STATUS.md"
+      ],
+      "matched_delta_refs": [
+        "catalog 40960/40960 observed in project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-models.json",
+        "healthz loaded=true and truncation_limit=40960 observed in project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-healthz.txt",
+        "20 hello calls with blanks=0 observed in project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-hellos.json and probe-summary.json",
+        "two-turn nonblank observation recorded in project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-multiturn.json"
+      ],
+      "missing_delta_refs": [
+        "No local step-output ledger file was present under project/brick-protocol/buildings/deku-d1-real-face-0709b/work/step-outputs in this workspace inspection.",
+        "No diff artifact for DEKU_STATUS update exists in this closure evidence."
+      ],
+      "open_delta_refs": [
+        "Nemotron-loaded non-mock 50x hello soak remains open relative to /Users/smith/projects/deku/docs/DEKU_STATUS.md remaining_not_proven",
+        "actual conductor routing decision validation remains open for D1 real-path claims",
+        "D2 advancement remains outside this closure scope"
+      ],
+      "unknown_delta_refs": [
+        "Whether Smith/COO will adopt this D1 evidence as sufficient for a status projection update is not determined by this Agent return.",
+        "Whether paid worker bodies preserve the same no-blank behavior is not determined by this D1 local_double evidence."
+      ]
+    },
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "remaining_delta": [
+      "If Smith/COO wants the D1 status projection updated from this evidence, the candidate path is /Users/smith/projects/deku/docs/DEKU_STATUS.md, specifically remaining_not_proven and a D1 real-face evidence note.",
+      "A follow-up probe can close the observed D1 gap by recording 50 nonblank non-mock calls or by changing the claim to the observed 20-call scope.",
+      "A follow-up probe can record the actual selected tool_name/slot or conduct trace for a non-greeting real Nemotron request, because hello traffic alone does not prove conductor routing behavior.",
+      "D2 must not be advanced from this closure synthesis; this evidence only covers D1 observations."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:codex-local",
+    "selected_model_ref": "model:codex:default",
+    "transition_concern_evidence": {
+      "binding": false,
+      "concern_kind": "verification_gap",
+      "concern_ref": "transition-concern:deku-d1-real-face-0709b-d1-verification-gap",
+      "not_proven": [
+        "D1 50x non-mock hello soak is not proven by the observed raw artifacts.",
+        "D1 actual Nemotron routing decision validation is not proven by hello-only greeting-path artifacts."
+      ],
+      "proof_limits": [
+        "Non-binding Agent evidence only",
+        "Does not choose Movement, route target, sufficiency, success, or quality"
+      ],
+      "reason_refs": [
+        "observation:d1-raw-probe-count-20-not-50",
+        "observation:greeting-path-before-real-run",
+        "observation:local-double-worker-body"
+      ],
+      "related_boundary_refs": [
+        "building-boundary:deku-d1-real-face-0709b"
+      ]
+    }
+  },
+  "returned_fact_ref": "agent-fact:04:deku-d1-real-face-0709b-closure",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:deku-d1-real-face-0709b",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:deku-d1-real-face-0709b-closure:attempt-1",
+  "step_ref": "deku-d1-real-face-0709b-closure",
+  "subject": "deku-d1-real-face-0709b-closure",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-07-09T14:14:39.031262Z",
+  "transition_concern_ref": "work/step-outputs/deku-d1-real-face-0709b-closure-attempt-1/transition-concern.json",
+  "type": "bp.step_output"
+}

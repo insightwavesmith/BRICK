@@ -1,0 +1,35 @@
+{
+  "building_id": "deku-d2-real-conduct-0709",
+  "declared_by": "coo-deku-fugu",
+  "author_ref": "coo:deku",
+  "action": "forward",
+  "adapter": "local",
+  "adapter_timeout_seconds": 10800,
+  "output_root": "/Users/smith/projects/BRICK/project/deku/buildings",
+  "task": "# D2 Real Conduct — project:deku\n\n## Prerequisite\nD1 Real Face EXIT via building `deku-d1-real-face-0709b` (frontier complete). Evidence: Nemotron load, hello≥20, multi-turn.\n\n## Objective\nClose **D2 Real Conduct** on shipped real path (mock OFF).\n\n## Done means\n1. Multi-round tool_call → worker (or **declared** `DEKU_WORKER_MODE=local_double` via shipped `dispatch_worker`) → answer on real Nemotron path\n2. CallBudget violations = 0 on measured runs\n3. Worker timeout leaves server alive with non-blank force body (shipped path)\n4. **10–20 turn session log** showing pin/state survival from live server path (not unit Pinboard alone)\n5. Capture under building raw/ or DEKU_PROBE_SCRATCH: `d2-session.log`\n6. Update `/Users/smith/projects/deku/docs/DEKU_STATUS.md` D2 Exit + remaining_not_proven\n7. Regression: `/Users/smith/projects/deku/.venv/bin/python -m unittest discover -s tests -v` green\n\n## Environment\n- Code: `/Users/smith/projects/deku`\n- Python: `/Users/smith/projects/deku/.venv/bin/python` only\n- `DEKU_WORKER_MODE=local_double` allowed (declared doubles; must use shipped dispatch)\n- NO `DEKU_FORCE_MOCK=1` for Exit proof\n- Note: absolute writes to deku tree may be blocked by worktree sandbox — prefer probe/log evidence; if source fix required and blocked, record honestly under blocked_or_missing_evidence (do not fake)\n\n## Command\n```\ncd /Users/smith/projects/deku\nexport DEKU_WORKER_MODE=local_double\nexport DEKU_PROBE_SCRATCH=<building-absolute>/raw/d2-scratch\n.venv/bin/python probes/real_path_probe.py --phase d2\n```\nFix probe/code only if D2 gates fail and write_scope permits. Do not claim D3 Exit.",
+  "write_scope": {
+    "allowed_paths": [
+      "/Users/smith/projects/deku/deku_core",
+      "/Users/smith/projects/deku/deku_server.py",
+      "/Users/smith/projects/deku/deku.py",
+      "/Users/smith/projects/deku/probes",
+      "/Users/smith/projects/deku/tests",
+      "/Users/smith/projects/deku/docs"
+    ],
+    "forbidden_paths": [".git/**", "vendor/**", "artifacts/**"]
+  },
+  "nodes": [
+    {
+      "kind": "work",
+      "work_statement": "D2 Real Conduct: run mock-off real-path probe phase d2 with .venv python and DEKU_WORKER_MODE=local_double. Produce d2-session.log (10–20 turns pin/state + timeout graceful). If gates fail and source fix is needed, attempt write only inside declared write_scope; if sandbox blocks external deku path, record blocked_or_missing_evidence honestly. Update DEKU_STATUS D2 section if Exit met."
+    },
+    {
+      "kind": "code-attack-qa",
+      "work_statement": "Attack D2 claims: re-check d2-session.log for blank turns, pin/state survival, timeout non-crash; confirm not unit-only Pinboard; flag mock-only fakes."
+    },
+    {
+      "kind": "closure",
+      "work_statement": "D2 Exit synthesis narrowly_proven vs not_proven. Do not mark D3 complete."
+    }
+  ]
+}

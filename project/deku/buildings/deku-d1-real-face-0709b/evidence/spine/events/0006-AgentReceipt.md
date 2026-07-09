@@ -1,0 +1,12 @@
+# AgentReceipt · seq 6 · ["Agent"]
+- agent_object_ref: "agent-object:dev"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-deku-d1-real-face-0709b-work"
+- event_type: "AgentReceipt"
+- evidence_reference: "raw:agent:01"
+- received_work_ref: "brick-work:01:deku-d1-real-face-0709b-work"
+- run_segment: 1
+- sequence_index: 6
+- source_fact_ref: "agent-fact:01:deku-d1-real-face-0709b-work"
+- spine_schema_version: "spine-v1"
+- step_ref: "deku-d1-real-face-0709b-work"

@@ -1,0 +1,578 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:deku-d1-real-face-0709b::evidence/claim_trace/brick/work_contract.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-deku-d1-real-face-0709b-work",
+        "comparison_rule": "Work Brick is the implementer — it does the declared implementation inside the Brick write scope, coding directly or using subagents/workflows as tools when the work is large or benefits from parallelism.",
+        "required_return_shape": "received_work_ref,received_deliverables_echo,made_changes,changed_files,observed_evidence,commands_run,blocked_or_missing_evidence,handoff_refs,not_proven",
+        "source_facts": [],
+        "work_statement": "D1 Real Face implementer: make mock-off Nemotron face green on shipped deku_server. Use /Users/smith/projects/deku/.venv/bin/python only. Run probes/real_path_probe.py --phase d1 --hellos 20 with DEKU_WORKER_MODE=local_double (or equivalent that still uses shipped dispatch_worker + real Nemotron load). Fix any load/path/import gaps inside write_scope. Produce non-blank hello≥20 + multi-turn evidence files. Do not use DEKU_FORCE_MOCK=1 for Exit proof."
+      },
+      "fact_ref": "brick-work:01:deku-d1-real-face-0709b-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "filesystem-enforced source_write/probe_write separation",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: received_work_ref, received_deliverables_echo, made_changes, changed_files, observed_evidence, commands_run, blocked_or_missing_evidence, handoff_refs, not_proven",
+          "observed_return_fields: adapter_ref, agent_object_ref, blocked_or_missing_evidence, brain_surface_ref, changed_files, cli_call_ref, cli_version_text, commands_run, evidence_refs, handoff_refs, made_changes, no_changes_reason, not_proven, observed_evidence, output_excerpt, proof_limits, received_deliverables_echo, received_work_ref, returned_summary, selected_adapter_ref, selected_model_ref, worktree_observation",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Work Brick is the implementer — it does the declared implementation inside the Brick write scope, coding directly or using subagents/workflows as tools when the work is large or benefits from parallelism.",
+        "forbidden_shortcut_evidence": [
+          "brick_protocol/support/run did not classify Agent return",
+          "brick_protocol/support/run did not judge success or quality",
+          "brick_protocol/support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "received_work_ref,received_deliverables_echo,made_changes,changed_files,observed_evidence,commands_run,blocked_or_missing_evidence,handoff_refs,not_proven",
+        "work_reference": "D1 Real Face implementer: make mock-off Nemotron face green on shipped deku_server. Use /Users/smith/projects/deku/.venv/bin/python only. Run probes/real_path_probe.py --phase d1 --hellos 20 with DEKU_WORKER_MODE=local_double (or equivalent that still uses shipped dispatch_worker + real Nemotron load). Fix any load/path/import gaps inside write_scope. Produce non-blank hello≥20 + multi-turn evidence files. Do not use DEKU_FORCE_MOCK=1 for Exit proof."
+      },
+      "fact_ref": "brick-comparison:01:deku-d1-real-face-0709b-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "filesystem-enforced source_write/probe_write separation",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:01:deku-d1-real-face-0709b-work",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: received_work_ref, received_deliverables_echo, made_changes, changed_files, observed_evidence, commands_run, blocked_or_missing_evidence, handoff_refs, not_proven",
+          "observed_return_fields: adapter_ref, agent_object_ref, blocked_or_missing_evidence, brain_surface_ref, changed_files, cli_call_ref, cli_version_text, commands_run, evidence_refs, handoff_refs, made_changes, no_changes_reason, not_proven, observed_evidence, output_excerpt, proof_limits, received_deliverables_echo, received_work_ref, returned_summary, selected_adapter_ref, selected_model_ref, worktree_observation",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Work Brick is the implementer — it does the declared implementation inside the Brick write scope, coding directly or using subagents/workflows as tools when the work is large or benefits from parallelism.",
+        "forbidden_shortcut_evidence": [
+          "brick_protocol/support/run did not classify Agent return",
+          "brick_protocol/support/run did not judge success or quality",
+          "brick_protocol/support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "received_work_ref,received_deliverables_echo,made_changes,changed_files,observed_evidence,commands_run,blocked_or_missing_evidence,handoff_refs,not_proven",
+        "work_reference": "D1 Real Face implementer: make mock-off Nemotron face green on shipped deku_server. Use /Users/smith/projects/deku/.venv/bin/python only. Run probes/real_path_probe.py --phase d1 --hellos 20 with DEKU_WORKER_MODE=local_double (or equivalent that still uses shipped dispatch_worker + real Nemotron load). Fix any load/path/import gaps inside write_scope. Produce non-blank hello≥20 + multi-turn evidence files. Do not use DEKU_FORCE_MOCK=1 for Exit proof."
+      },
+      "fact_ref": "brick-comparison:deku-d1-real-face-0709b:deku-d1-real-face-0709b-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "filesystem-enforced source_write/probe_write separation",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-deku-d1-real-face-0709b-code-attack-qa",
+        "comparison_rule": "Code attack QA Brick attacks implementation, regression, and negative-probe evidence against the declared work contract.",
+        "required_return_shape": "observed_evidence,attacked_work,checked_sources,regression_risks,negative_probe_observations,failing_or_missing_probes,boundary_violations,transition_concern_evidence,evidence_used,not_proven",
+        "source_facts": [
+          "work/step-outputs/deku-d1-real-face-0709b-work-attempt-1/step-output.json"
+        ],
+        "work_statement": "Attack D1 claims: re-run healthz/models/hello multi-turn on real path if feasible; confirm unittest still green with .venv python; flag mock-only fakes as implementation_gap."
+      },
+      "fact_ref": "brick-work:02:deku-d1-real-face-0709b-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "filesystem-enforced source_write/probe_write separation",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, transition_concern_evidence, evidence_used, not_proven, evidence_used.repository_artifact_ref",
+          "observed_return_fields: adapter_ref, agent_object_ref, attacked_work, boundary_violations, brain_surface_ref, changed_files, checked_sources, cli_call_ref, cli_version_text, evidence_refs, evidence_used, failing_or_missing_probes, negative_probe_observations, not_proven, observed_evidence, output_excerpt, proof_limits, regression_risks, returned_summary, selected_adapter_ref, selected_model_ref, transition_concern_evidence, worktree_observation",
+          "missing_return_fields: evidence_used.repository_artifact_ref",
+          "artifact_grounding_missing: evidence_used lacks inspected repository artifact reference"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Code attack QA Brick attacks implementation, regression, and negative-probe evidence against the declared work contract.",
+        "forbidden_shortcut_evidence": [
+          "brick_protocol/support/run did not classify Agent return",
+          "brick_protocol/support/run did not judge success or quality",
+          "brick_protocol/support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "missing",
+        "required_return_shape_evidence": "observed_evidence,attacked_work,checked_sources,regression_risks,negative_probe_observations,failing_or_missing_probes,boundary_violations,transition_concern_evidence,evidence_used,not_proven",
+        "work_reference": "Attack D1 claims: re-run healthz/models/hello multi-turn on real path if feasible; confirm unittest still green with .venv python; flag mock-only fakes as implementation_gap."
+      },
+      "fact_ref": "brick-comparison:02:deku-d1-real-face-0709b-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "filesystem-enforced source_write/probe_write separation",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:02:deku-d1-real-face-0709b-code-attack-qa",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, transition_concern_evidence, evidence_used, not_proven, evidence_used.repository_artifact_ref",
+          "observed_return_fields: adapter_ref, agent_object_ref, attacked_work, boundary_violations, brain_surface_ref, changed_files, checked_sources, cli_call_ref, cli_version_text, evidence_refs, evidence_used, failing_or_missing_probes, negative_probe_observations, not_proven, observed_evidence, output_excerpt, proof_limits, regression_risks, returned_summary, selected_adapter_ref, selected_model_ref, transition_concern_evidence, worktree_observation",
+          "missing_return_fields: evidence_used.repository_artifact_ref",
+          "artifact_grounding_missing: evidence_used lacks inspected repository artifact reference"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Code attack QA Brick attacks implementation, regression, and negative-probe evidence against the declared work contract.",
+        "forbidden_shortcut_evidence": [
+          "brick_protocol/support/run did not classify Agent return",
+          "brick_protocol/support/run did not judge success or quality",
+          "brick_protocol/support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "missing",
+        "required_return_shape_evidence": "observed_evidence,attacked_work,checked_sources,regression_risks,negative_probe_observations,failing_or_missing_probes,boundary_violations,transition_concern_evidence,evidence_used,not_proven",
+        "work_reference": "Attack D1 claims: re-run healthz/models/hello multi-turn on real path if feasible; confirm unittest still green with .venv python; flag mock-only fakes as implementation_gap."
+      },
+      "fact_ref": "brick-comparison:deku-d1-real-face-0709b:deku-d1-real-face-0709b-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "filesystem-enforced source_write/probe_write separation",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-deku-d1-real-face-0709b-work",
+        "comparison_rule": "Work Brick is the implementer — it does the declared implementation inside the Brick write scope, coding directly or using subagents/workflows as tools when the work is large or benefits from parallelism.",
+        "required_return_shape": "received_work_ref,received_deliverables_echo,made_changes,changed_files,observed_evidence,commands_run,blocked_or_missing_evidence,handoff_refs,not_proven",
+        "source_facts": [],
+        "work_statement": "D1 Real Face implementer: make mock-off Nemotron face green on shipped deku_server. Use /Users/smith/projects/deku/.venv/bin/python only. Run probes/real_path_probe.py --phase d1 --hellos 20 with DEKU_WORKER_MODE=local_double (or equivalent that still uses shipped dispatch_worker + real Nemotron load). Fix any load/path/import gaps inside write_scope. Produce non-blank hello≥20 + multi-turn evidence files. Do not use DEKU_FORCE_MOCK=1 for Exit proof."
+      },
+      "fact_ref": "brick-work:03:deku-d1-real-face-0709b-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "filesystem-enforced source_write/probe_write separation",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: received_work_ref, received_deliverables_echo, made_changes, changed_files, observed_evidence, commands_run, blocked_or_missing_evidence, handoff_refs, not_proven",
+          "observed_return_fields: adapter_ref, agent_object_ref, blocked_or_missing_evidence, brain_surface_ref, changed_files, cli_call_ref, cli_version_text, commands_run, evidence_refs, handoff_refs, made_changes, not_proven, observed_evidence, output_excerpt, proof_limits, received_deliverables_echo, received_work_ref, returned_summary, selected_adapter_ref, selected_model_ref, worktree_observation",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Work Brick is the implementer — it does the declared implementation inside the Brick write scope, coding directly or using subagents/workflows as tools when the work is large or benefits from parallelism.",
+        "forbidden_shortcut_evidence": [
+          "brick_protocol/support/run did not classify Agent return",
+          "brick_protocol/support/run did not judge success or quality",
+          "brick_protocol/support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "received_work_ref,received_deliverables_echo,made_changes,changed_files,observed_evidence,commands_run,blocked_or_missing_evidence,handoff_refs,not_proven",
+        "work_reference": "D1 Real Face implementer: make mock-off Nemotron face green on shipped deku_server. Use /Users/smith/projects/deku/.venv/bin/python only. Run probes/real_path_probe.py --phase d1 --hellos 20 with DEKU_WORKER_MODE=local_double (or equivalent that still uses shipped dispatch_worker + real Nemotron load). Fix any load/path/import gaps inside write_scope. Produce non-blank hello≥20 + multi-turn evidence files. Do not use DEKU_FORCE_MOCK=1 for Exit proof."
+      },
+      "fact_ref": "brick-comparison:03:deku-d1-real-face-0709b-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "filesystem-enforced source_write/probe_write separation",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03",
+        "raw:agent:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:03:deku-d1-real-face-0709b-work",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: received_work_ref, received_deliverables_echo, made_changes, changed_files, observed_evidence, commands_run, blocked_or_missing_evidence, handoff_refs, not_proven",
+          "observed_return_fields: adapter_ref, agent_object_ref, blocked_or_missing_evidence, brain_surface_ref, changed_files, cli_call_ref, cli_version_text, commands_run, evidence_refs, handoff_refs, made_changes, not_proven, observed_evidence, output_excerpt, proof_limits, received_deliverables_echo, received_work_ref, returned_summary, selected_adapter_ref, selected_model_ref, worktree_observation",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Work Brick is the implementer — it does the declared implementation inside the Brick write scope, coding directly or using subagents/workflows as tools when the work is large or benefits from parallelism.",
+        "forbidden_shortcut_evidence": [
+          "brick_protocol/support/run did not classify Agent return",
+          "brick_protocol/support/run did not judge success or quality",
+          "brick_protocol/support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "received_work_ref,received_deliverables_echo,made_changes,changed_files,observed_evidence,commands_run,blocked_or_missing_evidence,handoff_refs,not_proven",
+        "work_reference": "D1 Real Face implementer: make mock-off Nemotron face green on shipped deku_server. Use /Users/smith/projects/deku/.venv/bin/python only. Run probes/real_path_probe.py --phase d1 --hellos 20 with DEKU_WORKER_MODE=local_double (or equivalent that still uses shipped dispatch_worker + real Nemotron load). Fix any load/path/import gaps inside write_scope. Produce non-blank hello≥20 + multi-turn evidence files. Do not use DEKU_FORCE_MOCK=1 for Exit proof."
+      },
+      "fact_ref": "brick-comparison:deku-d1-real-face-0709b:deku-d1-real-face-0709b-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "filesystem-enforced source_write/probe_write separation",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03",
+        "raw:agent:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-deku-d1-real-face-0709b-closure",
+        "comparison_rule": "Closure Brick records evidence, narrowly_proven, not_proven, remaining_delta, and next candidate movement.",
+        "required_return_shape": "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence,deliverable_crosscheck",
+        "source_facts": [
+          "work/step-outputs/deku-d1-real-face-0709b-code-attack-qa-attempt-1/step-output.json"
+        ],
+        "work_statement": "D1 Exit synthesis: narrowly_proven vs not_proven. If Exit met, note DEKU_STATUS D1 update path. Do not advance D2 as complete."
+      },
+      "fact_ref": "brick-work:04:deku-d1-real-face-0709b-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:04"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, narrowly_proven, not_proven, remaining_delta, parent_goal_delta_status, next_target_candidates, deferred_smith_review_queue, transition_concern_evidence, deliverable_crosscheck",
+          "observed_return_fields: adapter_ref, agent_object_ref, brain_surface_ref, cli_call_ref, cli_version_text, deferred_smith_review_queue, deliverable_crosscheck, evidence_refs, narrowly_proven, next_target_candidates, not_proven, observed_evidence, output_excerpt, parent_goal_delta_status, proof_limits, remaining_delta, returned_summary, selected_adapter_ref, selected_model_ref, transition_concern_evidence",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Closure Brick records evidence, narrowly_proven, not_proven, remaining_delta, and next candidate movement.",
+        "forbidden_shortcut_evidence": [
+          "brick_protocol/support/run did not classify Agent return",
+          "brick_protocol/support/run did not judge success or quality",
+          "brick_protocol/support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence,deliverable_crosscheck",
+        "work_reference": "D1 Exit synthesis: narrowly_proven vs not_proven. If Exit met, note DEKU_STATUS D1 update path. Do not advance D2 as complete."
+      },
+      "fact_ref": "brick-comparison:04:deku-d1-real-face-0709b-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:04",
+        "raw:agent:04"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:04:deku-d1-real-face-0709b-closure",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, narrowly_proven, not_proven, remaining_delta, parent_goal_delta_status, next_target_candidates, deferred_smith_review_queue, transition_concern_evidence, deliverable_crosscheck",
+          "observed_return_fields: adapter_ref, agent_object_ref, brain_surface_ref, cli_call_ref, cli_version_text, deferred_smith_review_queue, deliverable_crosscheck, evidence_refs, narrowly_proven, next_target_candidates, not_proven, observed_evidence, output_excerpt, parent_goal_delta_status, proof_limits, remaining_delta, returned_summary, selected_adapter_ref, selected_model_ref, transition_concern_evidence",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Closure Brick records evidence, narrowly_proven, not_proven, remaining_delta, and next candidate movement.",
+        "forbidden_shortcut_evidence": [
+          "brick_protocol/support/run did not classify Agent return",
+          "brick_protocol/support/run did not judge success or quality",
+          "brick_protocol/support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence,deliverable_crosscheck",
+        "work_reference": "D1 Exit synthesis: narrowly_proven vs not_proven. If Exit met, note DEKU_STATUS D1 update path. Do not advance D2 as complete."
+      },
+      "fact_ref": "brick-comparison:deku-d1-real-face-0709b:deku-d1-real-face-0709b-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:04",
+        "raw:agent:04"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-07-09T14:14:40Z",
+  "id": "urn:bp:building:deku-d1-real-face-0709b::evidence/claim_trace/brick/work_contract.json",
+  "recorded_at": "2026-07-09T14:14:40Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:deku-d1-real-face-0709b",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/brick/work_contract.json",
+  "time": "2026-07-09T14:14:40Z",
+  "type": "bp.claim_trace"
+}

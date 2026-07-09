@@ -1,0 +1,18 @@
+{
+  "building_id": "g3k-knowledge-0709",
+  "started_at": "2026-07-09T22:10:04",
+  "duration_s": 0.045,
+  "command": [
+    "python3",
+    "-m",
+    "unittest",
+    "tests.test_g3_g4.TestWiki",
+    "tests.test_g3_g4.TestHermesForbidden",
+    "-v"
+  ],
+  "exit_code": 0,
+  "stdout_tail": "",
+  "stderr_tail": "test_compile_slice_inject_log_shape (tests.test_g3_g4.TestWiki.test_compile_slice_inject_log_shape) ... ok\ntest_no_hermes_skill_as_source_in_core (tests.test_g3_g4.TestHermesForbidden.test_no_hermes_skill_as_source_in_core) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.009s\n\nOK\n",
+  "status": "complete",
+  "frontier": "complete"
+}

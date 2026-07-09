@@ -1,0 +1,47 @@
+{
+  "building_id": "deku-g0-face-official-0709",
+  "composition_mode": "caller_or_coo_declared_graph_composition",
+  "declaration_evidence_refs": [
+    "work/task.md",
+    "work/building-intake.json",
+    "work/preset-expansion.json",
+    "work/declared-building-plan.json",
+    "work/declared-building-plan.rev-*.json",
+    "work/link-launch-policy.json"
+  ],
+  "declared_by": "coo-deku-session",
+  "kind": "building_intake_provenance",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "selected preset ref was not exposed by the plan"
+  ],
+  "plan_ref": "building-plan:composed-graph",
+  "plan_shape": "graph",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "support evidence only"
+  ],
+  "selected_adapter_ref": "adapter:local",
+  "selected_model_ref": "model:default",
+  "selected_preset_ref": "",
+  "selected_shape_ref": "",
+  "task_source_hash": "99b143e4f2a5ccba0b72374022d133c393484d342e4a6c943f645eb2e4912b8b",
+  "task_source_hash_algorithm": "sha256",
+  "task_source_hash_basis": "utf-8 inline task_statement body at materialization time",
+  "task_source_hash_state": "matched",
+  "task_source_ref": "task-source:inline-statement"
+}

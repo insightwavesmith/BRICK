@@ -1,0 +1,74 @@
+{
+  "building_id": "deku-d1-real-face-0709b",
+  "declared_gate_refs": [
+    "link-gate:default-transition"
+  ],
+  "kind": "link_launch_policy_provenance",
+  "launch_rows": [
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:deku-d1-real-face-0709b-work-to-deku-d1-real-face-0709b-code-attack-qa",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "deku-d1-real-face-0709b-work",
+      "target_ref": "brick-deku-d1-real-face-0709b-code-attack-qa"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:deku-d1-real-face-0709b-code-attack-qa-to-deku-d1-real-face-0709b-closure",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "deku-d1-real-face-0709b-code-attack-qa",
+      "target_ref": "brick-deku-d1-real-face-0709b-closure"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:deku-d1-real-face-0709b-closure-to-boundary-closed",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "deku-d1-real-face-0709b-closure",
+      "target_ref": "building-boundary:closed"
+    }
+  ],
+  "max_attempts_by_boundary": {},
+  "node_reroute_budgets": {
+    "brick-deku-d1-real-face-0709b-closure": 5,
+    "brick-deku-d1-real-face-0709b-code-attack-qa": 5,
+    "brick-deku-d1-real-face-0709b-work": 5
+  },
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "filesystem-enforced source_write/probe_write separation",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "plan_ref": "building-plan:composed-graph",
+  "plan_shape": "graph",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "support CLI wrapper only",
+    "existing seams own run/checker behavior",
+    "P3 records launch parameters only; P4 owns Carry budget evidence"
+  ],
+  "selected_shape_ref": ""
+}

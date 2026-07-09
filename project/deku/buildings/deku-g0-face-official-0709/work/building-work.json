@@ -1,0 +1,51 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:deku-g0-face-official-0709::work/building-work.json",
+  "building_id": "deku-g0-face-official-0709",
+  "comparison_rule": "Work Brick is the implementer — it does the declared implementation inside the Brick write scope, coding directly or using subagents/workflows as tools when the work is large or benefits from parallelism.",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-07-09T13:21:43Z",
+  "id": "urn:bp:building:deku-g0-face-official-0709::work/building-work.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "plan_ref": "building-plan:composed-graph",
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-07-09T13:21:43Z",
+  "required_return_shape": "received_work_ref,received_deliverables_echo,made_changes,changed_files,observed_evidence,commands_run,blocked_or_missing_evidence,handoff_refs,not_proven",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:deku-g0-face-official-0709",
+  "source_facts": [],
+  "specversion": "1.0",
+  "step_refs": [
+    "deku-g0-face-official-0709-work",
+    "deku-g0-face-official-0709-closure"
+  ],
+  "subject": "work/building-work.json",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-07-09T13:21:43Z",
+  "type": "bp.building_work",
+  "work_statement": "Implement/verify G0 Face on /Users/smith/projects/deku: truncation 40960, parse, session, no-blank, trajectory C9.1, multi-turn conduct_history always includes assembler [policy]/[wiki] zones (fix hist-or-bundle bug). Run: cd /Users/smith/projects/deku && python3 -m unittest discover -s tests -v. Return changed_files + commands_run + observed_evidence."
+}

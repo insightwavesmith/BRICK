@@ -1,0 +1,248 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:deku-d1-real-face-0709b::work/step-outputs/deku-d1-real-face-0709b-code-attack-qa-attempt-1/step-output.json",
+  "adapter_dispatch_timing": {
+    "dispatch_ended_at": "2026-07-09T14:05:06Z",
+    "dispatch_started_at": "2026-07-09T13:54:17Z",
+    "duration_ms": 649093.783,
+    "timing_scope": "adapter_dispatch",
+    "timing_source": "brick_protocol/support/operator/walker_kernel.py:process_one_node"
+  },
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:qa",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-deku-d1-real-face-0709b-code-attack-qa",
+  "building_id": "deku-d1-real-face-0709b",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "adapter_dispatch_timing_raw_ref": "raw:adapter-dispatch-timing:deku-d1-real-face-0709b-code-attack-qa:attempt-1",
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-07-09T14:05:06.726796Z",
+  "id": "urn:bp:building:deku-d1-real-face-0709b::work/step-outputs/deku-d1-real-face-0709b-code-attack-qa-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "filesystem-enforced source_write/probe_write separation",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support CLI wrapper only",
+    "existing seams own run/checker behavior",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:deku-d1-real-face-0709b-code-attack-qa",
+  "recorded_at": "2026-07-09T14:05:06.726796Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:qa",
+    "attacked_work": "brick-deku-d1-real-face-0709b-work D1 real-path claims: healthz/models/hello-soak/multi-turn evidence under /var/folders/.../implementer/{d1-load-ok.txt,d1-healthz.txt,d1-models.json,d1-hellos.json,d1-multiturn.json,regression.txt,probe-summary.json}, plus made_changes:false self-report.",
+    "boundary_violations": [
+      "None observed as an actual mutation: the upstream work step-output records an `apply_patch` attempt on /Users/smith/projects/deku/deku_core/conduct.py that was rejected with 'writing outside of the project' — the write_scope boundary correctly blocked an out-of-scope source_write attempt; no violation occurred.",
+      "This QA lane performed no source_write: all commands were read-only repo inspection plus disposable probe_write to /tmp scratch directories (removed after use); no files under the declared write_scope or under /Users/smith/projects/deku were created, edited, or deleted."
+    ],
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "changed_files": [],
+    "checked_sources": [
+      "/Users/smith/projects/deku/probes/real_path_probe.py",
+      "/Users/smith/projects/deku/deku_server.py",
+      "/Users/smith/projects/deku/deku.py",
+      "/Users/smith/projects/deku/deku_core/conduct.py",
+      "/Users/smith/projects/deku/deku_core/strategy.py",
+      "/Users/smith/projects/deku/docs/DEKU_STATUS.md",
+      "/Users/smith/projects/deku/docs/COO_ACTIVE_GOAL_G0_G4.md",
+      "/Users/smith/projects/deku/tests/ (27-test unittest suite)",
+      "var/folders/hm/3b5ry_rn3y18jk6bgy7w7z140000gn/T/grok-goal-c215b513459a/implementer/* (builder D1 tmp evidence)",
+      "work/step-outputs/deku-d1-real-face-0709b-work-attempt-1/step-output.json"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:claude-local:deku-d1-real-face-0709b",
+    "cli_version_text": "2.1.205 (Claude Code)",
+    "evidence_refs": [
+      "support-packet:deku-d1-real-face-0709b:agent-object:qa:output"
+    ],
+    "evidence_used": [
+      "/Users/smith/projects/deku/probes/real_path_probe.py:1-13 (module docstring: 'Does NOT use DEKU_FORCE_MOCK... Nemotron load required')",
+      "/Users/smith/projects/deku/probes/real_path_probe.py:64-107 (phase_d1: healthz/models/hello/multi-turn assertions)",
+      "/Users/smith/projects/deku/deku_server.py:44-51 (_ensure_loaded — real transformers load, DEKU_FORCE_MOCK guard)",
+      "/Users/smith/projects/deku/deku_server.py:163-164 (strategy_id = 'greeting' for is_greeting inputs)",
+      "/Users/smith/projects/deku/deku_server.py:487-495 (/healthz handler)",
+      "/Users/smith/projects/deku/deku_core/conduct.py:33-49 (mock_worker canned patterns, including the '17'+'24'->'408' and greeting branches)",
+      "/Users/smith/projects/deku/deku_core/conduct.py:93-98 (greeting fast path never calls real_run)",
+      "/Users/smith/projects/deku/deku_core/conduct.py:196-199 (real nemotron path only reached when strategy_id is falsy)",
+      "/Users/smith/projects/deku/deku_core/strategy.py:77-80 (is_greeting matches '안녕'/'hello')",
+      "/Users/smith/projects/deku/deku.py:26-71 (WORKER_MODE/local_double/dispatch_worker routing)",
+      "/Users/smith/projects/deku/deku.py:117-121,153-239 (load(), run() — real model.generate() call site)",
+      "var/folders/hm/3b5ry_rn3y18jk6bgy7w7z140000gn/T/grok-goal-c215b513459a/implementer/d1-hellos.json (20 identical canned-string entries)",
+      "var/folders/hm/3b5ry_rn3y18jk6bgy7w7z140000gn/T/grok-goal-c215b513459a/implementer/d1-multiturn.json (a1=a2='408')",
+      "var/folders/hm/3b5ry_rn3y18jk6bgy7w7z140000gn/T/grok-goal-c215b513459a/implementer/d1-load-env.txt, d1-probe-stdout.txt (first-attempt ModuleNotFoundError)",
+      "var/folders/hm/3b5ry_rn3y18jk6bgy7w7z140000gn/T/grok-goal-c215b513459a/implementer/regression.txt ('Ran 27 tests... OK')",
+      "/Users/smith/projects/deku/docs/DEKU_STATUS.md (remaining_not_proven: 'Nemotron-loaded (non-mock) 50× hello soak')",
+      "own probe outputs at /tmp/qa-d1-probe/{d1-hellos.json,d1-multiturn.json} (deleted after use, contents quoted above)",
+      "own timed inline-script probe output (0.01s greeting vs 140.18s non-greeting; mock fallback text)",
+      "`git diff --stat HEAD -- deku.py deku_server.py` and `git status --short probes/ deku_core/ tests/` in /Users/smith/projects/deku",
+      "`.venv/bin/python -m unittest discover -s tests -v` output (27 tests OK)",
+      "check_profile.py --all run from this Building's W1 worktree cwd (all listed profiles passed)"
+    ],
+    "failing_or_missing_probes": [
+      "docs/DEKU_STATUS.md remaining_not_proven lists 'Nemotron-loaded (non-mock) 50× hello soak'; the builder's D1 run used --hellos 20 (not 50), and per the greeting-bypass finding above, no hello-soak count at any n exercises real conductor inference, so this remaining_not_proven item cannot be closed by re-running more hellos.",
+      "No probe in this D1 evidence set captures or cross-checks the actual (tool_name, slot) chosen by the real Nemotron conduct() call against an expected/sane choice — since the final answer text is mock regardless, there is no evidence the conductor's routing decision is even being validated anywhere.",
+      "D2/D3/D4 phases in the same probe script were not exercised in this QA pass (out of declared scope for this task's re-run instruction, flagged as not_proven below, not as a defect)."
+    ],
+    "negative_probe_observations": [
+      {
+        "expected_if_real": "measurable model.generate() latency and/or content dependent on model output",
+        "observed": "0.01s response time, byte-identical canned string on every call — confirms real Nemotron path is not exercised for greeting inputs despite the model being loaded",
+        "probe": "POST /v1/responses input='hello' (own probe, .venv python, real model loaded)"
+      },
+      {
+        "expected_if_real": "content reflecting an octopus fact",
+        "observed": "140.18s elapsed (real inference cost paid) but output_text = '[mock:search-1] processed: uflage biology in detail\\n\\nReason step by step and provide intermediate results.\\n\\nProblem: Tell me a fun fact about octopus camouflage biology in detail\\n\\nSearch for and provide the missing information.' — literal mock_worker fallback template, not model-generated content",
+        "probe": "POST /v1/responses input='Tell me a fun fact about octopus camouflage biology in detail' (non-canned, non-greeting)"
+      }
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "filesystem-enforced source_write/probe_write separation",
+      "Whether the deterministic mock_worker text substitution for greeting/canned-pattern inputs was already known and accepted at COO level as within-scope for D1 Exit, versus a genuine unflagged gap — this QA lane observes the fact of the substitution only, not the acceptance decision.",
+      "Semantic/quality correctness of the real Nemotron conductor's tool-selection decisions (name/slot) on non-greeting queries — not inspected beyond confirming real model.generate() is invoked and consumes real wall-clock time.",
+      "D2 (session/pin/state), D3 (strategy/ultra/verify), D4 (policy/wiki inject) real-path behavior — out of this QA pass's scope; not re-run or attacked here.",
+      "Behavior under DEKU_WORKER_MODE=paid (real subscription CLI workers) — not exercised; all reproduction here used DEKU_WORKER_MODE=local_double per the builder's own commands.",
+      "Whether the uncommitted/untracked state of deku_core/, probes/, tests/, vendor/ and the modified deku.py/deku_server.py in the live /Users/smith/projects/deku tree will be durably captured anywhere before further D-phase work proceeds — only observed that it currently is not captured in deku's own git history and is outside this Building's declared write_scope.",
+      "MCP projection behavior, provider quality, tool or hook execution correctness beyond what was directly observed running local commands.",
+      "Source truth, success judgment, quality judgment, and Movement authority remain outside this QA lane's proof reach."
+    ],
+    "observed_evidence": [
+      "{\"symptom_reproduction\":\"Independently re-ran the shipped D1 real-path entrypoint `probes/real_path_probe.py --phase d1` with `.venv/bin/python` (real transformers/torch install, DEKU_WORKER_MODE=local_double), own scratch dir /tmp/qa-d1-probe (not the builder's tmp scratch under /var/folders/.../implementer). Reproduced identical shape: real Nemotron-8B weight load (~21-28s, visible checkpoint-shard progress bar), healthz/models schema correct (context_window=40960, truncation_policy.limit=40960), hello soak non-blank, multi-turn non-blank.\"}",
+      "{\"own_probes\":\"Wrote and ran an independent Python driver (not the builder's fixture) hitting `/v1/responses` directly through deku_server's FastAPI TestClient: (a) sent 'hello' and timed the call, (b) sent a non-greeting, non-canned-pattern query ('Tell me a fun fact about octopus camouflage biology in detail') and timed that call, to isolate whether real Nemotron inference is actually exercised per request.\"}",
+      "{\"real_entry_surface\":\"Drove the real shipped HTTP surface (`POST /v1/responses` via deku_server.app, the same entrypoint codex/model_provider=deku hits) and the real `/healthz`, `/v1/models` handlers, plus `python -m unittest discover -s tests -v` with `.venv/bin/python` (deku_core-repo local suite, not brick_protocol tests).\"}",
+      "{\"finding\":\"Greeting-path bypasses the loaded Nemotron model entirely. `deku_core/strategy.py:77-80 is_greeting()` matches '\\uc548\\ub155'/'hello' (both used in D1 hello soak); `deku_server.py:163-164` sets `strategy_id='greeting'` for any greeting; `deku_core/conduct.py:93-98` (greeting branch) never calls `real_run` \\u2014 it calls `worker(slot, prompt)` directly, and worker is `dispatch_worker` which under `DEKU_WORKER_MODE=local_double` (`deku.py:54-71`) resolves to `mock_worker` (`deku_core/conduct.py:33-49`), a hardcoded string-match function. Own probe: greeting call elapsed 0.01s (vs ~21-28s model load), and returned the byte-identical canned string '\\uc548\\ub155\\ud558\\uc138\\uc694. Deku-1 mock worker\\uc785\\ub2c8\\ub2e4. \\ubb34\\uc5c7\\uc744 \\ub3c4\\uc640\\ub4dc\\ub9b4\\uae4c\\uc694?' on every single one of the builder's 20 hellos (verified by reading d1-hellos.json) and on my own reruns (n=3).\"}",
+      "{\"finding\":\"Non-greeting path does invoke real Nemotron inference (own probe: 140.18s wall-clock for one non-greeting request, consistent with `deku.py:153-239 run()` calling `model.generate()` under a mutex across up to MAX_ROUNDS=6 steps on MPS) \\u2014 but the *final user-facing answer text* is still produced by `WORKER[slot](wp)` -> `dispatch_worker` -> `mock_worker` in local_double mode, not by the model. Own probe with a query matching none of mock_worker's canned branches returned the literal fallback template `f\\\"[mock:{slot}] processed: {prompt[-200:]}\\\"` (observed: `[mock:search-1] processed: uflage biology in detail\\\\n\\\\nReason step by step...`), i.e. an echo of the prompt tail with a '[mock:...]' prefix, not generated content. The builder's multi-turn evidence (`d1-multiturn.json`: a1='408', a2='408') matches the hardcoded `mock_worker` branch `if \\\"17\\\" in p and \\\"24\\\" in p: return \\\"408\\\"` (`deku_core/conduct.py:42-43`) verbatim rather than any model computation.\"}",
+      "{\"finding\":\"`/healthz`'s `loaded` field (`deku_server.py:487-495`) only checks `_MODEL is not None` \\u2014 this part of the claim is accurate: the real 8B checkpoint (`artifacts/nemotron-8b`) is genuinely loaded via `transformers.AutoModelForCausalLM`/`AutoTokenizer` (confirmed by the visible shard-loading progress bar and ~21-28s load time), not faked.\"}",
+      "{\"finding\":\"unittest claim reproduced: `.venv/bin/python -m unittest discover -s tests -v` in /Users/smith/projects/deku -> 'Ran 27 tests in 0.265s / OK', matching the builder's recorded regression.txt ('Ran 27 tests in 0.278s / OK').\"}",
+      "{\"finding\":\"The first probe attempt in the builder's own commands_run failed with `ModuleNotFoundError: No module named 'transformers'` (d1-load-env.txt, d1-probe-stdout.txt, both timestamped 22:48:33) because it was not run with `.venv/bin/python`; the builder's later successful run explicitly switched to `/Users/smith/projects/deku/.venv/bin/python` (confirmed `.venv` has `transformers==5.13.0`, `torch==2.12.1` installed) \\u2014 the switch is a real environment fix, not evidence tampering.\"}",
+      "{\"finding\":\"Building checker profile `check_profile.py --all` run fresh from this Building's W1 worktree cwd: all listed profiles report 'passed' (no failures observed) \\u2014 general BRICK kernel health only, does not touch deku-repo-specific behavior.\"}",
+      "{\"finding\":\"deku repo git state: deku.py and deku_server.py are modified relative to `git HEAD` (98 and 556 diff lines respectively, uncommitted); deku_core/, probes/, tests/, vendor/ are entirely untracked (`??`). The upstream work step-output nonetheless reports `made_changes: false, changed_files: []` \\u2014 internally consistent only because this Brick's declared write_scope is the BRICK worktree, not `/Users/smith/projects/deku` (matches the previously recorded 'fake_landing_write_scope_diff_absent' lifecycle note in docs/DEKU_STATUS.md), but it means none of this D1 implementation is captured by any git diff artifact this or any future QA/closure lane can inspect as a durable record.\"}"
+    ],
+    "output_excerpt": "```json { \"observed_evidence\": [ { \"symptom_reproduction\": \"Independently re-ran the shipped D1 real-path entrypoint `probes/real_path_probe.py --phase d1` with `.venv/bin/python` (real transformers/torch install, DEKU_WORKER_MODE=local_double), own scratch dir /tmp/qa-d1-probe (not the builder's tmp scratch under /var/folders/.../implementer). Reproduced identical shape: real Nemotron-8B weight load (~21-28s, visible checkpoint-shard progress bar), healthz/models schema correct (context_window=40960, truncation_policy.limit=40960), hello soak non-blank, multi-turn non-blank.\" }, { \"own_pro...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "Agent hook:reviewer-no-mutation blocks source_write while allowing declared work-area probe_write",
+      "source_write vs probe_write is prompt/evidence disciplined here, not a filesystem-enforced provider distinction"
+    ],
+    "regression_risks": [
+      "Non-greeting real-path requests measured at ~140s wall-clock for a single turn (own probe) on MPS — a severe, previously-uncalled-out latency risk if this path is ever hit by a real user session (D2 phase does 14+ chained turns, which at this per-turn cost would be tens of minutes).",
+      "The greeting fast-path silently short-circuits the entire conductor for any input matching `is_greeting()` (single-word/short greeting), so any future 'expand real-path coverage' work risks assuming hello-soak evidence exercises the conductor when it structurally cannot."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:sonnet",
+    "transition_concern_evidence": {
+      "binding": false,
+      "concern_kind": "implementation_gap",
+      "concern_ref": "transition-concern:deku-d1-real-face-0709b-worker-text-mock-only",
+      "not_proven": [
+        "not proven (design intent): whether DEKU_WORKER_MODE=local_double's mock-worker-text behavior for greeting/canned-pattern turns is an already-accepted, declared design tradeoff (per deku.py:26-27 comment 'declared double for dogfood without paid CLIs') that Smith/COO has knowingly signed off on for D1 Exit, versus an unflagged regression against the North-star claim '사용자 문장 = 워커만' / 'Nemotron-loaded (non-mock) 50× hello soak'",
+        "not proven in probes/, tests/, deku_core/ (path glob under /Users/smith/projects/deku): whether any other phase (D2/D3/D4) or non-greeting/non-canned production path returns real generated worker content when DEKU_WORKER_MODE is not local_double (paid CLI mode was not exercised in this QA pass)"
+      ],
+      "proof_limits": [
+        "reproduced only D1 (hello/healthz/models/multi-turn); D2/D3/D4 not re-run in this pass",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "reason_refs": [
+        "work/step-outputs/deku-d1-real-face-0709b-work-attempt-1/step-output.json",
+        "observation:d1-greeting-path-bypasses-real-nemotron-0.01s-vs-load-25s",
+        "observation:d1-nongreeting-140s-real-inference-but-mock-worker-fallback-text",
+        "observation:d1-hellos-json-identical-canned-string-x20",
+        "observation:d1-multiturn-408-matches-hardcoded-mock-branch"
+      ],
+      "related_boundary_refs": [
+        "brick-deku-d1-real-face-0709b-work"
+      ]
+    },
+    "worktree_observation": {
+      "after_git_refs": {
+        "branch": "HEAD",
+        "head": "5cd969be11386f6807a050d4d89d3d0e7036a1bd"
+      },
+      "after_git_status_paths": [],
+      "after_path_count": 5241,
+      "before_git_refs": {
+        "branch": "HEAD",
+        "head": "5cd969be11386f6807a050d4d89d3d0e7036a1bd"
+      },
+      "before_git_status_paths": [],
+      "before_path_count": 5241,
+      "git_refs_moved": {},
+      "not_proven": [
+        "semantic correctness of file edits",
+        "complete diff attribution for pre-existing dirty paths"
+      ],
+      "observed_changed_files": [],
+      "proof_limits": [
+        "changed files are support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "write_scope": {
+        "allowed_paths": [
+          "."
+        ],
+        "forbidden_paths": [
+          ".git/**"
+        ]
+      }
+    }
+  },
+  "returned_fact_ref": "agent-fact:02:deku-d1-real-face-0709b-code-attack-qa",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:deku-d1-real-face-0709b",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:deku-d1-real-face-0709b-code-attack-qa:attempt-1",
+  "step_ref": "deku-d1-real-face-0709b-code-attack-qa",
+  "subject": "deku-d1-real-face-0709b-code-attack-qa",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-07-09T14:05:06.726796Z",
+  "transition_concern_ref": "work/step-outputs/deku-d1-real-face-0709b-code-attack-qa-attempt-1/transition-concern.json",
+  "type": "bp.step_output"
+}

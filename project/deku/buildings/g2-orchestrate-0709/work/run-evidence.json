@@ -1,0 +1,17 @@
+{
+  "building_id": "g2-orchestrate-0709",
+  "started_at": "2026-07-09T22:10:04",
+  "duration_s": 0.056,
+  "command": [
+    "python3",
+    "-m",
+    "unittest",
+    "tests.test_g1_g2.TestAccessGroundVerify",
+    "-v"
+  ],
+  "exit_code": 0,
+  "stdout_tail": "",
+  "stderr_tail": "test_access_modes (tests.test_g1_g2.TestAccessGroundVerify.test_access_modes) ... ok\ntest_call_cap_violation_counted (tests.test_g1_g2.TestAccessGroundVerify.test_call_cap_violation_counted) ... ok\ntest_greeting_single_call (tests.test_g1_g2.TestAccessGroundVerify.test_greeting_single_call) ... ok\ntest_grounding_ungrounded_number (tests.test_g1_g2.TestAccessGroundVerify.test_grounding_ungrounded_number) ... ok\ntest_invalid_plan_falls_back (tests.test_g1_g2.TestAccessGroundVerify.test_invalid_plan_falls_back) ... ok\ntest_strategy_e2e_mock (tests.test_g1_g2.TestAccessGroundVerify.test_strategy_e2e_mock) ... ok\ntest_strategy_with_verify_replan (tests.test_g1_g2.TestAccessGroundVerify.test_strategy_with_verify_replan) ... ok\n\n----------------------------------------------------------------------\nRan 7 tests in 0.007s\n\nOK\n",
+  "status": "complete",
+  "frontier": "complete"
+}

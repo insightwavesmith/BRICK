@@ -1,0 +1,14 @@
+# TransitionConcern · seq 33 · ["Agent","Link"]
+- agent_object_ref: "agent-object:coo"
+- alias_fact_refs: ["transition-concern:deku-d1-real-face-0709b-d1-verification-gap"]
+- attempt_index: 1
+- axis_scope: ["Agent","Link"]
+- binding: false
+- event_type: "TransitionConcern"
+- run_segment: 1
+- sequence_index: 33
+- source_fact_ref: "transition-concern:deku-d1-real-face-0709b-closure:attempt-1"
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/deku-d1-real-face-0709b-closure-attempt-1/step-output.json"
+- step_ref: "deku-d1-real-face-0709b-closure"
+- transition_concern_returned: {"binding":false,"concern_kind":"verification_gap","concern_ref":"transition-concern:deku-d1-real-face-0709b-d1-verification-gap","not_proven":["D1 50x non-mock hello soak is not proven by the observed raw artifacts.","D1 actual Nemotron routing decision validation is not proven by hello-only greeting-path artifacts."],"proof_limits":["Non-binding Agent evidence only","Does not choose Movement, route target, sufficiency, success, or quality"],"reason_refs":["observation:d1-raw-probe-count-20-not-50","observation:greeting-path-before-real-run","observation:local-double-worker-body"],"related_boundary_refs":["building-boundary:deku-d1-real-face-0709b"]}

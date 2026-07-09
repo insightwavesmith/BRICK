@@ -1,0 +1,35 @@
+{
+  "building_id": "deku-d1-real-face-0709b",
+  "declared_by": "coo-deku-fugu",
+  "author_ref": "coo:deku",
+  "action": "forward",
+  "adapter": "local",
+  "adapter_timeout_seconds": 10800,
+  "output_root": "/Users/smith/projects/BRICK/project/deku/buildings",
+  "task": "# D1 Real Face — project:deku (Fugu router real path)\n\n## Objective\nClose **D1 Real Face** for Deku conversational router. Mock OFF. Real Nemotron load on shipped `deku_server`.\n\n## Done means (all required)\n1. `python3 deku_server` path without `DEKU_FORCE_MOCK`; `/healthz` → `loaded=true`\n2. `/v1/models` → `context_window=40960` and `truncation_policy.limit=40960`\n3. ≥20 hello/short turns non-blank on **real** `/v1/responses` (Nemotron loaded)\n4. multi-turn 2+ reference non-blank on mock-off path\n5. Capture logs under DEKU_PROBE_SCRATCH or building work/ evidence\n6. Update `/Users/smith/projects/deku/docs/DEKU_STATUS.md` D1 Exit + remaining_not_proven\n7. Keep existing unittest suite green: use `/Users/smith/projects/deku/.venv/bin/python -m unittest discover -s tests -v`\n\n## Environment (declared)\n- Code root: `/Users/smith/projects/deku`\n- Weights: `artifacts/nemotron-8b`\n- Interpreter for probes: **`/Users/smith/projects/deku/.venv/bin/python`** (system python lacks transformers)\n- `DEKU_WORKER_MODE=local_double` allowed (declared local doubles via shipped `dispatch_worker` — not a reimplemented loop)\n- `DEKU_HOME` may be building-local temp under work/\n\n## Hard constraints\n- Implement only inside write_scope. No fine-tune, no RoPE, no wiki-first, no G4 paid Dominate.\n- Do not claim D1 Exit on mock-only (`DEKU_FORCE_MOCK=1`).\n- If MPS OOM/load fails: record honest failure evidence; do not fake loaded=true.\n- Free-form WorkflowPlan stays OFF.\n\n## Suggested command\n```\ncd /Users/smith/projects/deku\nexport DEKU_WORKER_MODE=local_double\nexport DEKU_PROBE_SCRATCH=work/d1-scratch   # or absolute under building root\n/Users/smith/projects/deku/.venv/bin/python probes/real_path_probe.py --phase d1 --hellos 20\n```\nIf probe missing/broken, fix shipped code then re-run. Return commands_run, changed_files, observed_evidence, not_proven.",
+  "write_scope": {
+    "allowed_paths": [
+      "/Users/smith/projects/deku/deku_core",
+      "/Users/smith/projects/deku/deku_server.py",
+      "/Users/smith/projects/deku/deku.py",
+      "/Users/smith/projects/deku/probes",
+      "/Users/smith/projects/deku/tests",
+      "/Users/smith/projects/deku/docs"
+    ],
+    "forbidden_paths": [".git/**", "vendor/**", "artifacts/**"]
+  },
+  "nodes": [
+    {
+      "kind": "work",
+      "work_statement": "D1 Real Face implementer: make mock-off Nemotron face green on shipped deku_server. Use /Users/smith/projects/deku/.venv/bin/python only. Run probes/real_path_probe.py --phase d1 --hellos 20 with DEKU_WORKER_MODE=local_double (or equivalent that still uses shipped dispatch_worker + real Nemotron load). Fix any load/path/import gaps inside write_scope. Produce non-blank hello≥20 + multi-turn evidence files. Do not use DEKU_FORCE_MOCK=1 for Exit proof."
+    },
+    {
+      "kind": "code-attack-qa",
+      "work_statement": "Attack D1 claims: re-run healthz/models/hello multi-turn on real path if feasible; confirm unittest still green with .venv python; flag mock-only fakes as implementation_gap."
+    },
+    {
+      "kind": "closure",
+      "work_statement": "D1 Exit synthesis: narrowly_proven vs not_proven. If Exit met, note DEKU_STATUS D1 update path. Do not advance D2 as complete."
+    }
+  ]
+}

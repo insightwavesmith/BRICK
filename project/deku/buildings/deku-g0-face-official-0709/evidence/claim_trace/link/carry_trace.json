@@ -1,0 +1,195 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:deku-g0-face-official-0709::evidence/claim_trace/link/carry_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Link",
+      "fact": {
+        "absent_fact_type": "CarryFact",
+        "caller_supplied": false,
+        "statement": "caller did not supply a Link CarryFact; brick_protocol/support/operator/run.py did not create one",
+        "support_created_bal_fact": false,
+        "trace_role": "absence_placeholder"
+      },
+      "fact_ref": "absence:link-carry:01:deku-g0-face-official-0709-work",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:01"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "absent_fact_type": "CarryFact",
+        "caller_supplied": false,
+        "statement": "caller did not supply a Link CarryFact; brick_protocol/support/operator/run.py did not create one",
+        "support_created_bal_fact": false,
+        "trace_role": "absence_placeholder"
+      },
+      "fact_ref": "absence:link-carry:02:deku-g0-face-official-0709-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:02"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "budget_exhausted": false,
+        "budget_kind": "node_reroute_budget",
+        "budget_scope": "target_brick_node",
+        "budget_source_refs": [
+          "work/declared-building-plan.json#node_reroute_budgets.brick-deku-g0-face-official-0709-closure",
+          "work/link-launch-policy.json#node_reroute_budgets.brick-deku-g0-face-official-0709-closure"
+        ],
+        "carry_budget_evidence_ref": "evidence/claim_trace/link/carry_trace.json#carry-budget:deku-g0-face-official-0709:node:brick-deku-g0-face-official-0709-closure",
+        "declared_budget": 5,
+        "disposition_required": false,
+        "exhaustion_record_refs": [],
+        "exhaustion_status": "not_observed",
+        "not_proven": [
+          "semantic correctness of the reroute or replay budget",
+          "caller/COO disposition after a HOLD",
+          "future provider/runtime behavior"
+        ],
+        "observed_reroute_landings": 0,
+        "observed_step_attempt_count": 1,
+        "proof_limits": [
+          "Link Carry budget evidence only",
+          "records declared and observed carry budget facts only",
+          "not source truth",
+          "not success judgment",
+          "not quality judgment",
+          "not Movement authority"
+        ],
+        "support_created_bal_fact": false,
+        "target_boundary_ref": "brick-deku-g0-face-official-0709-closure",
+        "trace_role": "carry_budget_observation"
+      },
+      "fact_ref": "carry-budget:deku-g0-face-official-0709:node:brick-deku-g0-face-official-0709-closure",
+      "not_proven": [
+        "semantic correctness of the reroute or replay budget",
+        "caller/COO disposition after a HOLD",
+        "future provider/runtime behavior"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "Link Carry budget evidence only",
+        "records declared and observed carry budget facts only"
+      ],
+      "raw_refs": [
+        "raw:link:01",
+        "raw:link:02"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "budget_exhausted": false,
+        "budget_kind": "node_reroute_budget",
+        "budget_scope": "target_brick_node",
+        "budget_source_refs": [
+          "work/declared-building-plan.json#node_reroute_budgets.brick-deku-g0-face-official-0709-work",
+          "work/link-launch-policy.json#node_reroute_budgets.brick-deku-g0-face-official-0709-work"
+        ],
+        "carry_budget_evidence_ref": "evidence/claim_trace/link/carry_trace.json#carry-budget:deku-g0-face-official-0709:node:brick-deku-g0-face-official-0709-work",
+        "declared_budget": 5,
+        "disposition_required": false,
+        "exhaustion_record_refs": [],
+        "exhaustion_status": "not_observed",
+        "not_proven": [
+          "semantic correctness of the reroute or replay budget",
+          "caller/COO disposition after a HOLD",
+          "future provider/runtime behavior"
+        ],
+        "observed_reroute_landings": 0,
+        "observed_step_attempt_count": 1,
+        "proof_limits": [
+          "Link Carry budget evidence only",
+          "records declared and observed carry budget facts only",
+          "not source truth",
+          "not success judgment",
+          "not quality judgment",
+          "not Movement authority"
+        ],
+        "support_created_bal_fact": false,
+        "target_boundary_ref": "brick-deku-g0-face-official-0709-work",
+        "trace_role": "carry_budget_observation"
+      },
+      "fact_ref": "carry-budget:deku-g0-face-official-0709:node:brick-deku-g0-face-official-0709-work",
+      "not_proven": [
+        "semantic correctness of the reroute or replay budget",
+        "caller/COO disposition after a HOLD",
+        "future provider/runtime behavior"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "Link Carry budget evidence only",
+        "records declared and observed carry budget facts only"
+      ],
+      "raw_refs": [
+        "raw:link:01",
+        "raw:link:02"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-07-09T13:21:43Z",
+  "id": "urn:bp:building:deku-g0-face-official-0709::evidence/claim_trace/link/carry_trace.json",
+  "recorded_at": "2026-07-09T13:21:43Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:deku-g0-face-official-0709",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/carry_trace.json",
+  "time": "2026-07-09T13:21:43Z",
+  "type": "bp.claim_trace"
+}

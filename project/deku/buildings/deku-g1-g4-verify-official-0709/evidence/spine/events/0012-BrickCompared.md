@@ -1,0 +1,15 @@
+# BrickCompared · seq 12 · ["Brick"]
+- alias_fact_refs: ["brick-comparison:deku-g1-g4-verify-official-0709:deku-g1-g4-verify-official-0709-work"]
+- axis_scope: ["Brick"]
+- comparison_evidence: ["adapter returned value is available for Brick comparison observation","required_return_fields: received_work_ref, received_deliverables_echo, made_changes, changed_files, observed_evidence, commands_run, blocked_or_missing_evidence, handoff_refs, not_proven","observed_return_fields: adapter_ref, agent_object_ref, blocked_or_missing_evidence, brain_surface_ref, changed_files, cli_call_ref, cli_version_text, commands_run, evidence_refs, handoff_refs, made_changes, no_changes_reason, not_proven, observed_evidence, output_excerpt, proof_limits, received_deliverables_echo, received_work_ref, returned_summary, selected_adapter_ref, selected_model_ref, worktree_observation","missing_return_fields: none"]
+- comparison_observation: "contract observation only; not success judgment"
+- comparison_rule: "Work Brick is the implementer — it does the declared implementation inside the Brick write scope, coding directly or using subagents/workflows as tools when the work is large or benefits from parallelism."
+- event_type: "BrickCompared"
+- forbidden_shortcut_evidence: ["brick_protocol/support/run did not classify Agent return","brick_protocol/support/run did not judge success or quality","brick_protocol/support/run used caller-supplied Link facts"]
+- observed_match_kind: "matched"
+- required_return_shape_evidence: "received_work_ref,received_deliverables_echo,made_changes,changed_files,observed_evidence,commands_run,blocked_or_missing_evidence,handoff_refs,not_proven"
+- run_segment: 1
+- sequence_index: 12
+- source_fact_ref: "brick-comparison:01:deku-g1-g4-verify-official-0709-work"
+- spine_schema_version: "spine-v1"
+- work_reference: "Verify G1–G4 on /Users/smith/projects/deku. Run: cd /Users/smith/projects/deku && python3 -m unittest discover -s tests -v. If suite green and no code gap, return made_changes=false with no_changes_reason=already_landed_verified. If a real failing test needs a fix, change only write_scope paths. Capture commands_run and observed_evidence."

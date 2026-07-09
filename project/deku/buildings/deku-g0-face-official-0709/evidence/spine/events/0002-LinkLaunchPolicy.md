@@ -1,0 +1,14 @@
+# LinkLaunchPolicy · seq 2 · ["Link"]
+- axis_scope: ["Link"]
+- building_id: "deku-g0-face-official-0709"
+- declared_gate_refs: ["link-gate:default-transition"]
+- event_type: "LinkLaunchPolicy"
+- launch_rows: [{"declared_gate_refs":["link-gate:default-transition"],"declared_movement":"forward","edge_ref":"edge:deku-g0-face-official-0709-work-to-deku-g0-face-official-0709-closure","route_replay_plan":{},"step_ref":"deku-g0-face-official-0709-work","target_boundary_ref":"brick-deku-g0-face-official-0709-closure"},{"declared_gate_refs":["link-gate:default-transition"],"declared_movement":"forward","edge_ref":"edge:deku-g0-face-official-0709-closure-to-boundary-closed","route_replay_plan":{},"step_ref":"deku-g0-face-official-0709-closure","target_boundary_ref":"building-boundary:closed"}]
+- max_attempts_by_boundary: {}
+- node_reroute_budgets: {"brick-deku-g0-face-official-0709-closure":5,"brick-deku-g0-face-official-0709-work":5}
+- plan_ref: "building-plan:composed-graph"
+- plan_shape: "graph"
+- run_segment: 1
+- selected_shape_ref: ""
+- sequence_index: 2
+- spine_schema_version: "spine-v1"

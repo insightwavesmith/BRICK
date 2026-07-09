@@ -1,0 +1,216 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:deku-d1-real-face-0709b::work/step-outputs/deku-d1-real-face-0709b-work-attempt-2/step-output.json",
+  "adapter_dispatch_timing": {
+    "dispatch_ended_at": "2026-07-09T14:13:22Z",
+    "dispatch_started_at": "2026-07-09T14:05:08Z",
+    "duration_ms": 494158.676,
+    "timing_scope": "adapter_dispatch",
+    "timing_source": "brick_protocol/support/operator/walker_kernel.py:process_one_node"
+  },
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:dev",
+  "attempt_index": 2,
+  "brick_instance_ref": "brick-deku-d1-real-face-0709b-work",
+  "building_id": "deku-d1-real-face-0709b",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "adapter_dispatch_timing_raw_ref": "raw:adapter-dispatch-timing:deku-d1-real-face-0709b-work:attempt-2",
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:03",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-07-09T14:13:22.840151Z",
+  "id": "urn:bp:building:deku-d1-real-face-0709b::work/step-outputs/deku-d1-real-face-0709b-work-attempt-2/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "filesystem-enforced source_write/probe_write separation",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support CLI wrapper only",
+    "existing seams own run/checker behavior",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:03:deku-d1-real-face-0709b-work",
+  "recorded_at": "2026-07-09T14:13:22.840151Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:dev",
+    "blocked_or_missing_evidence": [
+      "No source code fix was applied to /Users/smith/projects/deku because that tree is outside the declared Brick write_scope allowed_paths ['.']; only support evidence artifacts were written in this Brick worktree.",
+      "The carried QA concern that local_double user-facing text is deterministic mock_worker output remains observed: hello previews are all identical, and multi-turn previews are '408'/'408'.",
+      "The broad check_profile --all run returned rc=1 with existing/source-profile reds and earlier inadmitted artifact-location reds; after artifact relocation, only focused package_path_admission was re-run and observed green."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "changed_files": [
+      "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-healthz.txt",
+      "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-hellos.json",
+      "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-load-ok.txt",
+      "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-models.json",
+      "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-multiturn.json",
+      "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/probe-summary.json"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:deku-d1-real-face-0709b",
+    "cli_version_text": "codex-cli 0.143.0",
+    "commands_run": [
+      "sed/read AGENTS.md, BRICK-CONSTITUTION.md, scoped-implementation, protocol-boundary-watch, and software-architecture skill instructions.",
+      "git status --short in Brick worktree before edits: clean.",
+      "git -C /Users/smith/projects/deku status --short and diff --stat inspected live Deku state; observed modified/untracked Deku source outside this Brick write_scope.",
+      "DEKU_WORKER_MODE=local_double DEKU_PROBE_SCRATCH=$PWD/project/deku/buildings/deku-d1-real-face-0709b/implementer /Users/smith/projects/deku/.venv/bin/python /Users/smith/projects/deku/probes/real_path_probe.py --phase d1 --hellos 20",
+      "Moved generated D1 evidence from inadmitted scratch paths into project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/.",
+      "python3 -m brick_protocol.support.checkers.check_profile --all returned rc=1; broad sweep was not used as closure evidence.",
+      "python3 brick_protocol/support/checkers/check_package_path_admission.py --repo . returned rc=0 after relocation.",
+      "python3 inline evidence-count check returned hello_count=20, hello_blanks=0, unique_previews=1, multi_nonblank=True, health_loaded=True."
+    ],
+    "evidence_refs": [
+      "support-packet:deku-d1-real-face-0709b:agent-object:dev:output"
+    ],
+    "handoff_refs": [
+      "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-load-ok.txt",
+      "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-healthz.txt",
+      "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-models.json",
+      "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-hellos.json",
+      "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-multiturn.json",
+      "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/probe-summary.json"
+    ],
+    "made_changes": true,
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "filesystem-enforced source_write/probe_write separation",
+      "Semantic correctness of Deku user-facing answers under DEKU_WORKER_MODE=local_double.",
+      "That greeting hello soak exercises real Nemotron generation; observed code path and evidence indicate greeting text is deterministic worker output after model load.",
+      "That the live /Users/smith/projects/deku source changes are durably captured by this Brick worktree diff.",
+      "D2/D3/D4 behavior.",
+      "Provider quality, source truth, success judgment, quality judgment, and Movement authority."
+    ],
+    "observed_evidence": [
+      "D1 probe command completed with output: {\"hellos\":20,\"blanks\":0,\"loaded\":true,\"multi_nonblank\":true}; ALL_PHASES_OK ['d1'].",
+      "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-load-ok.txt records loaded_in_s=24.3, profile=deku-1, worker=local_double.",
+      "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-healthz.txt records loaded=true, profile=deku-1, context_window=40960, truncation_limit=40960.",
+      "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-hellos.json contains 20 hello responses, 0 blanks, 1 unique preview string.",
+      "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-multiturn.json records a1_preview='408', a2_preview='408', a2_blank=false.",
+      "/Users/smith/projects/deku/probes/real_path_probe.py:65 defines phase_d1 health/models/hello/multi-turn assertions and writes the D1 evidence files.",
+      "/Users/smith/projects/deku/deku_server.py:163 sets greeting strategy for greeting inputs; /Users/smith/projects/deku/deku_core/conduct.py:95 routes greeting strategy through worker_fn; /Users/smith/projects/deku/deku.py:67 dispatches local_double to deterministic mock_worker.",
+      "Focused path admission after relocating artifacts: python3 brick_protocol/support/checkers/check_package_path_admission.py --repo . returned rc=0."
+    ],
+    "output_excerpt": "{\"received_work_ref\":\"support-packet:deku-d1-real-face-0709b:agent-object:dev:input\",\"received_deliverables_echo\":[\"Run D1 real-path probe with /Users/smith/projects/deku/.venv/bin/python only.\",\"Use DEKU_WORKER_MODE=local_double without DEKU_FORCE_MOCK=1.\",\"Produce mock-off Nemotron load evidence, hello>=20 nonblank evidence, and multi-turn nonblank evidence files.\",\"Fix load/path/import gaps inside declared write_scope if observed.\"],\"made_changes\":true,\"changed_files\":[\"project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-healthz.txt\",\"project/brick-protocol/buildings/deku-d1-...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "workspace write is limited by Brick-declared write_scope"
+    ],
+    "received_deliverables_echo": [
+      "Run D1 real-path probe with /Users/smith/projects/deku/.venv/bin/python only.",
+      "Use DEKU_WORKER_MODE=local_double without DEKU_FORCE_MOCK=1.",
+      "Produce mock-off Nemotron load evidence, hello>=20 nonblank evidence, and multi-turn nonblank evidence files.",
+      "Fix load/path/import gaps inside declared write_scope if observed."
+    ],
+    "received_work_ref": "support-packet:deku-d1-real-face-0709b:agent-object:dev:input",
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:codex-local",
+    "selected_model_ref": "model:codex:default",
+    "worktree_observation": {
+      "after_git_refs": {
+        "branch": "HEAD",
+        "head": "5cd969be11386f6807a050d4d89d3d0e7036a1bd"
+      },
+      "after_git_status_paths": [
+        "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-healthz.txt",
+        "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-hellos.json",
+        "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-load-ok.txt",
+        "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-models.json",
+        "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-multiturn.json",
+        "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/probe-summary.json"
+      ],
+      "after_path_count": 5247,
+      "before_git_refs": {
+        "branch": "HEAD",
+        "head": "5cd969be11386f6807a050d4d89d3d0e7036a1bd"
+      },
+      "before_git_status_paths": [],
+      "before_path_count": 5241,
+      "git_refs_moved": {},
+      "not_proven": [
+        "semantic correctness of file edits",
+        "complete diff attribution for pre-existing dirty paths"
+      ],
+      "observed_changed_files": [
+        "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-healthz.txt",
+        "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-hellos.json",
+        "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-load-ok.txt",
+        "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-models.json",
+        "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-multiturn.json",
+        "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/probe-summary.json"
+      ],
+      "observed_paths_outside_declared_scope": [
+        "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-healthz.txt",
+        "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-hellos.json",
+        "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-load-ok.txt",
+        "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-models.json",
+        "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/d1-multiturn.json",
+        "project/brick-protocol/buildings/deku-d1-real-face-0709b/raw/probe-summary.json"
+      ],
+      "proof_limits": [
+        "changed files are support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "write_scope": {
+        "allowed_paths": [
+          "."
+        ],
+        "forbidden_paths": [
+          ".git/**"
+        ]
+      }
+    }
+  },
+  "returned_fact_ref": "agent-fact:03:deku-d1-real-face-0709b-work",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:deku-d1-real-face-0709b",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:deku-d1-real-face-0709b-work:attempt-2",
+  "step_ref": "deku-d1-real-face-0709b-work",
+  "subject": "deku-d1-real-face-0709b-work",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-07-09T14:13:22.840151Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

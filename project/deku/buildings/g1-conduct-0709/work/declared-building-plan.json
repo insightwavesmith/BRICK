@@ -1,0 +1,27 @@
+{
+  "plan_shape": "graph",
+  "building_id": "g1-conduct-0709",
+  "project_ref": "project:deku",
+  "declared_by": "coo-session-0709",
+  "goal_phase": "G1",
+  "nodes": [
+    {
+      "kind": "work",
+      "objective": "Implement and prove g1-conduct-0709"
+    },
+    {
+      "kind": "code-attack-qa",
+      "objective": "Run ['tests.test_g1_g2.TestCallBudget', 'tests.test_g1_g2.TestMemoryPins', 'tests.test_g1_g2.TestAssembler', 'tests.test_g1_g2.TestTimeoutGraceful']"
+    },
+    {
+      "kind": "closure",
+      "objective": "Record Exit evidence"
+    }
+  ],
+  "route": "forward",
+  "write_scope": [
+    "/Users/smith/projects/deku/deku_core",
+    "/Users/smith/projects/deku/deku_server.py",
+    "/Users/smith/projects/deku/tests"
+  ]
+}

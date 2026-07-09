@@ -1,0 +1,15 @@
+
+test_hello_no_blank (tests.test_g0_face.TestAppEndpoints.test_hello_no_blank) ... ok
+test_models_and_healthz (tests.test_g0_face.TestAppEndpoints.test_models_and_healthz) ... ok
+test_multi_turn_reference (tests.test_g0_face.TestAppEndpoints.test_multi_turn_reference) ... ok
+test_trajectory_appended (tests.test_g0_face.TestAppEndpoints.test_trajectory_appended) ... ok
+test_truncation_40960 (tests.test_g0_face.TestCatalog.test_truncation_40960) ... ok
+test_none_and_empty (tests.test_g0_face.TestNoBlank.test_none_and_empty) ... ok
+test_full_messages_not_last_only (tests.test_g0_face.TestParse.test_full_messages_not_last_only) ... ok
+test_bind_previous_response (tests.test_g0_face.TestSession.test_bind_previous_response) ... ok
+test_schema_and_append (tests.test_g0_face.TestTrajectory.test_schema_and_append) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.164s
+
+OK

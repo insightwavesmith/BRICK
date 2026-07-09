@@ -1,0 +1,12 @@
+# AgentBinding · seq 30 · ["Agent"]
+- agent_object_ref: "agent-object:coo"
+- agent_performer_ref: "agent-performer:agent-object:coo"
+- axis_scope: ["Agent"]
+- binding_role: "primary"
+- brick_instance_ref: "brick-deku-d1-real-face-0709b-closure"
+- event_type: "AgentBinding"
+- run_segment: 1
+- sequence_index: 30
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/deku-d1-real-face-0709b-closure-attempt-1/step-output.json"
+- step_ref: "deku-d1-real-face-0709b-closure"

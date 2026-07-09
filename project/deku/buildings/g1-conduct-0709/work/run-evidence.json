@@ -1,0 +1,20 @@
+{
+  "building_id": "g1-conduct-0709",
+  "started_at": "2026-07-09T22:10:04",
+  "duration_s": 0.21,
+  "command": [
+    "python3",
+    "-m",
+    "unittest",
+    "tests.test_g1_g2.TestCallBudget",
+    "tests.test_g1_g2.TestMemoryPins",
+    "tests.test_g1_g2.TestAssembler",
+    "tests.test_g1_g2.TestTimeoutGraceful",
+    "-v"
+  ],
+  "exit_code": 0,
+  "stdout_tail": "",
+  "stderr_tail": "test_exceed (tests.test_g1_g2.TestCallBudget.test_exceed) ... ok\ntest_pin_survive (tests.test_g1_g2.TestMemoryPins.test_pin_survive) ... ok\ntest_under_hard_cap (tests.test_g1_g2.TestAssembler.test_under_hard_cap) ... ok\ntest_conduct_timeout_no_raise (tests.test_g1_g2.TestTimeoutGraceful.test_conduct_timeout_no_raise) ... ok\ntest_server_timeout_no_crash (tests.test_g1_g2.TestTimeoutGraceful.test_server_timeout_no_crash) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.136s\n\nOK\n",
+  "status": "complete",
+  "frontier": "complete"
+}

@@ -1,0 +1,333 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:deku-d1-real-face-0709b::evidence/claim_trace/link/movement_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:01:deku-d1-real-face-0709b-work",
+          "brick-comparison:01:deku-d1-real-face-0709b-work",
+          "sufficiency-fact-movement:01:deku-d1-real-face-0709b-work"
+        ],
+        "target_boundary_ref": "brick:brick-deku-d1-real-face-0709b-code-attack-qa"
+      },
+      "fact_ref": "movement-fact:01:deku-d1-real-face-0709b-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "filesystem-enforced source_write/probe_write separation",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:01"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:02:deku-d1-real-face-0709b-code-attack-qa",
+          "brick-comparison:02:deku-d1-real-face-0709b-code-attack-qa",
+          "sufficiency-fact-movement:02:deku-d1-real-face-0709b-code-attack-qa"
+        ],
+        "target_boundary_ref": "brick:brick-deku-d1-real-face-0709b-closure"
+      },
+      "fact_ref": "movement-fact:02:deku-d1-real-face-0709b-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "filesystem-enforced source_write/probe_write separation",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:02"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:03:deku-d1-real-face-0709b-work",
+          "brick-comparison:03:deku-d1-real-face-0709b-work",
+          "sufficiency-fact-movement:03:deku-d1-real-face-0709b-work"
+        ],
+        "target_boundary_ref": "brick:brick-deku-d1-real-face-0709b-code-attack-qa"
+      },
+      "fact_ref": "movement-fact:03:deku-d1-real-face-0709b-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "filesystem-enforced source_write/probe_write separation",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:03"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:04:deku-d1-real-face-0709b-closure",
+          "brick-comparison:04:deku-d1-real-face-0709b-closure",
+          "sufficiency-fact-movement:04:deku-d1-real-face-0709b-closure"
+        ],
+        "target_boundary_ref": "brick:building-boundary:closed"
+      },
+      "fact_ref": "movement-fact:04:deku-d1-real-face-0709b-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:04"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "adopted_by": "template:default-transition",
+        "attempt_number": 1,
+        "budget_exhausted": false,
+        "cascade_depth": 1,
+        "movement": "reroute",
+        "movement_source": "recorded dynamic_walker_evidence reroute adoption record",
+        "node_budget": 5,
+        "parent_reroute_ref": "",
+        "public_fact_refs": [
+          "transition-concern:deku-d1-real-face-0709b-worker-text-mock-only"
+        ],
+        "reroute_ref": "reroute-adoption:deku-d1-real-face-0709b:01:brick-deku-d1-real-face-0709b-work",
+        "source_brick_instance_ref": "brick-deku-d1-real-face-0709b-code-attack-qa",
+        "target_boundary_ref": "brick:brick-deku-d1-real-face-0709b-work",
+        "target_step_ref": "deku-d1-real-face-0709b-work"
+      },
+      "fact_ref": "movement-fact-reroute:01:deku-d1-real-face-0709b-code-attack-qa",
+      "not_proven": [
+        "semantic correctness of the agent-proposed reroute",
+        "parallel runtime execution (P-walker-2 fan-in/fan-out out of scope here)",
+        "scheduler / queue / retry behavior",
+        "caller/COO disposition after a HOLD"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-reroute:01"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:deku-d1-real-face-0709b-work-to-deku-d1-real-face-0709b-code-attack-qa",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-deku-d1-real-face-0709b-work",
+        "target_boundary_ref": "brick-deku-d1-real-face-0709b-code-attack-qa"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-deku-d1-real-face-0709b-work-to-deku-d1-real-face-0709b-code-attack-qa",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:01:edge-deku-d1-real-face-0709b-work-to-deku-d1-real-face-0709b-code-attack-qa"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:deku-d1-real-face-0709b-code-attack-qa-to-deku-d1-real-face-0709b-closure",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-deku-d1-real-face-0709b-code-attack-qa",
+        "target_boundary_ref": "brick-deku-d1-real-face-0709b-closure"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-deku-d1-real-face-0709b-code-attack-qa-to-deku-d1-real-face-0709b-closure",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:02:edge-deku-d1-real-face-0709b-code-attack-qa-to-deku-d1-real-face-0709b-closure"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:deku-d1-real-face-0709b-closure-to-boundary-closed",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-deku-d1-real-face-0709b-closure",
+        "target_boundary_ref": "building-boundary:closed"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-deku-d1-real-face-0709b-closure-to-boundary-closed",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:03:edge-deku-d1-real-face-0709b-closure-to-boundary-closed"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-07-09T14:14:40Z",
+  "id": "urn:bp:building:deku-d1-real-face-0709b::evidence/claim_trace/link/movement_trace.json",
+  "recorded_at": "2026-07-09T14:14:40Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:deku-d1-real-face-0709b",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/movement_trace.json",
+  "time": "2026-07-09T14:14:40Z",
+  "type": "bp.claim_trace"
+}

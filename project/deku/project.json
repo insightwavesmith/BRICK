@@ -1,0 +1,13 @@
+{
+  "project_ref": "project:deku",
+  "label": "Deku — Fugu-Ultra 재현 오케스트레이터",
+  "direction": "로컬 Nemotron-8B 지휘자가 구독 워커(Opus/GPT-5.5/Grok)를 지휘해, 재학습 없이 Fugu-Ultra를 완전 재현한다",
+  "done_means": "1차 목표: 현재 8B로 재학습 없이 Fugu-Ultra를 완전 재현 — codex에서 대화하며 지휘→워커→답변이 안정 작동하고 지휘자 컨텍스트가 제대로 관리됨",
+  "out_of_scope": "지휘자 재학습/파인튜닝, rope 컨텍스트 확장, 새 지휘자 모델 개발 (모두 1차 목표 밖)",
+  "managers": [
+    "Smith"
+  ],
+  "declared_by": "Smith",
+  "declared_at": "2026-07-09T18:01:50+09:00",
+  "charter_ref": "project/deku/README.md"
+}

@@ -1,0 +1,14 @@
+# LinkLaunchPolicy · seq 2 · ["Link"]
+- axis_scope: ["Link"]
+- building_id: "deku-d1-real-face-0709b"
+- declared_gate_refs: ["link-gate:default-transition"]
+- event_type: "LinkLaunchPolicy"
+- launch_rows: [{"declared_gate_refs":["link-gate:default-transition"],"declared_movement":"forward","edge_ref":"edge:deku-d1-real-face-0709b-work-to-deku-d1-real-face-0709b-code-attack-qa","route_replay_plan":{},"step_ref":"deku-d1-real-face-0709b-work","target_boundary_ref":"brick-deku-d1-real-face-0709b-code-attack-qa"},{"declared_gate_refs":["link-gate:default-transition"],"declared_movement":"forward","edge_ref":"edge:deku-d1-real-face-0709b-code-attack-qa-to-deku-d1-real-face-0709b-closure","route_replay_plan":{},"step_ref":"deku-d1-real-face-0709b-code-attack-qa","target_boundary_ref":"brick-deku-d1-real-face-0709b-closure"},{"declared_gate_refs":["link-gate:default-transition"],"declared_movement":"forward","edge_ref":"edge:deku-d1-real-face-0709b-closure-to-boundary-closed","route_replay_plan":{},"step_ref":"deku-d1-real-face-0709b-closure","target_boundary_ref":"building-boundary:closed"}]
+- max_attempts_by_boundary: {}
+- node_reroute_budgets: {"brick-deku-d1-real-face-0709b-closure":5,"brick-deku-d1-real-face-0709b-code-attack-qa":5,"brick-deku-d1-real-face-0709b-work":5}
+- plan_ref: "building-plan:composed-graph"
+- plan_shape: "graph"
+- run_segment: 1
+- selected_shape_ref: ""
+- sequence_index: 2
+- spine_schema_version: "spine-v1"
