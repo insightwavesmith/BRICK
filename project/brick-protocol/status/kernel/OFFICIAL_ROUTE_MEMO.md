@@ -5,7 +5,7 @@
 | **Status** | support evidence · update at every Goal Exit |
 | **Updated** | 2026-07-09 |
 | **Authority for current ladder** | `GOAL/04-goal-phases-0709-route-and-frontier.md` |
-| **Active COO goal** | `ACTIVE_COO_GOAL.md` — **EXIT** residual push-all (R1–R11 terminal) |
+| **Active COO goal** | `ACTIVE_COO_GOAL.md` — **EXIT** residual push-all (R1–R11 terminal; DONE via graph-decl buildings) |
 | **Exit freeze** | `residual-push-exit-0709.md` |
 | **Closure (prior ladder)** | `GOAL/05-coo-ladder-closure-0709.md` (operator closed) |
 
