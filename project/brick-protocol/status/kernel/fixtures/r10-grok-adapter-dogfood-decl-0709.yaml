@@ -1,0 +1,39 @@
+# R10 residual: official-route dogfood for adapter:grok-local admission.
+# Front door: brick build --graph-decl <this> --forward
+# Support fixture only — not source truth / Movement authority.
+declared_by: coo
+task: >
+  R10 residual dogfood: prove adapter:grok-local is admitted on the official
+  Building route. Observe preflight/version via work. No product source edits.
+  Return support evidence only; no success/quality/Movement claims.
+building_id: r10-grok-adapter-dogfood-0709
+adapter: adapter:local
+nodes:
+  - kind: design
+    work_statement: |
+      ## Objective
+      Narrow R10 dogfood to observe adapter:grok-local admission only.
+      ## Deliverables
+      D1: one-paragraph design note listing adapter_constants + agent_adapter LocalCliSpec surfaces to observe
+      ## Done Criteria
+      design note only; no file edits
+  - kind: work
+    work_statement: |
+      ## Objective
+      Observe that adapter:grok-local is on the official local-CLI path.
+      ## Deliverables
+      D1: record whether adapter:grok-local is in ALLOWED_ADAPTER_REFS and local_cli_adapter_refs
+      D2: record probe_local_cli_adapter version_text prefix and preflight_provider ok flag
+      ## Commands (run these)
+      PYTHONPATH=. python3 -c "from brick_protocol.support.connection.adapter_constants import ADAPTER_GROK_LOCAL,ALLOWED_ADAPTER_REFS; from brick_protocol.support.connection.agent_adapter import local_cli_adapter_refs,probe_local_cli_adapter; from brick_protocol.support.connection.adapter_subprocess import preflight_provider; assert ADAPTER_GROK_LOCAL in ALLOWED_ADAPTER_REFS and ADAPTER_GROK_LOCAL in local_cli_adapter_refs(); p=probe_local_cli_adapter(ADAPTER_GROK_LOCAL); pf=preflight_provider(ADAPTER_GROK_LOCAL); print(p.version_text[:80]); print(pf.get('ok'), pf.get('cli'))"
+      ## Done Criteria
+      commands_run includes the probe; observed_evidence cites printed lines
+      ## Hard constraints
+      no source edits; git commit 금지.
+    write: false
+  - kind: closure
+    work_statement: |
+      ## Deliverables
+      D1: summarize design+work observations for R10; no success/quality/Movement claims
+      ## Done Criteria
+      observed summary only

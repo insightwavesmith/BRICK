@@ -1,0 +1,39 @@
+# R2 residual: prevention observe-floor re-dogfood on official route.
+# Front door: brick build --graph-decl <this> --forward
+declared_by: coo
+task: >
+  R2 residual dogfood: re-verify prevention observe floor (L1/L2 hooks unit +
+  import_identity_modes / L3-3a observe path) via official Building.
+  No lethal L3-3b raise. No product source mutation. Support evidence only.
+building_id: r2-prevention-observe-dogfood-0709
+adapter: adapter:local
+nodes:
+  - kind: design
+    work_statement: |
+      ## Objective
+      Scope R2 to observe-floor only (not L3-3b raise).
+      ## Deliverables
+      D1: design note naming hooks tests + import_identity_modes profile as observe probes
+      ## Done Criteria
+      design note only
+  - kind: work
+    work_statement: |
+      ## Objective
+      Run observe-floor probes and record outputs.
+      ## Deliverables
+      D1: record .claude/hooks/test_official_route_hooks.py exit outcome
+      D2: record check_profile.py --profile import_identity_modes pass/fail last lines
+      ## Commands
+      PYTHONPATH=. python3 .claude/hooks/test_official_route_hooks.py
+      PYTHONPATH=. python3 brick_protocol/support/checkers/check_profile.py --profile import_identity_modes
+      ## Done Criteria
+      commands_run + observed_evidence cite rc/tail lines
+      ## Hard constraints
+      no source edits; git commit 금지.
+    write: false
+  - kind: closure
+    work_statement: |
+      ## Deliverables
+      D1: summarize observe-floor evidence; explicitly not_proven L3-3b raise
+      ## Done Criteria
+      observed summary only

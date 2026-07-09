@@ -1,0 +1,36 @@
+# R3 residual: G4 progress/charter UX re-dogfood on official route.
+# Front door: brick build --graph-decl <this> --forward
+declared_by: coo
+task: >
+  R3 residual dogfood: re-verify customer project/progress CLI + autorefresh
+  seam via official Building. No product source mutation. Support evidence only.
+building_id: r3-g4-ux-dogfood-0709
+adapter: adapter:local
+nodes:
+  - kind: design
+    work_statement: |
+      ## Objective
+      Scope R3 to customer_project_progress_cli profile measurement.
+      ## Deliverables
+      D1: design note naming progress_projection refresh seam + profile
+      ## Done Criteria
+      design note only
+  - kind: work
+    work_statement: |
+      ## Objective
+      Run customer_project_progress_cli profile and record pass evidence.
+      ## Deliverables
+      D1: record check_profile.py --profile customer_project_progress_cli last summary lines
+      ## Commands
+      PYTHONPATH=. python3 brick_protocol/support/checkers/check_profile.py --profile customer_project_progress_cli
+      ## Done Criteria
+      commands_run + observed_evidence cite profile passed
+      ## Hard constraints
+      no source edits; git commit 금지.
+    write: false
+  - kind: closure
+    work_statement: |
+      ## Deliverables
+      D1: summarize UX dogfood observations; no success/quality/Movement claims
+      ## Done Criteria
+      observed summary only
