@@ -1,88 +1,98 @@
-# ACTIVE GOAL — necessity master (마스터 개발 큐)
+# ACTIVE GOAL — necessity master (≤4KB)
 
 | | |
 |---|---|
-| **Status** | **ACTIVE** · 2026-07-10 |
+| **Status** | **ACTIVE** · 2026-07-09 |
 | **Authority** | BRICK COO · master-work-queue-necessity-0709 §1–§8 |
-| **Charter** | `GOAL-PROMPT-necessity-master-0709.md` (≤4KB) · full `#1–#44` in `master-work-queue-necessity-0709.md` |
+| **Parents** | GOAL/04→03/05 · OFFICIAL_ROUTE · brick-task-author · residual honesty |
 | **Proof** | support only · not success/quality/Movement |
 
 ## 한 줄
 ```text
-마스터 개발 큐 = 필요성 순서 #1→… 공식 Building land.
-pure-dev(D1–D4)는 ΦII 한 구간일 뿐, 단독 골이 아님.
+필요성 순서(#1→…)로 공식 Building land.
+쉬운닫기·문서DONE·live선코딩·complete-only DONE 금지.
 ```
 
 ## Symbols
 ```text
-#n ΦI–X A/B/S W✓ F✓ P✓ DONE KEEP RV2⊕
-(see GOAL-PROMPT-necessity-master-0709.md)
+#n     master-queue necessity id
+ΦI–X   phase blocks (§1 of master queue)
+A      session ops (harvest/board/probe)
+B      brick build --graph-decl|--preset --forward · resume --decl
+S      Smith gate
+W✓     write=True + write_scope + main sha land
+F✓     frontier=complete
+P✓     focused probe (+RED when harden)
+DONE   F✓∧W✓∧P✓∧board(bid+sha)  else ≠DONE
+KEEP   R6 vessel no-migrate · board CANCELLED
+RV2⊕   Route V2 beyond SHAPE A PROGRAM (not D1 min)
 ```
 
-## Phases (필요성 순서)
+## Phases (필요성 순서 · 볼륨≠우선)
 ```text
-ΦI  BASE   #1 land-force · #2 hold/dispose · #3 graph-decl WIP · #4 walk-on · #5 discipline
-ΦII PD     #6–13 pure-dev D1–D4 terminal (CANCELLED KEEP / OOS ok)
-ΦIII OPS   #14–17 hygiene · salvage · WIP scan
-ΦIV  G2    #18–22 authoring residual
-ΦV   G3    #23–26 prevention residual
-ΦVI  G4    #27–28 UX multi-path
-ΦVII G5    #29–34 RV2⊕ program · vessel(S)
-ΦVIII G6   #35–38 release
-ΦIX  AUX   #39–40 grok · Deku(별)
-ΦX   META  #41–44 board/push/measure
-```
-
-## Live board (NOW)
-```text
-ACTIVE_GOAL = MASTER (not pure-dev alone)
-
-NOW   #1 land-force engine Building (B)
-      (fixture n1-land-force-complete-write-0709.yaml · prior n1 may still run)
-
-ΦII debt (parallel OK during ΦI per master §2):
-  pure-dev body strip dbd1272db on main (product body REMOVED for Building ownership)
-  body-reland IN_FLIGHT: pure-dev-d1-r5-body-reland-0709c
-  D3/D4 body-reland not started yet
-  D2 KEEP → CANCELLED when board closed
-  D5 OUT_OF_SCOPE
-
-NEXT after #1: #2 · #3
-THEN close ΦII pure-dev under DONE rules (Building-owned product body, not stamp-only)
+ΦI  BASE   #1 land-force · #2 hold/dispose-recover · #3 graph-decl WIP-anchor
+           #4 walk-on product residual · #5 official-route discipline
+ΦII PD     #6–8 D4 harvest/probe(/refire) · #9 D3 board · #10 D2 CANCELLED(KEEP)
+           #11 D1 reconfirm(min≠RV2⊕) · #12 PD Exit pack · #13 D5 OOS
+ΦIII OPS   #14–17 worktree/inbox archive · salvage inventory · WIP scan
+ΦIV  G2    #18 fixtures · #19 order-chain/ship-copy · #20 authoring chain re-proof
+           #21 trivial-preset policy · #22 authoring habit
+ΦV   G3    #23 prevention re-dogfood · #24 L3-3b regression · #25 token harden+
+           #26 managed-settings (S)
+ΦVI  G4    #27–28 UX multi-path dogfood
+ΦVII G5    #29 RV2⊕ reopen gate(S) · #30 design B · #31 multi-B implement · #32 probes
+           #33 vessel migrate(S) · #34 plans-location follow
+ΦVIII G6   #35 fresh-auth · #36 commercial(S) · #37 scrub · #38 customer path
+ΦIX  AUX   #39 grok regress · #40 Deku separate goal
+ΦX   META  #41 doc align · #42 push(S) · #43 measure rules · #44 no shallow-patch
 ```
 
 ## HARD FAILS (stop)
 ```text
-1 NECESSITY≠ease · #1–3 not “later backlog”
-2 residual/doc DONE ≠ engine · F✓≠W✓≠GOAL
-3 product = B only · no live-checkout DONE
-4 WIP-only complete ≠DONE · harvest≠engine fix
-5 hard order: authoring-preset → review → impl B
-6 RV2⊕=program · KEEP≠split · Deku OOS unless separate goal
-7 measure=exec only · probe+RED
-8 land→board same turn
+1 NECESSITY≠ease · foundation(#1–3) not “later backlog” unless Smith rewrites
+2 residual/doc DONE ≠ engine · F✓≠W✓≠GOAL · G0–G6 op EXIT ≠ product residual closed
+3 product code = B only · no live-checkout DONE · no raw --graph · hotfix→follow-up B
+4 dispose expected · WIP-only complete ≠DONE · harvest≠engine fix · no-hold→no resume
+5 hard order: authoring-preset B → COO review → impl B · draft≠launch
+6 RV2⊕=program · R5 freeze≠engine · KEEP≠split · Deku OOS
+7 measure=exec only · probe+RED · 3×fail→root not shallow patch
+8 land→board same turn · pause/stop=no silent B · unsure→ask
 9 forbid: customer-ready forever · RV2⊕ shipped · vessel migrated under KEEP
 ```
 
-## Exit (this master goal)
+## Before each action
 ```text
-ΦI #1–#3 engine DONE (W✓+F✓+P✓+board)
-+ ΦII pure-dev rows terminal {DONE|CANCELLED(KEEP)|OOS} under product-land rules
-+ overclaim 0 · remaining_not_proven listed
-(ΦIII–X remain as follow-on unless Smith expands Exit)
+[ ] #n?  [ ] A or B?  [ ] B→W✓ path?  [ ] hold vs walk-on?
+[ ] DONE language legal?  [ ] board updated?  [ ] avoiding #1–3 via harvest-only?→flag
 ```
 
-## remaining_not_proven (ok at Exit)
+## Default next
 ```text
-RV2⊕ full program · vessel migrate · managed-settings org
-fresh-auth forever · commercial · Deku · customer-ready forever
-ΦIII–X residual after ΦI+ΦII Exit (unless re-scoped)
+Lowest unfinished #n Smith has not deferred:
+  A: harvest/board/probe | B: build --graph-decl|--preset --forward
+No comfort parallel board.
 ```
 
-## COO
+## Exit (this goal)
 ```text
-ACTIVE = master necessity queue.
-NOT pure-dev-only goal.
-NOT residual document DONE.
-NOT stamp-only / live-checkout DONE.
+ΦI #1–#3 landed (engine) under DONE rules
++ ΦII pure-dev rows terminal under DONE/CANCELLED(KEEP)/OOS
++ overclaim 0 · remaining_not_proven listed (RV2⊕ full · auth · commercial · Deku…)
 ```
+
+## remaining_not_proven (ok)
+```text
+RV2⊕ full program · vessel migrate · managed-settings org · fresh-auth forever
+commercial release · Deku · customer-ready forever
+```
+
+## Live NOW (2026-07-10)
+```text
+ACTIVE = necessity master
+#1 DONE  building n1-land-force-complete-write-0709 F✓ W✓ da14f95f8 P✓
+NOW    #2 hold/dispose recover B
+NEXT   #3 graph-decl incomplete WIP
+ΦII    product body STRIPPED (dbd1272db); body-reland 0709c in flight
+Exit   ΦI #1–#3 + ΦII pure-dev terminal
+```
+
