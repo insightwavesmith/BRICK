@@ -1646,6 +1646,28 @@ def _run_progress_guard_probe(
     return probe_stderr.getvalue()
 
 
+def run_project_progress_autorefresh(repo: Path) -> KernelResult:
+    _ensure_repo_import_path(repo)
+    module = importlib.import_module(
+        "brick_protocol.support.operator.walker_report_events"
+    )
+    observations = module.progress_autorefresh_probe_observations()
+    failed = [item for item in observations if not item.get("passed")]
+    if failed:
+        raise ProfileError(
+            "project_progress_autorefresh rejected evidence: "
+            f"{tuple(observations)!r}"
+        )
+    return KernelResult(
+        check_id="project_progress_autorefresh",
+        inspected=len(observations),
+        output=(
+            "project progress autorefresh passed: walker step completion calls "
+            "the progress refresh seam and contains refresh exceptions."
+        ),
+    )
+
+
 @dataclass(frozen=True)
 class ProfileRunFailure:
     path: Path
@@ -1805,6 +1827,7 @@ KERNEL_DISPATCH = {
     **KERNEL_DISPATCH,
     "checker_progress_observability": run_checker_progress_observability,
     "checker_profile_exception_isolation": run_checker_profile_exception_isolation,
+    "project_progress_autorefresh": run_project_progress_autorefresh,
 }
 KERNEL_CHECK_IDS = frozenset(KERNEL_DISPATCH)
 

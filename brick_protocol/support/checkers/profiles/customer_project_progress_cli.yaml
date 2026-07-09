@@ -3,6 +3,7 @@ profile_id: customer-project-progress-cli
 description: Customer-facing project/progress CLI wrapper profile over existing project_creation and progress_projection seams.
 kernel_checks:
   - customer_project_progress_cli
+  - project_progress_autorefresh
 path_exists:
   - brick_protocol/support/operator/cli.py
   - brick_protocol/support/operator/project_creation.py
@@ -25,6 +26,13 @@ text_contains:
       - 'project new requires explicit charter fields in non-interactive mode'
       - "type {values['"
       - '_mask_public_text'
+  - path: brick_protocol/support/operator/walker_report_events.py
+    texts:
+      - 'def _refresh_project_progress_for_completed_step_best_effort'
+      - 'event_kind="walker_step_completed"'
+      - 'def progress_autorefresh_probe_observations'
+      - 'progress-autorefresh:completion-call'
+      - 'progress-autorefresh:exception-containment'
   - path: brick_protocol/support/checkers/lib/brick_cli_entrypoint_check.py
     texts:
       - 'def run_customer_project_progress_cli'
