@@ -19,16 +19,22 @@ fixed (project-0-design-0611 §2 step 0):
 Validation is fail-closed and SINGLE-SOURCED: after writing, the verb
 round-trips the result through ``load_project_declaration`` (the S1 loader —
 the SAME validator the project_declaration kernel check drives). If the
-loader rejects (empty direction, agent-looking managers, judgment key, bad
-timestamp, ...), the verb REMOVES the vessel it created and re-raises the
-loader's own rejection — the loader speaks, the verb does not restate its
-rules. Only two rules are the verb's own, because the loader cannot see them:
+loader rejects (agent-looking managers, judgment key, bad timestamp, ...), the
+verb REMOVES the vessel it created and re-raises the loader's own rejection.
+Some pre-write rules are the verb's own, because the loader cannot see the
+whole rendered charter before files exist:
 
   * duplicate project id — the vessel path already exists (a vessel is
     declared once; the loader REQUIRES existence, creation requires absence);
   * non-slug id — refused BEFORE any filesystem touch via the loader's
     exported predicate (``is_admissible_project_id``), so a traversal-shaped
-    id never becomes a mkdir.
+    id never becomes a mkdir;
+  * empty rendered charter slots — ``why_exists`` / ``why_now`` live only in
+    README.md, while ``label`` / ``direction`` / ``done_means`` /
+    ``out_of_scope`` are rendered into README.md and shadowed in project.json;
+    all are refused before a silent charter can be written;
+  * empty managers — at least one non-empty human owner name is required before
+    the charter is rendered.
 
 The verb performs NO judgment: it records direction facts only. It does not
 create PROGRESS.md (machine-generated on demand from building evidence by
@@ -45,6 +51,7 @@ from __future__ import annotations
 
 import json
 import shutil
+import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -66,6 +73,14 @@ PROJECT_SKELETON_DIRS = ("buildings", "status", "_portfolio-projections")
 # them because they are not project.json keys). The verb owns their
 # non-emptiness: a charter section with no text is a silent vessel.
 _CHARTER_ONLY_SLOTS = ("why_exists", "why_now")
+_CHARTER_TEXT_SLOTS = (
+    "label",
+    "why_exists",
+    "why_now",
+    "direction",
+    "done_means",
+    "out_of_scope",
+)
 
 
 def _reject(project_id: str, reason: str) -> ValueError:
@@ -156,8 +171,9 @@ def create_project(
 
     repo = Path(repo_root).resolve()
 
-    # The verb's own two rules (the loader cannot see them) — everything else
-    # is the loader's voice via the round-trip below.
+    # The verb's own pre-write rules — everything still round-trips through
+    # the loader below, but empty rendered charter slots are refused before a
+    # silent README.md can be written.
     if not is_admissible_project_id(project_id):
         raise _reject(
             project_id,
@@ -172,14 +188,6 @@ def create_project(
             "vessel is declared once (declare a new id instead of re-declaring "
             "an existing vessel)",
         )
-    for slot_name, slot_value in (("why_exists", why_exists), ("why_now", why_now)):
-        if not isinstance(slot_value, str) or not slot_value.strip():
-            raise _reject(
-                project_id,
-                f"charter slot {slot_name} must be a non-empty string — these "
-                "slots live only in the charter, so the verb (not the loader) "
-                "refuses their absence",
-            )
 
     # PROJECT-0 S5-FIX: every charter slot and every managers entry must be a
     # str BEFORE any filesystem write. A non-str value used to survive past
@@ -189,6 +197,8 @@ def create_project(
     # zero filesystem footprint.
     for slot_name, slot_value in (
         ("label", label),
+        ("why_exists", why_exists),
+        ("why_now", why_now),
         ("direction", direction),
         ("done_means", done_means),
         ("out_of_scope", out_of_scope),
@@ -219,11 +229,51 @@ def create_project(
                 f"must be str (human owner name), got {type(entry).__name__} — "
                 "refused before any filesystem write"
             )
+    manager_entries = list(managers)
+
+    slot_values = {
+        "label": label,
+        "why_exists": why_exists,
+        "why_now": why_now,
+        "direction": direction,
+        "done_means": done_means,
+        "out_of_scope": out_of_scope,
+    }
+    for slot_name in _CHARTER_TEXT_SLOTS:
+        if not slot_values[slot_name].strip():
+            if slot_name in _CHARTER_ONLY_SLOTS:
+                owner_note = (
+                    "this slot lives only in the charter, so the verb (not the "
+                    "loader) refuses its absence"
+                )
+            else:
+                owner_note = (
+                    "this slot is rendered into the charter and shadowed in "
+                    "project.json; the loader still round-trips the written "
+                    "declaration"
+                )
+            raise _reject(
+                project_id,
+                f"charter slot {slot_name} must be a non-empty string — {owner_note}",
+            )
+    if not manager_entries:
+        raise _reject(
+            project_id,
+            "charter slot managers must contain at least one non-empty human "
+            "owner name — agents are recorded by AgentBinding evidence, never "
+            "as charter managers",
+        )
+    for index, entry in enumerate(manager_entries):
+        if not entry.strip():
+            raise _reject(
+                project_id,
+                f"charter slot managers[{index}] must be a non-empty human "
+                "owner name — agents are recorded by AgentBinding evidence, "
+                "never as charter managers",
+            )
 
     if declared_at is None:
         declared_at = datetime.now().astimezone().isoformat(timespec="seconds")
-
-    manager_entries = list(managers)
 
     vessel.mkdir(parents=True)
     try:
@@ -306,7 +356,61 @@ def create_project(
     }
 
 
+def empty_charter_slot_probe_failures() -> list[str]:
+    """Mutation-RED fixture for create_project's pre-write charter slot guard.
+
+    Each probe blanks one required rendered charter slot and expects a
+    charter-slot rejection before any project vessel survives on disk.
+    """
+
+    base_values: dict[str, Any] = {
+        "project_id": "empty-slot-probe",
+        "label": "Empty slot probe",
+        "direction": "probe direction",
+        "why_exists": "probe purpose",
+        "why_now": "probe timing",
+        "done_means": "probe done means",
+        "out_of_scope": "probe out of scope",
+        "managers": ["smith"],
+        "declared_by": "smith",
+        "declared_at": "2026-07-09T00:00:00+00:00",
+    }
+    cases: list[tuple[str, Any]] = [
+        *((slot_name, "   ") for slot_name in _CHARTER_TEXT_SLOTS),
+        ("managers", []),
+        ("managers[0]", ["   "]),
+    ]
+    failures: list[str] = []
+    for slot_name, blank_value in cases:
+        with tempfile.TemporaryDirectory(
+            prefix="project-creation-empty-slot-probe-"
+        ) as tmp:
+            values = dict(base_values)
+            if slot_name == "managers[0]":
+                values["managers"] = blank_value
+            else:
+                values[slot_name] = blank_value
+            try:
+                create_project(Path(tmp), **values)
+            except ValueError as exc:
+                message = str(exc)
+                if f"charter slot {slot_name}" not in message:
+                    failures.append(
+                        f"{slot_name}: rejection did not name the charter slot: {message}"
+                    )
+            except Exception as exc:  # noqa: BLE001 - fixture reports wrong rejection shape.
+                failures.append(
+                    f"{slot_name}: wrong exception type {type(exc).__name__}: {exc}"
+                )
+            else:
+                failures.append(f"{slot_name}: create_project accepted an empty charter slot")
+            if (Path(tmp) / "project" / "empty-slot-probe").exists():
+                failures.append(f"{slot_name}: partial vessel survived after rejection")
+    return failures
+
+
 __all__ = [
     "PROJECT_SKELETON_DIRS",
     "create_project",
+    "empty_charter_slot_probe_failures",
 ]
