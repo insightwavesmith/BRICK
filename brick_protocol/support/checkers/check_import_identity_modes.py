@@ -273,6 +273,7 @@ print(json.dumps({
 
 
 def _assert_official_launch_token_fixture() -> int:
+    from brick_protocol.support.operator import import_identity as ii
     from brick_protocol.support.operator.import_identity import enforce_official_launch_token
 
     suppress_token = suppress_official_launch_token_for_probe()
@@ -301,11 +302,31 @@ def _assert_official_launch_token_fixture() -> int:
         present = official_launch_token_observation()
         if present.get("token_present") is not True:
             raise ProfileError("official-launch token fixture did not observe minted token")
+        if present.get("harden_ref") != "official_launch_typed_proof_v1":
+            raise ProfileError("official-launch harden_ref missing after mint")
         enforced = enforce_official_launch_token(present)
         if enforced.get("token_present") is not True:
             raise ProfileError("lethal gate rejected a present official-launch token")
     finally:
         reset_official_launch_token(token)
+
+    # D3 RED: bare ContextVar forgery must not count as present.
+    forged = ii._OFFICIAL_LAUNCH_TOKEN.set(object())
+    try:
+        forged_obs = official_launch_token_observation()
+        if forged_obs.get("token_present") is not False:
+            raise ProfileError("forged bare object counted as official-launch present")
+        if forged_obs.get("forged_non_proof_observed") is not True:
+            raise ProfileError("forged non-proof not observed")
+        try:
+            enforce_official_launch_token(forged_obs)
+        except RuntimeError as exc:
+            if "forgery" not in str(exc).lower() and "OfficialLaunchProof" not in str(exc):
+                raise ProfileError(f"forgery gate message unexpected: {exc}") from exc
+        else:
+            raise ProfileError("enforce accepted forged bare official-launch value")
+    finally:
+        reset_official_launch_token(forged)
 
     suppress_token = suppress_official_launch_token_for_probe()
     try:

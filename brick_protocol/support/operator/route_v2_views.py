@@ -24,6 +24,10 @@ from brick_protocol.support.operator.route_materialization import (
 )
 
 ROUTE_V2_VIEW_SCHEMA = "route-v2-read-only-view/v1"
+# Pure-dev D1 (beyond SHAPE A min slice): shared sealed classifier used by both
+# the read-only view path and the walker observation path (SHAPE B helper).
+# Still not Movement authority — classification evidence only.
+ROUTE_V2_SHARED_CLASSIFIER_REF = "route_v2_shared_eligibility_v1"
 GATE_LIFECYCLE_STATES: tuple[str, ...] = ("hold", "paused", "held_for_coo_review")
 NON_REROUTE_ROUTE_V2_CONCERN_KINDS: tuple[str, ...] = tuple(
     sorted(kind for kind in TRANSITION_CONCERN_KINDS if is_non_reroute_transition_concern_kind(kind))
@@ -74,6 +78,43 @@ _FORBIDDEN_TOP_LEVEL_KEYS = frozenset(
 )
 
 
+def classify_route_v2_concern_eligibility(concern_kind: str) -> dict[str, Any]:
+    """Shared sealed classifier for Route V2 concern eligibility (SHAPE B slice).
+
+    Beyond SHAPE A (advisory-only overlay): view rendering and walker observation
+    both call this single helper so eligibility cannot drift between paths.
+    Does **not** choose Movement, route_target, or walker control flow — Link
+    still owns Movement. Support classification evidence only.
+    """
+
+    kind = _required_text(concern_kind, "concern_kind")
+    if kind not in TRANSITION_CONCERN_KINDS:
+        raise ValueError(f"concern_kind is not admitted: {kind}")
+    non_reroute = is_non_reroute_transition_concern_kind(kind)
+    return {
+        "kind": "route_v2_shared_eligibility_classification",
+        "classifier_ref": ROUTE_V2_SHARED_CLASSIFIER_REF,
+        "shape": "shape_b_shared_helper",
+        "concern_kind": kind,
+        "non_reroute": non_reroute,
+        "reroute_eligible": not non_reroute,
+        "allowed_concern_kinds": sorted(TRANSITION_CONCERN_KINDS),
+        "proof_limits": [
+            "shared sealed concern eligibility classification only",
+            "not Movement authority",
+            "not route_target choice",
+            "not walker control-flow authority",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+        ],
+        "not_proven": [
+            "semantic correctness of the Agent concern body",
+            "caller/COO disposition after this classification",
+        ],
+    }
+
+
 def render_route_v2_view(
     *,
     transition_concern_evidence: Mapping[str, Any],
@@ -101,6 +142,7 @@ def render_route_v2_view(
     if gate_state_text in MOVEMENT_LITERALS:
         raise ValueError("gate_state must not be a Movement literal")
 
+    shared = classify_route_v2_concern_eligibility(concern_kind)
     route_policy_eligibility = _route_policy_eligibility(concern_kind, route_policy)
     materialization_view: Mapping[str, Any] | None = None
     if route_policy is not None and declared_route_replay_plan is not None:
@@ -112,11 +154,14 @@ def render_route_v2_view(
 
     return {
         "schema": ROUTE_V2_VIEW_SCHEMA,
+        "route_v2_shape": "shape_b_shared_helper",
+        "shared_eligibility_classification": shared,
         "sealed_concern_kind_observation": {
             "concern_kind": concern_kind,
             "allowed_concern_kinds": sorted(TRANSITION_CONCERN_KINDS),
-            "non_reroute": is_non_reroute_transition_concern_kind(concern_kind),
-            "reroute_eligible": not is_non_reroute_transition_concern_kind(concern_kind),
+            "non_reroute": shared["non_reroute"],
+            "reroute_eligible": shared["reroute_eligible"],
+            "classifier_ref": ROUTE_V2_SHARED_CLASSIFIER_REF,
         },
         "route_policy_eligibility_observation": route_policy_eligibility,
         "materialization_view": materialization_view,
