@@ -1,0 +1,75 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:deku-d3-real-orchestrate-0709::evidence/claim_trace/link/sufficiency_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Link",
+      "fact": {
+        "caller_or_declared": true,
+        "checked_public_fact": "brick-comparison:deku-d3-real-orchestrate-0709:deku-d3-real-orchestrate-0709-work",
+        "evidence_reference": "brick-comparison:deku-d3-real-orchestrate-0709:deku-d3-real-orchestrate-0709-work",
+        "missing_required_facts": [],
+        "reason": "combined movement gate derived from ordered per-gate GateFact results: link-gate:default-transition",
+        "required_public_facts": [
+          "BrickComparisonFact.required_return_shape_evidence",
+          "BrickComparisonFact.comparison_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.received_work_ref",
+          "BrickComparisonFact.comparison_evidence.returned_field.received_deliverables_echo",
+          "BrickComparisonFact.comparison_evidence.returned_field.made_changes",
+          "BrickComparisonFact.comparison_evidence.returned_field.changed_files",
+          "BrickComparisonFact.comparison_evidence.returned_field.observed_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.commands_run",
+          "BrickComparisonFact.comparison_evidence.returned_field.blocked_or_missing_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.handoff_refs",
+          "BrickComparisonFact.comparison_evidence.returned_field.not_proven"
+        ],
+        "stage": "movement",
+        "sufficiency": "sufficient"
+      },
+      "fact_ref": "sufficiency-fact-movement:01:deku-d3-real-orchestrate-0709-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "filesystem-enforced source_write/probe_write separation",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:01"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-07-09T15:25:38Z",
+  "id": "urn:bp:building:deku-d3-real-orchestrate-0709::evidence/claim_trace/link/sufficiency_trace.json",
+  "recorded_at": "2026-07-09T15:25:38Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:deku-d3-real-orchestrate-0709",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/sufficiency_trace.json",
+  "time": "2026-07-09T15:25:38Z",
+  "type": "bp.claim_trace"
+}

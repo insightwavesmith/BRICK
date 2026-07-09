@@ -1,0 +1,18 @@
+{
+  "version": "policy.v0",
+  "strategy_priors": {},
+  "slot_hints": {
+    "answer-1": {
+      "n": 1,
+      "fail": 0
+    }
+  },
+  "verify_triggers": [
+    "high_risk",
+    "production",
+    "credentials",
+    "delete"
+  ],
+  "anti_patterns": [],
+  "updated_at": 1783609957.647604
+}

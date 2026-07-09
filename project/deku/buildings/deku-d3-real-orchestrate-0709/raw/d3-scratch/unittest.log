@@ -1,0 +1,35 @@
+test_hello_no_blank (test_g0_face.TestAppEndpoints.test_hello_no_blank) ... /Users/smith/projects/deku/.venv/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+ok
+test_models_and_healthz (test_g0_face.TestAppEndpoints.test_models_and_healthz) ... ok
+test_multi_turn_policy_wiki_still_in_conduct_history (test_g0_face.TestAppEndpoints.test_multi_turn_policy_wiki_still_in_conduct_history)
+Next-turn must inject [policy]/[wiki] into conduct history, not hist-only. ... ok
+test_multi_turn_reference (test_g0_face.TestAppEndpoints.test_multi_turn_reference) ... ok
+test_trajectory_appended (test_g0_face.TestAppEndpoints.test_trajectory_appended) ... ok
+test_truncation_40960 (test_g0_face.TestCatalog.test_truncation_40960) ... ok
+test_none_and_empty (test_g0_face.TestNoBlank.test_none_and_empty) ... ok
+test_full_messages_not_last_only (test_g0_face.TestParse.test_full_messages_not_last_only) ... ok
+test_bind_previous_response (test_g0_face.TestSession.test_bind_previous_response) ... ok
+test_schema_and_append (test_g0_face.TestTrajectory.test_schema_and_append) ... ok
+test_access_modes (test_g1_g2.TestAccessGroundVerify.test_access_modes) ... ok
+test_call_cap_violation_counted (test_g1_g2.TestAccessGroundVerify.test_call_cap_violation_counted) ... ok
+test_greeting_single_call (test_g1_g2.TestAccessGroundVerify.test_greeting_single_call) ... ok
+test_grounding_ungrounded_number (test_g1_g2.TestAccessGroundVerify.test_grounding_ungrounded_number) ... ok
+test_invalid_plan_falls_back (test_g1_g2.TestAccessGroundVerify.test_invalid_plan_falls_back) ... ok
+test_strategy_e2e_mock (test_g1_g2.TestAccessGroundVerify.test_strategy_e2e_mock) ... ok
+test_strategy_with_verify_replan (test_g1_g2.TestAccessGroundVerify.test_strategy_with_verify_replan) ... ok
+test_under_hard_cap (test_g1_g2.TestAssembler.test_under_hard_cap) ... ok
+test_exceed (test_g1_g2.TestCallBudget.test_exceed) ... ok
+test_pin_survive (test_g1_g2.TestMemoryPins.test_pin_survive) ... ok
+test_conduct_timeout_no_raise (test_g1_g2.TestTimeoutGraceful.test_conduct_timeout_no_raise) ... ok
+test_server_timeout_no_crash (test_g1_g2.TestTimeoutGraceful.test_server_timeout_no_crash) ... ok
+test_call_cap_violations_not_hardcoded_zero_when_over (test_g3_g4.TestEval.test_call_cap_violations_not_hardcoded_zero_when_over) ... ok
+test_suite_measures_call_cap_and_pin50 (test_g3_g4.TestEval.test_suite_measures_call_cap_and_pin50) ... ok
+test_no_hermes_skill_as_source_in_core (test_g3_g4.TestHermesForbidden.test_no_hermes_skill_as_source_in_core) ... ok
+test_inject_and_rollback_restores_snapshot (test_g3_g4.TestPolicy.test_inject_and_rollback_restores_snapshot) ... ok
+test_compile_slice_inject_log_shape (test_g3_g4.TestWiki.test_compile_slice_inject_log_shape) ... ok
+
+----------------------------------------------------------------------
+Ran 27 tests in 0.234s
+
+OK

@@ -1,0 +1,240 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:deku-d3-real-orchestrate-0709::work/step-outputs/deku-d3-real-orchestrate-0709-work-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:dev",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-deku-d3-real-orchestrate-0709-work",
+  "building_id": "deku-d3-real-orchestrate-0709",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-07-09T15:13:37.999839Z",
+  "id": "urn:bp:building:deku-d3-real-orchestrate-0709::work/step-outputs/deku-d3-real-orchestrate-0709-work-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "filesystem-enforced source_write/probe_write separation",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support CLI wrapper only",
+    "existing seams own run/checker behavior",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:deku-d3-real-orchestrate-0709-work",
+  "recorded_at": "2026-07-09T15:13:37.999839Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:dev",
+    "blocked_or_missing_evidence": [
+      "/Users/smith/projects/deku/docs/DEKU_STATUS.md was not patched because it is outside this sandbox's writable roots; a proposed row was recorded at project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/d3-status-proposal.md.",
+      "The first probe attempt did not start because mkdir was accidentally run from /Users/smith/projects/deku against a non-writable relative project path; the scratch directory was then created from the writable vessel path and the probe was rerun."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "changed_files": [
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/d1-load-ok.txt",
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/d3-orchestrate.log",
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/d3-status-proposal.md",
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/learn/outcomes.jsonl",
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/learn/policy.json",
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/learn/trajectories.jsonl",
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/sessions/response_index.json",
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/sessions/sess_8dc101521c39/event_log.jsonl",
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/sessions/sess_8dc101521c39/state.json",
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/sessions/sess_9d1076199c47/event_log.jsonl",
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/sessions/sess_9d1076199c47/state.json",
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/wiki/SCHEMA.md",
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/wiki/index.md",
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/wiki/log.md",
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/probe-summary.json",
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/unittest.log"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:deku-d3-real-orchestrate-0709",
+    "cli_version_text": "codex-cli 0.143.0",
+    "commands_run": [
+      "mkdir -p project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch",
+      "DEKU_WORKER_MODE=local_double DEKU_PROBE_SCRATCH=/Users/smith/.brick/worktrees/deku-d3-real-orchestrate-0709/project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch /Users/smith/projects/deku/.venv/bin/python probes/real_path_probe.py --phase d3",
+      "DEKU_WORKER_MODE=local_double /Users/smith/projects/deku/.venv/bin/python -m unittest discover -s tests -v",
+      "DEKU_WORKER_MODE=local_double /Users/smith/projects/deku/.venv/bin/python -m unittest discover -s tests -v 2>&1 | tee /Users/smith/.brick/worktrees/deku-d3-real-orchestrate-0709/project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/unittest.log",
+      "git status --short",
+      "git -C /Users/smith/projects/deku status --short"
+    ],
+    "evidence_refs": [
+      "support-packet:deku-d3-real-orchestrate-0709:agent-object:dev:output"
+    ],
+    "handoff_refs": [
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/d3-orchestrate.log",
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/unittest.log",
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/d3-status-proposal.md"
+    ],
+    "made_changes": true,
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "filesystem-enforced source_write/probe_write separation",
+      "Semantic quality of the orchestration output is not proven by probe and unit evidence.",
+      "Paid worker bodies were not exercised; the measured run used declared DEKU_WORKER_MODE=local_double.",
+      "Direct mutation of /Users/smith/projects/deku/docs/DEKU_STATUS.md is not proven because the file is outside the writable roots.",
+      "No git commit or git push was performed, per this Brick's explicit no-commit/no-push rule."
+    ],
+    "observed_evidence": [
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/d1-load-ok.txt:1 records Nemotron load completed with profile deku-1 and worker local_double.",
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/d3-orchestrate.log:2 records free_form_off=true.",
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/d3-orchestrate.log:3 records greeting_calls=1.",
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/d3-orchestrate.log:27 records hard_calls=3.",
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/d3-orchestrate.log:28 records hard_kind=strategy.",
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/d3-orchestrate.log:29 records verify_replans=0.",
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/unittest.log:33 records 27 tests run.",
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/unittest.log:35 records OK.",
+      "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/d3-status-proposal.md:8 records the proposed D3 DEKU_STATUS row.",
+      "git -C /Users/smith/projects/deku status --short produced no output after the run."
+    ],
+    "output_excerpt": "{ \"received_work_ref\": \"support-packet:deku-d3-real-orchestrate-0709:agent-object:dev:input\", \"received_deliverables_echo\": [ \"Create durable D3 scratch under project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch.\", \"Run mock-off real-path phase d3 or building-local harness.\", \"Produce d3-orchestrate.log with hard multi-step trajectory, greeting 1-call, verify/replan<=1, fixture>=1, free-form plan OFF.\", \"Update DEKU_STATUS D3 if Exit evidence is met.\", \"Run unittest green.\", \"Do not embed raw sess_* ids in Agent return JSON.\" ], \"made_changes\": true, \"changed_files\": [ \"proje...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "workspace write is limited by Brick-declared write_scope"
+    ],
+    "received_deliverables_echo": [
+      "Create durable D3 scratch under project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch.",
+      "Run mock-off real-path phase d3 or building-local harness.",
+      "Produce d3-orchestrate.log with hard multi-step trajectory, greeting 1-call, verify/replan<=1, fixture>=1, free-form plan OFF.",
+      "Update DEKU_STATUS D3 if Exit evidence is met.",
+      "Run unittest green.",
+      "Do not embed raw sess_* ids in Agent return JSON."
+    ],
+    "received_work_ref": "support-packet:deku-d3-real-orchestrate-0709:agent-object:dev:input",
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:codex-local",
+    "selected_model_ref": "model:codex:default",
+    "worktree_observation": {
+      "after_git_refs": {
+        "branch": "HEAD",
+        "head": "4e8f749fdd50e50ae3d5b92f88aed03377cb5250"
+      },
+      "after_git_status_paths": [
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/d1-load-ok.txt",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/d3-orchestrate.log",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/d3-status-proposal.md",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/learn/outcomes.jsonl",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/learn/policy.json",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/learn/trajectories.jsonl",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/wiki/SCHEMA.md",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/wiki/index.md",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/wiki/log.md",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/probe-summary.json",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/unittest.log"
+      ],
+      "after_path_count": 5634,
+      "before_git_refs": {
+        "branch": "HEAD",
+        "head": "4e8f749fdd50e50ae3d5b92f88aed03377cb5250"
+      },
+      "before_git_status_paths": [],
+      "before_path_count": 5618,
+      "git_refs_moved": {},
+      "not_proven": [
+        "semantic correctness of file edits",
+        "complete diff attribution for pre-existing dirty paths"
+      ],
+      "observed_changed_files": [
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/d1-load-ok.txt",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/d3-orchestrate.log",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/d3-status-proposal.md",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/learn/outcomes.jsonl",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/learn/policy.json",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/learn/trajectories.jsonl",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/sessions/response_index.json",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/sessions/sess_8dc101521c39/event_log.jsonl",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/sessions/sess_8dc101521c39/state.json",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/sessions/sess_9d1076199c47/event_log.jsonl",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/sessions/sess_9d1076199c47/state.json",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/wiki/SCHEMA.md",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/wiki/index.md",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/wiki/log.md",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/probe-summary.json",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/unittest.log"
+      ],
+      "observed_paths_outside_declared_scope": [
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/d1-load-ok.txt",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/d3-orchestrate.log",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/d3-status-proposal.md",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/learn/outcomes.jsonl",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/learn/policy.json",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/learn/trajectories.jsonl",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/sessions/response_index.json",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/sessions/sess_8dc101521c39/event_log.jsonl",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/sessions/sess_8dc101521c39/state.json",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/sessions/sess_9d1076199c47/event_log.jsonl",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/sessions/sess_9d1076199c47/state.json",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/wiki/SCHEMA.md",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/wiki/index.md",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/deku-home-real/wiki/log.md",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/probe-summary.json",
+        "project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch/unittest.log"
+      ],
+      "proof_limits": [
+        "changed files are support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "write_scope": {
+        "allowed_paths": [
+          "."
+        ],
+        "forbidden_paths": [
+          ".git/**"
+        ]
+      }
+    }
+  },
+  "returned_fact_ref": "agent-fact:01:deku-d3-real-orchestrate-0709-work",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:deku-d3-real-orchestrate-0709",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:deku-d3-real-orchestrate-0709-work:attempt-1",
+  "step_ref": "deku-d3-real-orchestrate-0709-work",
+  "subject": "deku-d3-real-orchestrate-0709-work",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-07-09T15:13:37.999839Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

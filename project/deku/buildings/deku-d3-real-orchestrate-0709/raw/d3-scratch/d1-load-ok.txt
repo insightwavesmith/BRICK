@@ -1,0 +1,3 @@
+loaded_in_s=26.2
+profile=deku-1
+worker=local_double

@@ -1,0 +1,37 @@
+{
+  "building_id": "deku-d3-real-orchestrate-0709",
+  "composition_mode": "caller_or_coo_declared_graph_composition",
+  "declaration_evidence_refs": [
+    "work/task.md",
+    "work/building-intake.json",
+    "work/preset-expansion.json",
+    "work/declared-building-plan.json",
+    "work/declared-building-plan.rev-*.json",
+    "work/link-launch-policy.json"
+  ],
+  "declared_by": "coo-deku-fugu",
+  "kind": "building_intake_provenance",
+  "not_proven": [
+    "selected preset ref was not exposed by the plan"
+  ],
+  "plan_ref": "building-plan:composed-graph",
+  "plan_shape": "graph",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "support CLI wrapper only",
+    "existing seams own run/checker behavior"
+  ],
+  "selected_adapter_ref": "adapter:local",
+  "selected_model_ref": "model:default",
+  "selected_preset_ref": "",
+  "selected_shape_ref": "",
+  "task_source_hash": "dee386e4be08a0e5b92b32278e8d03ca1cf98a93f63f0b6da5fec7b92ae0b4ed",
+  "task_source_hash_algorithm": "sha256",
+  "task_source_hash_basis": "utf-8 inline task_statement body at materialization time",
+  "task_source_hash_state": "matched",
+  "task_source_ref": "task-source:inline-statement"
+}

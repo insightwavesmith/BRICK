@@ -1,0 +1,57 @@
+{
+  "d3": {
+    "free_form_off": true,
+    "greeting_calls": 1,
+    "greeting_blank": false,
+    "hard_steps": [
+      {
+        "tool": "search",
+        "slot": "search-1",
+        "access": "none"
+      },
+      {
+        "tool": "enhance_reasoning",
+        "slot": "reasoner-1",
+        "access": "prev"
+      },
+      {
+        "tool": "answer",
+        "slot": "answer-1",
+        "access": "all"
+      },
+      {
+        "tool": "grounding",
+        "ok": true,
+        "fail_tags": []
+      }
+    ],
+    "hard_calls": 3,
+    "hard_kind": "strategy",
+    "verify_replans": 0,
+    "verify_steps": [
+      {
+        "tool": "search",
+        "slot": "search-1",
+        "access": "none"
+      },
+      {
+        "tool": "answer",
+        "slot": "answer-1",
+        "access": "all"
+      },
+      {
+        "tool": "grounding",
+        "ok": true,
+        "fail_tags": [
+          "high_risk_query"
+        ]
+      },
+      {
+        "tool": "verify",
+        "slot": "reasoner-2",
+        "notes_preview": "unsupported: none critical"
+      }
+    ],
+    "hard_answer_preview": "[mock:answer-1] processed:  for distributed systems CAP tradeoffs\nProblem: Design a multi-step research plan for distributed systems CAP tradeoffs\nProblem: Desi"
+  }
+}

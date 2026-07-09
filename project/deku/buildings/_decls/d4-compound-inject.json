@@ -1,0 +1,36 @@
+{
+  "building_id": "deku-d4-compound-inject-0709",
+  "declared_by": "coo-deku-fugu",
+  "author_ref": "coo:deku",
+  "action": "forward",
+  "adapter": "local",
+  "adapter_timeout_seconds": 7200,
+  "output_root": "/Users/smith/projects/BRICK/project/deku/buildings",
+  "task": "# D4 Compound inject — project:deku\n\n## Prerequisite\nD3 Real Orchestrate EXIT required before treating this building as ladder advance.\n\n## Objective\nClose **D4 Compound inject** on shipped path (mock OFF for server path).\n\n## Done means\n1. Next-turn conduct history contains **policy hints as real strings** (not event-log-only)\n2. Lesson compile 1× then next turn **wiki_slice** appears in history\n3. Hermes llm-wiki skill not a source; llmwiki MCP/UI not required\n4. Capture `raw/d4-scratch/d4-inject.txt` + dogfood log\n5. Update DEKU_STATUS D4 Exit + remaining_not_proven\n6. unittest 27 green (extend inject tests if needed)\n\n## Environment\n- Durable scratch: this building `raw/d4-scratch`\n- NO DEKU_FORCE_MOCK for Exit path\n- DEKU_WORKER_MODE=local_double OK\n- Do not put raw sess_* ids in Agent return bodies\n\nDo not claim Fugu complete without this Exit + D1–D3.",
+  "write_scope": {
+    "allowed_paths": [
+      "/Users/smith/projects/deku/deku_core",
+      "/Users/smith/projects/deku/deku_server.py",
+      "/Users/smith/projects/deku/deku.py",
+      "/Users/smith/projects/deku/probes",
+      "/Users/smith/projects/deku/tests",
+      "/Users/smith/projects/deku/docs",
+      "/Users/smith/projects/BRICK/project/deku/buildings/deku-d4-compound-inject-0709"
+    ],
+    "forbidden_paths": [".git/**", "vendor/**", "artifacts/**"]
+  },
+  "nodes": [
+    {
+      "kind": "work",
+      "work_statement": "D4 Compound: durable raw/d4-scratch. Seed policy + compile one wiki lesson; next turn through shipped _handle_turn/responses; assert conduct history contains policy and wiki_slice text. Write d4-inject.txt + dogfood log. Update DEKU_STATUS D4 if Exit. unittest green. No sess_* in Agent return."
+    },
+    {
+      "kind": "code-attack-qa",
+      "work_statement": "Attack D4: inject must be history strings not event-log-only; no Hermes skill source; mock-off path."
+    },
+    {
+      "kind": "closure",
+      "work_statement": "D4 Exit synthesis. Fugu ladder complete only if D1–D4 all Exit + regression green."
+    }
+  ]
+}
