@@ -1,0 +1,30 @@
+# R5 Smith gate close: freeze SHAPE A boundary (no beyond-A engine expansion).
+declared_by: coo
+task: >
+  R5 residual close: confirm route-v2-beyond-a-smith-close-0709.md records
+  Smith decision that SHAPE A remains residual boundary and beyond-A code is
+  not opened. Read-only observe. No engine expansion.
+building_id: r5-route-v2-smith-close-0709
+adapter: adapter:local
+nodes:
+  - kind: design
+    work_statement: |
+      ## Deliverables
+      D1: design note pointing to route-v2-beyond-a-smith-close-0709.md decision text
+      ## Done Criteria
+      design note only
+  - kind: work
+    work_statement: |
+      ## Deliverables
+      D1: record that freeze doc exists and contains SHAPE A remains + forbidden beyond-A list
+      ## Commands
+      PYTHONPATH=. python3 -c "from pathlib import Path; p=Path('project/brick-protocol/status/kernel/route-v2-beyond-a-smith-close-0709.md'); t=p.read_text(); assert 'SHAPE A remains' in t; assert 'Forbidden' in t or 'forbidden' in t.lower(); print('R5_FREEZE_OK', p)"
+      ## Hard constraints
+      no source edits; git commit 금지.
+    write: false
+  - kind: closure
+    work_statement: |
+      ## Deliverables
+      D1: summarize R5 gate close; beyond-A full engine still not_proven as product
+      ## Done Criteria
+      observed summary only

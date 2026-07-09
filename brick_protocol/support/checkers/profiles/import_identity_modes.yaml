@@ -19,8 +19,10 @@ text_contains:
       - 'ContextVar'
       - 'def mint_official_launch_token'
       - 'def official_launch_token_observation'
+      - 'def enforce_official_launch_token'
       - 'def suppress_official_launch_token_for_probe'
-      - 'record_only_no_raise'
+      - 'raise_runtime_error'
+      - 'gate_lethal'
       - 'project.name = "brick-protocol"'
       - 'metadata.version(PROJECT_DISTRIBUTION_NAME)'
       - 'installed mode deliberately does not require a repo-root marker'
@@ -41,7 +43,8 @@ text_contains:
       - 'install_source_import_paths(_OPERATOR_IMPORT_IDENTITY)'
   - path: brick_protocol/support/operator/walker_kernel.py
     texts:
-      - 'official_launch_observation = official_launch_token_observation()'
+      - 'enforce_official_launch_token'
+      - 'official_launch_token_observation()'
       - 'official_launch_observation=official_launch_observation'
       - '"official_launch_token_observation": dict(official_launch_observation)'
   - path: brick_protocol/support/operator/walker_frontier.py

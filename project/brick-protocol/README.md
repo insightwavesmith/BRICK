@@ -3,6 +3,20 @@
 이 문서는 이 동네(project/brick-protocol/)의 헌장이다. 여기서 일하는 모든 사람과
 에이전트가 먼저 읽는다. 기계 선언은 project.json(이 헌장의 그림자)에 있다.
 
+## 경로 정체 (혼동 방지 — Smith residual R6 Option A KEEP)
+
+```text
+project/brick-protocol/  = 프로젝트 #1 도그푸드 vessel
+  (GOAL/status/buildings/inbox 증거·헌장 — 제품 소스가 아님)
+
+brick_protocol/          = 제품/프로토콜 소스 패키지 (repo 루트)
+  (import 대상 · 어댑터/walker/체커 구현)
+```
+
+물리 분리(mv/delete/migrate)는 human gate 없이 하지 않는다.
+0709 residual R6는 **KEEP + 이 문구 명확화**로 닫는다
+(`vessel-keep-clarify-smith-close-0709.md`).
+
 ## 목적 (왜 존재하는가)
 
 Brick Protocol 자체를 만드는 프로젝트다. 일(Brick)·수행자(Agent)·이동(Link)

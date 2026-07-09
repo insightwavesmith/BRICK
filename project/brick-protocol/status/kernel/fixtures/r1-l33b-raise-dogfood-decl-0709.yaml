@@ -1,0 +1,43 @@
+# R1 Smith gate: L3-3b lethal raise verification on official route.
+declared_by: coo
+task: >
+  R1 residual: verify L3-3b official-launch lethal gate. Observe
+  enforce_official_launch_token raises without mint and passes with mint.
+  Confirm walker_kernel wires enforce. No further product edits in this dogfood.
+building_id: r1-l33b-raise-dogfood-0709
+adapter: adapter:local
+nodes:
+  - kind: design
+    work_statement: |
+      ## Deliverables
+      D1: design note listing import_identity.enforce + walker_kernel chokepoint as R1 surfaces
+      ## Done Criteria
+      design note only
+  - kind: work
+    work_statement: |
+      ## Deliverables
+      D1: record lethal raise without mint and pass with mint
+      D2: record import_identity_modes profile pass/fail last lines
+      ## Commands
+      PYTHONPATH=. python3 -c "from brick_protocol.support.operator.import_identity import *; t=suppress_official_launch_token_for_probe();
+try:
+  enforce_official_launch_token(); print('FAIL')
+except RuntimeError as e:
+  print('RAISE_OK', str(e)[:60])
+finally:
+  reset_official_launch_token(t)
+t=mint_official_launch_token()
+try:
+  enforce_official_launch_token(); print('PRESENT_OK')
+finally:
+  reset_official_launch_token(t)"
+      PYTHONPATH=. python3 brick_protocol/support/checkers/check_profile.py --profile import_identity_modes
+      ## Hard constraints
+      no source edits; git commit 금지.
+    write: false
+  - kind: closure
+    work_statement: |
+      ## Deliverables
+      D1: summarize R1 lethal gate evidence; not_proven deliberate token forgery
+      ## Done Criteria
+      observed summary only

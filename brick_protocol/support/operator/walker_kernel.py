@@ -68,7 +68,10 @@ from brick_protocol.support.operator.plan_validation import (
     _task_source_ref_from_plan,
     validate_declared_building_plan,
 )
-from brick_protocol.support.operator.import_identity import official_launch_token_observation
+from brick_protocol.support.operator.import_identity import (
+    enforce_official_launch_token,
+    official_launch_token_observation,
+)
 from brick_protocol.support.operator.primitives import (
     _REPO_ROOT,
     _merge_texts,
@@ -1355,7 +1358,11 @@ def _run_dynamic_graph_walker(
     if _optional_text_from_mapping(plan, "plan_shape") != "graph":
         raise ValueError("walker_mode='dynamic' requires a plan_shape: graph Building Plan")
     repo_root_path = Path(repo_root).resolve()
-    official_launch_observation = official_launch_token_observation()
+    # L3-3b (Smith residual R1): observe then lethal-enforce official-launch token.
+    # Mint lives only in cli.main; bare in-process walker imports fail closed here.
+    official_launch_observation = enforce_official_launch_token(
+        official_launch_token_observation()
+    )
 
     # FORWARD path reuses the existing graph -> execution_order linearization.
     # LIVE RUN ADMISSION is STRICT about write grants (require_write_need_marker,

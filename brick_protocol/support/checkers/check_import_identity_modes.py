@@ -273,13 +273,26 @@ print(json.dumps({
 
 
 def _assert_official_launch_token_fixture() -> int:
+    from brick_protocol.support.operator.import_identity import enforce_official_launch_token
+
     suppress_token = suppress_official_launch_token_for_probe()
     try:
         absent = official_launch_token_observation()
         if absent.get("token_present") is not False:
             raise ProfileError("official-launch token fixture observed token before mint")
-        if absent.get("absence_action") != "record_only_no_raise":
-            raise ProfileError("official-launch token absence is not observe-only")
+        if absent.get("absence_action") != "raise_runtime_error":
+            raise ProfileError("official-launch token absence is not lethal Stage 3b")
+        if absent.get("observation_mode") != "gate_lethal":
+            raise ProfileError("official-launch token observation_mode is not gate_lethal")
+        try:
+            enforce_official_launch_token(absent)
+        except RuntimeError as exc:
+            if "official launch token absent" not in str(exc):
+                raise ProfileError(
+                    f"lethal gate message unexpected: {exc}"
+                ) from exc
+        else:
+            raise ProfileError("lethal official-launch gate did not raise when token absent")
     finally:
         reset_official_launch_token(suppress_token)
 
@@ -288,6 +301,9 @@ def _assert_official_launch_token_fixture() -> int:
         present = official_launch_token_observation()
         if present.get("token_present") is not True:
             raise ProfileError("official-launch token fixture did not observe minted token")
+        enforced = enforce_official_launch_token(present)
+        if enforced.get("token_present") is not True:
+            raise ProfileError("lethal gate rejected a present official-launch token")
     finally:
         reset_official_launch_token(token)
 
@@ -308,8 +324,10 @@ def _assert_official_launch_walker_wiring(repo: Path) -> int:
     frontier_text = (repo / "brick_protocol/support/operator/walker_frontier.py").read_text(
         encoding="utf-8"
     )
-    if "official_launch_observation = official_launch_token_observation()" not in kernel_text:
-        raise ProfileError("official-launch token observation is not minted at walker entry")
+    if "enforce_official_launch_token" not in kernel_text:
+        raise ProfileError("official-launch lethal enforce is not wired at walker entry")
+    if "official_launch_token_observation()" not in kernel_text:
+        raise ProfileError("official-launch token observation is not called at walker entry")
     if kernel_text.count("official_launch_observation=official_launch_observation") < 4:
         raise ProfileError(
             "official-launch token observation is not threaded through every frontier path"
@@ -330,8 +348,8 @@ def _assert_official_launch_walker_wiring(repo: Path) -> int:
     observation: Mapping[str, Any] = {
         "kind": "official_launch_token_observation",
         "token_present": False,
-        "observation_mode": "observe_only",
-        "absence_action": "record_only_no_raise",
+        "observation_mode": "gate_lethal",
+        "absence_action": "raise_runtime_error",
     }
     plan = _dynamic_frontier_write_plan(
         {"plan_ref": "building-plan:test"},
@@ -350,7 +368,7 @@ def _assert_official_launch_walker_wiring(repo: Path) -> int:
     recorded = evidence.get("official_launch_token_observation")
     if recorded != dict(observation):
         raise ProfileError(
-            "frontier write-plan did not preserve observe-only official-launch token evidence"
+            "frontier write-plan did not preserve official-launch token evidence"
         )
     if evidence.get("held") is not True:
         raise ProfileError("frontier write-plan fixture did not preserve held state")

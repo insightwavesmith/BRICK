@@ -13,7 +13,7 @@ from contextvars import ContextVar, Token
 from dataclasses import dataclass
 from importlib import metadata
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
 
 PROJECT_DISTRIBUTION_NAME = "brick-protocol"
@@ -137,14 +137,19 @@ def suppress_official_launch_token_for_probe() -> Token[object | None]:
 
 
 def official_launch_token_observation() -> dict[str, Any]:
-    """Observe token presence without authorizing or rejecting the walk."""
+    """Observe process-local official-launch token presence (support fact only).
+
+    Stage 3b (Smith residual R1): absence_action is lethal at the walker chokepoint
+    via ``enforce_official_launch_token``. This observation still records the fact
+    without itself raising — the walker entry calls enforce after observing.
+    """
 
     present = _OFFICIAL_LAUNCH_TOKEN.get() is not None
     return {
         "kind": "official_launch_token_observation",
         "token_present": present,
-        "observation_mode": "observe_only",
-        "absence_action": "record_only_no_raise",
+        "observation_mode": "gate_lethal",
+        "absence_action": "raise_runtime_error",
         "token_source": "brick_protocol.support.operator.cli.main",
         "proof_limits": [
             "process-scoped contextvars.ContextVar observation only",
@@ -158,5 +163,26 @@ def official_launch_token_observation() -> dict[str, Any]:
         "not_proven": [
             "complete runtime process integrity outside this Python context",
             "future launcher behavior",
+            "deliberate contextvar forgery outside cli.main",
         ],
     }
+
+
+def enforce_official_launch_token(
+    observation: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Stage 3b lethal gate: refuse walker entry without an official-launch token.
+
+    Support mechanics only: raises when the process-local token is absent so
+    out-of-band ``python -c`` / launcher imports cannot walk a Building Plan.
+    Legitimate paths mint via ``cli.main``. Does not judge success/quality/Movement.
+    """
+
+    obs = dict(observation) if isinstance(observation, Mapping) else official_launch_token_observation()
+    if obs.get("token_present") is True:
+        return obs
+    raise RuntimeError(
+        "official launch token absent: walk only via brick CLI "
+        "(brick build / brick resume / python -m brick_protocol.support.operator.cli). "
+        "Direct in-process walker/run imports without cli.main mint are refused (L3-3b)."
+    )

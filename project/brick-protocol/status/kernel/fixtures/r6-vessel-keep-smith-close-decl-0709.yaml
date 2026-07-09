@@ -1,0 +1,29 @@
+# R6 Smith gate close: Option A KEEP + charter clarify (no physical migrate).
+declared_by: coo
+task: >
+  R6 residual close: confirm vessel-keep-clarify-smith-close-0709.md and
+  README path-identity wording (Option A KEEP). No filesystem migrate.
+building_id: r6-vessel-keep-smith-close-0709
+adapter: adapter:local
+nodes:
+  - kind: design
+    work_statement: |
+      ## Deliverables
+      D1: design note Option A KEEP vs migrate forbidden
+      ## Done Criteria
+      design note only
+  - kind: work
+    work_statement: |
+      ## Deliverables
+      D1: record freeze doc + README path identity wording present
+      ## Commands
+      PYTHONPATH=. python3 -c "from pathlib import Path; f=Path('project/brick-protocol/status/kernel/vessel-keep-clarify-smith-close-0709.md').read_text(); r=Path('project/brick-protocol/README.md').read_text(); assert 'Option A' in f; assert '도그푸드 vessel' in r or 'dogfood' in r.lower(); assert 'brick_protocol/' in r; print('R6_KEEP_OK')"
+      ## Hard constraints
+      no source edits; git commit 금지.
+    write: false
+  - kind: closure
+    work_statement: |
+      ## Deliverables
+      D1: summarize R6 KEEP close; physical migrate still not opened
+      ## Done Criteria
+      observed summary only
