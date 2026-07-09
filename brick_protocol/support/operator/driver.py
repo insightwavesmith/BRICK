@@ -106,6 +106,8 @@ _CUSTOMER_GRAPH_TEMPLATE_AUTHORITY_FIELDS = frozenset(
 )
 _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_FRONTIER = "human_review_waiting"
 _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_REASON = "fake_landing_write_scope_diff_absent"
+NECESSITY_N1_BUILDING_ID = "n1-land-force-complete-write-0709"
+_LAND_FORCE_COMMIT_ABSENT_REASON = "land_force_commit_absent"
 _WRITE_SCOPE_FORBIDDEN_DIFF_PRESENT_REASON = "write_scope_forbidden_diff_present"
 _WRITE_SCOPE_OUTSIDE_DIFF_PRESENT_REASON = "write_scope_outside_diff_present"
 _WRITE_SCOPE_OBSERVATION_GATE_REF = "link-gate:coo"
@@ -945,6 +947,7 @@ def _run_in_worktree_sandbox(
     commit_sha = ""
     wip_anchor_ref = ""
     wip_commit_sha = ""
+    land_force_commit_absent = False
     frontier_kind = ""
     frontier_reason = ""
     evidence_root = ""
@@ -1013,17 +1016,53 @@ def _run_in_worktree_sandbox(
                 or _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_REASON
             )
         if frontier_kind == "complete":
-            commit_sha = commit_sandbox_output(
-                sandbox,
-                message=(
-                    f"BRICK building output: {building_id}\n\n"
-                    f"frontier=complete base={sandbox.base_sha}\n"
-                    f"evidence_root={evidence_root}\n"
-                ),
+            scoped_dirty_before_commit = _write_need_complete_with_scoped_diff(
+                sandbox.path,
+                intake_result.plan_path,
             )
+            try:
+                commit_sha = commit_sandbox_output(
+                    sandbox,
+                    message=(
+                        f"BRICK building output: {building_id}\n\n"
+                        f"frontier=complete base={sandbox.base_sha}\n"
+                        f"evidence_root={evidence_root}\n"
+                    ),
+                )
+            except WorktreeSandboxError:
+                if not scoped_dirty_before_commit:
+                    raise
+                _record_land_force_commit_absent_hold(
+                    intake_result.run_result.lifecycle_write.root,
+                    intake_result.plan_path,
+                )
+                land_force_commit_absent = True
+                frontier = observe_building_frontier(
+                    intake_result.run_result.lifecycle_write.root,
+                    repo_root=sandbox.path,
+                )
+                frontier_kind = _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_FRONTIER
+                frontier_reason = _LAND_FORCE_COMMIT_ABSENT_REASON
+            else:
+                if not commit_sha and scoped_dirty_before_commit:
+                    _record_land_force_commit_absent_hold(
+                        intake_result.run_result.lifecycle_write.root,
+                        intake_result.plan_path,
+                    )
+                    land_force_commit_absent = True
+                    frontier = observe_building_frontier(
+                        intake_result.run_result.lifecycle_write.root,
+                        repo_root=sandbox.path,
+                    )
+                    frontier_kind = _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_FRONTIER
+                    frontier_reason = _LAND_FORCE_COMMIT_ABSENT_REASON
     finally:
         try:
-            if not commit_sha:
+            if (
+                not commit_sha
+                and frontier_kind != "complete"
+                and not land_force_commit_absent
+            ):
                 wip_anchor_ref = anchor_wip_snapshot(
                     sandbox,
                     building_id,
@@ -1101,6 +1140,30 @@ def _write_need_complete_with_forbidden_diff(
     except (OSError, TypeError, ValueError, json.JSONDecodeError):
         return False
     return _write_need_complete_with_forbidden_diff_for_plan(sandbox_path, payload)
+
+
+def _write_need_complete_with_scoped_diff(
+    sandbox_path: Path,
+    plan_path: Path,
+) -> bool:
+    """Observe a completed write-needed plan copy with dirty in-scope paths."""
+
+    try:
+        payload = _load_declared_plan_mapping(plan_path)
+    except (OSError, TypeError, ValueError, json.JSONDecodeError):
+        return False
+    scopes = _write_need_scopes_from_plan(payload)
+    if not scopes:
+        return False
+    changed_paths = _sandbox_changed_paths(sandbox_path)
+    if not changed_paths:
+        return False
+    return any(
+        _path_allowed_by_write_scope(path, scope)
+        and not _path_forbidden_by_write_scope(path, scope)
+        for path in changed_paths
+        for scope in scopes
+    )
 
 
 def _write_need_complete_with_forbidden_diff_for_plan(
@@ -1203,6 +1266,12 @@ def _record_write_scope_outside_diff_hold(evidence_root: Path, plan_path: Path) 
     """Persist an outside-scope-diff HOLD so frontier re-observation matches return."""
 
     _record_write_scope_hold(evidence_root, plan_path, _WRITE_SCOPE_OUTSIDE_DIFF_PRESENT_REASON)
+
+
+def _record_land_force_commit_absent_hold(evidence_root: Path, plan_path: Path) -> None:
+    """Persist a commit-absent HOLD so a complete+dirty frontier is not silent."""
+
+    _record_write_scope_hold(evidence_root, plan_path, _LAND_FORCE_COMMIT_ABSENT_REASON)
 
 
 def _record_write_scope_hold(evidence_root: Path, plan_path: Path, reason: str) -> None:
@@ -1354,6 +1423,8 @@ def _write_scope_hold_observation_ref(reason: str, building_id: str) -> str:
         observation = "forbidden_paths_matched"
     elif reason == _WRITE_SCOPE_OUTSIDE_DIFF_PRESENT_REASON:
         observation = "observed_paths_outside_declared_scope"
+    elif reason == _LAND_FORCE_COMMIT_ABSENT_REASON:
+        observation = "land_force_commit_absent"
     else:
         observation = "write_scope_scoped_diff_absent"
     return f"observation:{observation}:{building_id}"

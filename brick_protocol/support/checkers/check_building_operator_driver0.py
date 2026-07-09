@@ -1969,6 +1969,7 @@ def _w1_worktree_sandbox_fire(
     summary: dict[str, Any],
 ) -> None:
     from brick_protocol.support.operator.driver import (
+        _LAND_FORCE_COMMIT_ABSENT_REASON,
         _WRITE_SCOPE_FORBIDDEN_DIFF_PRESENT_REASON,
         _WRITE_SCOPE_OUTSIDE_DIFF_PRESENT_REASON,
         _write_need_complete_with_outside_scope_diff,
@@ -2072,6 +2073,112 @@ def _w1_worktree_sandbox_fire(
                 violations.append(
                     f"w1-live-tree: output commit moved a branch (expected dangling): {on_branch!r}"
                 )
+        # N1 mutation-RED: complete+dirty cannot fall through to silent WIP-only
+        # if the land-force commit primitive produces no commit SHA.
+        land_absent = Path(cust_raw) / "customer-land-force-absent"
+        land_absent.mkdir(parents=True, exist_ok=True)
+        _seed_customer_repo(repo, land_absent)
+        original_commit_sandbox_output = driver_module.commit_sandbox_output
+        driver_module.commit_sandbox_output = lambda *_args, **_kwargs: ""
+        try:
+            land_absent_result = run_customer_building_in_sandbox(
+                _w1_intent("w1-land-force-commit-absent-0"),
+                customer_repo_root=land_absent,
+                output_root=evidence_root / "land-force-commit-absent",
+                overwrite_existing=True,
+                command_runner=_w1_completing_codex_runner(write=True),
+                adapter_timeout_seconds=30,
+            )
+        finally:
+            driver_module.commit_sandbox_output = original_commit_sandbox_output
+        land_absent_reobserved = observe_building_frontier(
+            land_absent_result.evidence_root,
+            repo_root=land_absent,
+        )
+        land_absent_link_records = _jsonl_records(
+            Path(land_absent_result.evidence_root) / "raw" / "link.jsonl"
+        )
+        land_absent_hold_rows = [
+            record
+            for record in land_absent_link_records
+            if record.get("hold_reason") == _LAND_FORCE_COMMIT_ABSENT_REASON
+        ]
+        summary["w1_land_force_absent_frontier"] = land_absent_result.frontier_kind
+        summary["w1_land_force_absent_reason"] = land_absent_result.frontier_reason
+        summary["w1_land_force_absent_commit"] = land_absent_result.commit_sha
+        summary["w1_land_force_absent_wip_anchor"] = land_absent_result.wip_anchor_ref
+        summary["w1_land_force_absent_hold_row_count"] = len(land_absent_hold_rows)
+        if land_absent_result.frontier_kind != "human_review_waiting":
+            violations.append(
+                "w1-land-force-absent: complete+dirty with absent commit stayed "
+                f"{land_absent_result.frontier_kind!r}"
+            )
+        if land_absent_result.frontier_reason != _LAND_FORCE_COMMIT_ABSENT_REASON:
+            violations.append(
+                "w1-land-force-absent: absent commit did not surface land-force reason "
+                f"(reason={land_absent_result.frontier_reason!r})"
+            )
+        if land_absent_result.commit_sha:
+            violations.append("w1-land-force-absent: absent commit probe produced a commit")
+        if land_absent_reobserved.get("frontier_kind") != "human_review_waiting":
+            violations.append(
+                "w1-land-force-absent: durable frontier did not reobserve the HOLD "
+                f"(frontier={land_absent_reobserved.get('frontier_kind')!r})"
+            )
+        if not land_absent_hold_rows:
+            violations.append("w1-land-force-absent: land-force HOLD row was not persisted")
+
+        # N1 real exception branch: a complete write-needed plan with in-scope
+        # dirty bytes can still be blocked by the raw sensitive-path commit
+        # guard. That must return a loud hold, not crash in the later WIP anchor.
+        land_sensitive = Path(cust_raw) / "customer-land-force-sensitive"
+        land_sensitive.mkdir(parents=True, exist_ok=True)
+        _seed_customer_repo(repo, land_sensitive)
+        land_sensitive_result = run_customer_building_in_sandbox(
+            _w1_intent("w1-land-force-sensitive-0"),
+            customer_repo_root=land_sensitive,
+            output_root=evidence_root / "land-force-sensitive",
+            overwrite_existing=True,
+            command_runner=_w1_completing_codex_runner(
+                write=True,
+                extra_write_rels=("onboarding-example/provider-session-state.json",),
+            ),
+            adapter_timeout_seconds=30,
+        )
+        land_sensitive_link_records = _jsonl_records(
+            Path(land_sensitive_result.evidence_root) / "raw" / "link.jsonl"
+        )
+        land_sensitive_hold_rows = [
+            record
+            for record in land_sensitive_link_records
+            if record.get("hold_reason") == _LAND_FORCE_COMMIT_ABSENT_REASON
+        ]
+        summary["w1_land_force_sensitive_frontier"] = land_sensitive_result.frontier_kind
+        summary["w1_land_force_sensitive_reason"] = land_sensitive_result.frontier_reason
+        summary["w1_land_force_sensitive_commit"] = land_sensitive_result.commit_sha
+        summary["w1_land_force_sensitive_wip_anchor"] = land_sensitive_result.wip_anchor_ref
+        summary["w1_land_force_sensitive_disposed"] = land_sensitive_result.worktree_disposed
+        summary["w1_land_force_sensitive_hold_row_count"] = len(land_sensitive_hold_rows)
+        if land_sensitive_result.frontier_kind != "human_review_waiting":
+            violations.append(
+                "w1-land-force-sensitive: commit exception did not return a loud hold "
+                f"(frontier={land_sensitive_result.frontier_kind!r})"
+            )
+        if land_sensitive_result.frontier_reason != _LAND_FORCE_COMMIT_ABSENT_REASON:
+            violations.append(
+                "w1-land-force-sensitive: commit exception did not surface land-force reason "
+                f"(reason={land_sensitive_result.frontier_reason!r})"
+            )
+        if land_sensitive_result.commit_sha:
+            violations.append("w1-land-force-sensitive: sensitive commit unexpectedly landed")
+        if land_sensitive_result.wip_anchor_ref:
+            violations.append(
+                "w1-land-force-sensitive: land-force commit absence fell through to WIP anchor"
+            )
+        if not land_sensitive_result.worktree_disposed:
+            violations.append("w1-land-force-sensitive: worktree was not disposed after hold")
+        if not land_sensitive_hold_rows:
+            violations.append("w1-land-force-sensitive: land-force HOLD row was not persisted")
         if not Path(result.evidence_root).is_dir():
             violations.append("w1-live-tree: durable evidence root is missing")
         if result.worktree_path and Path(result.evidence_root).resolve().is_relative_to(
