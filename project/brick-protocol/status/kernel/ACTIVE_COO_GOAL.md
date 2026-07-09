@@ -44,9 +44,9 @@ ACTIVE = MASTER (Smith /goal pin — do NOT re-pin pure-dev-only)
 #3 NEXT
 
 ΦII (parallel OK during ΦI):
-  D1 DONE pure-dev-d1-r5-body-reland-0709c · 243da7ff0 · F✓W✓P✓
-  D3 DONE pure-dev-d3-r7-body-reland-0709c · e87fe03af · F✓W✓P✓
-     (harvest WIP 3700ea983 → main; verify import_identity_modes GREEN)
+  D1 body-reland 0709c main 243da7ff0 (post-strip classifier body)
+  D3 NOT DONE — body-v1 still open (attack/QA path); false DONE stamp retracted
+     (e87fe03af is operator WIP harvest only — do NOT treat as D3 Exit)
   D4 ship-copy body pending · D2 KEEP CANCELLED · D5 OOS
 ```
 
