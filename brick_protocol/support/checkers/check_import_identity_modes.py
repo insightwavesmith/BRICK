@@ -25,6 +25,7 @@ if str(_REPO_ROOT) not in sys.path:
 
 from brick_protocol.support.checkers.lib.yaml_subset import KernelResult, ProfileError
 from brick_protocol.support.operator.import_identity import (
+    PURE_DEV_D3_BUILDING_ID,
     mint_official_launch_token,
     official_launch_token_observation,
     reset_official_launch_token,
@@ -285,6 +286,8 @@ def _assert_official_launch_token_fixture() -> int:
             raise ProfileError("official-launch token absence is not lethal Stage 3b")
         if absent.get("observation_mode") != "gate_lethal":
             raise ProfileError("official-launch token observation_mode is not gate_lethal")
+        if absent.get("pure_dev_d3_building_id") != PURE_DEV_D3_BUILDING_ID:
+            raise ProfileError("official-launch token observation missing D3 building id")
         try:
             enforce_official_launch_token(absent)
         except RuntimeError as exc:
@@ -302,6 +305,8 @@ def _assert_official_launch_token_fixture() -> int:
         present = official_launch_token_observation()
         if present.get("token_present") is not True:
             raise ProfileError("official-launch token fixture did not observe minted token")
+        if present.get("pure_dev_d3_building_id") != PURE_DEV_D3_BUILDING_ID:
+            raise ProfileError("minted official-launch observation missing D3 building id")
         if present.get("harden_ref") != "official_launch_typed_proof_v1":
             raise ProfileError("official-launch harden_ref missing after mint")
         enforced = enforce_official_launch_token(present)
@@ -318,6 +323,8 @@ def _assert_official_launch_token_fixture() -> int:
             raise ProfileError("forged bare object counted as official-launch present")
         if forged_obs.get("forged_non_proof_observed") is not True:
             raise ProfileError("forged non-proof not observed")
+        if forged_obs.get("pure_dev_d3_building_id") != PURE_DEV_D3_BUILDING_ID:
+            raise ProfileError("forged official-launch observation missing D3 building id")
         try:
             enforce_official_launch_token(forged_obs)
         except RuntimeError as exc:
@@ -371,6 +378,7 @@ def _assert_official_launch_walker_wiring(repo: Path) -> int:
         "token_present": False,
         "observation_mode": "gate_lethal",
         "absence_action": "raise_runtime_error",
+        "pure_dev_d3_building_id": PURE_DEV_D3_BUILDING_ID,
     }
     plan = _dynamic_frontier_write_plan(
         {"plan_ref": "building-plan:test"},

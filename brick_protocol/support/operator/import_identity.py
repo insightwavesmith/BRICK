@@ -35,7 +35,7 @@ _OFFICIAL_LAUNCH_TOKEN: ContextVar[object | None] = ContextVar(
     "brick_protocol_official_launch_token",
     default=None,
 )
-PURE_DEV_D3_BUILDING_ID = "pure-dev-d3-r7-token-harden-0709"
+PURE_DEV_D3_BUILDING_ID = "pure-dev-d3-r7-product-land-0709b"
 PURE_DEV_D3_HARDEN_REF = "official_launch_typed_proof_v1"
 
 
@@ -195,7 +195,8 @@ def official_launch_token_observation() -> dict[str, Any]:
         "observation_mode": "gate_lethal",
         "absence_action": "raise_runtime_error",
         "token_source": "brick_protocol.support.operator.cli.main",
-        "harden_ref": "official_launch_typed_proof_v1",
+        "pure_dev_d3_building_id": PURE_DEV_D3_BUILDING_ID,
+        "harden_ref": PURE_DEV_D3_HARDEN_REF,
         "proof_limits": [
             "process-scoped contextvars.ContextVar observation only",
             "typed OfficialLaunchProof required for presence",
