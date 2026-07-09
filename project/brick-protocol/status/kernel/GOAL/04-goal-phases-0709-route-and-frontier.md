@@ -6,6 +6,7 @@
 | **Date** | 2026-07-09 |
 | **Live repo** | `/Users/smith/projects/BRICK` |
 | **Parents** | `03-remaining-frontier-goal-0709.md` · `02-unified-continuous-build-goal-0708.md` · `parent-goal-closure-0709.md` · route resume brief (COO 0709) |
+| **Active COO goal** | `status/kernel/ACTIVE_COO_GOAL.md` — **이 문서(G0–G6) 완벽 완료** |
 | **Official route memo** | `status/kernel/OFFICIAL_ROUTE_MEMO.md` (update every Goal Exit) |
 | **Impl split** | G0–G1: Grok subagents OK · **after G1 Exit: BRICK buildings only** |
 | **Deku** | design frozen (`deku/docs/DEKU_STATUS.md`); reopen after BRICK G0–G1 |

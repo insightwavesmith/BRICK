@@ -3,8 +3,9 @@
 | | |
 |---|---|
 | **Status** | support evidence · update at every Goal Exit |
-| **Updated** | 2026-07-09 (open G0 Route Fuel; Deku frozen) |
+| **Updated** | 2026-07-09 |
 | **Authority for current ladder** | `GOAL/04-goal-phases-0709-route-and-frontier.md` |
+| **Active COO goal** | `ACTIVE_COO_GOAL.md` — complete **all** of 04 (G0–G6) as operator |
 
 ---
 
