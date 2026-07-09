@@ -1,0 +1,38 @@
+# Pure-dev D3: token-forgery harden Building land stamp + probe.
+declared_by: coo
+task: >
+  Pure-dev D3: land PURE_DEV_D3 building stamp on import_identity.py and
+  re-prove typed OfficialLaunchProof forge-refuse via import_identity_modes.
+building_id: pure-dev-d3-r7-token-harden-0709
+nodes:
+  - kind: design
+    work_statement: |
+      ## Deliverables
+      D1: note OfficialLaunchProof + mint allowlist + forgery refuse as D3 harden
+      ## Done Criteria
+      design note only
+  - kind: work
+    write: true
+    work_statement: |
+      ## Deliverables
+      D1: In brick_protocol/support/operator/import_identity.py add if missing:
+          PURE_DEV_D3_BUILDING_ID = "pure-dev-d3-r7-token-harden-0709"
+          PURE_DEV_D3_HARDEN_REF = "official_launch_typed_proof_v1"
+          near OfficialLaunchProof class.
+      D2: Run PYTHONPATH=. python3 brick_protocol/support/checkers/check_profile.py --profile import_identity_modes
+      ## Hard constraints
+      write only import_identity.py (and checker only if required for green)
+      git commit 금지.
+      종료선: D1~D2 완료.
+  - kind: code-attack-qa
+    work_statement: |
+      ## Deliverables
+      D1: confirm forge bare object still refuses; mint from allowlisted path still works
+      ## Done Criteria
+      observed QA
+  - kind: closure
+    work_statement: |
+      ## Deliverables
+      D1: summarize; not_proven process-attested crypto mint; managed-settings org out of scope
+      ## Done Criteria
+      observed closure

@@ -1,0 +1,16 @@
+{
+  "building_ref": "/Users/smith/projects/BRICK/project/brick-protocol/buildings/route-walker-6e-7-advisory-view-0709",
+  "author_ref": "coo:route-walker-6e-7-advisory-view-forward-0709",
+  "chain": "until-terminal",
+  "adapter_timeout_seconds": 900,
+  "dispositions": [
+    {
+      "on": "gate_sequence_missing_required_facts:link-gate:coo",
+      "action": "forward"
+    },
+    {
+      "on": "declared Link transition_lifecycle.state is paused",
+      "action": "forward"
+    }
+  ]
+}

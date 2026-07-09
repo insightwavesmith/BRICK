@@ -1,0 +1,42 @@
+# ΦI #2: hold/incomplete dispose + recovery must be fail-closed
+declared_by: coo
+task: >
+  Necessity #2: hold or incomplete must not destroy recoverability —
+  WIP anchor and/or hold ledger must succeed before dispose, or loud failure.
+building_id: n2-hold-dispose-recover-0709
+nodes:
+  - kind: design
+    work_statement: |
+      ## Deliverables
+      D1: Map driver.py finally dispose vs hold frontiers and run.py park/stop WIP anchors.
+      D2: Note G1 proven dispose+resume via evidence; gap is recoverability fail-closed + land separation from #1.
+      ## Done Criteria
+      design note only
+  - kind: work
+    write: true
+    work_statement: |
+      ## Deliverables
+      D1: In brick_protocol/support/operator/driver.py (worktree_sandbox.py only if required):
+          On non-complete frontiers (link_paused/hold/incomplete), before dispose_worktree_sandbox:
+          ensure WIP anchor attempt when sandbox has dirty in-scope or any write-needed dirt;
+          if anchor fails while dirty remains, surface loud support error/hold rather than silent dispose-only.
+      D2: Do not remove dispose-on-hold by default unless preserving worktree is the chosen policy —
+          preferred: dispose OK + mandatory successful WIP/ledger recoverability.
+      D3: Stamp NECESSITY_N2_BUILDING_ID = "n2-hold-dispose-recover-0709" near the recoverability gate.
+      D4: Focused probe or unit RED for dispose-with-dirty-and-no-WIP class; GREEN after fix.
+      ## Hard constraints
+      write only driver.py, worktree_sandbox.py, checkers/** if probe needed
+      git commit 금지.
+      종료선: D1~D4 완료.
+  - kind: code-attack-qa
+    work_statement: |
+      ## Deliverables
+      D1: Attack silent dispose of dirty hold without WIP/ledger.
+      ## Done Criteria
+      observed QA
+  - kind: closure
+    work_statement: |
+      ## Deliverables
+      D1: Summarize; not_proven #3 graph-decl incomplete path; not_proven keep-worktree-on-hold UX.
+      ## Done Criteria
+      observed closure

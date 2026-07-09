@@ -1,0 +1,41 @@
+# D4 ONE building: full ship-copy hold-disposition content (after strip)
+declared_by: coo
+task: >
+  Pure-dev D4: land full ship-copy hold-disposition section content from agent skill.
+building_id: pure-dev-d4-body-v1-0709
+nodes:
+  - kind: design
+    work_statement: |
+      ## Deliverables
+      D1: ship-copy must carry hold-disposition vocabulary section as real skill body
+      ## Done Criteria
+      design note only
+  - kind: work
+    write: true
+    work_statement: |
+      ## Deliverables
+      D1: Copy/sync the hold-disposition vocabulary content from
+          brick_protocol/agent/skills/building-coordination/SKILL.md into
+          brick_protocol/brick/templates/skills/building-coordination/SKILL.md
+          as a multi-line ## section (not HTML-only stamp).
+          Reference: git show 56bfc4e74 -- ship-copy SKILL.md for content target.
+      D2: Include markdown line: pure-dev-d4-body-v1-0709 ship-copy land
+      D3: Both files must contain hold-disposition-vocabulary-0704
+      ## Hard constraints
+      write only:
+        brick_protocol/brick/templates/skills/building-coordination/SKILL.md
+        brick_protocol/agent/skills/building-coordination/SKILL.md
+      git commit 금지.
+      종료선: D1~D3 완료. Multi-line product section required in Building diff.
+  - kind: code-attack-qa
+    work_statement: |
+      ## Deliverables
+      D1: Attack stamp-only / HTML-only land
+      ## Done Criteria
+      observed QA
+  - kind: closure
+    work_statement: |
+      ## Deliverables
+      D1: Summarize ship-copy product land
+      ## Done Criteria
+      observed closure

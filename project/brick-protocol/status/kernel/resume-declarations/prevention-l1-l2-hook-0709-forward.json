@@ -1,0 +1,7 @@
+{
+  "building_ref": "/Users/smith/projects/BRICK/project/brick-protocol/buildings/prevention-l1-l2-hook-0709",
+  "author_ref": "coo:prevention-l1-l2-hook-forward-0709",
+  "chain": "until-terminal",
+  "adapter_timeout_seconds": 3600,
+  "dispositions": [{"on": "declared Link transition_lifecycle.state is paused", "action": "forward"}]
+}

@@ -1,0 +1,43 @@
+# Pure-dev D4 product re-land — real ship-copy content (not HTML stamp only)
+declared_by: coo
+task: >
+  Pure-dev D4 product land: ship-copy building-coordination must carry hold-disposition
+  vocabulary section as real skill content matching agent skill; land product text not HTML-only.
+building_id: pure-dev-d4-r4-product-land-0709b
+nodes:
+  - kind: design
+    work_statement: |
+      ## Deliverables
+      D1: Note G2-c ship-copy vs agent skill hold-disposition-vocabulary-0704 pointer
+      ## Done Criteria
+      design note only
+  - kind: work
+    write: true
+    work_statement: |
+      ## Deliverables
+      D1: In brick_protocol/brick/templates/skills/building-coordination/SKILL.md ensure a real
+          markdown section (not only HTML comment) that:
+          - references hold-disposition-vocabulary-0704.md
+          - includes line: pure-dev-d4-r4-product-land-0709b ship-copy land
+          Sync any missing hold-disposition content from
+          brick_protocol/agent/skills/building-coordination/SKILL.md if ship-copy is thinner.
+      D2: Optionally align agent skill with the same building land line if needed for mismatch=0
+      D3: Prove: both files contain hold-disposition-vocabulary-0704 and the building land line
+      ## Hard constraints
+      write only:
+        brick_protocol/brick/templates/skills/building-coordination/SKILL.md
+        brick_protocol/agent/skills/building-coordination/SKILL.md
+      git commit 금지.
+      종료선: D1~D3 완료.
+  - kind: code-attack-qa
+    work_statement: |
+      ## Deliverables
+      D1: Attack HTML-stamp-only land — require markdown land line + vocab pointer in ship-copy
+      ## Done Criteria
+      observed QA
+  - kind: closure
+    work_statement: |
+      ## Deliverables
+      D1: Summarize ship-copy product land; not_proven full order-chain rewrite
+      ## Done Criteria
+      observed closure

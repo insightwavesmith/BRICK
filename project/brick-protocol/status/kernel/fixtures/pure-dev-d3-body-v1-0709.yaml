@@ -1,0 +1,44 @@
+# D3 ONE building: full OfficialLaunchProof harden body (after strip)
+declared_by: coo
+task: >
+  Pure-dev D3: land full OfficialLaunchProof mint allowlist + forgery refuse product body.
+building_id: pure-dev-d3-body-v1-0709
+nodes:
+  - kind: design
+    work_statement: |
+      ## Deliverables
+      D1: D3 harden = OfficialLaunchProof + mint allowlist + enforce forgery refuse
+      ## Done Criteria
+      design note only
+  - kind: work
+    write: true
+    work_statement: |
+      ## Deliverables
+      D1: In brick_protocol/support/operator/import_identity.py implement FULL product body:
+          - frozenset _OFFICIAL_LAUNCH_MINT_MODULES (cli, import_identity, __main__, checker suffix)
+          - @dataclass(frozen=True) class OfficialLaunchProof with nonce and minter_module
+          - mint_official_launch_token: refuse non-allowlisted caller; set OfficialLaunchProof
+          - official_launch_token_observation: token_present only for OfficialLaunchProof;
+            forged_non_proof_observed; pure_dev_d3_building_id pure-dev-d3-body-v1-0709; harden_ref
+          - enforce_official_launch_token: raise RuntimeError on non-proof forgery
+          Reference behavior: git show 56bfc4e74:brick_protocol/support/operator/import_identity.py
+          MUST write the class and functions into the working tree (body must appear in git diff).
+      D2: Update brick_protocol/support/checkers/check_import_identity_modes.py if needed for green
+      D3: Run PYTHONPATH=. python3 brick_protocol/support/checkers/check_profile.py --profile import_identity_modes
+      D4: Prove forge RED (bare object) + mint GREEN via official_launch_token_observation + enforce_official_launch_token
+      ## Hard constraints
+      write only import_identity.py and check_import_identity_modes.py
+      git commit 금지.
+      종료선: D1~D4 완료. OfficialLaunchProof class body required in this Building diff.
+  - kind: code-attack-qa
+    work_statement: |
+      ## Deliverables
+      D1: Attack missing OfficialLaunchProof body / rename-only land
+      ## Done Criteria
+      observed QA
+  - kind: closure
+    work_statement: |
+      ## Deliverables
+      D1: Summarize; not_proven managed-settings org
+      ## Done Criteria
+      observed closure

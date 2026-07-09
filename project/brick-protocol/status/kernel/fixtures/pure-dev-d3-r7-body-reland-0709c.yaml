@@ -1,0 +1,48 @@
+# D3: full OfficialLaunchProof harden body (must re-carve after strip)
+declared_by: coo
+task: >
+  Pure-dev D3 body re-land: OfficialLaunchProof + mint allowlist + enforce forgery refuse
+  as full product body in write-scope diff.
+building_id: pure-dev-d3-r7-body-reland-0709c
+nodes:
+  - kind: design
+    work_statement: |
+      ## Deliverables
+      D1: harden = typed proof mint + forge refuse at enforce
+      ## Done Criteria
+      design note only
+  - kind: work
+    write: true
+    work_statement: |
+      ## Deliverables
+      D1: Implement full product body in brick_protocol/support/operator/import_identity.py:
+          - _OFFICIAL_LAUNCH_MINT_MODULES allowlist
+          - class OfficialLaunchProof (frozen dataclass nonce+minter_module)
+          - mint_official_launch_token: allowlist check + set OfficialLaunchProof
+          - official_launch_token_observation: token_present only for OfficialLaunchProof;
+            include pure_dev_d3_building_id "pure-dev-d3-r7-body-reland-0709c" and harden_ref
+          - enforce_official_launch_token: raise on non-proof forgery
+      D2: Update check_import_identity_modes.py probes for forge RED / mint GREEN on real APIs
+      D3: Run profile import_identity_modes green
+      D4: Document inline forge refuse + mint enforce using official_launch_token_observation
+          and enforce_official_launch_token (not missing API names)
+      Reference git show 56bfc4e74 -- import_identity.py for behavior target; Building must
+          write the full body (not rename-only).
+      ## Hard constraints
+      write only:
+        brick_protocol/support/operator/import_identity.py
+        brick_protocol/support/checkers/check_import_identity_modes.py
+      git commit 금지.
+      종료선: D1~D4 완료. OfficialLaunchProof class body must be new in this Building diff.
+  - kind: code-attack-qa
+    work_statement: |
+      ## Deliverables
+      D1: Attack bare object forge; confirm mint path
+      ## Done Criteria
+      observed QA
+  - kind: closure
+    work_statement: |
+      ## Deliverables
+      D1: Summarize; not_proven managed-settings org; process-attested crypto
+      ## Done Criteria
+      observed closure

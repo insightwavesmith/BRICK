@@ -1,0 +1,51 @@
+# D1: full SHAPE-B shared classifier product body (must re-carve after strip)
+declared_by: coo
+task: >
+  Pure-dev D1 body re-land: implement classify_route_v2_concern_eligibility and
+  wire view/walker paths. Product body must appear in write-scope git diff.
+building_id: pure-dev-d1-r5-body-reland-0709c
+nodes:
+  - kind: design
+    work_statement: |
+      ## Deliverables
+      D1: beyond-A min slice = SHAPE B shared classifier in route_v2_views + walker use
+      ## Done Criteria
+      design note only
+  - kind: work
+    write: true
+    work_statement: |
+      ## Deliverables
+      D1: Implement product body in brick_protocol/support/operator/route_v2_views.py:
+          - ROUTE_V2_SHARED_CLASSIFIER_REF
+          - def classify_route_v2_concern_eligibility(concern_kind) returning dict with
+            kind, classifier_ref, shape shape_b_shared_helper, pure_dev_d1_building_id
+            "pure-dev-d1-r5-body-reland-0709c", concern_kind, non_reroute, reroute_eligible,
+            allowed_concern_kinds, proof_limits, not_proven
+          - render_route_v2_view and _route_policy_eligibility MUST call this helper
+            (no duplicate eligibility logic that drifts)
+      D2: Wire brick_protocol/support/operator/walker_kernel.py observation path to use
+          the shared classifier (or documented call site) so view and walker share one body
+      D3: Update brick_protocol/support/checkers/check_route_v2_views.py for shared classifier
+          + pure_dev_d1_building_id on real path; RED if missing
+      D4: Run PYTHONPATH=. python3 brick_protocol/support/checkers/check_route_v2_views.py
+      Reference prior product (behavior target) may be read from git show 56bfc4e74 -- paths
+      but the Building worktree MUST contain the full function body as its own write.
+      ## Hard constraints
+      write only:
+        brick_protocol/support/operator/route_v2_views.py
+        brick_protocol/support/operator/walker_kernel.py
+        brick_protocol/support/checkers/check_route_v2_views.py
+      git commit 금지.
+      종료선: D1~D4 완료. classify_route_v2_concern_eligibility body must be new in this Building diff.
+  - kind: code-attack-qa
+    work_statement: |
+      ## Deliverables
+      D1: Attack missing classifier body / stamp-only land
+      ## Done Criteria
+      observed QA
+  - kind: closure
+    work_statement: |
+      ## Deliverables
+      D1: Summarize; not_proven full Route V2 beyond-A program
+      ## Done Criteria
+      observed closure

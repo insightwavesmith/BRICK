@@ -39,15 +39,24 @@ pure-dev는 ΦII 한 구간 — 단독 ACTIVE 골 아님.
 ```text
 ACTIVE = MASTER (Smith /goal pin — do NOT re-pin pure-dev-only)
 
-#1 DONE  n1-land-force-complete-write-0709 · main da14f95f8 · F✓W✓P✓
-#2 IN_FLIGHT or next  n2-hold-dispose-recover-0709
-#3 NEXT
+#1 DONE  n1-land-force-complete-write-0709 · main da14f95f8 · F✓W✓P✓ (이 세션 재검증 X)
+#2 NEXT — hold/dispose 보존 정합 · ★근본원인: 워크트리 유실 뿌리 (미착수)
+#3 NEXT — graph-decl 미완 WIP 앵커
 
 ΦII (parallel OK during ΦI):
-  D1 body-reland 0709c main 243da7ff0 (post-strip classifier body)
-  D3 NOT DONE — body-v1 still open (attack/QA path); false DONE stamp retracted
-     (e87fe03af is operator WIP harvest only — do NOT treat as D3 Exit)
+  D1 body-reland 0709c main 243da7ff0 (post-strip classifier body · probe 재검증 X)
+  D3 NOT DONE — ★3갈래 엉킴: body-v1(미완 NO_FRONTIER) / body-reland-0709c(complete+WIP 미수확)
+     / token-harden(link_paused). false DONE 철회됨. e87fe03af=operator harvest, D3 Exit 아님.
   D4 ship-copy body pending · D2 KEEP CANCELLED · D5 OOS
+```
+
+## 0710 COO 인계 실측 (상세 = master 큐 §9)
+```text
+★ 첫 발주 후보 = 기반 3종: #2 hold/dispose · #24 L3-3b raise 수리 · #1 land강제
+★ 판단(0710 정정): 축1(L3 게이트)만 참=정식진입은 게이트 통과. 축2(미완 시 WIP앵커
+   비대칭 소실)=미확정. → "정식 build 안전"은 소실 프로브로 축2 확증 후 확정. (§9.2)
+   방향: #2/#24는 정식 빌딩으로. 서브에이전트/워크플로 walker 직접호출 우회=비정식진입=금지.
+★ 순서: 소실 프로브 먼저 → 기반 3종. 지뢰: charter/queue UNTRACKED · 가짜EXIT f2fd50a35/8f7d03b16 잔존.
 ```
 
 ## HARD FAILS

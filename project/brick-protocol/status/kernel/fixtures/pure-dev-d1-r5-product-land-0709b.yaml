@@ -1,0 +1,44 @@
+# Pure-dev D1 product re-land (beyond-A min slice) — NOT stamp-only
+declared_by: coo
+task: >
+  Pure-dev D1 product land: shared classify_route_v2_concern_eligibility must be
+  the product classifier used by view path; land real code + checker, not stamp constants alone.
+building_id: pure-dev-d1-r5-product-land-0709b
+nodes:
+  - kind: design
+    work_statement: |
+      ## Deliverables
+      D1: Note beyond-A min slice = SHAPE B shared classifier helper in route_v2_views.py
+      ## Done Criteria
+      design note only
+  - kind: work
+    write: true
+    work_statement: |
+      ## Deliverables
+      D1: In brick_protocol/support/operator/route_v2_views.py ensure classify_route_v2_concern_eligibility
+          exists and returns product fields including:
+          classifier_ref, shape shape_b_shared_helper, concern_kind, non_reroute, reroute_eligible,
+          and pure_dev_d1_building_id = "pure-dev-d1-r5-product-land-0709b" inside the returned dict
+          (product observation surface, not a dead module constant alone).
+      D2: Ensure render_route_v2_view calls classify_route_v2_concern_eligibility and surfaces
+          the shared classification in the view payload (not dead code).
+      D3: Update brick_protocol/support/checkers/check_route_v2_views.py so it asserts
+          pure_dev_d1_building_id / shape_b_shared_helper on the real classifier path;
+          include one RED-style assertion that missing building_id fails.
+      D4: Run PYTHONPATH=. python3 brick_protocol/support/checkers/check_route_v2_views.py
+      ## Hard constraints
+      write only route_v2_views.py and check_route_v2_views.py
+      git commit 금지.
+      종료선: D1~D4 완료.
+  - kind: code-attack-qa
+    work_statement: |
+      ## Deliverables
+      D1: Attack stamp-only land — require classification dict carries pure_dev_d1_building_id
+      ## Done Criteria
+      observed QA
+  - kind: closure
+    work_statement: |
+      ## Deliverables
+      D1: Summarize product land; not_proven full Route V2 beyond-A program
+      ## Done Criteria
+      observed closure

@@ -1,0 +1,45 @@
+# ΦI #3: cli --graph-decl incomplete path must WIP-anchor like park/stop
+declared_by: coo
+task: >
+  Necessity #3: brick build --graph-decl proposal-approval incomplete path
+  must anchor WIP (parity with run_building_plan park/stop), no silent loss.
+building_id: n3-graph-decl-incomplete-wip-0709
+nodes:
+  - kind: design
+    work_statement: |
+      ## Deliverables
+      D1: Locate cli.py / onboard proposal-approval incomplete dispose path vs run.py _anchor_park_stop_wip.
+      D2: State asymmetry: park/stop anchors; graph-decl first-fire incomplete may dispose without WIP (skill 0708).
+      ## Done Criteria
+      design note only
+  - kind: work
+    write: true
+    work_statement: |
+      ## Deliverables
+      D1: On brick build --graph-decl / run_goal_approve_entry incomplete/non-complete close paths,
+          ensure WIP anchor is attempted before worktree dispose (same family as run.py park/stop).
+          Touch cli.py and/or onboard.py and/or driver integration — narrow to the incomplete close seam.
+      D2: Stamp NECESSITY_N3_BUILDING_ID = "n3-graph-decl-incomplete-wip-0709" at the seam.
+      D3: Probe/unit RED: incomplete close without WIP while dirty; GREEN after.
+      ## Hard constraints
+      write only:
+        brick_protocol/support/operator/cli.py
+        brick_protocol/support/operator/onboard.py
+        brick_protocol/support/operator/driver.py
+        brick_protocol/support/operator/run.py
+        brick_protocol/support/operator/worktree_sandbox.py
+        brick_protocol/support/checkers/** if needed
+      Prefer minimal files. git commit 금지.
+      종료선: D1~D3 완료.
+  - kind: code-attack-qa
+    work_statement: |
+      ## Deliverables
+      D1: Attack incomplete graph-decl close that drops dirty bytes with no WIP ref.
+      ## Done Criteria
+      observed QA
+  - kind: closure
+    work_statement: |
+      ## Deliverables
+      D1: Summarize; not_proven full proposal-approval rewrite.
+      ## Done Criteria
+      observed closure

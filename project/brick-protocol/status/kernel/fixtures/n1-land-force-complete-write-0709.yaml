@@ -1,0 +1,60 @@
+# ΦI #1 master-queue: complete+write+scoped-diff must produce building-output land
+# (not WIP-only while frontier=complete). Official: brick build --graph-decl
+declared_by: coo
+task: >
+  Necessity #1 land-force: when frontier is complete and the plan needed write
+  and the sandbox has in-scope diffs, engine must produce building-output
+  commit_sha (or hold loud). WIP-only complete is forbidden.
+building_id: n1-land-force-complete-write-0709
+nodes:
+  - kind: design
+    work_statement: |
+      ## Deliverables
+      D1: Read driver.py sandbox finally (commit_sandbox_output vs anchor_wip_snapshot)
+          and run.py _with_close_wip_anchor (source=run_building_plan_close).
+      D2: State the failure class: complete + write-needed + scoped dirty +
+          commit_sha empty + only WIP ref = land-force gap (#1).
+      D3: Propose minimal patch surface (prefer driver.py; worktree_sandbox only if needed).
+      ## Done Criteria
+      design note only; no Movement claims
+  - kind: work
+    write: true
+    work_statement: |
+      ## Deliverables
+      D1: In brick_protocol/support/operator/driver.py (and worktree_sandbox.py only if required):
+          When frontier_kind == complete AND write-needed plan has in-scope dirty
+          paths in the sandbox, require a successful commit_sandbox_output
+          building-output commit_sha before dispose.
+          If commit fails or returns empty while scoped dirty remains: do NOT leave
+          frontier as silent complete with WIP-only — reclassify to a hold/frontier
+          that makes land absence loud (reuse fake_landing family or a new
+          reason string like land_force_commit_absent; keep support-only, no success judgment).
+      D2: If complete path currently falls through to WIP-only while dirty+complete,
+          fix so WIP is recovery for non-complete only; complete+dirty must land or hold.
+      D3: Add or extend a focused unit/probe under brick_protocol/support/checkers or
+          existing driver/worktree tests that RED-fails the old WIP-only-complete class
+          and GREEN after the fix (no full --all required in work node).
+      D4: Stamp constants if useful:
+          NECESSITY_N1_BUILDING_ID = "n1-land-force-complete-write-0709"
+          near the land-force gate in driver.py
+      ## Hard constraints
+      write only:
+        brick_protocol/support/operator/driver.py
+        brick_protocol/support/operator/worktree_sandbox.py
+        brick_protocol/support/checkers/** (probe only if needed)
+      Do not change Movement authority, Link gates semantics, or resume dead_end kinds except land-absence loudness.
+      git commit 금지 (engine commit only).
+      종료선: D1~D4 완료.
+  - kind: code-attack-qa
+    work_statement: |
+      ## Deliverables
+      D1: Attack claimed land-force: complete+scoped dirty must not dispose as complete with empty commit_sha only WIP.
+      D2: Observe whether hold/loud path fires when commit cannot land.
+      ## Done Criteria
+      observed QA; no success/quality judgment
+  - kind: closure
+    work_statement: |
+      ## Deliverables
+      D1: Summarize land-force behavior; not_proven hold-dispose policy (#2) and graph-decl incomplete WIP (#3).
+      ## Done Criteria
+      observed closure

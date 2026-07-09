@@ -1,0 +1,43 @@
+# Pure-dev D1: Route V2 beyond SHAPE A min slice — SHAPE B shared classifier land stamp.
+# Product core already in main; this Building lands the pure-dev building_id stamp
+# on the product surface and re-runs focused check_route_v2_views.
+declared_by: coo
+task: >
+  Pure-dev D1 implementation Building: ensure SHAPE B shared classifier is
+  present and land PURE_DEV_D1 building stamp on route_v2_views.py product
+  surface. Run check_route_v2_views.py green. write=True required.
+building_id: pure-dev-d1-r5-shape-b-0709
+nodes:
+  - kind: design
+    work_statement: |
+      ## Deliverables
+      D1: confirm classify_route_v2_concern_eligibility and shape_b_shared_helper are the D1 slice
+      ## Done Criteria
+      design note only
+  - kind: work
+    write: true
+    work_statement: |
+      ## Objective
+      Land pure-dev D1 product stamp proving Building ownership of SHAPE B slice.
+      ## Deliverables
+      D1: In brick_protocol/support/operator/route_v2_views.py near ROUTE_V2_SHARED_CLASSIFIER_REF, add:
+          PURE_DEV_D1_BUILDING_ID = "pure-dev-d1-r5-shape-b-0709"
+          PURE_DEV_D1_SLICE = "shape_b_shared_classifier"
+          if missing. Do not remove existing classifier.
+      D2: Run PYTHONPATH=. python3 brick_protocol/support/checkers/check_route_v2_views.py and record pass line
+      ## Hard constraints
+      write only brick_protocol/support/operator/route_v2_views.py and if needed check_route_v2_views.py
+      git commit 금지.
+      종료선: D1~D2 완료.
+  - kind: code-attack-qa
+    work_statement: |
+      ## Deliverables
+      D1: confirm PURE_DEV_D1_BUILDING_ID present and classifier still shared; re-run check_route_v2_views if needed
+      ## Done Criteria
+      observed QA without unrelated mutation
+  - kind: closure
+    work_statement: |
+      ## Deliverables
+      D1: fan-in land evidence; not_proven full Route V2 beyond-A roadmap
+      ## Done Criteria
+      observed closure only

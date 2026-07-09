@@ -1,0 +1,10 @@
+{
+  "building_ref": "/Users/smith/.brick/project/brick-protocol/buildings/pure-dev-d3-r7-token-harden-0709",
+  "author_ref": "coo:pure-dev-0709",
+  "chain": "until-terminal",
+  "adapter_timeout_seconds": 7200,
+  "dispositions": [
+    {"on": "fake_landing_write_scope_diff_absent", "action": "forward"},
+    {"on": "declared Link transition_lifecycle.state is paused", "action": "forward"}
+  ]
+}

@@ -1,0 +1,45 @@
+# D4: full ship-copy hold-disposition content (must re-carve after strip)
+declared_by: coo
+task: >
+  Pure-dev D4 body re-land: ship-copy building-coordination hold-disposition section
+  as real skill content from agent skill; not land-line only.
+building_id: pure-dev-d4-r4-body-reland-0709c
+nodes:
+  - kind: design
+    work_statement: |
+      ## Deliverables
+      D1: G2-c ship-copy must match agent hold-disposition vocabulary content
+      ## Done Criteria
+      design note only
+  - kind: work
+    write: true
+    work_statement: |
+      ## Deliverables
+      D1: Read brick_protocol/agent/skills/building-coordination/SKILL.md hold-disposition
+          / vocabulary sections. Write the corresponding product content into
+          brick_protocol/brick/templates/skills/building-coordination/SKILL.md
+          (full section body, not a one-line stamp).
+      D2: Include markdown land attribution line:
+          pure-dev-d4-r4-body-reland-0709c ship-copy land
+          inside a real ## section.
+      D3: Ensure hold-disposition-vocabulary-0704.md is referenced in ship-copy.
+      D4: Prove both agent and ship-copy contain the vocabulary pointer.
+      Reference git show 56bfc4e74 -- SKILL.md ship-copy for content target if needed.
+      ## Hard constraints
+      write only:
+        brick_protocol/brick/templates/skills/building-coordination/SKILL.md
+        brick_protocol/agent/skills/building-coordination/SKILL.md
+      git commit 금지.
+      종료선: D1~D4 완료. ship-copy must gain multi-line product section in Building diff.
+  - kind: code-attack-qa
+    work_statement: |
+      ## Deliverables
+      D1: Attack stamp/HTML-only land
+      ## Done Criteria
+      observed QA
+  - kind: closure
+    work_statement: |
+      ## Deliverables
+      D1: Summarize; not_proven full order-chain rewrite
+      ## Done Criteria
+      observed closure

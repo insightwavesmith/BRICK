@@ -1,0 +1,16 @@
+{
+  "building_ref": "/Users/smith/projects/BRICK/project/brick-protocol/buildings/building-call-authoring-0708e",
+  "author_ref": "coo:goal-0708-building-call-authoring-forward",
+  "chain": "until-terminal",
+  "adapter_timeout_seconds": 7200,
+  "dispositions": [
+    {
+      "on": "gate_sequence_missing_required_facts:link-gate:coo",
+      "action": "forward"
+    },
+    {
+      "on": "declared Link transition_lifecycle.state is paused",
+      "action": "forward"
+    }
+  ]
+}

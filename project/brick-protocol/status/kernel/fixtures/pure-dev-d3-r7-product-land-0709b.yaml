@@ -1,0 +1,45 @@
+# Pure-dev D3 product re-land — typed proof harden + real forge probe
+declared_by: coo
+task: >
+  Pure-dev D3 product land: OfficialLaunchProof mint allowlist + enforce forge-refuse
+  on real APIs; not stamp constants alone.
+building_id: pure-dev-d3-r7-product-land-0709b
+nodes:
+  - kind: design
+    work_statement: |
+      ## Deliverables
+      D1: Note harden surface mint_official_launch_token + enforce_official_launch_token + OfficialLaunchProof
+      ## Done Criteria
+      design note only
+  - kind: work
+    write: true
+    work_statement: |
+      ## Deliverables
+      D1: In brick_protocol/support/operator/import_identity.py ensure:
+          - OfficialLaunchProof dataclass exists
+          - mint_official_launch_token allowlists modules and stores OfficialLaunchProof
+          - official_launch_token_observation reports token_present only for OfficialLaunchProof
+          - enforce_official_launch_token refuses non-proof values with forgery message
+          - observation/enforce path includes pure_dev_d3_building_id =
+            "pure-dev-d3-r7-product-land-0709b" in observation dict (product surface)
+      D2: Update check_import_identity_modes.py forge/mint probes if needed for green on real path
+      D3: Run PYTHONPATH=. python3 brick_protocol/support/checkers/check_profile.py --profile import_identity_modes
+      D4: Run an inline forge RED then mint GREEN using real APIs:
+          official_launch_token_observation + enforce_official_launch_token
+          (NOT a missing observe_official_launch_token name)
+      ## Hard constraints
+      write only import_identity.py and check_import_identity_modes.py
+      git commit 금지.
+      종료선: D1~D4 완료.
+  - kind: code-attack-qa
+    work_statement: |
+      ## Deliverables
+      D1: Attack bare object forge must refuse; allowlisted mint still works
+      ## Done Criteria
+      observed QA
+  - kind: closure
+    work_statement: |
+      ## Deliverables
+      D1: Summarize; not_proven managed-settings org lock; process-attested crypto
+      ## Done Criteria
+      observed closure
