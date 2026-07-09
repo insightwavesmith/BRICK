@@ -28,8 +28,8 @@ ROUTE_V2_VIEW_SCHEMA = "route-v2-read-only-view/v1"
 # the read-only view path and the walker observation path (SHAPE B helper).
 # Still not Movement authority — classification evidence only.
 ROUTE_V2_SHARED_CLASSIFIER_REF = "route_v2_shared_eligibility_v1"
-PURE_DEV_D1_BUILDING_ID = "pure-dev-d1-r5-shape-b-0709"
-PURE_DEV_D1_SLICE = "shape_b_shared_classifier"
+PURE_DEV_D1_BUILDING_ID = "pure-dev-d1-r5-product-land-0709b"
+PURE_DEV_D1_SLICE = "shape_b_shared_helper"
 GATE_LIFECYCLE_STATES: tuple[str, ...] = ("hold", "paused", "held_for_coo_review")
 NON_REROUTE_ROUTE_V2_CONCERN_KINDS: tuple[str, ...] = tuple(
     sorted(kind for kind in TRANSITION_CONCERN_KINDS if is_non_reroute_transition_concern_kind(kind))
@@ -97,6 +97,7 @@ def classify_route_v2_concern_eligibility(concern_kind: str) -> dict[str, Any]:
         "kind": "route_v2_shared_eligibility_classification",
         "classifier_ref": ROUTE_V2_SHARED_CLASSIFIER_REF,
         "shape": "shape_b_shared_helper",
+        "pure_dev_d1_building_id": PURE_DEV_D1_BUILDING_ID,
         "concern_kind": kind,
         "non_reroute": non_reroute,
         "reroute_eligible": not non_reroute,
@@ -213,11 +214,12 @@ def _route_policy_eligibility(
     concern_kind: str,
     route_policy: Mapping[str, Any] | None,
 ) -> Mapping[str, Any]:
+    shared = classify_route_v2_concern_eligibility(concern_kind)
     if route_policy is None:
         return {
             "concern_kind": concern_kind,
             "route_policy_supplied": False,
-            "eligible": not is_non_reroute_transition_concern_kind(concern_kind),
+            "eligible": shared["reroute_eligible"],
             "match_state": "not_evaluated",
             "reason": "route_policy not supplied",
         }
@@ -226,7 +228,7 @@ def _route_policy_eligibility(
     if not isinstance(entries, Sequence) or isinstance(entries, (str, bytes)):
         raise ValueError("route_policy.allowed_transition_concerns must be a sequence")
     matching = [entry for entry in entries if isinstance(entry, Mapping) and entry.get("concern_kind") == concern_kind]
-    if is_non_reroute_transition_concern_kind(concern_kind):
+    if shared["non_reroute"]:
         return {
             "concern_kind": concern_kind,
             "route_policy_supplied": True,
@@ -304,10 +306,14 @@ def _reject_forbidden_keys(value: Mapping[str, Any], label: str) -> None:
 
 __all__ = [
     "ROUTE_V2_VIEW_SCHEMA",
-        "GATE_LIFECYCLE_STATES",
+    "ROUTE_V2_SHARED_CLASSIFIER_REF",
+    "PURE_DEV_D1_BUILDING_ID",
+    "PURE_DEV_D1_SLICE",
+    "GATE_LIFECYCLE_STATES",
     "DELTA_QA_FACT_FIELDS",
     "PROOF_LIMITS",
     "NOT_PROVEN",
+    "classify_route_v2_concern_eligibility",
     "render_route_v2_view",
     "render_route_v2_view_json",
     "route_v2_policy_packet",

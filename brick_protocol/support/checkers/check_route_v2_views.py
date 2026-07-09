@@ -15,12 +15,23 @@ if str(_REPO_ROOT) not in sys.path:
 
 from brick_protocol.support.operator.route_v2_views import (  # noqa: E402
     PURE_DEV_D1_BUILDING_ID,
-    PURE_DEV_D1_SLICE,
     ROUTE_V2_SHARED_CLASSIFIER_REF,
     classify_route_v2_concern_eligibility,
     route_v2_policy_packet,
     render_route_v2_view,
 )
+
+_EXPECTED_PRODUCT_BUILDING_ID = "pure-dev-d1-r5-product-land-0709b"
+_EXPECTED_SHARED_HELPER_SHAPE = "shape_b_shared_helper"
+
+
+def _assert_product_classifier_shape(packet: dict[str, Any]) -> None:
+    if packet.get("classifier_ref") != ROUTE_V2_SHARED_CLASSIFIER_REF:
+        raise AssertionError("shared classifier_ref missing or drifted")
+    if packet.get("shape") != _EXPECTED_SHARED_HELPER_SHAPE:
+        raise AssertionError("shared classifier shape missing or drifted")
+    if packet.get("pure_dev_d1_building_id") != _EXPECTED_PRODUCT_BUILDING_ID:
+        raise AssertionError("shared classifier product building id missing or drifted")
 
 
 def _load_yaml_minimal(path: Path) -> dict[str, Any]:
@@ -40,10 +51,8 @@ def run(repo: Path) -> str:
     from brick_protocol.support.operator import walker_kernel
 
     policy = _load_yaml_minimal(repo / "brick_protocol/link/route_policies/basic_qa_repair.yaml")
-    if PURE_DEV_D1_BUILDING_ID != "pure-dev-d1-r5-shape-b-0709":
+    if PURE_DEV_D1_BUILDING_ID != _EXPECTED_PRODUCT_BUILDING_ID:
         raise AssertionError("Pure-dev D1 building stamp drifted")
-    if PURE_DEV_D1_SLICE != "shape_b_shared_classifier":
-        raise AssertionError("Pure-dev D1 slice stamp drifted")
 
     impl_view = render_route_v2_view(
         transition_concern_evidence={
@@ -80,7 +89,17 @@ def run(repo: Path) -> str:
     shared = impl_view.get("shared_eligibility_classification")
     if not isinstance(shared, dict) or shared.get("classifier_ref") != ROUTE_V2_SHARED_CLASSIFIER_REF:
         raise AssertionError("Route V2 view missing shared eligibility classification")
+    _assert_product_classifier_shape(shared)
     direct = classify_route_v2_concern_eligibility("implementation_gap")
+    _assert_product_classifier_shape(direct)
+    missing_building_id = dict(direct)
+    missing_building_id.pop("pure_dev_d1_building_id")
+    try:
+        _assert_product_classifier_shape(missing_building_id)
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("shared classifier product building id RED probe did not fail")
     if direct.get("reroute_eligible") is not True or direct.get("non_reroute") is not False:
         raise AssertionError("shared classifier implementation_gap eligibility wrong")
     if impl_view["sealed_concern_kind_observation"].get("reroute_eligible") != direct.get(
