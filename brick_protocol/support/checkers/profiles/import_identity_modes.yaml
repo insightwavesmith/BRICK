@@ -7,6 +7,8 @@ kernel_checks:
 path_exists:
   - brick_protocol/support/operator/import_identity.py
   - brick_protocol/support/operator/cli.py
+  - brick_protocol/support/operator/walker_kernel.py
+  - brick_protocol/support/operator/walker_frontier.py
   - brick_protocol/support/operator/onboard.py
   - brick_protocol/support/checkers/check_import_identity_modes.py
   - brick_protocol/support/checkers/profiles/import_identity_modes.yaml
@@ -14,6 +16,11 @@ text_contains:
   - path: brick_protocol/support/operator/import_identity.py
     texts:
       - 'def resolve_operator_identity'
+      - 'ContextVar'
+      - 'def mint_official_launch_token'
+      - 'def official_launch_token_observation'
+      - 'def suppress_official_launch_token_for_probe'
+      - 'record_only_no_raise'
       - 'project.name = "brick-protocol"'
       - 'metadata.version(PROJECT_DISTRIBUTION_NAME)'
       - 'installed mode deliberately does not require a repo-root marker'
@@ -21,6 +28,8 @@ text_contains:
     texts:
       - 'resolve_operator_identity(__file__)'
       - 'install_source_import_paths(_OPERATOR_IMPORT_IDENTITY)'
+      - 'mint_official_launch_token'
+      - 'reset_official_launch_token'
       - 'from brick_protocol.support.checkers import check_profile'
   - path: brick_protocol/support/operator/onboard.py
     texts:
@@ -30,12 +39,26 @@ text_contains:
     texts:
       - 'resolve_operator_identity(__file__)'
       - 'install_source_import_paths(_OPERATOR_IMPORT_IDENTITY)'
+  - path: brick_protocol/support/operator/walker_kernel.py
+    texts:
+      - 'official_launch_observation = official_launch_token_observation()'
+      - 'official_launch_observation=official_launch_observation'
+      - '"official_launch_token_observation": dict(official_launch_observation)'
+  - path: brick_protocol/support/operator/walker_frontier.py
+    texts:
+      - 'official_launch_observation: Mapping[str, Any]'
+      - 'official_launch_observation=official_launch_observation'
+      - '"official_launch_token_observation": dict(official_launch_observation)'
   - path: brick_protocol/support/checkers/check_import_identity_modes.py
     texts:
       - 'PARENTS_BINDING_REGISTRY'
       - 'PARENTS_BINDING_SCAN_ROOTS'
       - 'IDENTITY_HELPER_CONSUMERS'
       - 'importlib.metadata'
+      - 'suppress_official_launch_token_for_probe'
+      - '_assert_official_launch_token_fixture'
+      - '_assert_official_launch_walker_wiring'
+      - '_dynamic_frontier_write_plan'
       - 'repo identity marker mismatch'
       - 'guard-removal probe'
 proof_limits:

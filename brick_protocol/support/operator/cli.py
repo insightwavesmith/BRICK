@@ -18,12 +18,16 @@ if (_SOURCE_CANDIDATE_REPO_ROOT / "brick_protocol/support/operator/import_identi
 try:
     from brick_protocol.support.operator.import_identity import (
         install_source_import_paths,
+        mint_official_launch_token,
         resolve_operator_identity,
+        reset_official_launch_token,
     )
 except ModuleNotFoundError:
     from brick_protocol.support.operator.import_identity import (
         install_source_import_paths,
+        mint_official_launch_token,
         resolve_operator_identity,
+        reset_official_launch_token,
     )
 
 _OPERATOR_IMPORT_IDENTITY = resolve_operator_identity(__file__)
@@ -2140,7 +2144,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         parser.print_help()
         return 2
     try:
-        return int(args.func(args))
+        official_launch_token = mint_official_launch_token()
+        try:
+            return int(args.func(args))
+        finally:
+            reset_official_launch_token(official_launch_token)
     except Exception as exc:  # noqa: BLE001 -- CLI should report, not traceback
         packet = _public_error_packet(args, exc)
         if getattr(args, "json", False):
