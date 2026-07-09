@@ -45,16 +45,17 @@ def _server_script(repo_root: Path) -> Path:
 def render_codex_mcp_config(repo_root: Path) -> str:
     """Render the Codex ``~/.codex/config.toml`` MCP server block for repo_root.
 
-    The block names the python3 command and passes the server script plus
-    ``--repo <repo_root>``. NO env PYTHONPATH: the server bootstrap self-fixes
-    sys.path on a bare launch. repo_root is used verbatim (never a hardcoded
-    absolute user path).
+    The block names the current Python executable and passes the server script
+    plus ``--repo <repo_root>``. NO env PYTHONPATH: the server bootstrap
+    self-fixes sys.path on a bare launch. The executable is resolved here so a
+    clean MCP host does not accidentally fall back to an older system Python
+    missing runtime modules required by this checkout.
     """
 
     script = _server_script(repo_root)
     return (
         f"[mcp_servers.{_SERVER_NAME}]\n"
-        'command = "python3"\n'
+        f'command = "{sys.executable}"\n'
         f'args = ["{script}", "--repo", "{repo_root}"]\n'
     )
 
@@ -66,8 +67,8 @@ def render_claude_mcp_command_argv(repo_root: Path) -> list[str]:
     registration (subprocess) passes this list VERBATIM -- never re-derives it by
     ``.split()``-ing the one-liner, which would shred a repo path containing spaces.
     ``render_claude_mcp_command`` builds the human one-liner from this same list, so
-    the displayed command and the executed argv never diverge. No PYTHONPATH; the
-    server bootstrap self-fixes sys.path on a bare launch.
+    the displayed command and the executed argv never diverge. The Python executable
+    is resolved from the current interpreter; no PYTHONPATH is emitted.
     """
 
     script = _server_script(repo_root)
@@ -77,7 +78,7 @@ def render_claude_mcp_command_argv(repo_root: Path) -> list[str]:
         "add",
         _SERVER_NAME,
         "--",
-        "python3",
+        sys.executable,
         str(script),
         "--repo",
         str(repo_root),

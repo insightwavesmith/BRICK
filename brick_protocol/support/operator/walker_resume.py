@@ -314,6 +314,13 @@ def _resume_dynamic_graph_walker(
     # assigned_budget). raise's budget_delta is applied separately in the kernel.
     declared_plan = dict(declared_plan)
     bridged_evidence: Mapping[str, Any] = evidence
+    route_v2_view_observations = [
+        dict(item)
+        for item in evidence.get("route_v2_view_observations", ())
+        if isinstance(item, Mapping)
+    ]
+    if route_v2_view_observations:
+        declared_plan["route_v2_view_observations"] = route_v2_view_observations
     if budget_recovery.node_reroute_budgets is not None:
         recovered_budgets = dict(budget_recovery.node_reroute_budgets)
         expansion_budgets = _expansion_node_budgets_from_revision_chain(

@@ -79,6 +79,7 @@ from brick_protocol.support.operator.reporter import (
     emit_building_event_for_policy,
     report_event_policy_from_plan,
 )
+from brick_protocol.support.operator.route_v2_views import render_route_v2_view
 from brick_protocol.support.recording.declaration_packets import (
     _write_declaration_work_evidence,
 )
@@ -240,6 +241,83 @@ _ADAPTER_USAGE_RAW_STREAM = "raw/adapter-usage.jsonl"
 _DISPATCH_CHILD_TIMEOUT_RAW_STREAM = "raw/dispatch-child-timeout.jsonl"
 _ADAPTER_TIMEOUT_JOIN_MARGIN_FLOOR_SECONDS = 30.0
 _ADAPTER_TIMEOUT_JOIN_MARGIN_RATIO = 0.10
+
+
+def _route_v2_policy_input_from_plan(plan: Mapping[str, Any]) -> tuple[str, Mapping[str, Any] | None]:
+    """Return caller-declared Route V2 policy input without default loading."""
+
+    for key in ("route_v2_policy", "route_policy"):
+        if key not in plan:
+            continue
+        value = plan.get(key)
+        if isinstance(value, Mapping):
+            return "declared", value
+        return "blocked", None
+    return "absent", None
+
+
+def _route_v2_view_observation(
+    *,
+    plan: Mapping[str, Any],
+    source_step_ref: str,
+    concern: Mapping[str, Any],
+    reroute_ref: str = "",
+    gate_state: str = "",
+    movement_candidate: str = "",
+) -> Mapping[str, Any]:
+    """Build an advisory Route V2 walker observation from already-read facts."""
+
+    route_policy_input_state, route_policy = _route_v2_policy_input_from_plan(plan)
+    if route_policy_input_state == "blocked":
+        route_policy = None
+    return {
+        "kind": "route_v2_view_observation",
+        "binding": "advisory",
+        "adopted_as_movement": False,
+        "reroute_ref": reroute_ref,
+        "source_step_ref": source_step_ref,
+        "source_transition_concern_ref": _optional_text_value(
+            concern.get("concern_ref")
+        )
+        or "",
+        "route_policy_input_state": route_policy_input_state,
+        "route_v2_view": render_route_v2_view(
+            transition_concern_evidence=concern,
+            route_policy=route_policy,
+            gate_state=gate_state,
+            movement_candidate=movement_candidate,
+        ),
+        "proof_limits": [
+            "support read-only projection evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+        ],
+        "not_proven": [
+            "semantic correctness of Agent transition_concern_evidence",
+            "caller/COO disposition after this observation",
+        ],
+    }
+
+
+def _append_route_v2_view_observation(
+    observations: list[Mapping[str, Any]],
+    observation: Mapping[str, Any],
+) -> None:
+    identity = (
+        observation.get("source_step_ref"),
+        observation.get("source_transition_concern_ref"),
+        observation.get("reroute_ref"),
+    )
+    for existing in observations:
+        if (
+            existing.get("source_step_ref"),
+            existing.get("source_transition_concern_ref"),
+            existing.get("reroute_ref"),
+        ) == identity:
+            return
+    observations.append(observation)
 
 
 def _adapter_timeout_join_seconds(adapter_timeout_seconds: int) -> float:
@@ -1408,6 +1486,11 @@ def _run_dynamic_graph_walker(
     fan_in_cohort_records: list[Mapping[str, Any]] = []
     source_lane_transition_concern_observations: list[Mapping[str, Any]] = []
     source_fact_body_carry_observations: list[Mapping[str, Any]] = []
+    route_v2_view_observations: list[Mapping[str, Any]] = [
+        dict(item)
+        for item in plan.get("route_v2_view_observations", ())
+        if isinstance(item, Mapping)
+    ]
     adoption_sequence_number = 0
     hold_record: Mapping[str, Any] | None = None
     fan_in_hold_record: Mapping[str, Any] | None = None
@@ -2301,6 +2384,15 @@ def _run_dynamic_graph_walker(
                     concern_observation=concern_observation,
                 )
             )
+            if concern_observation.concern is not None:
+                _append_route_v2_view_observation(
+                    route_v2_view_observations,
+                    _route_v2_view_observation(
+                        plan=plan,
+                        source_step_ref=step_ref,
+                        concern=concern_observation.concern,
+                    )
+                )
             concern = None
             adopted_reroute = False
             target_classification = None
@@ -2454,6 +2546,15 @@ def _run_dynamic_graph_walker(
             and target_classification.kind == "non_reroute"
             and not human_disposition_reroute_target
         ):
+            if concern is not None:
+                _append_route_v2_view_observation(
+                    route_v2_view_observations,
+                    _route_v2_view_observation(
+                        plan=plan,
+                        source_step_ref=step_ref,
+                        concern=concern,
+                    ),
+                )
             if not has_fan_groups:
                 continue
             reroute_insert_width = 0
@@ -2507,6 +2608,21 @@ def _run_dynamic_graph_walker(
                     else:
                         hold_record = prospective_hold
                         reroute_records.append(hold_record)
+                        if concern is not None:
+                            _append_route_v2_view_observation(
+                                route_v2_view_observations,
+                                _route_v2_view_observation(
+                                    plan=plan,
+                                    source_step_ref=step_ref,
+                                    concern=concern,
+                                    reroute_ref=_optional_text_value(
+                                        hold_record.get("reroute_ref")
+                                    )
+                                    or "",
+                                    gate_state="paused",
+                                    movement_candidate="reroute",
+                                ),
+                            )
                         _drain_pending_outcomes_before_terminal()
                         if has_fan_groups:
                             held_fan_steps.add((step_ref, cascade_depth))
@@ -2568,6 +2684,21 @@ def _run_dynamic_graph_walker(
                     if budget is None:
                         hold_record = prospective_hold
                         reroute_records.append(hold_record)
+                        if concern is not None:
+                            _append_route_v2_view_observation(
+                                route_v2_view_observations,
+                                _route_v2_view_observation(
+                                    plan=plan,
+                                    source_step_ref=step_ref,
+                                    concern=concern,
+                                    reroute_ref=_optional_text_value(
+                                        hold_record.get("reroute_ref")
+                                    )
+                                    or "",
+                                    gate_state="paused",
+                                    movement_candidate="reroute",
+                                ),
+                            )
                         _drain_pending_outcomes_before_terminal()
                         if has_fan_groups:
                             held_fan_steps.add((step_ref, cascade_depth))
@@ -2626,6 +2757,21 @@ def _run_dynamic_graph_walker(
                     if budget is None or node_landings[target_brick] >= budget:
                         hold_record = prospective_hold
                         reroute_records.append(hold_record)
+                        if concern is not None:
+                            _append_route_v2_view_observation(
+                                route_v2_view_observations,
+                                _route_v2_view_observation(
+                                    plan=plan,
+                                    source_step_ref=step_ref,
+                                    concern=concern,
+                                    reroute_ref=_optional_text_value(
+                                        hold_record.get("reroute_ref")
+                                    )
+                                    or "",
+                                    gate_state="paused",
+                                    movement_candidate="reroute",
+                                ),
+                            )
                         _drain_pending_outcomes_before_terminal()
                         if has_fan_groups:
                             held_fan_steps.add((step_ref, cascade_depth))
@@ -2697,6 +2843,21 @@ def _run_dynamic_graph_walker(
                             )
                         continue
                     reroute_records.append(hold_record)
+                    if concern is not None:
+                        _append_route_v2_view_observation(
+                            route_v2_view_observations,
+                            _route_v2_view_observation(
+                                plan=plan,
+                                source_step_ref=step_ref,
+                                concern=concern,
+                                reroute_ref=_optional_text_value(
+                                    hold_record.get("reroute_ref")
+                                )
+                                or "",
+                                gate_state="paused",
+                                movement_candidate="reroute",
+                            ),
+                        )
                     _drain_pending_outcomes_before_terminal()
                     if has_fan_groups:
                         held_fan_steps.add((step_ref, cascade_depth))
@@ -2861,6 +3022,20 @@ def _run_dynamic_graph_walker(
                     cohort_skipped_segment_refs=list(cohort_skipped_refs),
                 )
                 reroute_records.append(adoption_record)
+                if concern is not None:
+                    _append_route_v2_view_observation(
+                        route_v2_view_observations,
+                        _route_v2_view_observation(
+                            plan=plan,
+                            source_step_ref=step_ref,
+                            concern=concern,
+                            reroute_ref=_optional_text_value(
+                                adoption_record.get("reroute_ref")
+                            )
+                            or "",
+                            movement_candidate="reroute",
+                        ),
+                    )
                 adopted_reroute = True
         if has_fan_groups and not adopted_reroute:
             frontier_driver.splice_declared_successors_after_current(
@@ -2944,6 +3119,10 @@ def _run_dynamic_graph_walker(
         write_plan["dynamic_walker_evidence"][
             "source_lane_transition_concern_observations"
         ] = list(source_lane_transition_concern_observations)
+    if route_v2_view_observations:
+        write_plan["dynamic_walker_evidence"]["route_v2_view_observations"] = list(
+            route_v2_view_observations
+        )
     if resume_seed is not None:
         # RESUME evidence: carry the resume_observations so the rewritten
         # dynamic_walker_evidence matches the prior resume verb's shape. The

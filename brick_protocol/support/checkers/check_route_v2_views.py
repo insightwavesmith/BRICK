@@ -32,6 +32,8 @@ def _load_yaml_minimal(path: Path) -> dict[str, Any]:
 
 def run(repo: Path) -> str:
     from brick_protocol.agent.return_fact import TRANSITION_CONCERN_KINDS
+    from brick_protocol.support.checkers import check_bounded_agent_proposed_routing_loop0 as walker_chk
+    from brick_protocol.support.operator import walker_kernel
 
     policy = _load_yaml_minimal(repo / "brick_protocol/link/route_policies/basic_qa_repair.yaml")
     impl_view = render_route_v2_view(
@@ -120,7 +122,111 @@ def run(repo: Path) -> str:
         else:
             raise AssertionError(f"forbidden payload key accepted: {bad}")
 
-    return "route_v2_views passed: implementation_gap materialization view, verification_gap non-reroute view, gate/movement separation, delta-QA preservation, and forbidden key probes inspected for success/quality/Movement/route_target"
+    for bad_gate, bad_movement in (("reroute", ""), ("paused", "paused"), ("forward", "")):
+        try:
+            render_route_v2_view(
+                transition_concern_evidence={
+                    "concern_ref": "transition-concern:route-v2-view-gate-movement-bad",
+                    "concern_kind": "implementation_gap",
+                    "binding": False,
+                    "reason_refs": ["observation:bad-gate-movement"],
+                    "related_boundary_refs": ["brick-work"],
+                },
+                gate_state=bad_gate,
+                movement_candidate=bad_movement,
+            )
+        except ValueError:
+            pass
+        else:
+            raise AssertionError(
+                "Route V2 view accepted gate/Movement cross-over "
+                f"gate_state={bad_gate!r} movement_candidate={bad_movement!r}"
+            )
+
+    plan_adopt, target_adopt = walker_chk._checker_plan(
+        "route-v2-walker-advisory-adopt",
+        budget=2,
+    )
+    source_adopt = "brick-route-v2-walker-advisory-adopt-review"
+    callable_adopt = walker_chk._multi_ref_concern_callable(
+        source_adopt,
+        [target_adopt],
+        concern_kind="implementation_gap",
+    )
+    original_append = walker_kernel._append_route_v2_view_observation
+    try:
+        walker_kernel._append_route_v2_view_observation = lambda observations, observation: None
+        without_obs, without_frontier, without_records = walker_chk._run(
+            plan_adopt,
+            callable_adopt,
+            repo,
+        )
+    finally:
+        walker_kernel._append_route_v2_view_observation = original_append
+    with_obs, with_frontier, with_records = walker_chk._run(
+        plan_adopt,
+        callable_adopt,
+        repo,
+    )
+    if without_records != with_records:
+        raise AssertionError("Route V2 advisory observation changed reroute/HOLD records")
+    if without_frontier.get("frontier_kind") != with_frontier.get("frontier_kind"):
+        raise AssertionError("Route V2 advisory observation changed frontier kind")
+    without_steps = [item.preparation.step_rows.step_ref for item in without_obs.step_results]
+    with_steps = [item.preparation.step_rows.step_ref for item in with_obs.step_results]
+    if without_steps != with_steps:
+        raise AssertionError("Route V2 advisory observation changed walker step order")
+    with_evidence = getattr(with_obs, "_dynamic_walker_evidence", {})
+    observations = with_evidence.get("route_v2_view_observations")
+    if not isinstance(observations, list) or len(observations) != 1:
+        raise AssertionError(
+            "dynamic_walker_evidence.route_v2_view_observations missing or duplicated"
+        )
+    observation = observations[0]
+    if observation.get("kind") != "route_v2_view_observation":
+        raise AssertionError("Route V2 walker observation has wrong kind")
+    if observation.get("binding") != "advisory":
+        raise AssertionError("Route V2 walker observation must be advisory")
+    if observation.get("adopted_as_movement") is not False:
+        raise AssertionError("Route V2 walker observation must not be adopted as Movement")
+    if observation.get("route_policy_input_state") != "absent":
+        raise AssertionError("walker silently supplied a Route V2 route policy")
+    if not str(observation.get("reroute_ref", "")).startswith("reroute-adoption:"):
+        raise AssertionError("adopted Route V2 observation did not carry existing reroute_ref")
+
+    plan_vg, _target_vg = walker_chk._checker_plan(
+        "route-v2-walker-advisory-vg",
+        budget=1,
+    )
+    source_vg = "brick-route-v2-walker-advisory-vg-review"
+    vg_result, vg_frontier, vg_records = walker_chk._run(
+        plan_vg,
+        walker_chk._multi_ref_concern_callable(
+            source_vg,
+            ["building-boundary:route-v2-walker-advisory-vg"],
+            concern_kind="verification_gap",
+        ),
+        repo,
+    )
+    if vg_records:
+        raise AssertionError("verification_gap Route V2 observation produced reroute/HOLD records")
+    if vg_frontier.get("frontier_kind") not in {"complete", "closure_pending"}:
+        raise AssertionError("verification_gap Route V2 observation did not walk on")
+    vg_observations = getattr(vg_result, "_dynamic_walker_evidence", {}).get(
+        "route_v2_view_observations"
+    )
+    if not isinstance(vg_observations, list) or len(vg_observations) != 1:
+        raise AssertionError("verification_gap Route V2 walker observation missing")
+    vg_view = vg_observations[0].get("route_v2_view", {})
+    if vg_view.get("sealed_concern_kind_observation", {}).get("non_reroute") is not True:
+        raise AssertionError("verification_gap Route V2 walker view lost non_reroute")
+
+    if "route_v2_view_observations" not in (
+        repo / "brick_protocol/support/operator/walker_resume.py"
+    ).read_text(encoding="utf-8"):
+        raise AssertionError("walker_resume.py does not preserve route_v2_view_observations")
+
+    return "route_v2_views passed: implementation_gap materialization view, verification_gap non-reroute view, gate/movement separation, delta-QA preservation, forbidden key probes, advisory walker evidence, and byte-identical control-flow comparison"
 
 
 def main(argv: list[str] | None = None) -> int:

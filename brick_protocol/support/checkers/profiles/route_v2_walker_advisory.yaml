@@ -1,0 +1,63 @@
+schema: checker-profile/v1
+profile_id: route-v2-walker-advisory
+description: Route V2 6e/7 walker advisory observation profile; records read-only Route V2 view evidence beside dynamic_walker_evidence without changing walker control flow, Movement, target selection, reroute/hold record contracts, AgentFact shape, Link resources, or concern_kind vocabulary.
+kernel_checks:
+  - route_v2_views
+path_exists:
+  - brick_protocol/support/operator/walker_kernel.py
+  - brick_protocol/support/operator/walker_resume.py
+  - brick_protocol/support/operator/route_v2_views.py
+  - brick_protocol/support/checkers/check_route_v2_views.py
+  - project/brick-protocol/status/kernel/route-walker-6e-7-implementation-report-0709.md
+  - project/brick-protocol/status/kernel/GOAL/02-unified-continuous-build-goal-0708.md
+path_absent:
+  - brick_protocol/support/operator/route_scope.py
+  - brick_protocol/support/operator/route_v2_engine.py
+  - brick_protocol/link/route_scope.py
+  - brick_protocol/link/route_v2_engine.py
+text_contains:
+  - path: brick_protocol/support/operator/walker_kernel.py
+    texts:
+      - route_v2_view_observations
+      - route_policy_input_state
+      - adopted_as_movement
+      - render_route_v2_view
+      - support read-only projection evidence only
+  - path: brick_protocol/support/operator/walker_resume.py
+    texts:
+      - route_v2_view_observations
+      - declared_plan["route_v2_view_observations"]
+  - path: brick_protocol/support/checkers/check_route_v2_views.py
+    texts:
+      - byte-identical control-flow comparison
+      - Route V2 advisory observation changed reroute/HOLD records
+      - verification_gap Route V2 observation produced reroute/HOLD records
+      - walker_resume.py does not preserve route_v2_view_observations
+  - path: project/brick-protocol/status/kernel/GOAL/02-unified-continuous-build-goal-0708.md
+    texts:
+      - route-walker-6e-7 advisory Route V2 view observation landed
+      - dynamic_walker_evidence.route_v2_view_observations
+  - path: project/brick-protocol/status/kernel/route-walker-6e-7-implementation-report-0709.md
+    texts:
+      - "# Route Walker 6e/7 Advisory View Implementation Report - 0709"
+      - "dynamic_walker_evidence.route_v2_view_observations"
+      - "P1 verification_gap remains non_reroute and no reroute:"
+text_absent:
+  - path: brick_protocol/support/operator/walker_kernel.py
+    texts:
+      - route_v2_engine.py
+      - route_scope.py
+  - path: brick_protocol/support/operator/walker_resume.py
+    texts:
+      - route_v2_engine.py
+      - route_scope.py
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic correctness of Agent transition_concern_evidence
+  - future caller/COO disposition choices
+  - future Route V2 policy authoring beyond declared input

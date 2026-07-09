@@ -97,3 +97,13 @@ dispositions:
     json_required_keys: 0
     total_blocks: 4
     note: "Route V2 R0/R1 checker-first slice, Smith-approved direction recorded in GOAL 0708: re-grown status/kernel pin estate only for route-v2-sealed-materialization architecture and GOAL evidence; pins guard support evidence for sealed concern kinds, non-reroute verification_gap, gate/lifecycle-vs-Movement separation, and delta-QA fact fields; not source truth, success judgment, quality judgment, or Movement authority"
+  - date: "2026-07-09"
+    path_exists_blocks: 4
+    path_absent_blocks: 0
+    text_contains_blocks: 4
+    text_absent_blocks: 0
+    json_required_paths_blocks: 0
+    text_needles: 24
+    json_required_keys: 0
+    total_blocks: 8
+    note: "Route V2 6e/7 advisory walker profile, COO-disposed landing gate: adds pinned implementation report and GOAL Route V2 advisory evidence alongside R0/R1 sealed materialization pins; support evidence only, not source truth, success judgment, quality judgment, or Movement authority"
