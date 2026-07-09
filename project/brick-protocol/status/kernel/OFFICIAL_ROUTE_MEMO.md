@@ -5,8 +5,9 @@
 | **Status** | support evidence · update at every Goal Exit |
 | **Updated** | 2026-07-09 |
 | **Authority for current ladder** | `GOAL/04-goal-phases-0709-route-and-frontier.md` |
-| **Active COO goal** | `ACTIVE_COO_GOAL.md` — **ACTIVE: residual 전부 밀기** (R1–R11 board) |
-| **Closure (prior ladder)** | `GOAL/05-coo-ladder-closure-0709.md` (operator closed; residual now under ACTIVE push) |
+| **Active COO goal** | `ACTIVE_COO_GOAL.md` — **EXIT** residual push-all (R1–R11 terminal) |
+| **Exit freeze** | `residual-push-exit-0709.md` |
+| **Closure (prior ladder)** | `GOAL/05-coo-ladder-closure-0709.md` (operator closed) |
 
 ---
 
