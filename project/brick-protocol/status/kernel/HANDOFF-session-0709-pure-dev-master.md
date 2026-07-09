@@ -286,5 +286,65 @@ Board:     master ACTIVE · #1 DONE da14f95f8 · #2/#3 안 됨
 Main code: OfficialLaunchProof 텍스트 있음 (e87fe03af) — Exit 증거 금지
 D3 open:   pure-dev-d3-body-v1-0709 NO_FRONTIER + worktree dirty
 D3 other:  pure-dev-d3-r7-body-reland-0709c complete / WIP was 3700ea983
+HEAD note: handoff 상단 “15f6e69bc 근처”는 철회 시점 표기 · 이후 de1db1a3a 등 handoff 커밋 더 있음
 Agent:     작업 중단 · 이 handoff만 정직 기록용
 ```
+
+---
+
+## 13. 3-루프 누락 점검 (이 문서 자기감사)
+
+**방법:** 루프1 보드·빌딩·main 제품 · 루프2 fixtures/worktree/D4/n2 · 루프3 키워드 커버리지·stale 증거·git 추적.
+
+### 루프1 — 보드 vs 디스크 (대체로 일치)
+
+| 점검 | 결과 |
+|------|------|
+| Board Live NOW ↔ handoff §2–4 | **일치** (#1 DONE, D3 NOT DONE, D4 pending) |
+| `OfficialLaunchProof` on main | **있음** (`e87fe03af` ancestry) — Exit 아님 유지 |
+| D1 classifier on main | **있음** (`243da7ff0`) |
+| pure-dev / n1 / n2 buildings 목록 | handoff에 핵심 있음 · 아래 **누락 보강** |
+
+### 루프2 — 까먹었던 것 (이번에 적음)
+
+| 항목 | 정직 상태 | 이전 handoff |
+|------|-----------|--------------|
+| **#3 n3** | fixture만 있음 `fixtures/n3-graph-decl-incomplete-wip-0709.yaml` · **building 디렉터리 없음** · 미발사 | “#3 NEXT”만 · fixture/미발사 **까먹음** |
+| **n2** | intake/plan만 · **step-outputs 0** · NO_FRONTIER · raw+work만 | “방치”는 있음 · **step 0** 명시 약함 |
+| **D4 body fixtures** | `pure-dev-d4-body-v1-0709.yaml` · `pure-dev-d4-r4-body-reland-0709c.yaml` **존재** | fixture 경로 **까먹음** |
+| **D4 buildings** | 있는 것: `pure-dev-d4-r4-ship-copy-0709` complete · `pure-dev-d4-r4-product-land-0709b` complete · **body-v1 / body-reland 빌딩 없음** | “D4 안 됨”만 · 0709b complete 잔존 **약함** |
+| **D3 token-harden** | `pure-dev-d3-r7-token-harden-0709` 여전히 **`link_paused`** (complete 아님) | H축에 이름만 · paused **까먹음** |
+| **D3 이중 병행** | body-v1(미완) **과** body-reland(complete+WIP) **동시** | 분산 기술 · “두 갈래 thrash” 한 줄 **약함** |
+| **worktree** | `pure-dev-d3-body-v1-0709` + `deku-d2-real-conduct-0709` 잔존 | deku WT **까먹음** |
+| **scratch** | `/var/folders/.../T/grok-goal-1668f6d9624f/implementer` 에 **stale 0709b** land-diff/board/probes 잔존 · d3-verify 로그만 추가 | 경로 **까먹음** |
+| **session plan** | `~/.grok/sessions/.../goal/plan.md` 는 여전히 **pure-dev harness plan** · 보드 master와 **불일치** | 포인터만 · 불일치 **까먹음** |
+| **ship-copy skill** | `~/.claude/skills/building-coordination/SKILL.md` 존재 · 본 점검에서 ship-copy 섹션 문자열 **매치 약함/없음** → D4 body 재랜드 필요성 **미검증** | “D4 안 됨”만 |
+
+### 루프3 — git 추적·역사 지뢰 (중요 누락)
+
+| 항목 | 정직 상태 |
+|------|-----------|
+| **`GOAL-PROMPT-necessity-master-0709.md`** | 디스크 있음 · **git UNTRACKED** (커밋 안 됨) |
+| **`master-work-queue-necessity-0709.md`** | 디스크 있음 · **git UNTRACKED** |
+| **다수 pure-dev / n fixtures** | 디스크 있음 · **다수 UNTRACKED** (n3, d4-body-v1, d4-body-reland 등) |
+| **가짜 EXIT 커밋** | `f2fd50a35` · `8f7d03b16` 가 **여전히 main ancestry에 존재** (히스토리 지뢰 · 보드 Status는 ACTIVE) |
+| **상단 HEAD 표기** | “15f6e69bc 근처”는 철회 시점 · 이후 `ac12e7069` `de1db1a3a` 등 handoff 전용 커밋 추가됨 |
+
+### 루프3 키워드 커버 (본 점검 시)
+
+- **COVERED:** 주요 sha, strip, 0709b, body-v1, master, D4, skeptic, thrash, harvest, attack, COO …  
+- **빠졌다가 이 절로 보강:** n3, fixture 경로, UNTRACKED charter, link_paused token-harden, scratch 경로, session plan≠board, D4 body 빌딩 부재, 이중 D3
+
+### 3-루프 결론 (한 줄)
+
+> 핵심 실패(D3 가짜 DONE·strip·master 핀)는 이미 적혀 있음.  
+> **까먹었던 것:** n3 미발사 fixture, D4 body fixture만 있고 빌딩 없음, token-harden still paused, charter/queue/fixtures **untracked**, scratch stale 경로, session pure-dev plan vs master board 불일치, deku worktree, 가짜 EXIT 커밋이 ancestry에 잔존.
+
+### 다음 사람 체크리스트 (이 절에서만 추가된 액션)
+
+1. charter + master queue + fixtures **git add 여부** Smith 결정 (지금은 untracked)  
+2. n3: fixture → 발사 또는 명시 보류  
+3. D4: body-v1/body-reland **한 경로만** 발사 (0709b complete를 DONE으로 쓰지 말 것)  
+4. D3: body-v1 vs body-reland **하나만** 살릴지 정하기 · token-harden paused 정리  
+5. scratch 0709b 증거 **폐기/갱신** 전 Exit 금지  
+6. session plan을 master 기준으로 볼지 / 새 세션 열지  
