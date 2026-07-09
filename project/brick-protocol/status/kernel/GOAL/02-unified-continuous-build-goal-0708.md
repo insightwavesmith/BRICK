@@ -92,11 +92,11 @@ Proof limit: 이 절은 운영정책 support evidence이며 source truth·성공
 | ④b | C2 physical root unification | ✓ | `7b99b8f7f`, `brick_protocol/*`, top-level import 실패 확인 |
 | ④c | C3 문서/human gate | ✓ | C3 상태문서 착지 + Smith 승인 후 BRICK-CONSTITUTION active physical roots 조항 착지. Proof limit: support evidence only |
 | ⑤ | 발주서/빌딩콜 v1.1 | ✓ | ⑤a~⑤j 착지/관찰 완료(⑤b/⑤c `28cfda632`, ⑤f `298b28a86`, ⑤g `201e502d3`, ⑤h `569458a0d`, ⑤i `15ecf8bcc`, ⑤j dogfood evidence `6d7a0acf5`; sandbox output refs `e8b6f953`/`f0e75cae`는 origin/main에 도달하지 않는 sandbox-worktree ref다). Proof limit: support evidence only |
-| ⑥ | Route V2 sealed materialization | 부분 착지 | R0/R1 sealed materialization checker/document slice `47cf35a4b` 착지. ⑥c R2 read-only view builder landed `134ad9550`; read-only view dogfood recorded at `project/brick-protocol/status/kernel/dogfood/0708-route-v2-view-dogfood.md`; ⑥d/⑥e HOLD |
-| ⑦ | route/walker integration | HOLD | checker green + human gate + route_materialization view 안정 후에만 |
+| ⑥ | Route V2 sealed materialization / advisory walker | ✓ | R0/R1 `47cf35a4b`, ⑥c R2 view `134ad9550`, ⑥d no-code review, ⑥e/⑦ SHAPE A advisory walker landed `8e6bcedd2`; proof remains support evidence only |
+| ⑦ | route/walker integration | ✓ | SHAPE A read-only `dynamic_walker_evidence.route_v2_view_observations` integration landed `8e6bcedd2`; no walker control-flow / Movement / route_target authority granted |
 | ⑧ | 발주서작성 preset/Agent/menu/lowering | ✓ | ⑤d~⑤j declared Building/sandbox 경로로 관찰 완료. COO 직접 구현 금지 원칙 유지 |
-| ⑨ | dogfood/골 closure | 부분 완료 | Building Call quick direct + order_authoring dogfood 관찰 완료. Route V2 read-only view dogfood 관찰 완료. remaining human gates/cleanup 이후 parent closure |
-| ⑩ | customer UX CLI | 구현 관찰 | ⑩f worktree Building에서 `brick project new/list/show` + `brick progress [--write]` support CLI wrapper and focused checker/profile implemented. P7 repair covers generated PROGRESS.md redaction after progress --write. Focused/core/host profiles, compileall, git diff --check, and `check_profile.py --all` rc=0 observed; proof remains support evidence only |
+| ⑨ | dogfood/골 closure | 착지 중 | Building Call dogfood, Route V2 view dogfood, ⑩f UX CLI, ⑥e/⑦ advisory walker, Grok docs drift are landed/observed; remaining is GOAL stale refresh, final verification, push, and parent closure note |
+| ⑩ | customer UX CLI | ✓ | ⑩f landed `829e133de`: `brick project new/list/show` + `brick progress [--write]`; P7 repair covers generated PROGRESS.md redaction. Focused/core/host profiles, compileall, git diff --check, and `check_profile.py --all` rc=0 observed; proof remains support evidence only |
 
 ---
 
@@ -520,7 +520,7 @@ proof limit: 통합 방향 승인은 support evidence only; green/dogfood 전 wa
 | ⑥b | checker fence | `route_v2_sealed_materialization.yaml` + `fixtures/route_v2/**` | ⑥a 이후 병렬 가능, fixtures owner 하나 | ✓ landed `47cf35a4b`; declarative profile pins concern seal / gate-Movement separation / delta-QA facts |
 | ⑥c | read-only view builder | `brick_protocol/support/operator/route_v2_views.py` + `check_route_v2_views.py` + dogfood status record | ⑥a/⑥b schema 확정 후 | ✓ landed `134ad9550`; dogfood recorded at `project/brick-protocol/status/kernel/dogfood/0708-route-v2-view-dogfood.md`; ⑥d/⑥e still HOLD |
 | ⑥d | route_materialization 확장 검토 | route_replay_plan view/provenance 확장 여부 | reviewed, no code change needed | ✓ review disposition at `project/brick-protocol/status/kernel/route-v2-6d-materialization-review-0709.md`; current route_materialization sufficient as R2 view/provenance input |
-| ⑥e | walker integration | walker_kernel/walker_resume integration | design produced, implementation still gated | ◐ design evidence at `route-v2-6e-walker-integration-design-0709.md`; implementation remains HOLD pending explicit declared Building/proof |
+| ⑥e | walker integration | walker_kernel/walker_resume advisory integration | design -> declared Building -> landing proof | ✓ landed `8e6bcedd2`; SHAPE A read-only observation only, no control-flow/Movement/route_target authority |
 
 ⑥c R2 read-only view builder candidate:
 
@@ -772,9 +772,9 @@ measured surface: brick_protocol/brick/building_plans/ has 4 fixture/example pla
 reason: current refs from package path admission, building_plans_boundary_sweep, core/link_routing_behavioral/building_operator_driver0 profiles, onboarding/quickstart docs, onboard.py, run.py, coo_operating_chain.py, and orchestration_packet.py make this path load-bearing.
 forbidden shortcut: no simple git mv under templates; no delete/archive now.
 future migration: declared Building only, with reader/checker/admission/profile/docs migration and clean detached --all proof.
-remaining_delta: ⑩f implementation Building; ⑥e/⑦ declared route-walker Building run/landing; optional ⑩e repair candidate.
+remaining_delta: GOAL stale refresh, final verification/push, parent closure note, and follow-up authoring-architecture implementation decision; optional ⑩e repair candidate.
 closed_delta: ⑩g Smith decision recorded as Option A KEEP+clarify; no move/delete/archive.
-closed_gate: ⑥e/⑦ Smith implementation approval recorded as SHAPE A only; implementation still requires declared Building/worktree proof.
+closed_gate: ⑥e/⑦ Smith implementation approval recorded as SHAPE A only; implementation landed through declared Building/worktree proof at `8e6bcedd2`.
 ```
 
 ⑩f customer UX layer design — 2026-07-09 KST:
@@ -786,8 +786,8 @@ live-code finding: pyproject.toml [project.scripts] brick entry EXISTS (0618 doc
 core gap: brick CLI lacks `project new/list/show` and `progress` subcommands, so vessel create + progress board are internal-API-only.
 design: thin CLI tie only (subcommand -> existing support verb, no vessel/board logic in CLI); non-TTY refuses to auto-stamp; progress read-only unless --write; secret masking parity.
 checker plan: CLI orchestrator purity, non-TTY stamp safety, progress read-only, secret masking, keep project_declaration/intake_project_vessel green.
-implementation state: pending declared design-build Building in worktree sandbox; no code changed.
-still not proven: ⑩f CLI code, charter-fill prompt-level UX, build->progress auto-refresh decision, 0618 first-green funnel impl status.
+implementation state: landed as `829e133de`; follow-up UX/product polish remains separate.
+still not proven: charter-fill prompt-level UX, build->progress auto-refresh decision, 0618 first-green funnel impl status.
 ```
 
 ⑩g dogfood vessel separation human-gate packet — 2026-07-09 KST:
@@ -825,7 +825,7 @@ route_family_candidate: preset_guided_graph
 scope: implement SHAPE A read-only advisory route_v2_view_observations beside dynamic_walker_evidence, without changing walker control flow, Link Movement, route targets, reroute/hold record contracts, AgentFact, Link resources, or concern_kind vocabulary.
 direct_preset: rejected (walker runtime seam, route/Movement boundary, resume parity, checker coverage).
 approval: project/brick-protocol/status/kernel/route-walker-6e-7-implementation-approval-0709.md
-state: approved_for_declared_building_only; SHAPE A read-only advisory overlay only. No code changed by the approval packet; implementation must run through declared Building/worktree proof.
+state: landed at `8e6bcedd2`; SHAPE A read-only advisory overlay only. Future expansion beyond advisory view requires a new gate/Building.
 ```
 
 ### 7.4 direct preset vs Building 판정 규칙
@@ -898,7 +898,7 @@ Then:
 ⑩b blocks retained/archive/superseded map — done at `project/brick-protocol/status/kernel/blocks-retained-map-0709.md` (8 retained, 0 archive/supersede/delete)
 ⑩d skills ship-copy drift map — done at `project/brick-protocol/status/kernel/skills-ship-copy-drift-map-0709.md`
 ⑩e COO order-chain consistency map — done at `project/brick-protocol/status/kernel/coo-order-chain-consistency-0709.md`
-⑩c building_plans decision — done at `project/brick-protocol/status/kernel/building-plans-location-decision-0709.md` (KEEP for now; no move/delete/archive). ⑩f customer UX design — done at `project/brick-protocol/status/kernel/customer-ux-layer-design-0709.md` (core gap = missing brick project/progress CLI tie; implementation pending). ⑩g dogfood vessel separation — gate closed by `project/brick-protocol/status/kernel/dogfood-vessel-separation-approval-0709.md` as Option A KEEP+clarify; no move/delete/archive. ⑥e/⑦ route-walker implementation approval — gate closed by `project/brick-protocol/status/kernel/route-walker-6e-7-implementation-approval-0709.md` as SHAPE A only. Remaining: declared ⑩f implementation Building run/landing, declared ⑥e/⑦ route-walker Building run/landing, optional cleanup-10e-order-chain-consistency-0709a
+⑩c building_plans decision — done at `project/brick-protocol/status/kernel/building-plans-location-decision-0709.md` (KEEP for now; no move/delete/archive). ⑩f customer UX CLI — landed `829e133de`. ⑩g dogfood vessel separation — gate closed by `project/brick-protocol/status/kernel/dogfood-vessel-separation-approval-0709.md` as Option A KEEP+clarify; no move/delete/archive. ⑥e/⑦ route-walker advisory integration — landed `8e6bcedd2` as SHAPE A only. Remaining: GOAL refresh/final verification/push/parent closure and optional cleanup-10e-order-chain-consistency-0709a
 ⑥d route_materialization review — done at `project/brick-protocol/status/kernel/route-v2-6d-materialization-review-0709.md` (no code change needed); ⑥e walker integration design produced at `project/brick-protocol/status/kernel/route-v2-6e-walker-integration-design-0709.md`; ⑥e/⑦ implementation approval recorded at `project/brick-protocol/status/kernel/route-walker-6e-7-implementation-approval-0709.md` as SHAPE A only; route-walker-6e-7 advisory Route V2 view observation landed as support evidence at `dynamic_walker_evidence.route_v2_view_observations` with report `project/brick-protocol/status/kernel/route-walker-6e-7-implementation-report-0709.md` and profile `route_v2_walker_advisory`; remaining proof limits stay in the report
 ```
 
@@ -909,7 +909,23 @@ Then:
 ```text
 - This unified GOAL is support evidence only.
 - It does not prove current active building success.
-- It does not approve Route V2 implementation.
+- It does not approve future Route V2 expansion beyond the landed SHAPE A advisory view.
 - It does not authorize walker/run/link/AgentFact changes.
 - It records current operating plan and phase boundaries only.
+```
+
+
+---
+
+## 10. 0709 COO landing update — Route V2/docs/authoring follow-up
+
+```text
+route_v2_landing_commit: 8e6bcedd2
+route_v2_proof: /tmp/brick-landing-route-walker-0709 check_profile.py --all RC=0, focused profiles green, git diff --check clean, forbidden path scan clean.
+route_v2_scope: SHAPE A read-only advisory view only; no Link/Agent/Movement/route_target/control-flow authority.
+docs_drift_landing_commit: bbbc6dd20
+docs_drift_scope: AGENTS constitution rule count/date drift + architecture-map stale refresh note only.
+authoring_architecture_building: building-call-authoring-architecture-plan-0709a complete; follow-up phase is design review -> possible dev fan-out -> fan-in QA -> closure, not immediate direct implementation.
+remaining_to_parent_closure: final clean-worktree verification, push, parent closure record, remaining_not_proven list.
+proof_limit: support evidence only; not source truth, success judgment, quality judgment, or Movement authority.
 ```
