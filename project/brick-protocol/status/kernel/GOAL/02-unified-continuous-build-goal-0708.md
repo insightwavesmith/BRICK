@@ -95,7 +95,7 @@ Proof limit: 이 절은 운영정책 support evidence이며 source truth·성공
 | ⑥ | Route V2 sealed materialization / advisory walker | ✓ | R0/R1 `47cf35a4b`, ⑥c R2 view `134ad9550`, ⑥d no-code review, ⑥e/⑦ SHAPE A advisory walker landed `8e6bcedd2`; proof remains support evidence only |
 | ⑦ | route/walker integration | ✓ | SHAPE A read-only `dynamic_walker_evidence.route_v2_view_observations` integration landed `8e6bcedd2`; no walker control-flow / Movement / route_target authority granted |
 | ⑧ | 발주서작성 preset/Agent/menu/lowering | ✓ | ⑤d~⑤j declared Building/sandbox 경로로 관찰 완료. COO 직접 구현 금지 원칙 유지 |
-| ⑨ | dogfood/골 closure | 착지 중 | Building Call dogfood, Route V2 view dogfood, ⑩f UX CLI, ⑥e/⑦ advisory walker, Grok docs drift are landed/observed; remaining is GOAL stale refresh, final verification, push, and parent closure note |
+| ⑨ | dogfood/골 closure | ✓ | Building Call dogfood, Route V2 view dogfood, ⑩f UX CLI, ⑥e/⑦ advisory walker, Grok docs drift, GOAL refresh, final verification, push, and parent closure record landed. Closure record: `project/brick-protocol/status/kernel/parent-goal-closure-0709.md`; proof remains support evidence only |
 | ⑩ | customer UX CLI | ✓ | ⑩f landed `829e133de`: `brick project new/list/show` + `brick progress [--write]`; P7 repair covers generated PROGRESS.md redaction. Focused/core/host profiles, compileall, git diff --check, and `check_profile.py --all` rc=0 observed; proof remains support evidence only |
 
 ---
@@ -926,6 +926,17 @@ route_v2_scope: SHAPE A read-only advisory view only; no Link/Agent/Movement/rou
 docs_drift_landing_commit: bbbc6dd20
 docs_drift_scope: AGENTS constitution rule count/date drift + architecture-map stale refresh note only.
 authoring_architecture_building: building-call-authoring-architecture-plan-0709a complete; follow-up phase is design review -> possible dev fan-out -> fan-in QA -> closure, not immediate direct implementation.
-remaining_to_parent_closure: final clean-worktree verification, push, parent closure record, remaining_not_proven list.
+remaining_to_parent_closure: closed by `project/brick-protocol/status/kernel/parent-goal-closure-0709.md`; remaining_not_proven list preserved for future Buildings.
 proof_limit: support evidence only; not source truth, success judgment, quality judgment, or Movement authority.
+```
+
+
+## 11. 0709 parent closure record
+
+```text
+closure_record: project/brick-protocol/status/kernel/parent-goal-closure-0709.md
+closure_disposition: forward
+closed_scope: pasted COO goal P1-P7 Route V2 landing, docs drift landing, authoring architecture follow-up registration, GOAL refresh, final verification, push record.
+pushed_ref: origin/main carries the parent closure record; exact final ref is verified by git after push to avoid self-reference drift inside the amended closure commit.
+proof_limit: support evidence only; future Route V2 beyond SHAPE A and authoring product-layer implementation remain not_proven.
 ```
