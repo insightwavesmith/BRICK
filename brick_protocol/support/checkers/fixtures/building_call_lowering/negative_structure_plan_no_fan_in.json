@@ -1,0 +1,28 @@
+{
+  "building_case": "standard_delivery",
+  "confirmation_state": "confirmed",
+  "kind": "confirmed_building_call_request_v1_1",
+  "structure_plan": {
+    "edges": [
+      {
+        "from": "building-step-template:inspect",
+        "to": "code-lens"
+      },
+      {
+        "from": "building-step-template:inspect",
+        "to": "axis-lens"
+      }
+    ],
+    "fan_out_groups": [
+      {
+        "branches": [
+          "code-lens",
+          "axis-lens"
+        ],
+        "from": "building-step-template:inspect"
+      }
+    ],
+    "fan_in_groups": []
+  },
+  "task_statement": "Malformed structure_plan fixture must be rejected because fan-out does not converge.\n"
+}

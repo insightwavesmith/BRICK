@@ -1,0 +1,101 @@
+{
+  "building_case": "standard_delivery",
+  "confirmation_state": "confirmed",
+  "declared_by": "coo:building-call-lowering-checker",
+  "kind": "confirmed_building_call_request_v1_1",
+  "structure_plan": {
+    "edges": [
+      {
+        "from": "building-step-template:inspect",
+        "to": "code-lens"
+      },
+      {
+        "from": "building-step-template:inspect",
+        "to": "axis-lens"
+      },
+      {
+        "from": "building-step-template:inspect",
+        "to": "evidence-lens"
+      },
+      {
+        "from": "code-lens",
+        "to": "triage-closure"
+      },
+      {
+        "from": "axis-lens",
+        "to": "triage-closure"
+      },
+      {
+        "from": "evidence-lens",
+        "to": "triage-closure"
+      }
+    ],
+    "fan_out_groups": [
+      {
+        "branches": [
+          "code-lens",
+          "axis-lens",
+          "evidence-lens"
+        ],
+        "from": "building-step-template:inspect"
+      }
+    ],
+    "fan_in_groups": [
+      {
+        "closure_transition_target_policy": {
+          "implementation_gap": {
+            "action": "target",
+            "target_step_template_ref": "building-step-template:inspect"
+          },
+          "verification_gap": {
+            "action": "hold"
+          }
+        },
+        "converge_on": "triage-closure",
+        "sources": [
+          "code-lens",
+          "axis-lens",
+          "evidence-lens"
+        ],
+        "wait_all": true
+      }
+    ],
+    "nodes": {
+      "axis-lens": {
+        "write_scope": {
+          "allowed_paths": [
+            "tmp/axis"
+          ],
+          "forbidden_paths": [
+            ".git/**"
+          ]
+        }
+      },
+      "code-lens": {
+        "write_scope": {
+          "allowed_paths": [
+            "tmp/code"
+          ],
+          "forbidden_paths": [
+            ".git/**"
+          ]
+        }
+      },
+      "evidence-lens": {
+        "write_scope": {
+          "allowed_paths": [
+            "tmp/evidence"
+          ],
+          "forbidden_paths": [
+            ".git/**"
+          ]
+        }
+      }
+    },
+    "reroute_budgets": {
+      "building-step-template:inspect": 1
+    },
+    "terminal": "triage-closure"
+  },
+  "task_statement": "Lower a confirmed structure_plan fixture into building-map graph_topology.\n"
+}

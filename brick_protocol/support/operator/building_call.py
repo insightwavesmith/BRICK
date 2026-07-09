@@ -11,6 +11,8 @@ import json
 from collections.abc import Mapping, Sequence
 from typing import Any
 
+from brick_protocol.support.recording.contracts import require_positive_int
+
 
 BUILDING_CALL_LOWERING_SCHEMA_VERSION = "building-call-lowering-v1"
 BUILDING_CALL_DIRECT_ADMISSION_SCHEMA_VERSION = "building-call-direct-preset-admission-v1"
@@ -63,6 +65,7 @@ ROSTER_VARIANT_STEP_SELECTIONS: Mapping[str, Mapping[str, Mapping[str, str]]] = 
 
 _LOWERED_INTENT_ALLOWED_KEYS = frozenset(
     {
+        "building_map",
         "declared_by",
         "task_source_ref",
         "task_statement",
@@ -79,6 +82,18 @@ _REQUEST_PASSTHROUGH_FIELDS = frozenset(
     {"declared_by", "task_source_ref", "task_statement", "building_id", "project_ref", "write_scope"}
 )
 _OVERRIDE_ALLOWED_KEYS = frozenset({"step_template_ref", "casting_tier_ref", "casting_lens_ref"})
+_STRUCTURE_PLAN_ALLOWED_KEYS = frozenset(
+    {
+        "nodes",
+        "edges",
+        "coo_gate_edge",
+        "fan_out_groups",
+        "fan_in_groups",
+        "reroute_budgets",
+        "node_reroute_budgets",
+        "terminal",
+    }
+)
 _FORBIDDEN_REQUEST_KEYS = frozenset(
     {
         "adapter_ref",
@@ -136,6 +151,18 @@ def lower_building_call_request_v1_1(request: Mapping[str, Any]) -> dict[str, An
     intent["selected_model_ref"] = "model:default"
     if step_selection_overrides:
         intent["step_selection_overrides"] = step_selection_overrides
+    structure_plan = _request_structure_plan(request.get("structure_plan"))
+    if structure_plan:
+        building_map: dict[str, Any] = {
+            "graph_topology": structure_plan["graph_topology"],
+        }
+        if structure_plan["node_reroute_budgets"]:
+            building_map["node_reroute_budgets"] = structure_plan["node_reroute_budgets"]
+        if structure_plan["nodes"]:
+            building_map["nodes"] = structure_plan["nodes"]
+        if structure_plan["coo_gate_edge"]:
+            building_map["coo_gate_edge"] = structure_plan["coo_gate_edge"]
+        intent["building_map"] = building_map
 
     return {
         "kind": BUILDING_CALL_LOWERING_SCHEMA_VERSION,
@@ -327,6 +354,7 @@ def validate_building_call_lowering_request(request: Mapping[str, Any]) -> list[
         violations.append("request must declare task_source_ref or task_statement")
 
     _validate_roster_overrides(request.get("roster_overrides"), violations)
+    _validate_structure_plan(request.get("structure_plan"), violations)
     return violations
 
 
@@ -425,6 +453,319 @@ def _request_roster_overrides(value: Any) -> dict[str, Mapping[str, str]]:
     if violations:
         raise BuildingCallLoweringError(violations)
     return overrides
+
+
+def _request_structure_plan(value: Any) -> dict[str, Any]:
+    violations: list[str] = []
+    plan = _coerce_structure_plan(value, violations)
+    if violations:
+        raise BuildingCallLoweringError(violations)
+    return plan
+
+
+def _validate_structure_plan(value: Any, violations: list[str]) -> None:
+    _coerce_structure_plan(value, violations)
+
+
+def _coerce_structure_plan(value: Any, violations: list[str]) -> dict[str, Any]:
+    if value is None:
+        return {}
+    if not isinstance(value, Mapping):
+        violations.append("structure_plan must be a mapping when supplied")
+        return {}
+
+    _scan_forbidden_request_keys(value, "structure_plan", violations)
+    extra = sorted(str(key) for key in value if str(key) not in _STRUCTURE_PLAN_ALLOWED_KEYS)
+    if extra:
+        violations.append(
+            "structure_plan may declare only nodes, edges, coo_gate_edge, fan_out_groups, "
+            "fan_in_groups, terminal, reroute_budgets, node_reroute_budgets; observed "
+            + ", ".join(extra)
+        )
+
+    edges = _coerce_structure_edges(value.get("edges"), violations)
+    fan_out_groups = _coerce_structure_fan_out_groups(value.get("fan_out_groups"), violations)
+    fan_in_groups = _coerce_structure_fan_in_groups(value.get("fan_in_groups"), violations)
+    terminal = _optional_text(value.get("terminal"))
+    nodes = _coerce_structure_nodes(value.get("nodes"), violations)
+    coo_gate_edge = _coerce_structure_optional_mapping(
+        value.get("coo_gate_edge"), "structure_plan.coo_gate_edge", violations
+    )
+    budgets = _coerce_structure_budgets(
+        value.get("node_reroute_budgets", value.get("reroute_budgets")),
+        violations,
+    )
+
+    if edges and fan_out_groups and fan_in_groups:
+        _validate_structure_fan_invariants(
+            edges=edges,
+            fan_out_groups=fan_out_groups,
+            fan_in_groups=fan_in_groups,
+            nodes=nodes,
+            violations=violations,
+        )
+    if not edges:
+        violations.append("structure_plan.edges must be a non-empty array")
+    if not fan_out_groups:
+        violations.append("structure_plan.fan_out_groups must be a non-empty array")
+    if len(fan_in_groups) != 1:
+        violations.append("structure_plan.fan_in_groups must declare exactly one convergence group")
+    if not terminal and fan_in_groups:
+        terminal = fan_in_groups[0].get("converge_on")
+
+    graph_topology: dict[str, Any] = {
+        "edges": edges,
+        "fan_out_groups": fan_out_groups,
+        "fan_in_groups": fan_in_groups,
+    }
+    if terminal:
+        graph_topology["terminal"] = terminal
+    return {
+        "graph_topology": _normalize_json_value(graph_topology),
+        "node_reroute_budgets": _normalize_json_value(budgets),
+        "nodes": _normalize_json_value(nodes),
+        "coo_gate_edge": _normalize_json_value(coo_gate_edge),
+    }
+
+
+def _coerce_structure_edges(value: Any, violations: list[str]) -> list[dict[str, str]]:
+    if not isinstance(value, Sequence) or isinstance(value, (str, bytes, bytearray)):
+        return []
+    edges: list[dict[str, str]] = []
+    seen: set[tuple[str, str]] = set()
+    for index, raw_edge in enumerate(value):
+        if not isinstance(raw_edge, Mapping):
+            violations.append(f"structure_plan.edges[{index}] must be a mapping")
+            continue
+        extra = sorted(str(key) for key in raw_edge if str(key) not in {"from", "to"})
+        if extra:
+            violations.append(
+                f"structure_plan.edges[{index}] may declare only from/to; observed {', '.join(extra)}"
+            )
+        source = _optional_text(raw_edge.get("from"))
+        target = _optional_text(raw_edge.get("to"))
+        if not source or not target:
+            violations.append(f"structure_plan.edges[{index}] requires from and to")
+            continue
+        if source == target:
+            violations.append(f"structure_plan.edges[{index}] must not be a self-loop")
+            continue
+        pair = (source, target)
+        if pair in seen:
+            violations.append(f"structure_plan.edges[{index}] duplicates {source!r}->{target!r}")
+            continue
+        seen.add(pair)
+        edges.append({"from": source, "to": target})
+    return edges
+
+
+def _coerce_structure_fan_out_groups(value: Any, violations: list[str]) -> list[dict[str, Any]]:
+    if not isinstance(value, Sequence) or isinstance(value, (str, bytes, bytearray)):
+        return []
+    groups: list[dict[str, Any]] = []
+    for index, raw_group in enumerate(value):
+        if not isinstance(raw_group, Mapping):
+            violations.append(f"structure_plan.fan_out_groups[{index}] must be a mapping")
+            continue
+        extra = sorted(str(key) for key in raw_group if str(key) not in {"from", "branches"})
+        if extra:
+            violations.append(
+                f"structure_plan.fan_out_groups[{index}] may declare only from/branches; observed {', '.join(extra)}"
+            )
+        source = _optional_text(raw_group.get("from"))
+        branches = _text_list(raw_group.get("branches"))
+        if not source or len(branches) < 2:
+            violations.append(
+                f"structure_plan.fan_out_groups[{index}] requires from and at least two branches"
+            )
+            continue
+        groups.append({"from": source, "branches": branches})
+    return groups
+
+
+def _coerce_structure_fan_in_groups(value: Any, violations: list[str]) -> list[dict[str, Any]]:
+    if not isinstance(value, Sequence) or isinstance(value, (str, bytes, bytearray)):
+        return []
+    groups: list[dict[str, Any]] = []
+    for index, raw_group in enumerate(value):
+        if not isinstance(raw_group, Mapping):
+            violations.append(f"structure_plan.fan_in_groups[{index}] must be a mapping")
+            continue
+        extra = sorted(
+            str(key)
+            for key in raw_group
+            if str(key)
+            not in {"converge_on", "sources", "closure_transition_target_policy", "wait_all"}
+        )
+        if extra:
+            violations.append(
+                f"structure_plan.fan_in_groups[{index}] may declare only converge_on/sources/"
+                f"closure_transition_target_policy/wait_all; observed {', '.join(extra)}"
+            )
+        converge_on = _optional_text(raw_group.get("converge_on"))
+        sources = _text_list(raw_group.get("sources"))
+        if not converge_on or len(sources) < 2:
+            violations.append(
+                f"structure_plan.fan_in_groups[{index}] requires converge_on and at least two sources"
+            )
+            continue
+        if raw_group.get("wait_all") is False:
+            violations.append(f"structure_plan.fan_in_groups[{index}] must preserve wait-all")
+        group: dict[str, Any] = {"converge_on": converge_on, "sources": sources}
+        if "closure_transition_target_policy" in raw_group:
+            policy = raw_group.get("closure_transition_target_policy")
+            if not isinstance(policy, Mapping):
+                violations.append(
+                    f"structure_plan.fan_in_groups[{index}].closure_transition_target_policy must be a mapping"
+                )
+            else:
+                group["closure_transition_target_policy"] = _normalize_json_value(policy)
+        groups.append(group)
+    return groups
+
+
+def _coerce_structure_nodes(value: Any, violations: list[str]) -> dict[str, Mapping[str, Any]]:
+    if value is None:
+        return {}
+    nodes: dict[str, Mapping[str, Any]] = {}
+    if isinstance(value, Mapping):
+        iterable = value.items()
+    elif isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+        iterable = ((item.get("ref") if isinstance(item, Mapping) else None, item) for item in value)
+    else:
+        violations.append("structure_plan.nodes must be a mapping or an array")
+        return {}
+    for raw_ref, raw_node in iterable:
+        ref = _optional_text(raw_ref)
+        if not ref:
+            violations.append("structure_plan.nodes entries require a non-empty ref")
+            continue
+        if not isinstance(raw_node, Mapping):
+            violations.append(f"structure_plan.nodes[{ref}] must be a mapping")
+            continue
+        nodes[ref] = raw_node
+    return nodes
+
+
+def _coerce_structure_optional_mapping(
+    value: Any, label: str, violations: list[str]
+) -> dict[str, Any]:
+    if value is None:
+        return {}
+    if not isinstance(value, Mapping):
+        violations.append(f"{label} must be a mapping when supplied")
+        return {}
+    return dict(value)
+
+
+def _coerce_structure_budgets(value: Any, violations: list[str]) -> dict[str, int]:
+    if value is None:
+        return {}
+    if not isinstance(value, Mapping):
+        violations.append("structure_plan.reroute_budgets must be a mapping when supplied")
+        return {}
+    budgets: dict[str, int] = {}
+    for raw_ref, raw_budget in value.items():
+        ref = _optional_text(raw_ref)
+        if not ref:
+            violations.append("structure_plan.reroute_budgets keys must be non-empty text")
+            continue
+        try:
+            budgets[ref] = require_positive_int(
+                raw_budget,
+                f"structure_plan.reroute_budgets[{ref}]",
+                allow_decimal_text=False,
+            )
+        except ValueError as exc:
+            violations.append(str(exc))
+    return budgets
+
+
+def _validate_structure_fan_invariants(
+    *,
+    edges: Sequence[Mapping[str, str]],
+    fan_out_groups: Sequence[Mapping[str, Any]],
+    fan_in_groups: Sequence[Mapping[str, Any]],
+    nodes: Mapping[str, Mapping[str, Any]],
+    violations: list[str],
+) -> None:
+    edge_pairs = {(edge["from"], edge["to"]) for edge in edges}
+    if len(fan_in_groups) != 1:
+        return
+    fan_in = fan_in_groups[0]
+    converge_on = str(fan_in["converge_on"])
+    sources = tuple(str(source) for source in fan_in["sources"])
+    for source in sources:
+        if (source, converge_on) not in edge_pairs:
+            violations.append(
+                "structure_plan fan_in_groups source->converge_on must be a declared edge: "
+                f"{source} -> {converge_on}"
+            )
+    fan_out_branches: set[str] = set()
+    for group in fan_out_groups:
+        source = str(group["from"])
+        for branch in group["branches"]:
+            branch_text = str(branch)
+            fan_out_branches.add(branch_text)
+            if (source, branch_text) not in edge_pairs:
+                violations.append(
+                    "structure_plan fan_out_groups from->branch must be a declared edge: "
+                    f"{source} -> {branch_text}"
+                )
+    if set(sources) != fan_out_branches:
+        violations.append(
+            "structure_plan fan-out branches must exactly match the single fan-in sources"
+        )
+    _validate_structure_write_fences(sources, nodes, violations)
+
+
+def _validate_structure_write_fences(
+    branches: Sequence[str],
+    nodes: Mapping[str, Mapping[str, Any]],
+    violations: list[str],
+) -> None:
+    allowed_by_branch: dict[str, tuple[str, ...]] = {}
+    for branch in branches:
+        raw_scope = nodes.get(branch, {}).get("write_scope")
+        if raw_scope is None:
+            allowed_by_branch[branch] = ()
+            continue
+        if not isinstance(raw_scope, Mapping):
+            violations.append(f"structure_plan.nodes[{branch}].write_scope must be a mapping")
+            continue
+        allowed = _text_list(raw_scope.get("allowed_paths"))
+        allowed_by_branch[branch] = tuple(_normalize_scope_path(path) for path in allowed)
+    for index, left in enumerate(branches):
+        for right in branches[index + 1 :]:
+            overlap = _first_scope_overlap(
+                allowed_by_branch.get(left, ()),
+                allowed_by_branch.get(right, ()),
+            )
+            if overlap:
+                violations.append(
+                    "structure_plan fan-out branch write fences must be pairwise disjoint: "
+                    f"{left} and {right} overlap at {overlap}"
+                )
+
+
+def _normalize_scope_path(value: str) -> str:
+    return value.strip().strip("/")
+
+
+def _first_scope_overlap(left: Sequence[str], right: Sequence[str]) -> str:
+    for left_path in left:
+        if not left_path:
+            continue
+        for right_path in right:
+            if not right_path:
+                continue
+            if (
+                left_path == right_path
+                or left_path.startswith(right_path + "/")
+                or right_path.startswith(left_path + "/")
+            ):
+                return left_path if len(left_path) >= len(right_path) else right_path
+    return ""
 
 
 def _validate_roster_overrides(value: Any, violations: list[str]) -> None:

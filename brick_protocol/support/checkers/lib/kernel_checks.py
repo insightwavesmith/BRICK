@@ -157,6 +157,7 @@ from brick_protocol.support.checkers.lib.dashboard_productization_projection_che
     run_dashboard_productization_projection,
 )
 from brick_protocol.support.checkers.lib.sakana_wire_packet_check import run_sakana_wire_packet
+from brick_protocol.support.checkers.lib.structure_plan_fan_barrier import run_structure_plan_fan_barrier
 
 # chat_session_park_seam facade pins retained for unchanged profiles after pure relocation:
 # _chat_session_mutate_envelope_uuid / _chat_session_mutate_park_as_adapter_error /
@@ -342,8 +343,17 @@ def run_building_call_lowering_contract(repo: Path) -> KernelResult:
 
     fixture_root = repo / "brick_protocol/support/checkers/fixtures/building_call_lowering"
     positive = json.loads((fixture_root / "positive_confirmed_request.json").read_text(encoding="utf-8"))
+    positive_structure = json.loads(
+        (fixture_root / "positive_structure_plan_request.json").read_text(encoding="utf-8")
+    )
+    positive_without_structure = json.loads(
+        (fixture_root / "positive_without_structure_plan_request.json").read_text(encoding="utf-8")
+    )
     draft = json.loads((fixture_root / "negative_draft_request.json").read_text(encoding="utf-8"))
     held = json.loads((fixture_root / "negative_held_for_coo_review.json").read_text(encoding="utf-8"))
+    no_fan_in = json.loads(
+        (fixture_root / "negative_structure_plan_no_fan_in.json").read_text(encoding="utf-8")
+    )
 
     lowered = building_call_lowering_v1(positive)
     intent = lowered.get("lowered_intent")
@@ -368,6 +378,35 @@ def run_building_call_lowering_contract(repo: Path) -> KernelResult:
     if not isinstance(provenance, Mapping) or provenance.get("roster_variant") != "deep_work":
         raise ProfileError("building_call_lowering_contract: selected_casting_provenance missing")
 
+    structure_lowered = building_call_lowering_v1(positive_structure)
+    structure_intent = structure_lowered.get("lowered_intent")
+    if not isinstance(structure_intent, Mapping):
+        raise ProfileError("building_call_lowering_contract: structure lowered_intent missing")
+    building_map = structure_intent.get("building_map")
+    if not isinstance(building_map, Mapping):
+        raise ProfileError("building_call_lowering_contract: structure_plan did not lower to building_map")
+    topology = building_map.get("graph_topology")
+    if not isinstance(topology, Mapping):
+        raise ProfileError("building_call_lowering_contract: structure_plan did not lower to graph_topology")
+    if len(topology.get("fan_in_groups", [])) != 1:
+        raise ProfileError("building_call_lowering_contract: structure_plan did not preserve single fan-in")
+    if topology.get("terminal") != "triage-closure":
+        raise ProfileError("building_call_lowering_contract: structure_plan terminal drifted")
+    budgets = building_map.get("node_reroute_budgets")
+    if not isinstance(budgets, Mapping) or budgets.get("building-step-template:inspect") != 1:
+        raise ProfileError("building_call_lowering_contract: structure_plan reroute budget did not lower")
+    if structure_intent.get("chain_preset_ref") != "building-chain-preset:app-feature-inspected":
+        raise ProfileError("building_call_lowering_contract: structure_plan changed case preset lowering")
+
+    compat_lowered = building_call_lowering_v1(positive_without_structure)
+    compat_intent = compat_lowered.get("lowered_intent")
+    if not isinstance(compat_intent, Mapping):
+        raise ProfileError("building_call_lowering_contract: compat lowered_intent missing")
+    if compat_intent.get("chain_preset_ref") != "building-chain-preset:app-feature-inspected":
+        raise ProfileError("building_call_lowering_contract: no-structure case preset drifted")
+    if "building_map" in compat_intent:
+        raise ProfileError("building_call_lowering_contract: no-structure request grew building_map")
+
     draft_violations = validate_building_call_lowering_request(draft)
     if not any("kind must be confirmed_building_call_request_v1_1" in item for item in draft_violations):
         raise ProfileError("building_call_lowering_contract: draft fixture did not trip kind guard")
@@ -383,6 +422,16 @@ def run_building_call_lowering_contract(repo: Path) -> KernelResult:
     held_violations = validate_building_call_lowering_request(held)
     if not any("held_for_coo_review requests must not be lowered" in item for item in held_violations):
         raise ProfileError("building_call_lowering_contract: held fixture did not trip hold guard")
+
+    no_fan_in_violations = validate_building_call_lowering_request(no_fan_in)
+    if not any("exactly one convergence group" in item for item in no_fan_in_violations):
+        raise ProfileError("building_call_lowering_contract: no fan-in structure_plan was accepted")
+    try:
+        building_call_lowering_v1(no_fan_in)
+    except BuildingCallLoweringError:
+        pass
+    else:
+        raise ProfileError("building_call_lowering_contract: no fan-in structure_plan normalized")
 
     selected_exposure = dict(positive)
     selected_exposure["roster_overrides"] = [
@@ -401,6 +450,26 @@ def run_building_call_lowering_contract(repo: Path) -> KernelResult:
     if not any("forbidden request field(s): movement_choice" in item for item in launch_violations):
         raise ProfileError("building_call_lowering_contract: movement field probe was accepted")
 
+    wait_all_probe = json.loads(json.dumps(positive_structure))
+    wait_all_probe["structure_plan"]["fan_in_groups"][0]["wait_all"] = False
+    wait_all_violations = validate_building_call_lowering_request(wait_all_probe)
+    if not any("must preserve wait-all" in item for item in wait_all_violations):
+        raise ProfileError("building_call_lowering_contract: wait-all mutation was accepted")
+
+    overlapping_write_probe = json.loads(json.dumps(positive_structure))
+    overlapping_write_probe["structure_plan"]["nodes"]["axis-lens"]["write_scope"]["allowed_paths"] = [
+        "tmp/code/subdir"
+    ]
+    overlap_violations = validate_building_call_lowering_request(overlapping_write_probe)
+    if not any("pairwise disjoint" in item for item in overlap_violations):
+        raise ProfileError("building_call_lowering_contract: overlapping branch write fence was accepted")
+
+    held_structure_probe = json.loads(json.dumps(positive_structure))
+    held_structure_probe["gate_state"] = "held_for_coo_review"
+    held_structure_violations = validate_building_call_lowering_request(held_structure_probe)
+    if not any("held_for_coo_review requests must not be lowered" in item for item in held_structure_violations):
+        raise ProfileError("building_call_lowering_contract: structure_plan weakened held_for_coo_review guard")
+
     cases = render_building_call_lowering_cases()
     case_map = cases.get("building_case_to_chain_preset_ref")
     if not isinstance(case_map, Mapping) or case_map.get("order_authoring") != "building-chain-preset:building-call-authoring":
@@ -408,10 +477,11 @@ def run_building_call_lowering_contract(repo: Path) -> KernelResult:
 
     return KernelResult(
         check_id="building_call_lowering_contract",
-        inspected=7,
+        inspected=13,
         output=(
-            "confirmed fixture lowered; draft and held fixtures rejected; selected_* "
-            "override and movement field probes rejected"
+            "confirmed fixture lowered; structure_plan lowered to building_map.graph_topology; "
+            "no-structure compatibility fixture preserved case preset lowering; draft, held, "
+            "no-fan-in, wait-all, overlapping write fence, selected_*, and movement probes rejected"
         ),
     )
 

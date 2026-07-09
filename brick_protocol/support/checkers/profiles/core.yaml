@@ -137,6 +137,7 @@ path_allowlist:
       - brick_protocol/support/checkers/profiles/sakana_wire_packet.yaml
       - brick_protocol/support/checkers/profiles/sink_registry.yaml
       - brick_protocol/support/checkers/profiles/step_output_evidence_field_set_parity.yaml
+      - brick_protocol/support/checkers/profiles/structure_plan_fan_barrier.yaml
       - brick_protocol/support/checkers/profiles/structure_template_integrity.yaml
       - brick_protocol/support/checkers/profiles/tier_a_three_axis_conformance.yaml
 text_contains:

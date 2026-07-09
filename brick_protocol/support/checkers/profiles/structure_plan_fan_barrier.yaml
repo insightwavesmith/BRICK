@@ -1,0 +1,35 @@
+schema: checker-profile/v1
+profile_id: structure-plan-fan-barrier
+description: Focused support checker for confirmed request structure_plan fan-in/fan-out invariants.
+kernel_checks:
+  - structure_plan_fan_barrier
+  - package_path_admission
+path_exists:
+  - brick_protocol/support/checkers/lib/structure_plan_fan_barrier.py
+  - brick_protocol/support/checkers/fixtures/building_call_lowering/positive_structure_plan_request.json
+  - brick_protocol/support/checkers/fixtures/building_call_lowering/negative_structure_plan_no_fan_in.json
+text_contains:
+  - path: brick_protocol/support/checkers/lib/structure_plan_fan_barrier.py
+    texts:
+      - structure_plan fan barrier checker support evidence only
+      - run_structure_plan_fan_barrier
+      - fan_barrier_violations
+      - exactly one convergence group
+      - must preserve wait-all
+      - pairwise disjoint
+      - held_for_coo_review requests must not be lowered
+      - graph fan-barrier RED did not fire
+      - source truth
+      - success judgment
+      - quality judgment
+      - Movement authority
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - complete graph topology correctness
+  - provider behavior
+  - future Building correctness

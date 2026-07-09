@@ -164,6 +164,7 @@ from brick_protocol.support.checkers.lib.kernel_checks import (
     run_building_call_authoring_contract,
     run_building_call_direct_escape_contract,
     run_building_call_lowering_contract,
+    run_structure_plan_fan_barrier,
 )
 from brick_protocol.support.checkers.lib.mutation_red_manifest_check import run_mutation_red_manifest
 from brick_protocol.support.checkers.lib.install_release_export_lint_check import run_wheel_smoke
@@ -383,6 +384,7 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
     "building_call_authoring_contract": run_building_call_authoring_contract,
     "building_call_direct_escape_contract": run_building_call_direct_escape_contract,
     "building_call_lowering_contract": run_building_call_lowering_contract,
+    "structure_plan_fan_barrier": run_structure_plan_fan_barrier,
     "route_v2_views": _repo_main(
         "route_v2_views",
         "brick_protocol.support.checkers.check_route_v2_views",

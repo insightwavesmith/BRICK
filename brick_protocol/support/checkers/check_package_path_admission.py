@@ -523,8 +523,11 @@ BUILDING_CALL_LOWERING0_TARGETS = {
 
 BUILDING_CALL_LOWERING0_FIXTURES = {
     "brick_protocol/support/checkers/fixtures/building_call_lowering/positive_confirmed_request.json",
+    "brick_protocol/support/checkers/fixtures/building_call_lowering/positive_structure_plan_request.json",
+    "brick_protocol/support/checkers/fixtures/building_call_lowering/positive_without_structure_plan_request.json",
     "brick_protocol/support/checkers/fixtures/building_call_lowering/negative_draft_request.json",
     "brick_protocol/support/checkers/fixtures/building_call_lowering/negative_held_for_coo_review.json",
+    "brick_protocol/support/checkers/fixtures/building_call_lowering/negative_structure_plan_no_fan_in.json",
 }
 
 BUILDING_CALL_DIRECT_ESCAPE0_FIXTURES = {

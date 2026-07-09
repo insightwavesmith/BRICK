@@ -3,6 +3,7 @@ profile_id: building-call-lowering
 description: GOAL ⑤g confirmed-only Building Call lowering to existing materializer intent shape.
 kernel_checks:
   - building_call_lowering_contract
+  - structure_plan_fan_barrier
   - package_path_admission
   - axis_crossing_elegance
 path_exists:
@@ -10,7 +11,9 @@ path_exists:
   - brick_protocol/support/checkers/fixtures/building_call_lowering/positive_confirmed_request.json
   - brick_protocol/support/checkers/fixtures/building_call_lowering/negative_draft_request.json
   - brick_protocol/support/checkers/fixtures/building_call_lowering/negative_held_for_coo_review.json
+  - brick_protocol/support/checkers/lib/structure_plan_fan_barrier.py
   - brick_protocol/support/checkers/profiles/building_call_lowering.yaml
+  - brick_protocol/support/checkers/profiles/structure_plan_fan_barrier.yaml
   - brick_protocol/support/checkers/module_registry.yaml
 text_contains:
   - path: brick_protocol/support/operator/building_call.py
@@ -48,9 +51,16 @@ text_contains:
   - path: brick_protocol/support/checkers/check_profile.py
     texts:
       - building_call_lowering_contract
+      - structure_plan_fan_barrier
+  - path: brick_protocol/support/checkers/lib/structure_plan_fan_barrier.py
+    texts:
+      - fan_barrier_violations
+      - run_structure_plan_fan_barrier
+      - graph fan-barrier RED did not fire
   - path: brick_protocol/support/checkers/module_registry.yaml
     texts:
       - brick_protocol/support/operator/building_call.py
+      - brick_protocol/support/checkers/lib/structure_plan_fan_barrier.py
       - GOAL ⑤g confirmed-only lowering and GOAL ⑤h direct_preset_admission + fast_confirm evidence
 text_absent:
   - path: brick_protocol/support/operator/building_call.py

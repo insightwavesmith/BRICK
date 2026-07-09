@@ -1385,6 +1385,16 @@ modules:
     decomposition_target: ""
     pinned_by: graph_topology_fan_barrier kernel check (declared graph fan-in/fan-out barrier negative/positive fixtures; homes no crossing mechanics, imports no axis at module level)
 
+  - module: brick_protocol/support/checkers/lib/structure_plan_fan_barrier.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: structure_plan_fan_barrier profile (confirmed request structure_plan single fan-in, wait-all, branch write-fence, held_for_coo_review, and graph fan-barrier RED probes; homes no crossing mechanics, imports no axis at module level)
+
   # ---- brick_protocol/support/connection -------------------------------------------------
   - module: brick_protocol/support/connection/agent_adapter.py
     layer: connection

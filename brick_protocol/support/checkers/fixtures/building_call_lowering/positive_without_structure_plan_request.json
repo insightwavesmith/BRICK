@@ -1,0 +1,15 @@
+{
+  "building_case": "standard_delivery",
+  "confirmation_state": "confirmed",
+  "declared_by": "coo:building-call-lowering-checker",
+  "kind": "confirmed_building_call_request_v1_1",
+  "task_statement": "Backward-compatible confirmed request with no structure_plan.\n",
+  "write_scope": {
+    "allowed_paths": [
+      "brick_protocol/support/operator/building_call.py"
+    ],
+    "forbidden_paths": [
+      ".git/**"
+    ]
+  }
+}
