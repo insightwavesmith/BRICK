@@ -99,3 +99,10 @@ W4: #7 릴리스 게이트 (#1~#6 착지 후에만 개시)
 
 [📦 보존 자산] refs/brick-salvage/ 21개 (git checkout으로 회수). buildings 아카이브=/private/tmp/brick-buildings-archive-0709(30개).
 ```
+
+## 참고 아티팩트
+
+```text
+골 진행 대시보드 (0709, HEAD 2d3a8b077 기준): https://claude.ai/code/artifact/8a893a43-27c5-42a4-8bb8-a69a48cd2f28
+방지책 3층 설계 전문: prevention-official-route-3layer-design-0709.md
+```
