@@ -1,0 +1,63 @@
+{
+  "building_id": "deku-d4-compound-inject-0709",
+  "declared_gate_refs": [
+    "link-gate:default-transition"
+  ],
+  "kind": "link_launch_policy_provenance",
+  "launch_rows": [
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:deku-d4-compound-inject-0709-work-to-deku-d4-compound-inject-0709-code-attack-qa",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "deku-d4-compound-inject-0709-work",
+      "target_ref": "brick-deku-d4-compound-inject-0709-code-attack-qa"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:deku-d4-compound-inject-0709-code-attack-qa-to-deku-d4-compound-inject-0709-closure",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "deku-d4-compound-inject-0709-code-attack-qa",
+      "target_ref": "brick-deku-d4-compound-inject-0709-closure"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:deku-d4-compound-inject-0709-closure-to-boundary-closed",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "deku-d4-compound-inject-0709-closure",
+      "target_ref": "building-boundary:closed"
+    }
+  ],
+  "max_attempts_by_boundary": {},
+  "node_reroute_budgets": {
+    "brick-deku-d4-compound-inject-0709-closure": 5,
+    "brick-deku-d4-compound-inject-0709-code-attack-qa": 5,
+    "brick-deku-d4-compound-inject-0709-work": 5
+  },
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality"
+  ],
+  "plan_ref": "building-plan:composed-graph",
+  "plan_shape": "graph",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "support CLI wrapper only",
+    "existing seams own run/checker behavior",
+    "P3 records launch parameters only; P4 owns Carry budget evidence"
+  ],
+  "selected_shape_ref": ""
+}

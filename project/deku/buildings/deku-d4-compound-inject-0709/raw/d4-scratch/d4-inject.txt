@@ -1,0 +1,50 @@
+{
+  "has_policy": true,
+  "has_marker": true,
+  "has_wiki": true,
+  "has_conversation": true,
+  "history_len": 1191,
+  "r2_blank": false
+}
+---
+[stable]
+Deku conductor. Workers own user prose.
+
+[state]
+{"goal": "seed turn for d4", "notes": [], "turn": 1, "last_slot": null}
+
+[events]
+{"kind": "policy_inject", "version": "policy.v-d4", "chars": 89, "into_conduct_history": true, "ts": 1783610918.158879}
+{"kind": "wiki_slice_inject", "refs": ["concepts/d4-lesson.md"], "chars": 153, "into_conduct_history": true, "ts": 1783610918.1589491}
+{"kind": "turn", "slot": null, "calls": 3, "preview": "[mock:answer-1] processed: r and provide the missing information.\n\nProblem: seed turn for d4\n\nSearch for and provide the", "ts": 1783611141.142515}
+
+[policy]
+policy_version=policy.v-d4
+slot_hint answer-1: {'n': 5, 'fail': 1}
+anti: d4_policy_marker
+
+[wiki]
+### d4-lesson
+---
+title: d4-lesson
+source: building-evidence
+created: 1783610918.151625
+---
+
+Always declare write_scope with write=True for work bricks.
+
+
+[current_user]
+remind write_scope lesson and policy
+
+[conversation_history]
+Q: seed turn for d4
+A: [mock:answer-1] processed: r and provide the missing information.
+
+Problem: seed turn for d4
+
+Search for and provide the missing information.
+
+Problem: seed turn for d4
+
+Using the above material, give the final complete answer.

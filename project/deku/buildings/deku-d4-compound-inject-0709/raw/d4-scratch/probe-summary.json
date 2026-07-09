@@ -1,0 +1,10 @@
+{
+  "d4": {
+    "has_policy": true,
+    "has_marker": true,
+    "has_wiki": true,
+    "has_conversation": true,
+    "history_len": 1191,
+    "r2_blank": false
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "kind": "d4_dogfood",
+  "ts": 1783611357.1687732,
+  "building": "deku-d4-compound-inject-0709",
+  "checks": {
+    "has_policy": true,
+    "has_marker": true,
+    "has_wiki": true,
+    "has_conversation": true,
+    "history_len": 1191,
+    "r2_blank": false
+  },
+  "history_has_policy_section": true,
+  "history_has_wiki_section": true,
+  "history_has_marker": true,
+  "event_log_only": false,
+  "note": "conduct history capture via wrap(run_conduct); strings present in history not event-only"
+}

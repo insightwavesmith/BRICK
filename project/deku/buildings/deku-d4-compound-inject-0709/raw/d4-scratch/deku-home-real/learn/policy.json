@@ -1,0 +1,20 @@
+{
+  "version": "policy.v-d4",
+  "strategy_priors": {},
+  "slot_hints": {
+    "answer-1": {
+      "n": 5,
+      "fail": 1
+    }
+  },
+  "verify_triggers": [
+    "high_risk",
+    "production",
+    "credentials",
+    "delete"
+  ],
+  "anti_patterns": [
+    "d4_policy_marker"
+  ],
+  "updated_at": 1783611225.130535
+}

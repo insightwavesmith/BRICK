@@ -1,0 +1,63 @@
+{
+  "agent_binding_declarations": [
+    {
+      "agent_object_ref": "agent-object:dev",
+      "row_ref": "agent-row:deku-d4-compound-inject-0709-work",
+      "step_ref": "deku-d4-compound-inject-0709-work"
+    },
+    {
+      "agent_object_ref": "agent-object:qa",
+      "row_ref": "agent-row:deku-d4-compound-inject-0709-code-attack-qa",
+      "step_ref": "deku-d4-compound-inject-0709-code-attack-qa"
+    },
+    {
+      "agent_object_ref": "agent-object:coo",
+      "row_ref": "agent-row:deku-d4-compound-inject-0709-closure",
+      "step_ref": "deku-d4-compound-inject-0709-closure"
+    }
+  ],
+  "building_id": "deku-d4-compound-inject-0709",
+  "canonical_chain_preset_ref": "",
+  "chain_preset_catalog_scope": "",
+  "chain_preset_catalog_source": "",
+  "chain_preset_ref": "",
+  "common_basis_ref": "",
+  "compat_chain_preset_ref": "",
+  "composition_mode": "caller_or_coo_declared_graph_composition",
+  "expanded_brick_spec_refs": [
+    "brick_protocol/brick/templates/bricks/work/brick.md",
+    "brick_protocol/brick/templates/bricks/code-attack-qa/brick.md",
+    "brick_protocol/brick/templates/bricks/closure/brick.md"
+  ],
+  "expanded_brick_template_refs": [
+    "brick_protocol/brick/templates/bricks/work/return.yaml",
+    "brick_protocol/brick/templates/bricks/transition-concern-return.yaml",
+    "brick_protocol/brick/templates/bricks/code-attack-qa/return.yaml",
+    "brick_protocol/brick/templates/bricks/closure/return.yaml"
+  ],
+  "expanded_step_template_refs": [
+    "building-step-template:work",
+    "building-step-template:code-attack-qa",
+    "building-step-template:closure"
+  ],
+  "kind": "preset_expansion_provenance",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "selected preset ref was not exposed by the plan"
+  ],
+  "plan_ref": "building-plan:composed-graph",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "support CLI wrapper only",
+    "existing seams own run/checker behavior"
+  ],
+  "selected_preset_ref": "",
+  "selected_shape_ref": "",
+  "shape_catalog_ref": "brick-template-catalog:split-p3b-p4"
+}
