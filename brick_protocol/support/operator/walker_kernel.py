@@ -83,11 +83,7 @@ from brick_protocol.support.operator.reporter import (
     emit_building_event_for_policy,
     report_event_policy_from_plan,
 )
-from brick_protocol.support.operator.route_v2_views import (
-    ROUTE_V2_SHARED_CLASSIFIER_REF,
-    classify_route_v2_concern_eligibility,
-    render_route_v2_view,
-)
+from brick_protocol.support.operator.route_v2_views import render_route_v2_view
 from brick_protocol.support.recording.declaration_packets import (
     _write_declaration_work_evidence,
 )
@@ -273,29 +269,15 @@ def _route_v2_view_observation(
     gate_state: str = "",
     movement_candidate: str = "",
 ) -> Mapping[str, Any]:
-    """Build a Route V2 walker observation from already-read facts.
-
-    Pure-dev D1 beyond-SHAPE-A min slice: eligibility uses the shared SHAPE B
-    classifier (same helper as render_route_v2_view). Binding remains advisory
-    and adopted_as_movement stays False — no Movement control-flow authority.
-    """
+    """Build an advisory Route V2 walker observation from already-read facts."""
 
     route_policy_input_state, route_policy = _route_v2_policy_input_from_plan(plan)
     if route_policy_input_state == "blocked":
         route_policy = None
-    concern_kind = _optional_text_value(concern.get("concern_kind")) or ""
-    shared = (
-        classify_route_v2_concern_eligibility(concern_kind)
-        if concern_kind
-        else {}
-    )
     return {
         "kind": "route_v2_view_observation",
         "binding": "advisory",
         "adopted_as_movement": False,
-        "route_v2_shape": "shape_b_shared_helper",
-        "classifier_ref": ROUTE_V2_SHARED_CLASSIFIER_REF,
-        "shared_eligibility_classification": shared,
         "reroute_ref": reroute_ref,
         "source_step_ref": source_step_ref,
         "source_transition_concern_ref": _optional_text_value(
@@ -311,7 +293,6 @@ def _route_v2_view_observation(
         ),
         "proof_limits": [
             "support read-only projection evidence only",
-            "shared SHAPE B eligibility classifier only",
             "not source truth",
             "not success judgment",
             "not quality judgment",
@@ -933,7 +914,6 @@ def process_one_node(
     repo_root_path: Path,
     report_env: Mapping[str, str] | None,
     report_slack_sender: Any | None,
-    official_launch_observation: Mapping[str, Any],
     record_step_output_immediately: bool = True,
     defer_frontier_writes: bool = False,
 ) -> NodeProcessingOutcome:
@@ -1617,7 +1597,6 @@ def _run_dynamic_graph_walker(
             repo_root_path=repo_root_path,
             report_env=report_env,
             report_slack_sender=report_slack_sender,
-            official_launch_observation=official_launch_observation,
             record_step_output_immediately=record_step_output_immediately,
             defer_frontier_writes=defer_frontier_writes,
         )

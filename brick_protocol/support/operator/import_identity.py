@@ -7,8 +7,6 @@ Agent, Link, source truth, success, quality, or Movement authority.
 
 from __future__ import annotations
 
-import inspect
-import secrets
 import sys
 import tomllib
 from contextvars import ContextVar, Token
@@ -22,29 +20,10 @@ PROJECT_DISTRIBUTION_NAME = "brick-protocol"
 SOURCE_MARKER_REL = Path("pyproject.toml")
 IMPORT_IDENTITY_REL = Path(".")
 SOURCE_IMPORT_PACKAGE_REL = Path("brick_protocol/__init__.py")
-# Pure-dev D3: only these modules may mint. Lazy forgers that call ContextVar.set
-# with a bare object fail enforce (typed proof required).
-_OFFICIAL_LAUNCH_MINT_MODULES: frozenset[str] = frozenset(
-    {
-        "brick_protocol.support.operator.cli",
-        "brick_protocol.support.operator.import_identity",
-        "__main__",
-    }
-)
 _OFFICIAL_LAUNCH_TOKEN: ContextVar[object | None] = ContextVar(
     "brick_protocol_official_launch_token",
     default=None,
 )
-PURE_DEV_D3_BUILDING_ID = "pure-dev-d3-r7-product-land-0709b"
-PURE_DEV_D3_HARDEN_REF = "official_launch_typed_proof_v1"
-
-
-@dataclass(frozen=True)
-class OfficialLaunchProof:
-    """Process-local proof object only mint_official_launch_token may construct."""
-
-    nonce: str
-    minter_module: str
 
 
 @dataclass(frozen=True)
@@ -139,32 +118,10 @@ def install_source_import_paths(identity: OperatorImportIdentity) -> None:
             sys.path.insert(0, entry_text)
 
 
-def _caller_module_name() -> str:
-    frame = inspect.currentframe()
-    if frame is None or frame.f_back is None or frame.f_back.f_back is None:
-        return ""
-    # f_back = mint/suppress caller site's parent of this helper's immediate caller
-    caller = frame.f_back.f_back
-    return str(caller.f_globals.get("__name__") or "")
-
-
 def mint_official_launch_token() -> Token[object | None]:
-    """Mint a process-local official-launch proof for one CLI dispatch.
+    """Mint a process-local official-launch token for one CLI dispatch."""
 
-    Pure-dev D3 harden: refuse mint from non-allowlisted modules and store a
-    typed OfficialLaunchProof (bare ContextVar.set(object()) forgeries fail enforce).
-    """
-
-    minter = _caller_module_name()
-    if minter not in _OFFICIAL_LAUNCH_MINT_MODULES and not minter.endswith(
-        ".check_import_identity_modes"
-    ):
-        raise RuntimeError(
-            "official launch mint refused: caller module is not allowlisted "
-            f"({minter or 'unknown'}); mint only from brick CLI / admitted probes"
-        )
-    proof = OfficialLaunchProof(nonce=secrets.token_hex(16), minter_module=minter or "unknown")
-    return _OFFICIAL_LAUNCH_TOKEN.set(proof)
+    return _OFFICIAL_LAUNCH_TOKEN.set(object())
 
 
 def reset_official_launch_token(token: Token[object | None]) -> None:
@@ -182,24 +139,20 @@ def suppress_official_launch_token_for_probe() -> Token[object | None]:
 def official_launch_token_observation() -> dict[str, Any]:
     """Observe process-local official-launch token presence (support fact only).
 
-    Stage 3b lethal + D3 typed-proof harden: presence requires OfficialLaunchProof.
+    Stage 3b (Smith residual R1): absence_action is lethal at the walker chokepoint
+    via ``enforce_official_launch_token``. This observation still records the fact
+    without itself raising — the walker entry calls enforce after observing.
     """
 
-    value = _OFFICIAL_LAUNCH_TOKEN.get()
-    present = isinstance(value, OfficialLaunchProof)
-    forged_non_proof = value is not None and not present
+    present = _OFFICIAL_LAUNCH_TOKEN.get() is not None
     return {
         "kind": "official_launch_token_observation",
         "token_present": present,
-        "forged_non_proof_observed": forged_non_proof,
         "observation_mode": "gate_lethal",
         "absence_action": "raise_runtime_error",
         "token_source": "brick_protocol.support.operator.cli.main",
-        "pure_dev_d3_building_id": PURE_DEV_D3_BUILDING_ID,
-        "harden_ref": PURE_DEV_D3_HARDEN_REF,
         "proof_limits": [
             "process-scoped contextvars.ContextVar observation only",
-            "typed OfficialLaunchProof required for presence",
             "not packet-supplied",
             "not credential or secret evidence",
             "not source truth",
@@ -210,7 +163,7 @@ def official_launch_token_observation() -> dict[str, Any]:
         "not_proven": [
             "complete runtime process integrity outside this Python context",
             "future launcher behavior",
-            "process-attested or cryptographic mint beyond typed proof",
+            "deliberate contextvar forgery outside cli.main",
         ],
     }
 
@@ -218,21 +171,16 @@ def official_launch_token_observation() -> dict[str, Any]:
 def enforce_official_launch_token(
     observation: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Stage 3b + D3: refuse walker entry without a typed official-launch proof.
+    """Stage 3b lethal gate: refuse walker entry without an official-launch token.
 
-    Support mechanics only. Bare forgeries (ContextVar.set of non-proof values)
-    are treated as absent. Does not judge success/quality/Movement.
+    Support mechanics only: raises when the process-local token is absent so
+    out-of-band ``python -c`` / launcher imports cannot walk a Building Plan.
+    Legitimate paths mint via ``cli.main``. Does not judge success/quality/Movement.
     """
 
     obs = dict(observation) if isinstance(observation, Mapping) else official_launch_token_observation()
-    value = _OFFICIAL_LAUNCH_TOKEN.get()
-    if isinstance(value, OfficialLaunchProof) and obs.get("token_present") is True:
+    if obs.get("token_present") is True:
         return obs
-    if value is not None and not isinstance(value, OfficialLaunchProof):
-        raise RuntimeError(
-            "official launch token forgery refused: value is not OfficialLaunchProof; "
-            "mint only via mint_official_launch_token from an allowlisted module"
-        )
     raise RuntimeError(
         "official launch token absent: walk only via brick CLI "
         "(brick build / brick resume / python -m brick_protocol.support.operator.cli). "

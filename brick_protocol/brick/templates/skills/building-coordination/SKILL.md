@@ -284,33 +284,3 @@ return shape declares `transition_concern_evidence`. In hard fan-in QA cohorts,
 QA lanes return their own Brick fields without Link-facing `transition_concern_evidence`;
 closure-synthesis is the only Link-facing `transition_concern_evidence` source.
 Link / COO disposition adopts one declared Movement at the transition boundary.
-
-Hold disposition vocabulary reference: when a walk stops at a HOLD, read the
-committed self-description before choosing a disposition. It maps each measured
-`hold_reason` literal to its legal disposition class, the real meaning of each
-disposition action (notably `forward` = continue the declared road, NOT an
-adoption or auto-approval; `raise` = bump budget so the held landing adopts
-naturally; `stop` = lifecycle/close; `reroute` = move to another declared
-boundary), and mispatch case references (0702 raise/forward confusion, 0703
-reroute-suggestion HOLD mis-forwarded, 0704 route-policy over-adopting a
-design-question concern):
-
-```text
-project/brick-protocol/status/kernel/hold-disposition-vocabulary-0704.md
-```
-
-That doc also records the distinct resume seed-build integrity refusal (a
-fail-closed ValueError, NOT a `hold_reason` disposition; legal recovery = a
-FRESH re-launch) per `resume-ledger-mismatch-recovery-0704.md`. It is committed
-support evidence only: it does not choose the disposition, judge success or
-quality, or select Link Movement — Link / COO adopts one declared Movement at
-the boundary.
-
-## Ship-copy land
-
-This section carries the hold disposition vocabulary reference above:
-
-```text
-project/brick-protocol/status/kernel/hold-disposition-vocabulary-0704.md
-pure-dev-d4-r4-product-land-0709b ship-copy land
-```
