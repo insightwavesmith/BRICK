@@ -306,4 +306,11 @@ support evidence only: it does not choose the disposition, judge success or
 quality, or select Link Movement — Link / COO adopts one declared Movement at
 the boundary.
 
-<!-- pure-dev-d4-r4-ship-copy-0709 land -->
+## Ship-copy land
+
+This section carries the hold disposition vocabulary reference above:
+
+```text
+project/brick-protocol/status/kernel/hold-disposition-vocabulary-0704.md
+pure-dev-d4-r4-product-land-0709b ship-copy land
+```
