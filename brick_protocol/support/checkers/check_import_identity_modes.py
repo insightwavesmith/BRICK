@@ -25,6 +25,8 @@ if str(_REPO_ROOT) not in sys.path:
 
 from brick_protocol.support.checkers.lib.yaml_subset import KernelResult, ProfileError
 from brick_protocol.support.operator.import_identity import (
+    _OFFICIAL_LAUNCH_TOKEN,
+    OfficialLaunchProof,
     mint_official_launch_token,
     official_launch_token_observation,
     reset_official_launch_token,
@@ -280,10 +282,18 @@ def _assert_official_launch_token_fixture() -> int:
         absent = official_launch_token_observation()
         if absent.get("token_present") is not False:
             raise ProfileError("official-launch token fixture observed token before mint")
+        if absent.get("forged_non_proof_observed") is not False:
+            raise ProfileError("official-launch token fixture observed forge before mint")
+        if absent.get("forged_unminted_proof_observed") is not False:
+            raise ProfileError("official-launch token fixture observed unminted proof before mint")
         if absent.get("absence_action") != "raise_runtime_error":
             raise ProfileError("official-launch token absence is not lethal Stage 3b")
         if absent.get("observation_mode") != "gate_lethal":
             raise ProfileError("official-launch token observation_mode is not gate_lethal")
+        if absent.get("pure_dev_d3_building_id") != "pure-dev-d3-r7-body-reland-0709c":
+            raise ProfileError("official-launch token observation missing pure-dev D3 id")
+        if absent.get("harden_ref") != "official_launch_typed_proof_v1":
+            raise ProfileError("official-launch token observation missing D3 harden_ref")
         try:
             enforce_official_launch_token(absent)
         except RuntimeError as exc:
@@ -296,14 +306,101 @@ def _assert_official_launch_token_fixture() -> int:
     finally:
         reset_official_launch_token(suppress_token)
 
+    forge_token = _OFFICIAL_LAUNCH_TOKEN.set(object())
+    try:
+        forged = official_launch_token_observation()
+        if forged.get("token_present") is not False:
+            raise ProfileError("official-launch non-proof forge was counted as present")
+        if forged.get("forged_non_proof_observed") is not True:
+            raise ProfileError("official-launch non-proof forge was not observed")
+        if forged.get("forged_unminted_proof_observed") is not False:
+            raise ProfileError("official-launch non-proof forge was marked unminted proof")
+        try:
+            enforce_official_launch_token(forged)
+        except RuntimeError as exc:
+            if "official launch proof forged" not in str(exc):
+                raise ProfileError(
+                    f"official-launch forge refuse message unexpected: {exc}"
+                ) from exc
+        else:
+            raise ProfileError("official-launch non-proof forge was not refused")
+    finally:
+        reset_official_launch_token(forge_token)
+
+    try:
+        OfficialLaunchProof(nonce="fake", minter_module="attacker")
+    except RuntimeError as exc:
+        if "mint only via mint_official_launch_token" not in str(exc):
+            raise ProfileError(
+                f"official-launch direct proof construction message unexpected: {exc}"
+            ) from exc
+    else:
+        raise ProfileError("official-launch direct proof construction was not refused")
+
+    with _checker_tempdir(_REPO_ROOT, "bp-official-launch-main-forge-") as tmp:
+        script = tmp / "evil_main.py"
+        script.write_text(
+            "\n".join(
+                [
+                    "from brick_protocol.support.operator.import_identity import mint_official_launch_token",
+                    "try:",
+                    "    mint_official_launch_token()",
+                    "except RuntimeError as exc:",
+                    "    print(str(exc))",
+                    "else:",
+                    "    raise SystemExit('standalone __main__ mint unexpectedly accepted')",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        result = subprocess.run(
+            [sys.executable, str(script)],
+            cwd=_REPO_ROOT,
+            env={"PYTHONPATH": str(_REPO_ROOT)},
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=30,
+            check=False,
+        )
+        if result.returncode != 0:
+            raise ProfileError(
+                "official-launch standalone __main__ mint probe failed:\n"
+                + (result.stderr or result.stdout)
+            )
+        if "official launch mint refused" not in result.stdout:
+            raise ProfileError(
+                "official-launch standalone __main__ mint probe did not observe refusal"
+            )
+
     token = mint_official_launch_token()
     try:
+        proof = _OFFICIAL_LAUNCH_TOKEN.get()
+        if type(proof) is not OfficialLaunchProof:
+            raise ProfileError("official-launch mint did not set OfficialLaunchProof")
+        if not proof.nonce or not proof.minter_module:
+            raise ProfileError("official-launch proof missing nonce or minter_module")
         present = official_launch_token_observation()
         if present.get("token_present") is not True:
             raise ProfileError("official-launch token fixture did not observe minted token")
+        if present.get("forged_non_proof_observed") is not False:
+            raise ProfileError("official-launch minted proof was marked forged")
+        if present.get("forged_unminted_proof_observed") is not False:
+            raise ProfileError("official-launch minted proof was marked unminted")
         enforced = enforce_official_launch_token(present)
         if enforced.get("token_present") is not True:
             raise ProfileError("lethal gate rejected a present official-launch token")
+        stale_observation = dict(present)
+        stale_observation["token_present"] = False
+        try:
+            enforce_official_launch_token(stale_observation)
+        except RuntimeError as exc:
+            if "caller-supplied observation disagrees" not in str(exc):
+                raise ProfileError(
+                    f"official-launch stale observation message unexpected: {exc}"
+                ) from exc
+        else:
+            raise ProfileError("official-launch stale caller observation was trusted")
     finally:
         reset_official_launch_token(token)
 
