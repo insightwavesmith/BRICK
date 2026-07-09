@@ -55,6 +55,7 @@ from brick_protocol.support.connection.adapter_constants import (
     ADAPTER_CLAUDE_LOCAL,
     ADAPTER_CODEX_LOCAL,
     ADAPTER_GEMINI_LOCAL,
+    ADAPTER_GROK_LOCAL,
     ALLOWED_ADAPTER_REFS,
     adapter_boundary_matrix,
 )
@@ -105,6 +106,7 @@ REAL_PROVIDER_SELECTION_ORDER = (
     ADAPTER_CLAUDE_LOCAL,
     ADAPTER_CODEX_LOCAL,
     ADAPTER_GEMINI_LOCAL,
+    ADAPTER_GROK_LOCAL,
 )
 DEFAULT_EXAMPLE_BUILDING_ID = "brick-cli-example"
 DEFAULT_EXAMPLE_TASK_SOURCE_REF = "brick_protocol/brick/templates/tasks/source-template.md"

@@ -19,9 +19,11 @@ from brick_protocol.support.connection.adapter_constants import (
     ADAPTER_CODEX_FUGU_LOCAL,
     ADAPTER_CODEX_LOCAL,
     ADAPTER_GEMINI_LOCAL,
+    ADAPTER_GROK_LOCAL,
     MODEL_REF_CLAUDE_INHERIT,
     MODEL_REF_CODEX_DEFAULT,
     MODEL_REF_GEMINI_DEFAULT,
+    MODEL_REF_GROK_DEFAULT,
     MODEL_REF_SAKANA_FUGU,
     MODEL_REF_SAKANA_FUGU_ULTRA,
 )
@@ -98,6 +100,7 @@ DEFAULT_MODEL_REF_BY_ADAPTER = {
     ADAPTER_CODEX_LOCAL: MODEL_REF_CODEX_DEFAULT,
     ADAPTER_CODEX_FUGU_LOCAL: MODEL_REF_SAKANA_FUGU,
     ADAPTER_GEMINI_LOCAL: MODEL_REF_GEMINI_DEFAULT,
+    ADAPTER_GROK_LOCAL: MODEL_REF_GROK_DEFAULT,
 }
 
 MODEL_REF_PROVIDER_BY_ADAPTER = {
@@ -105,6 +108,7 @@ MODEL_REF_PROVIDER_BY_ADAPTER = {
     ADAPTER_CODEX_LOCAL: "codex",
     ADAPTER_CODEX_FUGU_LOCAL: "sakana",
     ADAPTER_GEMINI_LOCAL: "gemini",
+    ADAPTER_GROK_LOCAL: "grok",
 }
 
 LLM_ALIAS_DECLARATIONS = {
@@ -128,6 +132,13 @@ LLM_ALIAS_DECLARATIONS = {
     "gemini": {
         "adapter_ref": ADAPTER_GEMINI_LOCAL,
         "model_ref": MODEL_REF_GEMINI_DEFAULT,
+    },
+    "grok": {
+        "adapter_ref": ADAPTER_GROK_LOCAL,
+        "model_ref": MODEL_REF_GROK_DEFAULT,
+        "model_aliases": {
+            "fast": "grok-composer-2.5-fast",
+        },
     },
 }
 

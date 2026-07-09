@@ -42,6 +42,7 @@ from brick_protocol.support.connection.adapter_constants import (
     ADAPTER_CLAUDE_LOCAL,
     ADAPTER_CODEX_FUGU_LOCAL,
     ADAPTER_CODEX_LOCAL,
+    ADAPTER_GROK_LOCAL,
     ALLOWED_ADAPTER_REFS,
     MODEL_PROVIDER_BY_ADAPTER,
     MODEL_REF_CLAUDE_INHERIT,
@@ -118,6 +119,8 @@ _MODEL_CLI_FLAG_BY_ADAPTER: Mapping[str, str] = {
     # extra_config_overrides, not by the model flag).
     ADAPTER_CODEX_FUGU_LOCAL: "-m",
     ADAPTER_CLAUDE_LOCAL: "--model",
+    # grok-local: headless ``grok -m <model-id>`` (same short flag as codex).
+    ADAPTER_GROK_LOCAL: "-m",
 }
 
 
@@ -152,12 +155,18 @@ def _model_cli_emit(value: str, adapter_ref: str) -> tuple[str, ...]:
 EFFORT_REF_DEFAULT = "effort:default"  # deferrable sentinel; emits no CLI arg.
 EFFORT_REF_PREFIX = "effort:"  # the effort dial's ref prefix (symmetric to model:).
 
-# The effort-capable adapters (codex + codex-fugu + claude). codex-fugu-local is
-# the SAME codex executable, so it carries the SAME reasoning-effort dial as
-# codex-local. Gemini API carries no reasoning effort dial, so it is out of
-# scope: a declared effort on it is out-of-scope.
+# The effort-capable adapters (codex + codex-fugu + claude + grok). codex-fugu-local
+# is the SAME codex executable, so it carries the SAME reasoning-effort dial as
+# codex-local. Grok Build CLI accepts ``--reasoning-effort`` / ``--effort``.
+# Gemini local carries no reasoning effort dial, so it is out of scope: a
+# declared effort on it is out-of-scope.
 EFFORT_SCOPE: frozenset[str] = frozenset(
-    {ADAPTER_CODEX_LOCAL, ADAPTER_CODEX_FUGU_LOCAL, ADAPTER_CLAUDE_LOCAL}
+    {
+        ADAPTER_CODEX_LOCAL,
+        ADAPTER_CODEX_FUGU_LOCAL,
+        ADAPTER_CLAUDE_LOCAL,
+        ADAPTER_GROK_LOCAL,
+    }
 )
 
 # The admitted reasoning-effort levels. A declared effort dial (bare ``low`` or
@@ -201,6 +210,8 @@ _EFFORT_CLI_EMIT_BY_ADAPTER: Mapping[str, Callable[[str], tuple[str, ...]]] = {
     # codex-fugu-local: same codex executable -> same effort config-override shape.
     ADAPTER_CODEX_FUGU_LOCAL: lambda level: ("-c", "model_reasoning_effort=" + level),
     ADAPTER_CLAUDE_LOCAL: lambda level: ("--effort", level),
+    # grok-local: ``--reasoning-effort <level>`` (alias ``--effort``).
+    ADAPTER_GROK_LOCAL: lambda level: ("--reasoning-effort", level),
 }
 
 

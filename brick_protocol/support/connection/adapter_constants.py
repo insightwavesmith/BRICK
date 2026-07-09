@@ -21,6 +21,9 @@ ADAPTER_CODEX_LOCAL = "adapter:codex-local"
 ADAPTER_CODEX_FUGU_LOCAL = "adapter:codex-fugu-local"
 ADAPTER_CLAUDE_LOCAL = "adapter:claude-local"
 ADAPTER_GEMINI_LOCAL = "adapter:gemini-local"
+# Local Grok Build CLI (xAI). Headless single-turn via `grok -p` (same binary as
+# personal Grok TUI). Observed-write only when Brick write_scope + write-tier policy.
+ADAPTER_GROK_LOCAL = "adapter:grok-local"
 # Retired from active adapter admission. The literal is kept only so legacy
 # support checks and historical evidence can reject it explicitly.
 ADAPTER_GEMINI_API = "adapter:gemini-api"
@@ -62,6 +65,8 @@ MODEL_REF_CLAUDE_INHERIT = "model:claude:inherit"
 MODEL_REF_GEMINI_DEFAULT = "model:gemini:default"
 MODEL_REF_GEMINI_FLASH = "model:gemini:gemini-3.5-flash"
 MODEL_REF_GEMINI_LOCAL_FLASH = "model:gemini:gemini-3.5-flash"
+MODEL_REF_GROK_DEFAULT = "model:grok:grok-4.5"
+MODEL_REF_GROK_45 = "model:grok:grok-4.5"
 # Sakana model refs reachable through the codex-fugu-local adapter. The provider
 # token is "sakana" (matches codex's model_provider="sakana" routing); the model
 # id is the Sakana catalog slug. ``fugu`` is the catalog default; ``fugu-ultra``
@@ -73,6 +78,7 @@ MODEL_PROVIDER_BY_ADAPTER = {
     ADAPTER_CODEX_FUGU_LOCAL: "sakana",
     ADAPTER_CLAUDE_LOCAL: "claude",
     ADAPTER_GEMINI_LOCAL: "gemini",
+    ADAPTER_GROK_LOCAL: "grok",
 }
 _RETIRED_WRITE_ADAPTER_REFS = frozenset(
     {
@@ -86,6 +92,7 @@ _OBSERVED_WRITE_ADAPTER_REFS = frozenset(
         ADAPTER_CODEX_FUGU_LOCAL,
         ADAPTER_CLAUDE_LOCAL,
         ADAPTER_GEMINI_LOCAL,
+        ADAPTER_GROK_LOCAL,
     }
 )
 
@@ -96,6 +103,7 @@ ALLOWED_ADAPTER_REFS = frozenset(
         ADAPTER_CODEX_FUGU_LOCAL,
         ADAPTER_CLAUDE_LOCAL,
         ADAPTER_GEMINI_LOCAL,
+        ADAPTER_GROK_LOCAL,
         ADAPTER_CHAT_SESSION,
     }
 )
@@ -112,6 +120,14 @@ _ADAPTER_CAPABILITIES = {
     # that capability is not authority: effective write still requires Brick
     # write_scope NEED + read-write-scoped policy + observed-write admission.
     ADAPTER_GEMINI_LOCAL: frozenset(
+        {
+            ADAPTER_CAPABILITY_READ,
+            ADAPTER_CAPABILITY_WRITE,
+            ADAPTER_CAPABILITY_REVIEW,
+            ADAPTER_CAPABILITY_WEB,
+        }
+    ),
+    ADAPTER_GROK_LOCAL: frozenset(
         {
             ADAPTER_CAPABILITY_READ,
             ADAPTER_CAPABILITY_WRITE,
@@ -186,6 +202,16 @@ _ADAPTER_BOUNDARY_ROWS = {
         "known_limits": (
             "API key presence is not credential validity proof",
             "Gemini CLI tool policy projection is observed at run time",
+            "write capability is technical capability, not authority",
+        ),
+    },
+    ADAPTER_GROK_LOCAL: {
+        "boundary_strength": "local-cli-isolated-provider",
+        "credential_path_class": "provider-native-env-or-oauth-ref",
+        "write_boundary": "observed-write support only when Brick write_scope and write-tier Agent policy are both present",
+        "known_limits": (
+            "Grok CLI auth body is outside Brick evidence",
+            "local CLI reliability is observed only at run time",
             "write capability is technical capability, not authority",
         ),
     },

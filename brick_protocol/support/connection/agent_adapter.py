@@ -42,6 +42,7 @@ from .adapter_constants import (
     ADAPTER_CODEX_FUGU_LOCAL,
     ADAPTER_CLAUDE_LOCAL,
     ADAPTER_GEMINI_LOCAL,
+    ADAPTER_GROK_LOCAL,
     ADAPTER_CHAT_SESSION,
     READ_WRITE_TOOL_POLICY_REF,
     WRITE_TIER_TOOL_POLICY_REFS,
@@ -58,6 +59,7 @@ from .adapter_constants import (
     MODEL_REF_GEMINI_DEFAULT,
     MODEL_REF_GEMINI_FLASH,
     MODEL_REF_GEMINI_LOCAL_FLASH,
+    MODEL_REF_GROK_DEFAULT,
     MODEL_REF_SAKANA_FUGU,
     MODEL_REF_SAKANA_FUGU_ULTRA,
     _RETIRED_WRITE_ADAPTER_REFS,
@@ -690,6 +692,17 @@ _LOCAL_CLI_SPECS: Mapping[str, LocalCliSpec] = {
         invocation_args_kind="gemini-p-json-flash",
         default_model_ref=MODEL_REF_GEMINI_LOCAL_FLASH,
     ),
+    # grok-local: local Grok Build CLI (xAI). Headless single-turn via `grok -p`
+    # (same binary as the personal Grok TUI). Observed-write only when Brick
+    # write_scope + write-tier policy + observed-write admission are all present.
+    ADAPTER_GROK_LOCAL: LocalCliSpec(
+        adapter_ref=ADAPTER_GROK_LOCAL,
+        brain_surface_ref="brain-surface:grok-local-cli",
+        executable_name="grok",
+        version_args=("--version",),
+        invocation_args_kind="grok-single-turn",
+        default_model_ref=MODEL_REF_GROK_DEFAULT,
+    ),
 }
 
 # Gemini Generative Language HTTP API (grounded, not guessed):
@@ -826,6 +839,13 @@ def supported_model_ref_examples(adapter_ref: str) -> tuple[str, ...]:
             MODEL_REF_GEMINI_LOCAL_FLASH,
             "model:gemini:<gemini-model-id>",
         )
+    if adapter_ref == ADAPTER_GROK_LOCAL:
+        return (
+            MODEL_REF_GROK_DEFAULT,
+            "model:grok:grok-4.5",
+            "model:grok:grok-composer-2.5-fast",
+            "model:grok:<grok-cli-model-id>",
+        )
     if adapter_ref == ADAPTER_CHAT_SESSION:
         return (MODEL_REF_DEFAULT,)
     return (MODEL_REF_DEFAULT,)
@@ -869,15 +889,15 @@ def agent_request_read_tier(request: AgentAdapterRequest) -> bool:
     """Return whether this non-write request admits read-only repo inspection.
 
     Read/write tier is NOT a support-side authority over the tool-policy label.
-    The uniform rule across codex-local/claude-local/gemini-local is: if the
-    request does not open observed workspace write AND it carries a known,
+    The uniform rule across codex-local/claude-local/gemini-local/grok-local is:
+    if the request does not open observed workspace write AND it carries a known,
     tool-bearing Agent policy (every ref in KNOWN_TOOL_POLICY_REFS, at least
     one present), the adapter opens the read-only browse tier -- regardless of
     which read/write policy label it is. A read-only Brick paired with a
     tool-capable Agent therefore browses read-only. Effective-write requests
     still take the write path (early return). Ambiguous requests -- no tool
     policy, or any unknown policy ref -- fail closed to the none tier. Only
-    codex/claude/gemini local adapters can reach the read tier.
+    codex/claude/gemini/grok local adapters can reach the read tier.
     """
 
     if not isinstance(request, AgentAdapterRequest):
@@ -896,6 +916,7 @@ def agent_request_read_tier(request: AgentAdapterRequest) -> bool:
         ADAPTER_CODEX_FUGU_LOCAL,
         ADAPTER_CLAUDE_LOCAL,
         ADAPTER_GEMINI_LOCAL,
+        ADAPTER_GROK_LOCAL,
     }
 
 
@@ -955,11 +976,16 @@ _PROVIDER_INSTALL_HINT_KO: Mapping[str, str] = {
         "gemini가 설치돼 있지 않아요. 터미널에 이걸 붙여넣어 설치하세요: "
         "npm install -g @google/gemini-cli"
     ),
+    ADAPTER_GROK_LOCAL: (
+        "grok가 설치돼 있지 않아요. xAI Grok Build CLI를 설치한 뒤 "
+        "PATH에 grok 가 보이게 하세요 (예: ~/.local/bin/grok)."
+    ),
 }
 _PROVIDER_LOGIN_HINT_KO: Mapping[str, str] = {
     ADAPTER_CODEX_LOCAL: "codex login",
     ADAPTER_CLAUDE_LOCAL: "claude (실행 후 안내에 따라 로그인)",
     ADAPTER_GEMINI_LOCAL: "gemini (실행 후 안내에 따라 로그인)",
+    ADAPTER_GROK_LOCAL: "grok login",
 }
 
 
@@ -1219,6 +1245,7 @@ __all__ = [
     "ADAPTER_CODEX_FUGU_LOCAL",
     "ADAPTER_CODEX_LOCAL",
     "ADAPTER_GEMINI_LOCAL",
+    "ADAPTER_GROK_LOCAL",
     "ADAPTER_LOCAL",
     "ALLOWED_ADAPTER_REFS",
     "ALLOWED_SESSION_CONTINUITY_MODES",

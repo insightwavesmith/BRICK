@@ -145,7 +145,7 @@ def preflight_provider(
             "message_ko": (
                 "알 수 없는 provider예요. 지원하는 것: adapter:local, "
                 "adapter:codex-local, adapter:claude-local, adapter:gemini-local, "
-                "adapter:codex-fugu-local, adapter:chat-session"
+                "adapter:grok-local, adapter:codex-fugu-local, adapter:chat-session"
             ),
         }
 
@@ -1037,7 +1037,7 @@ def _validate_command_args(args: Sequence[str]) -> None:
     if not args:
         raise ValueError("local CLI args must not be empty")
     executable = Path(str(args[0])).name
-    if executable not in {"codex", "claude", "gemini"}:
+    if executable not in {"codex", "claude", "gemini", "grok"}:
         raise ValueError("local CLI executable is not allowlisted")
     for item in args:
         text = str(item)

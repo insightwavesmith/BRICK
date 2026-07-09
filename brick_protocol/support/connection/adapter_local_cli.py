@@ -58,6 +58,7 @@ from .adapter_constants import (
     ADAPTER_CODEX_FUGU_LOCAL,
     ADAPTER_CODEX_LOCAL,
     ADAPTER_GEMINI_LOCAL,
+    ADAPTER_GROK_LOCAL,
 )
 from .adapter_gemini_http import _gemini_api_key_env_present
 from .adapter_grant_policy import (
@@ -145,6 +146,17 @@ _GEMINI_AUTH_CARRY_ENV_KEYS: tuple[str, ...] = (
     "GEMINI_API_KEY",
     "GOOGLE_API_KEY",
 )
+# Grok Build CLI: OAuth lives under real ~/.grok (auth.json). API-key env is the
+# fallback path only; primary auth on this host is grok login / grok.com session.
+_GROK_AUTH_CARRY_ENV_KEYS: tuple[str, ...] = (
+    "XAI_API_KEY",
+    "GROK_API_KEY",
+)
+# Headless read-tier allowlist (internal tool IDs per Grok headless docs).
+# Keep this set minimal: including web tools (open_page/web_search) in a
+# --tools allowlist currently trips Grok agent-build schema errors on
+# run_terminal_cmd (observed grok 0.2.93: Requirements unsatisfied).
+_GROK_READ_TOOL_NAMES = "read_file,grep,list_dir"
 # LOCKED (0624 확정): the claude --setting-sources value that drops the user's
 # personal source (~/.claude skills + settings) while KEEPING project-level
 # settings. Excluding `user` is what makes claude not load the personal skills in
@@ -524,6 +536,26 @@ def _gemini_api_key_run_env(gemini_home: Path) -> dict[str, str]:
     env["HOME"] = str(gemini_home)
     env["GEMINI_CLI_TRUST_WORKSPACE"] = "true"
     _carry_auth_env(env, _GEMINI_AUTH_CARRY_ENV_KEYS)
+    return env
+
+
+def _grok_isolated_run_env() -> dict[str, str] | None:
+    """Build the scrubbed run env for a grok-local dispatch (None when isolation off).
+
+    KEEPS THE REAL HOME: Grok OAuth credentials live under ``~/.grok/auth.json``
+    and the CLI resolves them relative to the real home. A temp HOME would drop
+    the login session. Isolation therefore uses a clean allowlist env + real HOME
+    + API-key carry, with headless FLAGS (``--no-subagents``, ``--no-memory``,
+    tool allow/deny) applied at the call site. Support mechanics only.
+    """
+
+    if not _build_isolation_enabled():
+        return None
+    env = _scrubbed_base_env()
+    real_home = os.environ.get("HOME")
+    if real_home:
+        env["HOME"] = real_home
+    _carry_auth_env(env, _GROK_AUTH_CARRY_ENV_KEYS)
     return env
 
 
@@ -1077,6 +1109,52 @@ def _invoke_local_cli(
                 command_runner,
                 env=run_env,
             )
+    if spec.invocation_args_kind == "grok-single-turn":
+        from .agent_adapter import (
+            agent_request_effective_write,
+            agent_request_read_tier,
+        )
+
+        write_tier = agent_request_effective_write(request)
+        read_tier = agent_request_read_tier(request)
+        run_env = _grok_isolated_run_env()
+        # Sandbox: write -> workspace (CWD write); read/none -> read-only (no
+        # project mutation). Kernel-enforced where available; advisory on some
+        # platforms — still not write authority (Brick write_scope remains gate).
+        sandbox = "workspace" if write_tier else "read-only"
+        args_list: list[str] = [
+            executable_path,
+            "-p",
+            prompt,
+            "--output-format",
+            "plain",
+            "--sandbox",
+            sandbox,
+            "--cwd",
+            str(cwd),
+        ]
+        # Auto-approve tool execution when a tool-bearing tier is open; none-tier
+        # fails closed without --always-approve so the CLI cannot hang on prompts.
+        if write_tier or read_tier:
+            args_list.append("--always-approve")
+        if read_tier and not write_tier:
+            args_list.extend(["--tools", _GROK_READ_TOOL_NAMES])
+        # Isolation flags: drop personal subagents/memory bleed-in when scrubbed.
+        if run_env is not None:
+            args_list.extend(["--no-subagents", "--no-memory"])
+            args_list.extend(["--disallowed-tools", "Agent"])
+        # Model + effort dials (casting DATA projection; same loop as other CLIs).
+        args_list.extend(
+            _casting_cli_args(_model_alias_projected_request(request, spec), spec)
+        )
+        args = tuple(args_list)
+        return _run_or_delegate(
+            args,
+            cwd,
+            timeout_seconds,
+            command_runner,
+            env=run_env,
+        )
     raise ValueError("unsupported local CLI adapter kind")
 
 

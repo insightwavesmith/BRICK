@@ -2,11 +2,11 @@
 
 | | |
 |---|---|
-| **Status** | support evidence only · COO operating map · **LADDER CLOSED 0709** (see 05-coo-ladder-closure + ACTIVE_COO_GOAL COMPLETED) |
+| **Status** | support evidence only · COO operating map · **OPERATOR CLOSED / PRODUCT RESIDUAL OPEN 0709** (see 05 + ACTIVE_COO_GOAL) |
 | **Date** | 2026-07-09 |
 | **Live repo** | `/Users/smith/projects/BRICK` |
 | **Parents** | `03-remaining-frontier-goal-0709.md` · `02-unified-continuous-build-goal-0708.md` · `parent-goal-closure-0709.md` · route resume brief (COO 0709) |
-| **Active COO goal** | `status/kernel/ACTIVE_COO_GOAL.md` — **이 문서(G0–G6) 완벽 완료** |
+| **Active COO goal** | `status/kernel/ACTIVE_COO_GOAL.md` — 운영 사다리 닫힘 · 제품 잔여 큐 OPEN |
 | **Official route memo** | `status/kernel/OFFICIAL_ROUTE_MEMO.md` (update every Goal Exit) |
 | **Impl split** | G0–G1: Grok subagents OK · **after G1 Exit: BRICK buildings only** |
 | **Deku** | design frozen (`deku/docs/DEKU_STATUS.md`); reopen after BRICK G0–G1 |

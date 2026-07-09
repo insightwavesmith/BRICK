@@ -5,8 +5,8 @@
 | **Status** | support evidence · update at every Goal Exit |
 | **Updated** | 2026-07-09 |
 | **Authority for current ladder** | `GOAL/04-goal-phases-0709-route-and-frontier.md` |
-| **Active COO goal** | `ACTIVE_COO_GOAL.md` — **COMPLETED** (G0–G6 operator ladder) |
-| **Closure** | `GOAL/05-coo-ladder-closure-0709.md` |
+| **Active COO goal** | `ACTIVE_COO_GOAL.md` — **OPERATOR_LADDER_CLOSED · PRODUCT_RESIDUAL_OPEN** |
+| **Closure** | `GOAL/05-coo-ladder-closure-0709.md` (operator closed / residual open) |
 
 ---
 
