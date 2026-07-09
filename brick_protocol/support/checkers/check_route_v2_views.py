@@ -14,6 +14,9 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 from brick_protocol.support.operator.route_v2_views import (  # noqa: E402
+    PURE_DEV_D1_BUILDING_ID,
+    ROUTE_V2_SHARED_CLASSIFIER_REF,
+    classify_route_v2_concern_eligibility,
     route_v2_policy_packet,
     render_route_v2_view,
 )
@@ -33,6 +36,10 @@ def _load_yaml_minimal(path: Path) -> dict[str, Any]:
 def run(repo: Path) -> str:
     from brick_protocol.agent.return_fact import TRANSITION_CONCERN_KINDS
     from brick_protocol.support.checkers import check_bounded_agent_proposed_routing_loop0 as walker_chk
+    from brick_protocol.support.operator.import_identity import (
+        mint_official_launch_token,
+        reset_official_launch_token,
+    )
     from brick_protocol.support.operator import walker_kernel
 
     policy = _load_yaml_minimal(repo / "brick_protocol/link/route_policies/basic_qa_repair.yaml")
@@ -66,6 +73,27 @@ def run(repo: Path) -> str:
     )
     if impl_view["sealed_concern_kind_observation"]["concern_kind"] != "implementation_gap":
         raise AssertionError("implementation_gap concern kind not preserved")
+    if impl_view.get("route_v2_shape") != "shape_b_shared_helper":
+        raise AssertionError("Route V2 view missing SHAPE B shared-helper marker")
+    shared = impl_view.get("shared_eligibility_classification")
+    if not isinstance(shared, dict) or shared.get("classifier_ref") != ROUTE_V2_SHARED_CLASSIFIER_REF:
+        raise AssertionError("Route V2 view missing shared eligibility classification")
+    if shared.get("pure_dev_d1_building_id") != PURE_DEV_D1_BUILDING_ID:
+        raise AssertionError("Route V2 view missing pure_dev_d1_building_id")
+    direct = classify_route_v2_concern_eligibility("implementation_gap")
+    if direct.get("pure_dev_d1_building_id") != "pure-dev-d1-r5-body-reland-0709c":
+        raise AssertionError("shared classifier missing this Building id")
+    if direct.get("reroute_eligible") is not True or direct.get("non_reroute") is not False:
+        raise AssertionError("shared classifier implementation_gap eligibility wrong")
+    if impl_view["sealed_concern_kind_observation"].get("reroute_eligible") != direct.get(
+        "reroute_eligible"
+    ):
+        raise AssertionError("view sealed observation drifted from shared classifier")
+    if (
+        impl_view["route_policy_eligibility_observation"].get("pure_dev_d1_building_id")
+        != PURE_DEV_D1_BUILDING_ID
+    ):
+        raise AssertionError("route policy eligibility missing pure_dev_d1_building_id")
     if impl_view["route_policy_eligibility_observation"].get("requested_route_scope") != "implementation_only":
         raise AssertionError("implementation_gap did not match implementation_only route scope")
     if impl_view["materialization_view"].get("materialized") is not True:
@@ -154,20 +182,24 @@ def run(repo: Path) -> str:
         concern_kind="implementation_gap",
     )
     original_append = walker_kernel._append_route_v2_view_observation
+    launch = mint_official_launch_token()
     try:
-        walker_kernel._append_route_v2_view_observation = lambda observations, observation: None
-        without_obs, without_frontier, without_records = walker_chk._run(
+        try:
+            walker_kernel._append_route_v2_view_observation = lambda observations, observation: None
+            without_obs, without_frontier, without_records = walker_chk._run(
+                plan_adopt,
+                callable_adopt,
+                repo,
+            )
+        finally:
+            walker_kernel._append_route_v2_view_observation = original_append
+        with_obs, with_frontier, with_records = walker_chk._run(
             plan_adopt,
             callable_adopt,
             repo,
         )
     finally:
-        walker_kernel._append_route_v2_view_observation = original_append
-    with_obs, with_frontier, with_records = walker_chk._run(
-        plan_adopt,
-        callable_adopt,
-        repo,
-    )
+        reset_official_launch_token(launch)
     if without_records != with_records:
         raise AssertionError("Route V2 advisory observation changed reroute/HOLD records")
     if without_frontier.get("frontier_kind") != with_frontier.get("frontier_kind"):
@@ -189,6 +221,15 @@ def run(repo: Path) -> str:
         raise AssertionError("Route V2 walker observation must be advisory")
     if observation.get("adopted_as_movement") is not False:
         raise AssertionError("Route V2 walker observation must not be adopted as Movement")
+    if observation.get("route_v2_shape") != "shape_b_shared_helper":
+        raise AssertionError("walker route_v2 observation missing SHAPE B shared-helper marker")
+    if observation.get("classifier_ref") != ROUTE_V2_SHARED_CLASSIFIER_REF:
+        raise AssertionError("walker route_v2 observation missing shared classifier_ref")
+    observed_shared = observation.get("shared_eligibility_classification")
+    if not isinstance(observed_shared, dict):
+        raise AssertionError("walker route_v2 observation missing shared classifier body")
+    if observed_shared.get("pure_dev_d1_building_id") != PURE_DEV_D1_BUILDING_ID:
+        raise AssertionError("walker route_v2 observation missing pure_dev_d1_building_id")
     if observation.get("route_policy_input_state") != "absent":
         raise AssertionError("walker silently supplied a Route V2 route policy")
     if not str(observation.get("reroute_ref", "")).startswith("reroute-adoption:"):
@@ -199,15 +240,19 @@ def run(repo: Path) -> str:
         budget=1,
     )
     source_vg = "brick-route-v2-walker-advisory-vg-review"
-    vg_result, vg_frontier, vg_records = walker_chk._run(
-        plan_vg,
-        walker_chk._multi_ref_concern_callable(
-            source_vg,
-            ["building-boundary:route-v2-walker-advisory-vg"],
-            concern_kind="verification_gap",
-        ),
-        repo,
-    )
+    launch_vg = mint_official_launch_token()
+    try:
+        vg_result, vg_frontier, vg_records = walker_chk._run(
+            plan_vg,
+            walker_chk._multi_ref_concern_callable(
+                source_vg,
+                ["building-boundary:route-v2-walker-advisory-vg"],
+                concern_kind="verification_gap",
+            ),
+            repo,
+        )
+    finally:
+        reset_official_launch_token(launch_vg)
     if vg_records:
         raise AssertionError("verification_gap Route V2 observation produced reroute/HOLD records")
     if vg_frontier.get("frontier_kind") not in {"complete", "closure_pending"}:
@@ -226,7 +271,7 @@ def run(repo: Path) -> str:
     ).read_text(encoding="utf-8"):
         raise AssertionError("walker_resume.py does not preserve route_v2_view_observations")
 
-    return "route_v2_views passed: implementation_gap materialization view, verification_gap non-reroute view, gate/movement separation, delta-QA preservation, forbidden key probes, advisory walker evidence, and byte-identical control-flow comparison"
+    return "route_v2_views passed: implementation_gap materialization view, verification_gap non-reroute view, gate/movement separation, delta-QA preservation, forbidden key probes, advisory walker evidence, SHAPE B shared classifier, pure_dev_d1_building_id, and byte-identical control-flow comparison"
 
 
 def main(argv: list[str] | None = None) -> int:
