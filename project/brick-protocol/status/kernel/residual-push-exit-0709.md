@@ -1,4 +1,4 @@
-# Residual push-all EXIT freeze — 0709
+# Residual push-all EXIT freeze — 0709 (Smith gates closed)
 
 | | |
 |---|---|
@@ -9,23 +9,24 @@
 
 ## Terminal summary
 
-| # | Disp | Official-route pointer |
+| # | Disp | Pointer |
 |---|---|---|
-| R1 | SMITH_HOLD | prevention-official-route-3layer-design-0709 Stage 3b |
-| R2 | DONE | `brick build --graph-decl fixtures/r2-prevention-observe-dogfood-decl-0709.yaml --forward` → building `r2-prevention-observe-dogfood-0709` frontier=complete (resume forward on fake_landing) |
-| R3 | DONE | `brick build --graph-decl fixtures/r3-g4-ux-dogfood-decl-0709.yaml --forward` → building `r3-g4-ux-dogfood-0709` frontier=complete (resume forward) |
-| R4 | DEFERRED_WITH_REASON | coo-order-chain-consistency-0709.md optional ship-copy |
-| R5 | SMITH_HOLD | route-v2-human-gate-approval-0709.md |
-| R6 | SMITH_HOLD | dogfood-vessel-separation-human-gate-0709.md |
-| R7 | DEFERRED_WITH_REASON | design out-of-band managed-settings/token forgery |
-| R8 | NOT_PROVEN | no fresh-clone auth transcript |
-| R9 | NOT_PROVEN | commercial release not run |
-| R10 | DONE | `fixtures/r10-grok-adapter-dogfood-decl-0709.yaml` + resume `resume-declarations/r10-…-forward.json` → building `r10-grok-adapter-dogfood-0709` complete. **Not** live land alone; code land `dfc0c751b` is prior, admission dogfood is the DONE route proof |
+| R1 | DONE | land `15ccd10ac` L3-3b lethal `enforce_official_launch_token`; dogfood building `r1-l33b-raise-dogfood-0709` complete; profile import_identity_modes green |
+| R2 | DONE | building `r2-prevention-observe-dogfood-0709` complete |
+| R3 | DONE | building `r3-g4-ux-dogfood-0709` complete |
+| R4 | DEFERRED_WITH_REASON | optional ship-copy |
+| R5 | DONE | `route-v2-beyond-a-smith-close-0709.md` + building `r5-route-v2-smith-close-0709` — SHAPE A freeze; **beyond-A engine not built** |
+| R6 | DONE | Option A KEEP — `vessel-keep-clarify-smith-close-0709.md` + README clarify + building `r6-vessel-keep-smith-close-0709` |
+| R7 | DEFERRED_WITH_REASON | managed-settings / token forgery org |
+| R8 | NOT_PROVEN | fresh-clone auth |
+| R9 | NOT_PROVEN | commercial release |
+| R10 | DONE | building `r10-grok-adapter-dogfood-0709` complete |
 | R11 | DEFERRED_WITH_REASON | Deku frozen |
 
 ## Overclaim guard
 ```text
 NOT claimed: customer-ready forever
-NOT claimed: Grok adapter implemented solely by Building (admission dogfood)
-CLAIMED: residual board terminal under allowed dispositions
+NOT claimed: Route V2 beyond SHAPE A engine implemented
+NOT claimed: vessel physical migrate
+CLAIMED: residual board terminal; Smith gates closed under stated scopes
 ```
