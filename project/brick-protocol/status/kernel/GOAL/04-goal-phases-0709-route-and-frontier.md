@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Status** | support evidence only · COO operating map · **ACTIVE ladder** |
+| **Status** | support evidence only · COO operating map · **LADDER CLOSED 0709** (see 05-coo-ladder-closure + ACTIVE_COO_GOAL COMPLETED) |
 | **Date** | 2026-07-09 |
 | **Live repo** | `/Users/smith/projects/BRICK` |
 | **Parents** | `03-remaining-frontier-goal-0709.md` · `02-unified-continuous-build-goal-0708.md` · `parent-goal-closure-0709.md` · route resume brief (COO 0709) |

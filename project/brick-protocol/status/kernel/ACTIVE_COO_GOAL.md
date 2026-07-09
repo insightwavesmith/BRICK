@@ -2,10 +2,10 @@
 
 | | |
 |---|---|
-| **Status** | **ACTIVE** · operator (COO) goal |
-| **Set** | 2026-07-09 |
+| **Status** | **COMPLETED** (operator ladder) · 2026-07-09 |
 | **Authority ladder** | `GOAL/04-goal-phases-0709-route-and-frontier.md` |
-| **Living route memo** | `OFFICIAL_ROUTE_MEMO.md` (Exit마다 갱신 필수) |
+| **Closure record** | `GOAL/05-coo-ladder-closure-0709.md` |
+| **Living route memo** | `OFFICIAL_ROUTE_MEMO.md` |
 | **Proof limit** | support evidence only · not source truth / success / quality / Movement |
 
 ---
@@ -19,76 +19,65 @@ OFFICIAL_ROUTE_MEMO 와 04 마스터 큐를 Exit 로그와 함께
 「완벽 완료」 상태로 고정한다.
 ```
 
-**「완벽 완료」≠ 커밋만 있음.**  
-각 G의 Exit 전부가 측정으로 채워지고, 남은 not_proven 이 문서에 정직히 남은 상태.
+**완료 해석 (정직):**  
+- 코드·Building·프로필로 닫을 수 있는 Exit는 닫음.  
+- **Smith human gate** (L3-3b raise, vessel migrate, Route V2 beyond A)는 Exit = *gate-ready HOLD*, 구현 아님.  
+- G6 full customer-fresh-auth reliability = **not_proven** (measured slice only).
 
 ---
 
-## 범위 = 04 계단 전부
+## Exit 결과
 
-| Phase | 이름 | 완료 조건 (요약) | 현재 |
-|---|---|---|---|
-| **G0** | Route Fuel | mid-hold 문법·resume dead_end 정직·한 루트 유지 | **EXIT** (d30517894 + probes) |
-| **G1** | Official Continuity | graph-decl → hold → resume → complete dogfood | **EXIT** (g1-mid-hold-resume-dogfood-0709) |
-| **G2** | Authoring Product | W1a defer fixtures + W1b 제품 + #3 order-chain; focused profile green | **EXIT pending G2-c optional only** (profiles green after path admission + archive) |
-| **G3** | Prevention Live | L1/L2/L3-3a observe live on official path; L3-3b only after Smith | **OPEN** |
-| **G4** | Customer Surfaces | #5 progress auto-refresh + #6 charter-fill + residual #3 | **OPEN** |
-| **G5** | Structural Gates | #4 vessel + #2 Route V2 beyond A — 설계+human gate only until approved | **OPEN** |
-| **G6** | Release Readiness | #7; customer path re-proof; remaining_not_proven list frozen | **OPEN** |
+| Phase | 결과 |
+|---|---|
+| G0 | **EXIT** |
+| G1 | **EXIT** |
+| G2 | **EXIT** (profiles green + authoring land) |
+| G2-c | **EXIT deferred optional** (map only; engine already ok) |
+| G3 | **EXIT observe** · L3-3b **Smith HOLD** |
+| G4 | **EXIT** (progress + charter) |
+| G5 | **EXIT gate-ready** (no migrate / no R2 expand code) |
+| G6 | **EXIT measured slice** · broader release **not_proven** |
 
----
-
-## 운영 규칙 (이 골 동안 고정)
-
-1. **사람 앞문 하나:** `brick build --graph-decl` / `brick resume --decl` (memo 준수).  
-2. **G1 이후 제품 구현 = BRICK Building only** (COO live 구현 금지).  
-3. **Exit마다** `OFFICIAL_ROUTE_MEMO.md` Exit log + 04 마스터 큐 갱신.  
-4. **Success is measured:** REAL HOME / clean worktree profile 또는 dogfood frontier 실측.  
-5. hold 없으면 resume 금지 → salvage. hold 있으면 resume.  
-6. G5 구조/Route V2 확장은 human gate 전 코드 확장 금지.  
-7. Deku 구현은 이 골 완료(또는 G0–G1 유지) 전까지 **FROZEN** (`deku/docs/DEKU_STATUS.md`).
+Detail: `GOAL/05-coo-ladder-closure-0709.md`
 
 ---
 
-## 완료 시 산출물
+## remaining_not_proven
 
 ```text
-[ ] 04 문서: G0–G6 Exit 전부 [x] + 마스터 큐 비움(또는 not_proven만 잔존)
-[ ] OFFICIAL_ROUTE_MEMO: Exit log G0–G6 + 공식 명령 최신
-[ ] ACTIVE_COO_GOAL: Status=COMPLETED + final evidence refs
-[ ] parent-style closure note (support): remaining_not_proven 정직 목록
-[ ] origin/main 착지 여부는 Smith 푸시 판단 (골 완료 ≠ 자동 push)
+L3-3b raise · Route V2 beyond SHAPE A · vessel physical split
+managed-settings hook lock · token-forgery hardening
+full fresh-clone brand-new-human auth reliability
+commercial release · G2-c ship-copy optional Building
+Deku implementation (separate frozen design)
 ```
 
 ---
 
-## 병렬·위생 트랙 (골 페이즈 안에서의 위치)
-
-| 항목 | 골 페이즈? | 어디에 있나 | 병렬? |
-|---|---|---|---|
-| **워크트리/buildings/inbox 디스크 정리** | **전용 G 번호 없음** | 03 로그에 0709 1회 수행 기록(106→3); 상시 **ops hygiene** | **예** — critical path 비차단 |
-| **cleanup-10e order-chain** | **G2-c** (#3) | 04 G2 하위 · 소형 코드 수리 | **예** — G3와 병렬 |
-| **cleanup-scope-invariants / UX ship-copy** | G4·G6 인접 | `cleanup-scope-invariants-0709.md` | G4와 묶음 |
-| **project vessel 물리분리·디렉토리 이주** | **G5-a** | 설계+human gate · 파괴적 이동 기본 금지 | G2–G4 안정 후 |
-| **customer release pruning / cruft** | **G6** 인접 | 구 customer-ready P7/P8 뒤 위생 | G6 |
-
-**정리 원칙:** salvage refs / WIP anchor 삭제 금지. worktree remove + `/tmp` 아카이브(비파괴)만 ops로 허용.  
-제품 코드 삭제·vessel 이동은 Building + (G5면) human gate.
-
-## 진행 스냅샷
+## Official route (frozen at completion)
 
 ```text
-G0 EXIT · G1 EXIT
-G2 IN PROGRESS (building complete + code on main; focused profile Exit pending)
-G3–G6 OPEN
-Parallel now: G2 profile measure · G2-c research · worktree/dir hygiene ops
+brick build --graph-decl <file> --forward
+brick resume --decl <file>
+# mid-hold: non-terminal gates: [coo-review|human-review]
 ```
 
 ---
 
-## COO disposition on set
+## Ops hygiene (not a G-number)
 
 ```text
-Movement for this meta-goal: forward (execute the ladder to completion).
-This record is the operator goal charter, not Movement authority over Buildings.
+worktrees pruned · project buildings archive /tmp/brick-project-buildings-archive-0709-ops
+inbox archive /tmp/brick-inbox-archive-0709-ops · salvage refs kept
+```
+
+---
+
+## COO final disposition
+
+```text
+ACTIVE_COO_GOAL = COMPLETED as operator charter for ladder 04.
+Customer-ready forever is NOT claimed.
+Smith next: push main; approve L3-3b / G5 designs; reopen Deku G0 if desired.
 ```

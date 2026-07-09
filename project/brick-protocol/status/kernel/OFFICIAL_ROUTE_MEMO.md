@@ -5,7 +5,8 @@
 | **Status** | support evidence · update at every Goal Exit |
 | **Updated** | 2026-07-09 |
 | **Authority for current ladder** | `GOAL/04-goal-phases-0709-route-and-frontier.md` |
-| **Active COO goal** | `ACTIVE_COO_GOAL.md` — complete **all** of 04 (G0–G6) as operator |
+| **Active COO goal** | `ACTIVE_COO_GOAL.md` — **COMPLETED** (G0–G6 operator ladder) |
+| **Closure** | `GOAL/05-coo-ladder-closure-0709.md` |
 
 ---
 
@@ -113,6 +114,11 @@ G6 Release
 
 | When | Goal | Note |
 |---|---|---|
+| 2026-07-09 | **G3 observe EXIT** | L1/L2 hooks + L3-3a observe landed; hook unit test + import_identity_modes green; L3-3b Smith HOLD |
+| 2026-07-09 | **G4 EXIT** | progress autorefresh + charter-fill WIP land; customer_project_progress_cli green |
+| 2026-07-09 | **G5 gate-ready** | no vessel migrate / no Route V2 beyond A code; human gates explicit |
+| 2026-07-09 | **G6 measured EXIT** | brick_cli_entrypoint + read_side (product_no_smith embed) green; driver0 dirty-cwd red on dirty tree; full release not_proven |
+| 2026-07-09 | **LADDER CLOSED** | ACTIVE_COO_GOAL COMPLETED — see 05-coo-ladder-closure-0709.md |
 | 2026-07-09 | — | Memo created; G0 open; Deku impl frozen |
 | 2026-07-09 | **G0 EXIT** | resume `dead_end_kind` honesty; mid-node `gates:[coo-review]` assemble HOLD proven; terminal gates fail-closed with hint |
 | 2026-07-09 | **G2 profiles green** | building_call_authoring/lowering/structure_plan_fan_barrier rc=0 after fixtures admission + untracked buildings archive
