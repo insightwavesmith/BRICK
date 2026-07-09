@@ -11,7 +11,12 @@ build/
 .venv/
 node_modules/
 .vercel/
-.claude/
+# .claude/ 내용은 무시하되(로컬 설정), 방지책 hook만 예외로 track (팀 전체 강제)
+.claude/*
+!.claude/settings.json
+!.claude/hooks/
+.claude/hooks/*
+!.claude/hooks/*.py
 .codex/
 .gemini/
 .mcp.json
