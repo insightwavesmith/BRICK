@@ -31,7 +31,12 @@ ORDER_AUTHORING_SEQUENCE_V1: tuple[dict[str, Any], ...] = (
     {
         "step_ref": "STEP3_STRUCTURE",
         "label": "구조 그리기",
-        "authoring_rule": "Draft Brick nodes and Link-shaped edges using role/capability needs only.",
+        "authoring_rule": (
+            "Draft Brick nodes and Link-shaped edges using role/capability needs only; "
+            "optional structure_plan_draft stays nested in structure_draft and may use "
+            "nodes/edges/coo_gate_edge/fan_out_groups/fan_in_groups/reroute_budgets/terminal. "
+            "fan_out_groups require a coo_gate_edge with state held_for_coo_review before lowering."
+        ),
         "must_not_decide_yet": ("concrete_agent", "agent_strength"),
     },
     {

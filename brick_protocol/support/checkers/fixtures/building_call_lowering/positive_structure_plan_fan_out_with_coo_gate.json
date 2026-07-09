@@ -1,0 +1,78 @@
+{
+  "building_case": "standard_delivery",
+  "confirmation_state": "confirmed",
+  "declared_by": "coo:building-call-lowering-checker",
+  "kind": "confirmed_building_call_request_v1_1",
+  "structure_plan": {
+    "coo_gate_edge": {
+      "from": "building-step-template:inspect",
+      "state": "held_for_coo_review",
+      "to": "coo-review-hold"
+    },
+    "edges": [
+      {
+        "from": "building-step-template:inspect",
+        "to": "coo-review-hold"
+      },
+      {
+        "from": "coo-review-hold",
+        "to": "code-lens"
+      },
+      {
+        "from": "coo-review-hold",
+        "to": "axis-lens"
+      },
+      {
+        "from": "code-lens",
+        "to": "triage-closure"
+      },
+      {
+        "from": "axis-lens",
+        "to": "triage-closure"
+      }
+    ],
+    "fan_in_groups": [
+      {
+        "converge_on": "triage-closure",
+        "sources": [
+          "code-lens",
+          "axis-lens"
+        ],
+        "wait_all": true
+      }
+    ],
+    "fan_out_groups": [
+      {
+        "branches": [
+          "code-lens",
+          "axis-lens"
+        ],
+        "from": "coo-review-hold"
+      }
+    ],
+    "nodes": {
+      "axis-lens": {
+        "write_scope": {
+          "allowed_paths": [
+            "tmp/axis"
+          ],
+          "forbidden_paths": [
+            ".git/**"
+          ]
+        }
+      },
+      "code-lens": {
+        "write_scope": {
+          "allowed_paths": [
+            "tmp/code"
+          ],
+          "forbidden_paths": [
+            ".git/**"
+          ]
+        }
+      }
+    },
+    "terminal": "triage-closure"
+  },
+  "task_statement": "Lower a confirmed structure_plan fixture only when fan-out declares a COO held review edge.\n"
+}

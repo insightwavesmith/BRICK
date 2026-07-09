@@ -88,6 +88,20 @@ LAUNCH_CONFIRMATION_ALLOWED_VALUES: tuple[str, ...] = (
     "needs_human_gate",
     "draft_only",
 )
+HELD_FOR_COO_REVIEW_STATE = "held_for_coo_review"
+
+STRUCTURE_PLAN_DRAFT_ALLOWED_KEYS = frozenset(
+    {
+        "nodes",
+        "edges",
+        "coo_gate_edge",
+        "fan_out_groups",
+        "fan_in_groups",
+        "reroute_budgets",
+        "node_reroute_budgets",
+        "terminal",
+    }
+)
 
 
 class BuildingCallAuthoringValidationError(ValueError):
@@ -215,6 +229,46 @@ def _validate_step_sections(payload: Mapping[str, Any], violations: list[str]) -
         observed_step_ref = section.get("step_ref")
         if observed_step_ref != expected_step_ref:
             violations.append(f"{field}.step_ref must be {expected_step_ref}")
+        if field == "structure_draft":
+            _validate_structure_plan_draft(section.get("structure_plan_draft"), violations)
+
+
+def _validate_structure_plan_draft(value: Any, violations: list[str]) -> None:
+    if value is None:
+        return
+    if not isinstance(value, Mapping):
+        violations.append("structure_draft.structure_plan_draft must be a mapping when supplied")
+        return
+    extra = sorted(str(key) for key in value if str(key) not in STRUCTURE_PLAN_DRAFT_ALLOWED_KEYS)
+    if extra:
+        violations.append(
+            "structure_draft.structure_plan_draft may declare only nodes, edges, coo_gate_edge, "
+            "fan_out_groups, fan_in_groups, terminal, reroute_budgets, node_reroute_budgets; "
+            "observed "
+            + ", ".join(extra)
+        )
+    fan_out_groups = value.get("fan_out_groups")
+    has_fan_out = (
+        isinstance(fan_out_groups, Sequence)
+        and not isinstance(fan_out_groups, (str, bytes, bytearray))
+        and bool(fan_out_groups)
+    )
+    if has_fan_out:
+        _validate_structure_plan_draft_coo_gate(value.get("coo_gate_edge"), violations)
+
+
+def _validate_structure_plan_draft_coo_gate(value: Any, violations: list[str]) -> None:
+    if not isinstance(value, Mapping):
+        violations.append(
+            "structure_draft.structure_plan_draft fan_out_groups require coo_gate_edge"
+        )
+        return
+    if not isinstance(value.get("to"), str) or not value.get("to", "").strip():
+        violations.append("structure_draft.structure_plan_draft.coo_gate_edge requires to")
+    if value.get("state") != HELD_FOR_COO_REVIEW_STATE:
+        violations.append(
+            "structure_draft.structure_plan_draft.coo_gate_edge.state must be held_for_coo_review"
+        )
 
 
 def _validate_launch_confirmation(value: Any, violations: list[str]) -> None:

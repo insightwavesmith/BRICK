@@ -38,7 +38,7 @@ STEP1 records target area, source facts, allowed path candidates, forbidden path
 
 STEP2 records the whole request as easy, normal, complex, or critical and names draft-only routing mode evidence. It does not assign per-Brick intensity or Agent candidates.
 
-STEP3 drafts Brick-plane nodes, Link-shaped edges, gate_state, and held_for_coo_review lifecycle evidence. Agent-plane content is limited to role_need, capability_need, and write_need.
+STEP3 drafts Brick-plane nodes, Link-shaped edges, gate_state, and held_for_coo_review lifecycle evidence. Agent-plane content is limited to role_need, capability_need, and write_need. If a provider-neutral graph draft is needed, place it as `structure_plan_draft` inside `structure_draft`, not as a top-level return field. Its vocabulary is `nodes`, `edges`, `coo_gate_edge`, `fan_out_groups`, `fan_in_groups`, `reroute_budgets` / `node_reroute_budgets`, and `terminal`. A draft with `fan_out_groups` must also draft `coo_gate_edge.state: held_for_coo_review`; COO confirms N at that held review boundary before later lowering.
 
 STEP4 assigns intensity to each drafted Brick node and names each node's work_statement, return need, and proof obligation. It does not name concrete Agents, adapters, models, or providers.
 

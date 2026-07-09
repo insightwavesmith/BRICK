@@ -8,7 +8,9 @@ path_exists:
   - brick_protocol/support/checkers/lib/structure_plan_fan_barrier.py
   - brick_protocol/support/checkers/fixtures/building_call_lowering/positive_structure_plan_request.json
   - brick_protocol/support/checkers/fixtures/building_call_lowering/positive_structure_plan_multiple_fan_out_groups.json
+  - brick_protocol/support/checkers/fixtures/building_call_lowering/positive_structure_plan_fan_out_with_coo_gate.json
   - brick_protocol/support/checkers/fixtures/building_call_lowering/negative_structure_plan_no_fan_in.json
+  - brick_protocol/support/checkers/fixtures/building_call_lowering/negative_structure_plan_fan_out_missing_coo_gate.json
   - brick_protocol/support/checkers/fixtures/building_call_lowering/negative_structure_plan_multiple_fan_out_missing_source.json
   - brick_protocol/support/checkers/fixtures/building_call_lowering/negative_structure_plan_duplicate_branch_source.json
 text_contains:
@@ -22,6 +24,9 @@ text_contains:
       - exactly one convergence group
       - must preserve wait-all
       - pairwise disjoint
+      - fan-out missing coo gate
+      - coo_gate_edge cap-hold consistency
+      - wrong coo gate state
       - held_for_coo_review requests must not be lowered
       - graph fan-barrier RED did not fire
       - source truth

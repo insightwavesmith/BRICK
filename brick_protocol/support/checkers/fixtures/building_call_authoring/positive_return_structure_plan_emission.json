@@ -1,6 +1,6 @@
 {
   "observed_evidence": [
-    "task-source:inline-statement"
+    "task-source:inline-structure-plan-draft"
   ],
   "five_step_order": [
     "STEP1_SCOPE",
@@ -11,9 +11,9 @@
   ],
   "scope_draft": {
     "step_ref": "STEP1_SCOPE",
-    "target_area": "Building Call authoring validator",
+    "target_area": "Building Call structure-plan draft",
     "source_facts": [
-      "GOAL ⑤f"
+      "STEP3 draft-only emission"
     ],
     "allowed_path_candidates": [
       "brick_protocol/support/operator/building_call_authoring.py"
@@ -25,28 +25,12 @@
   },
   "building_intensity_routing_draft": {
     "step_ref": "STEP2_BUILDING_INTENSITY",
-    "intensity": "normal",
+    "intensity": "complex",
     "routing_mode": "order_authoring",
     "draft_only": true
   },
   "structure_draft": {
     "step_ref": "STEP3_STRUCTURE",
-    "bricks": [
-      {
-        "brick_ref": "brick-implement-authoring-validator",
-        "brick_kind": "work",
-        "role_need": "worker",
-        "capability_need": "source_write",
-        "write_need": true
-      }
-    ],
-    "edges": [
-      {
-        "from": "building-boundary:",
-        "to": "brick-implement-authoring-validator",
-        "movement_literal": "forward"
-      }
-    ],
     "gate_state": "draft",
     "structure_plan_draft": {
       "coo_gate_edge": {
@@ -101,25 +85,11 @@
   },
   "per_brick_intensity_draft": {
     "step_ref": "STEP4_PER_BRICK_INTENSITY",
-    "bricks": [
-      {
-        "brick_ref": "brick-implement-authoring-validator",
-        "intensity": "normal",
-        "work_statement": "Implement draft-only authoring validation.",
-        "return_need": "building_call_authoring_return_v1",
-        "proof_obligation": "positive and negative sequence fixtures"
-      }
-    ]
+    "bricks": []
   },
   "agent_candidates_draft": {
     "step_ref": "STEP5_AGENT_CANDIDATES",
-    "candidates": [
-      {
-        "role_need": "worker",
-        "strength": "default",
-        "write_need": true
-      }
-    ]
+    "candidates": []
   },
   "launch_confirmation_state": "not_confirmed",
   "forbidden_exposure_scan": {
@@ -128,7 +98,7 @@
     "route_or_walker_details": "absent"
   },
   "remaining_delta": [
-    "COO or caller confirmation required before any later lowering."
+    "COO confirmation required at held_for_coo_review before any later lowering."
   ],
   "not_proven": [
     "future lowering behavior",

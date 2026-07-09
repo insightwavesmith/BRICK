@@ -8,7 +8,9 @@ kernel_checks:
 path_exists:
   - brick_protocol/support/operator/building_call_authoring.py
   - brick_protocol/support/checkers/fixtures/building_call_authoring/positive_return.json
+  - brick_protocol/support/checkers/fixtures/building_call_authoring/positive_return_structure_plan_emission.json
   - brick_protocol/support/checkers/fixtures/building_call_authoring/negative_sequence_violation.json
+  - brick_protocol/support/checkers/fixtures/building_call_authoring/negative_fan_out_missing_coo_gate.json
   - brick_protocol/support/checkers/profiles/building_call_authoring.yaml
   - brick_protocol/support/checkers/module_registry.yaml
 text_contains:
@@ -24,6 +26,9 @@ text_contains:
       - building_call_authoring_return_v1
       - validate_building_call_authoring_return
       - normalize_building_call_authoring_return
+      - STRUCTURE_PLAN_DRAFT_ALLOWED_KEYS
+      - structure_plan_draft
+      - held_for_coo_review
       - not Building launch authorization
       - not lowering
       - not source truth
@@ -38,6 +43,20 @@ text_contains:
       - '"STEP4_PER_BRICK_INTENSITY"'
       - '"STEP5_AGENT_CANDIDATES"'
       - '"launch_confirmation_state": "not_confirmed"'
+      - '"structure_plan_draft"'
+      - '"coo_gate_edge"'
+      - '"state": "held_for_coo_review"'
+  - path: brick_protocol/support/checkers/fixtures/building_call_authoring/positive_return_structure_plan_emission.json
+    texts:
+      - '"structure_plan_draft"'
+      - '"fan_out_groups"'
+      - '"coo_gate_edge"'
+      - '"state": "held_for_coo_review"'
+  - path: brick_protocol/support/checkers/fixtures/building_call_authoring/negative_fan_out_missing_coo_gate.json
+    texts:
+      - '"structure_plan_draft"'
+      - '"fan_out_groups"'
+      - This fixture must be rejected because fan_out_groups omit coo_gate_edge.
   - path: brick_protocol/support/checkers/fixtures/building_call_authoring/negative_sequence_violation.json
     texts:
       - '"STEP1_SCOPE"'
@@ -47,6 +66,9 @@ text_contains:
   - path: brick_protocol/support/checkers/check_profile.py
     texts:
       - building_call_authoring_contract
+  - path: brick_protocol/support/checkers/lib/kernel_checks.py
+    texts:
+      - fan-out draft missing coo gate rejected
   - path: brick_protocol/support/checkers/module_registry.yaml
     texts:
       - brick_protocol/support/operator/building_call_authoring.py

@@ -514,6 +514,8 @@ BUILDING_CALL_AUTHORING0_TARGETS = {
 
 BUILDING_CALL_AUTHORING0_FIXTURES = {
     "brick_protocol/support/checkers/fixtures/building_call_authoring/positive_return.json",
+    "brick_protocol/support/checkers/fixtures/building_call_authoring/positive_return_structure_plan_emission.json",
+    "brick_protocol/support/checkers/fixtures/building_call_authoring/negative_fan_out_missing_coo_gate.json",
     "brick_protocol/support/checkers/fixtures/building_call_authoring/negative_sequence_violation.json",
 }
 
@@ -523,12 +525,14 @@ BUILDING_CALL_LOWERING0_TARGETS = {
 
 BUILDING_CALL_LOWERING0_FIXTURES = {
     "brick_protocol/support/checkers/fixtures/building_call_lowering/positive_confirmed_request.json",
+    "brick_protocol/support/checkers/fixtures/building_call_lowering/positive_structure_plan_fan_out_with_coo_gate.json",
     "brick_protocol/support/checkers/fixtures/building_call_lowering/positive_structure_plan_multiple_fan_out_groups.json",
     "brick_protocol/support/checkers/fixtures/building_call_lowering/positive_structure_plan_request.json",
     "brick_protocol/support/checkers/fixtures/building_call_lowering/positive_without_structure_plan_request.json",
     "brick_protocol/support/checkers/fixtures/building_call_lowering/negative_structure_plan_duplicate_branch_source.json",
     "brick_protocol/support/checkers/fixtures/building_call_lowering/negative_draft_request.json",
     "brick_protocol/support/checkers/fixtures/building_call_lowering/negative_held_for_coo_review.json",
+    "brick_protocol/support/checkers/fixtures/building_call_lowering/negative_structure_plan_fan_out_missing_coo_gate.json",
     "brick_protocol/support/checkers/fixtures/building_call_lowering/negative_structure_plan_multiple_fan_out_missing_source.json",
     "brick_protocol/support/checkers/fixtures/building_call_lowering/negative_structure_plan_no_fan_in.json",
 }

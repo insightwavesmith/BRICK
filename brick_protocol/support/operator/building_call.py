@@ -491,6 +491,7 @@ def _coerce_structure_plan(value: Any, violations: list[str]) -> dict[str, Any]:
     coo_gate_edge = _coerce_structure_optional_mapping(
         value.get("coo_gate_edge"), "structure_plan.coo_gate_edge", violations
     )
+    _validate_structure_coo_gate_edge(fan_out_groups, coo_gate_edge, violations)
     budgets = _coerce_structure_budgets(
         value.get("node_reroute_budgets", value.get("reroute_budgets")),
         violations,
@@ -656,6 +657,23 @@ def _coerce_structure_optional_mapping(
         violations.append(f"{label} must be a mapping when supplied")
         return {}
     return dict(value)
+
+
+def _validate_structure_coo_gate_edge(
+    fan_out_groups: Sequence[Mapping[str, Any]],
+    coo_gate_edge: Mapping[str, Any],
+    violations: list[str],
+) -> None:
+    if not fan_out_groups:
+        return
+    if not coo_gate_edge:
+        violations.append("structure_plan fan_out_groups require coo_gate_edge")
+        return
+    target = _optional_text(coo_gate_edge.get("to"))
+    if not target:
+        violations.append("structure_plan.coo_gate_edge requires to")
+    if coo_gate_edge.get("state") != HELD_FOR_COO_REVIEW_STATE:
+        violations.append("structure_plan.coo_gate_edge.state must be held_for_coo_review")
 
 
 def _coerce_structure_budgets(value: Any, violations: list[str]) -> dict[str, int]:

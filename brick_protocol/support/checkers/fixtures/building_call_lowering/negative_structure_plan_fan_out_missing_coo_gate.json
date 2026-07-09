@@ -1,0 +1,47 @@
+{
+  "building_case": "standard_delivery",
+  "confirmation_state": "confirmed",
+  "declared_by": "coo:building-call-lowering-checker",
+  "kind": "confirmed_building_call_request_v1_1",
+  "structure_plan": {
+    "edges": [
+      {
+        "from": "building-step-template:inspect",
+        "to": "code-lens"
+      },
+      {
+        "from": "building-step-template:inspect",
+        "to": "axis-lens"
+      },
+      {
+        "from": "code-lens",
+        "to": "triage-closure"
+      },
+      {
+        "from": "axis-lens",
+        "to": "triage-closure"
+      }
+    ],
+    "fan_in_groups": [
+      {
+        "converge_on": "triage-closure",
+        "sources": [
+          "code-lens",
+          "axis-lens"
+        ],
+        "wait_all": true
+      }
+    ],
+    "fan_out_groups": [
+      {
+        "branches": [
+          "code-lens",
+          "axis-lens"
+        ],
+        "from": "building-step-template:inspect"
+      }
+    ],
+    "terminal": "triage-closure"
+  },
+  "task_statement": "Malformed structure_plan fixture must be rejected because fan_out_groups omit coo_gate_edge.\n"
+}

@@ -247,8 +247,12 @@ def run_building_call_authoring_contract(repo: Path) -> KernelResult:
     fixture_root = repo / "brick_protocol/support/checkers/fixtures/building_call_authoring"
     positive_path = fixture_root / "positive_return.json"
     negative_path = fixture_root / "negative_sequence_violation.json"
+    structure_emission_path = fixture_root / "positive_return_structure_plan_emission.json"
+    missing_coo_gate_path = fixture_root / "negative_fan_out_missing_coo_gate.json"
     positive = json.loads(positive_path.read_text(encoding="utf-8"))
     negative = json.loads(negative_path.read_text(encoding="utf-8"))
+    structure_emission = json.loads(structure_emission_path.read_text(encoding="utf-8"))
+    missing_coo_gate = json.loads(missing_coo_gate_path.read_text(encoding="utf-8"))
 
     normalized = normalize_building_call_authoring_return(positive)
     if normalized["five_step_order"] != list(AUTHORING_STEP_REFS):
@@ -275,6 +279,25 @@ def run_building_call_authoring_contract(repo: Path) -> KernelResult:
     sequence_rule = render_authoring_sequence_rule()
     if sequence_rule["step_refs"] != list(AUTHORING_STEP_REFS):
         raise ProfileError("building_call_authoring_contract: sequence-rule render drifted")
+
+    structure_normalized = normalize_building_call_authoring_return(structure_emission)
+    structure_draft = structure_normalized.get("structure_draft")
+    if not isinstance(structure_draft, Mapping) or "structure_plan_draft" not in structure_draft:
+        raise ProfileError("building_call_authoring_contract: structure_plan_draft emission was not preserved")
+
+    missing_coo_gate_violations = validate_building_call_authoring_return(missing_coo_gate)
+    if not any("fan_out_groups require coo_gate_edge" in item for item in missing_coo_gate_violations):
+        raise ProfileError(
+            "building_call_authoring_contract: fan-out structure_plan_draft missing coo gate was accepted"
+        )
+    try:
+        normalize_building_call_authoring_return(missing_coo_gate)
+    except BuildingCallAuthoringValidationError:
+        pass
+    else:
+        raise ProfileError(
+            "building_call_authoring_contract: fan-out missing coo gate normalization did not fail closed"
+        )
 
     unknown_top_level = dict(positive)
     unknown_top_level["route_target_hint"] = "brick-next"
@@ -322,11 +345,12 @@ def run_building_call_authoring_contract(repo: Path) -> KernelResult:
 
     return KernelResult(
         check_id="building_call_authoring_contract",
-        inspected=6,
+        inspected=8,
         output=(
             "positive fixture accepted; negative sequence-violation fixture rejected; "
-            "unknown top-level, remaining_delta exposure, forbidden_exposure_scan key, "
-            "and embedded case-varied exposure probes rejected"
+            "structure_plan_draft emission accepted; fan-out draft missing coo gate rejected; "
+            "unknown top-level, remaining_delta exposure, forbidden_exposure_scan key, and "
+            "embedded case-varied exposure probes rejected"
         ),
     )
 
@@ -353,6 +377,11 @@ def run_building_call_lowering_contract(repo: Path) -> KernelResult:
     held = json.loads((fixture_root / "negative_held_for_coo_review.json").read_text(encoding="utf-8"))
     no_fan_in = json.loads(
         (fixture_root / "negative_structure_plan_no_fan_in.json").read_text(encoding="utf-8")
+    )
+    fan_out_missing_coo_gate = json.loads(
+        (fixture_root / "negative_structure_plan_fan_out_missing_coo_gate.json").read_text(
+            encoding="utf-8"
+        )
     )
 
     lowered = building_call_lowering_v1(positive)
@@ -390,6 +419,9 @@ def run_building_call_lowering_contract(repo: Path) -> KernelResult:
         raise ProfileError("building_call_lowering_contract: structure_plan did not lower to graph_topology")
     if len(topology.get("fan_in_groups", [])) != 1:
         raise ProfileError("building_call_lowering_contract: structure_plan did not preserve single fan-in")
+    coo_gate_edge = building_map.get("coo_gate_edge")
+    if not isinstance(coo_gate_edge, Mapping) or coo_gate_edge.get("state") != "held_for_coo_review":
+        raise ProfileError("building_call_lowering_contract: structure_plan did not preserve coo_gate_edge")
     if topology.get("terminal") != "triage-closure":
         raise ProfileError("building_call_lowering_contract: structure_plan terminal drifted")
     budgets = building_map.get("node_reroute_budgets")
@@ -433,6 +465,16 @@ def run_building_call_lowering_contract(repo: Path) -> KernelResult:
     else:
         raise ProfileError("building_call_lowering_contract: no fan-in structure_plan normalized")
 
+    missing_coo_gate_violations = validate_building_call_lowering_request(fan_out_missing_coo_gate)
+    if not any("fan_out_groups require coo_gate_edge" in item for item in missing_coo_gate_violations):
+        raise ProfileError("building_call_lowering_contract: fan-out missing coo gate was accepted")
+    try:
+        building_call_lowering_v1(fan_out_missing_coo_gate)
+    except BuildingCallLoweringError:
+        pass
+    else:
+        raise ProfileError("building_call_lowering_contract: fan-out missing coo gate normalized")
+
     selected_exposure = dict(positive)
     selected_exposure["roster_overrides"] = [
         {
@@ -470,6 +512,12 @@ def run_building_call_lowering_contract(repo: Path) -> KernelResult:
     if not any("held_for_coo_review requests must not be lowered" in item for item in held_structure_violations):
         raise ProfileError("building_call_lowering_contract: structure_plan weakened held_for_coo_review guard")
 
+    wrong_coo_gate_probe = json.loads(json.dumps(positive_structure))
+    wrong_coo_gate_probe["structure_plan"]["coo_gate_edge"]["state"] = "draft"
+    wrong_coo_gate_violations = validate_building_call_lowering_request(wrong_coo_gate_probe)
+    if not any("coo_gate_edge.state must be held_for_coo_review" in item for item in wrong_coo_gate_violations):
+        raise ProfileError("building_call_lowering_contract: wrong coo gate state was accepted")
+
     cases = render_building_call_lowering_cases()
     case_map = cases.get("building_case_to_chain_preset_ref")
     if not isinstance(case_map, Mapping) or case_map.get("order_authoring") != "building-chain-preset:building-call-authoring":
@@ -477,11 +525,12 @@ def run_building_call_lowering_contract(repo: Path) -> KernelResult:
 
     return KernelResult(
         check_id="building_call_lowering_contract",
-        inspected=13,
+        inspected=15,
         output=(
             "confirmed fixture lowered; structure_plan lowered to building_map.graph_topology; "
             "no-structure compatibility fixture preserved case preset lowering; draft, held, "
-            "no-fan-in, wait-all, overlapping write fence, selected_*, and movement probes rejected"
+            "no-fan-in, fan-out missing coo gate, wait-all, overlapping write fence, "
+            "wrong coo gate state, selected_*, and movement probes rejected"
         ),
     )
 

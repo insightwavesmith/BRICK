@@ -7,14 +7,18 @@
     "edges": [
       {
         "from": "building-step-template:inspect",
+        "to": "coo-review-hold"
+      },
+      {
+        "from": "coo-review-hold",
         "to": "code-lens"
       },
       {
-        "from": "building-step-template:inspect",
+        "from": "coo-review-hold",
         "to": "axis-lens"
       },
       {
-        "from": "building-step-template:inspect",
+        "from": "coo-review-hold",
         "to": "evidence-lens"
       },
       {
@@ -30,6 +34,11 @@
         "to": "triage-closure"
       }
     ],
+    "coo_gate_edge": {
+      "from": "building-step-template:inspect",
+      "state": "held_for_coo_review",
+      "to": "coo-review-hold"
+    },
     "fan_out_groups": [
       {
         "branches": [
@@ -37,7 +46,7 @@
           "axis-lens",
           "evidence-lens"
         ],
-        "from": "building-step-template:inspect"
+        "from": "coo-review-hold"
       }
     ],
     "fan_in_groups": [

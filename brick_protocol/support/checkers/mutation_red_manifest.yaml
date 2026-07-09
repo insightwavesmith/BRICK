@@ -89,6 +89,14 @@ surfaces:
     fixture_path: brick_protocol/support/checkers/profiles/graph_draft.yaml
     fixture_identifier: "graph-draft RED: emitted graph_draft nodes leaked literal provider casting keys (provider-neutral B branch)"
     incident_anchor: project/brick-protocol/status/kernel/GOAL/01-continuous-build-goal-0708.md GOAL ⑤b deep-design provider-neutral casting fence
+  - surface: goal5_step3_structure_plan_draft_cap_hold
+    fixture_path: brick_protocol/support/checkers/fixtures/building_call_authoring/negative_fan_out_missing_coo_gate.json
+    fixture_identifier: "fan-out structure_plan_draft missing coo gate rejected"
+    incident_anchor: project/brick-protocol/status/kernel/GOAL/04-goal-phases-0709-route-and-frontier.md STEP3 draft-only structure_plan emission cap-hold
+  - surface: goal5_structure_plan_lowering_cap_hold
+    fixture_path: brick_protocol/support/checkers/fixtures/building_call_lowering/negative_structure_plan_fan_out_missing_coo_gate.json
+    fixture_identifier: "fan-out missing coo gate and wrong coo gate state rejected"
+    incident_anchor: project/brick-protocol/status/kernel/GOAL/04-goal-phases-0709-route-and-frontier.md STEP3 lowering cap-hold before fan-out
 audit_mutants:
   - mutant_id: S11-declared-plan-revision-forged-hash
     surface: declared_plan_revision
@@ -180,3 +188,13 @@ audit_mutants:
     fixture_path: brick_protocol/support/checkers/profiles/graph_draft.yaml
     fixture_identifier: "graph-draft RED: emitted graph_draft nodes leaked literal provider casting keys (provider-neutral B branch)"
     audit_anchor: building-call-v11-cleanup-first-0708a reroute concern (deep-design casting mutation-RED row missing)
+  - mutant_id: goal5-step3-structure-plan-draft-missing-coo-gate
+    surface: goal5_step3_structure_plan_draft_cap_hold
+    fixture_path: brick_protocol/support/checkers/fixtures/building_call_authoring/negative_fan_out_missing_coo_gate.json
+    fixture_identifier: "fan-out structure_plan_draft missing coo gate rejected"
+    audit_anchor: g2-authoring-w1b-0709b STEP3 draft-only emission cap-hold RED
+  - mutant_id: goal5-structure-plan-lowering-missing-coo-gate
+    surface: goal5_structure_plan_lowering_cap_hold
+    fixture_path: brick_protocol/support/checkers/fixtures/building_call_lowering/negative_structure_plan_fan_out_missing_coo_gate.json
+    fixture_identifier: "fan-out missing coo gate and wrong coo gate state rejected"
+    audit_anchor: g2-authoring-w1b-0709b lowering cap-hold RED

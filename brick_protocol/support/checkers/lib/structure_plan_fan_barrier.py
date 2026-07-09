@@ -27,7 +27,11 @@ CHECK_ID = "structure_plan_fan_barrier"
 FIXTURE_ROOT = Path("brick_protocol/support/checkers/fixtures/building_call_lowering")
 POSITIVE_FIXTURE = FIXTURE_ROOT / "positive_structure_plan_request.json"
 MULTIPLE_FAN_OUT_FIXTURE = FIXTURE_ROOT / "positive_structure_plan_multiple_fan_out_groups.json"
+FAN_OUT_WITH_COO_GATE_FIXTURE = FIXTURE_ROOT / "positive_structure_plan_fan_out_with_coo_gate.json"
 NO_FAN_IN_FIXTURE = FIXTURE_ROOT / "negative_structure_plan_no_fan_in.json"
+FAN_OUT_MISSING_COO_GATE_FIXTURE = (
+    FIXTURE_ROOT / "negative_structure_plan_fan_out_missing_coo_gate.json"
+)
 MULTIPLE_FAN_OUT_MISSING_SOURCE_FIXTURE = (
     FIXTURE_ROOT / "negative_structure_plan_multiple_fan_out_missing_source.json"
 )
@@ -38,7 +42,8 @@ PROOF_LIMIT = (
     "it proves only the confirmed request fixture shapes for single fan-in "
     "convergence, wait-all preservation, pairwise-disjoint branch write fences, "
     "duplicate branch/source rejection, multiple fan-out convergence, "
-    "held_for_coo_review consistency, and graph fan-barrier RED probing; not "
+    "coo_gate_edge cap-hold consistency, held_for_coo_review consistency, and "
+    "graph fan-barrier RED probing; not "
     "source truth, success judgment, quality judgment, Movement authority, "
     "provider behavior, or complete graph topology correctness."
 )
@@ -221,8 +226,30 @@ def run_structure_plan_fan_barrier(repo: Path) -> KernelResult:
             "structure_plan fan barrier rejected: multiple fan-out fixture failed graph barrier oracle"
         )
 
+    fan_out_with_coo_gate = _load_fixture(repo, FAN_OUT_WITH_COO_GATE_FIXTURE)
+    coo_gate_topology = _lowered_topology(fan_out_with_coo_gate)
+    if not isinstance(coo_gate_topology.get("fan_out_groups"), list):
+        raise ProfileError("structure_plan fan barrier rejected: coo gate fixture lost fan-out")
+    lowered_with_gate = building_call_lowering_v1(fan_out_with_coo_gate)
+    intent_with_gate = lowered_with_gate.get("lowered_intent")
+    if not isinstance(intent_with_gate, Mapping):
+        raise ProfileError("structure_plan fan barrier rejected: coo gate fixture lost intent")
+    building_map_with_gate = intent_with_gate.get("building_map")
+    if not isinstance(building_map_with_gate, Mapping):
+        raise ProfileError("structure_plan fan barrier rejected: coo gate fixture lost building_map")
+    coo_gate_edge = building_map_with_gate.get("coo_gate_edge")
+    if not isinstance(coo_gate_edge, Mapping) or coo_gate_edge.get("state") != "held_for_coo_review":
+        raise ProfileError("structure_plan fan barrier rejected: coo gate fixture lost held state")
+
     no_fan_in = _load_fixture(repo, NO_FAN_IN_FIXTURE)
     _assert_rejected(no_fan_in, "exactly one convergence group", "no-fan-in fixture")
+
+    fan_out_missing_coo_gate = _load_fixture(repo, FAN_OUT_MISSING_COO_GATE_FIXTURE)
+    _assert_rejected(
+        fan_out_missing_coo_gate,
+        "fan_out_groups require coo_gate_edge",
+        "fan-out missing coo gate fixture",
+    )
 
     multiple_fan_out_missing_source = _load_fixture(repo, MULTIPLE_FAN_OUT_MISSING_SOURCE_FIXTURE)
     _assert_rejected(
@@ -257,6 +284,14 @@ def run_structure_plan_fan_barrier(repo: Path) -> KernelResult:
         "held_for_coo_review structure_plan mutation",
     )
 
+    wrong_coo_gate_probe = json.loads(json.dumps(positive))
+    wrong_coo_gate_probe["structure_plan"]["coo_gate_edge"]["state"] = "draft"
+    _assert_rejected(
+        wrong_coo_gate_probe,
+        "coo_gate_edge.state must be held_for_coo_review",
+        "wrong coo gate state mutation",
+    )
+
     multi_target_packet = json.loads(json.dumps(barrier_packet))
     multi_target_packet["edges"].extend(
         [
@@ -278,13 +313,14 @@ def run_structure_plan_fan_barrier(repo: Path) -> KernelResult:
 
     return KernelResult(
         check_id=CHECK_ID,
-        inspected=9,
+        inspected=12,
         output=(
             "structure_plan fan barrier passed: positive fixture lowered to a single "
             "wait-all fan-in; multiple fan-out fixture lowered to one convergence; "
-            "no-fan-in, multiple fan-out missing-source, duplicate branch/source, "
-            "wait-all, overlapping write-fence, held_for_coo_review, and graph "
-            "fan-barrier mutations RED-fired. "
+            "fan-out with coo gate fixture preserved held_for_coo_review; no-fan-in, "
+            "fan-out missing coo gate, multiple fan-out missing-source, duplicate "
+            "branch/source, wait-all, overlapping write-fence, held_for_coo_review, "
+            "wrong coo gate state, and graph fan-barrier mutations RED-fired. "
             + PROOF_LIMIT
         ),
     )
