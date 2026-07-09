@@ -31,19 +31,23 @@ downstream verification, not in up-front prescription).
 관리자 (사람 이름만)         -> managers
 ```
 
-Also settle the two identity facts:
+Also settle the two identity facts and the declaration author:
 
 ```text
 project_id  -> [-_a-z0-9] slug (폴더 이름이 된다: project/<id>/)
 label       -> 사람이 읽는 프로젝트 이름
+declared_by -> 선언한 사람 이름 (생략 시 CLI 기본값 사용)
 ```
 
 Managers are HUMAN owners only. Agents are never listed — agents change, and
 who worked is projected from AgentBinding evidence, not declared in a
 charter. If the human names an agent, record the human owner instead.
 
-Record answers as given. Do not grade, rewrite for quality, or demand more
-detail than the human chose to give.
+Every required charter text slot must contain non-empty text: `label`,
+`why_exists`, `why_now`, `direction`, `done_means`, and `out_of_scope`.
+`managers` must contain at least one non-empty human owner name. Record
+answers as given. Do not grade, rewrite for quality, or demand more detail
+than the human chose to give.
 
 ## Step 2 — human confirms the charter
 
@@ -96,7 +100,8 @@ half-declared survives):
 ```text
 - duplicate project id    (project/<id>/ already exists)
 - non-slug project id     (refused before any filesystem write)
-- empty direction         (declaration loader speaks)
+- empty charter text slot (label, why_exists, why_now, direction, done_means, out_of_scope)
+- empty managers slot     (at least one non-empty human owner name is required)
 - agent-looking managers  (declaration loader speaks)
 ```
 
