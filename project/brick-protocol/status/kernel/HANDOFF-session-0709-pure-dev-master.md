@@ -56,16 +56,16 @@
 |----|--------|-------------------------|--------------------------------|
 | D1=R5 | body on main | bid `pure-dev-d1-r5-body-reland-0709c` · sha **`243da7ff0`** · frontier complete | older `*product-land-0709b` / shape-b as sole proof |
 | D2=R6 | **CANCELLED KEEP** | explicit KEEP (no migrate) | README-only KEEP-as-DONE |
-| D3=R7 | **OPEN** | main: `OfficialLaunchProof` **ABSENT** | any complete frontier without main class land |
+| D3=R7 | **DONE** (closed this session) | bid `pure-dev-d3-r7-body-reland-0709c` · sha **`e87fe03af`** · F✓W✓P✓ | WIP-only without main land; `pure-dev-d3-body-v1-0709` incomplete leftover |
 | D4=R4 | **OPEN** | full ship-copy body re-land pending | metadata / map-only / “engine already” |
 | D5=R11 | OOS | — | BRICK board fake Deku DONE |
 
 ### Main product facts (verify before claim)
 
 ```text
-main HEAD: 12f8342db
+main HEAD: 70789f7f8 (board after D3) · product land e87fe03af
 classify_route_v2_concern_eligibility: PRESENT (D1 body)
-class OfficialLaunchProof in import_identity.py: ABSENT
+class OfficialLaunchProof in import_identity.py: PRESENT (D3 body)
 ```
 
 ---
