@@ -101,8 +101,12 @@ _SESSION_ID_KEYED_RE = re.compile(
     r"|conversation[ _-]?id|continuation[ _-]?id)"
     r"\b['\"]?\s*[:=]\s*['\"]?(?=[A-Za-z0-9._~+/=-]*\d)[A-Za-z0-9._~+/=-]{6,}"
 )
-_SESSION_ID_UUID_RE = re.compile(
-    r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b"
+_SESSION_ID_UUID_PATTERN = (
+    r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+)
+_SESSION_ID_UUID_RE = re.compile(rf"\b{_SESSION_ID_UUID_PATTERN}\b")
+_CLAUDE_ARTIFACT_UUID_RE = re.compile(
+    rf"https://claude\.ai/code/artifact/(?P<artifact_uuid>{_SESSION_ID_UUID_PATTERN})"
 )
 # PROJECT-0 S1-C: project scan roots are derived PER VESSEL (every
 # project/<id>/buildings + project/<id>/status — a new project must never be a
@@ -153,8 +157,18 @@ def _session_line_digest(line: str) -> str:
     return hashlib.sha256(line.encode("utf-8")).hexdigest()[:16]
 
 
+def _line_without_allowed_artifact_uuid(line: str) -> str:
+    return _CLAUDE_ARTIFACT_UUID_RE.sub(
+        lambda match: match.group(0).replace(
+            match.group("artifact_uuid"), "<artifact-uuid>"
+        ),
+        line,
+    )
+
+
 def _line_carries_session_id(line: str) -> bool:
-    if _SESSION_ID_UUID_RE.search(line) or _SESSION_ID_ULID_RE.search(line):
+    uuid_scan_line = _line_without_allowed_artifact_uuid(line)
+    if _SESSION_ID_UUID_RE.search(uuid_scan_line) or _SESSION_ID_ULID_RE.search(line):
         return True
     if _SESSION_ID_KEYED_RE.search(line):
         return True
@@ -176,16 +190,19 @@ def _session_id_redaction_fire_probe() -> None:
     raises ProfileError, so --all EXITs non-zero.
     """
 
-    # One leak line PER detection family, each crafted so only ITS matcher
-    # catches it -- disabling any single family (bare UUID / bare ULID /
-    # keyed session form / prefixed value token) leaves its line unmatched and
-    # the probe RED. A single combined line would let one family die silently
+    # One leak line PER detection pattern, each crafted so only ITS matcher
+    # catches it. A single combined line would let one pattern die silently
     # behind another.
     family_leaks = {
         "bare-uuid": "subagent row " + _chat_session_probe_uuid_text(),
         "bare-ulid": "subagent row " + _chat_session_probe_ulid_text(),
         "keyed-session": "conversation_id: abc123def456ghi",
-        "value-token": "transport sess_a1b2c3d4e5f6g7",
+        "value-token-session-prefix": "transport sess_a1b2c3d4e5f6g7",
+        "value-token-provider-session": "transport provider-session-a1b2c3d4",
+        "value-token-resume-token": "transport resume_token_a1b2c3d4",
+        "value-token-chat-completion": "transport chatcmpl-a1b2c3d4",
+        "value-token-google-oauth": "transport ya29.a1b2c3d4e5",
+        "value-token-jwt": "transport eyJa1b2c3d4.eyJe5f6g7h8.sig9",
     }
     with tempfile.TemporaryDirectory(prefix="bp-session-id-fire-") as tmp:
         probe_repo = Path(tmp)
@@ -213,6 +230,31 @@ def _session_id_redaction_fire_probe() -> None:
                     "stopped matching; the empty-allowlist green is no longer "
                     "trustworthy)"
                 )
+        leak_doc.write_text(
+            "# synthetic FIRE probe record\n\n"
+            "allowed artifact URL "
+            f"https://claude.ai/code/artifact/{_chat_session_probe_uuid_text()}\n",
+            encoding="utf-8",
+        )
+        artifact_offenders = _collect_session_id_offenders(probe_repo)[0]
+        if artifact_offenders:
+            raise ProfileError(
+                "agent_session_id_redaction FIRE probe over-fired on a Claude "
+                f"artifact URL UUID path segment: {artifact_offenders[:3]}"
+            )
+        leak_doc.write_text(
+            "# synthetic FIRE probe record\n\n"
+            "not an allowed artifact URL "
+            f"https://example.invalid/artifact/{_chat_session_probe_uuid_text()}\n",
+            encoding="utf-8",
+        )
+        broad_url_offenders = _collect_session_id_offenders(probe_repo)[0]
+        if not broad_url_offenders:
+            raise ProfileError(
+                "agent_session_id_redaction FIRE probe did NOT fire for a UUID "
+                "path segment on a non-Claude artifact URL; the artifact exception "
+                "has widened beyond its admitted boundary"
+            )
         leak_doc.write_text(
             "# synthetic FIRE probe record\n\nno session id here\n", encoding="utf-8"
         )
