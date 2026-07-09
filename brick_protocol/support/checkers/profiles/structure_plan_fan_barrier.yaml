@@ -7,13 +7,18 @@ kernel_checks:
 path_exists:
   - brick_protocol/support/checkers/lib/structure_plan_fan_barrier.py
   - brick_protocol/support/checkers/fixtures/building_call_lowering/positive_structure_plan_request.json
+  - brick_protocol/support/checkers/fixtures/building_call_lowering/positive_structure_plan_multiple_fan_out_groups.json
   - brick_protocol/support/checkers/fixtures/building_call_lowering/negative_structure_plan_no_fan_in.json
+  - brick_protocol/support/checkers/fixtures/building_call_lowering/negative_structure_plan_multiple_fan_out_missing_source.json
+  - brick_protocol/support/checkers/fixtures/building_call_lowering/negative_structure_plan_duplicate_branch_source.json
 text_contains:
   - path: brick_protocol/support/checkers/lib/structure_plan_fan_barrier.py
     texts:
       - structure_plan fan barrier checker support evidence only
       - run_structure_plan_fan_barrier
       - fan_barrier_violations
+      - duplicate branch/source
+      - multiple fan-out fixture
       - exactly one convergence group
       - must preserve wait-all
       - pairwise disjoint

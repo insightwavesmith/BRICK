@@ -1,0 +1,114 @@
+{
+  "building_case": "standard_delivery",
+  "confirmation_state": "confirmed",
+  "declared_by": "coo:building-call-lowering-checker",
+  "kind": "confirmed_building_call_request_v1_1",
+  "structure_plan": {
+    "edges": [
+      {
+        "from": "building-step-template:inspect",
+        "to": "code-lens"
+      },
+      {
+        "from": "building-step-template:inspect",
+        "to": "axis-lens"
+      },
+      {
+        "from": "building-step-template:design",
+        "to": "evidence-lens"
+      },
+      {
+        "from": "building-step-template:design",
+        "to": "risk-lens"
+      },
+      {
+        "from": "code-lens",
+        "to": "triage-closure"
+      },
+      {
+        "from": "axis-lens",
+        "to": "triage-closure"
+      },
+      {
+        "from": "evidence-lens",
+        "to": "triage-closure"
+      },
+      {
+        "from": "risk-lens",
+        "to": "triage-closure"
+      }
+    ],
+    "fan_out_groups": [
+      {
+        "branches": [
+          "code-lens",
+          "axis-lens"
+        ],
+        "from": "building-step-template:inspect"
+      },
+      {
+        "branches": [
+          "evidence-lens",
+          "risk-lens"
+        ],
+        "from": "building-step-template:design"
+      }
+    ],
+    "fan_in_groups": [
+      {
+        "converge_on": "triage-closure",
+        "sources": [
+          "code-lens",
+          "axis-lens",
+          "evidence-lens",
+          "risk-lens"
+        ],
+        "wait_all": true
+      }
+    ],
+    "nodes": {
+      "axis-lens": {
+        "write_scope": {
+          "allowed_paths": [
+            "tmp/axis"
+          ],
+          "forbidden_paths": [
+            ".git/**"
+          ]
+        }
+      },
+      "code-lens": {
+        "write_scope": {
+          "allowed_paths": [
+            "tmp/code"
+          ],
+          "forbidden_paths": [
+            ".git/**"
+          ]
+        }
+      },
+      "evidence-lens": {
+        "write_scope": {
+          "allowed_paths": [
+            "tmp/evidence"
+          ],
+          "forbidden_paths": [
+            ".git/**"
+          ]
+        }
+      },
+      "risk-lens": {
+        "write_scope": {
+          "allowed_paths": [
+            "tmp/risk"
+          ],
+          "forbidden_paths": [
+            ".git/**"
+          ]
+        }
+      }
+    },
+    "terminal": "triage-closure"
+  },
+  "task_statement": "Lower multiple declared fan_out_groups that converge through one wait-all fan_in_group.\n"
+}

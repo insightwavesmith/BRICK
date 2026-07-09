@@ -1,0 +1,70 @@
+{
+  "building_case": "standard_delivery",
+  "confirmation_state": "confirmed",
+  "kind": "confirmed_building_call_request_v1_1",
+  "structure_plan": {
+    "edges": [
+      {
+        "from": "building-step-template:inspect",
+        "to": "code-lens"
+      },
+      {
+        "from": "building-step-template:inspect",
+        "to": "axis-lens"
+      },
+      {
+        "from": "building-step-template:design",
+        "to": "evidence-lens"
+      },
+      {
+        "from": "building-step-template:design",
+        "to": "risk-lens"
+      },
+      {
+        "from": "code-lens",
+        "to": "triage-closure"
+      },
+      {
+        "from": "axis-lens",
+        "to": "triage-closure"
+      },
+      {
+        "from": "evidence-lens",
+        "to": "triage-closure"
+      },
+      {
+        "from": "risk-lens",
+        "to": "triage-closure"
+      }
+    ],
+    "fan_out_groups": [
+      {
+        "branches": [
+          "code-lens",
+          "axis-lens"
+        ],
+        "from": "building-step-template:inspect"
+      },
+      {
+        "branches": [
+          "evidence-lens",
+          "risk-lens"
+        ],
+        "from": "building-step-template:design"
+      }
+    ],
+    "fan_in_groups": [
+      {
+        "converge_on": "triage-closure",
+        "sources": [
+          "code-lens",
+          "axis-lens",
+          "evidence-lens"
+        ],
+        "wait_all": true
+      }
+    ],
+    "terminal": "triage-closure"
+  },
+  "task_statement": "Malformed multiple fan_out_groups fixture must be rejected because one fan-out branch is missing from the single fan-in sources.\n"
+}

@@ -26,12 +26,18 @@ from brick_protocol.support.operator.building_call import (
 CHECK_ID = "structure_plan_fan_barrier"
 FIXTURE_ROOT = Path("brick_protocol/support/checkers/fixtures/building_call_lowering")
 POSITIVE_FIXTURE = FIXTURE_ROOT / "positive_structure_plan_request.json"
+MULTIPLE_FAN_OUT_FIXTURE = FIXTURE_ROOT / "positive_structure_plan_multiple_fan_out_groups.json"
 NO_FAN_IN_FIXTURE = FIXTURE_ROOT / "negative_structure_plan_no_fan_in.json"
+MULTIPLE_FAN_OUT_MISSING_SOURCE_FIXTURE = (
+    FIXTURE_ROOT / "negative_structure_plan_multiple_fan_out_missing_source.json"
+)
+DUPLICATE_BRANCH_SOURCE_FIXTURE = FIXTURE_ROOT / "negative_structure_plan_duplicate_branch_source.json"
 HELD_FIXTURE = FIXTURE_ROOT / "negative_held_for_coo_review.json"
 PROOF_LIMIT = (
     "proof limit: structure_plan fan barrier checker support evidence only; "
     "it proves only the confirmed request fixture shapes for single fan-in "
     "convergence, wait-all preservation, pairwise-disjoint branch write fences, "
+    "duplicate branch/source rejection, multiple fan-out convergence, "
     "held_for_coo_review consistency, and graph fan-barrier RED probing; not "
     "source truth, success judgment, quality judgment, Movement authority, "
     "provider behavior, or complete graph topology correctness."
@@ -80,6 +86,74 @@ def _assert_rejected(request: Mapping[str, Any], expected_text: str, label: str)
     raise ProfileError(f"structure_plan fan barrier rejected evidence: {label} normalized")
 
 
+def _duplicate_branch_source_violations(request: Mapping[str, Any]) -> list[str]:
+    structure_plan = request.get("structure_plan")
+    if not isinstance(structure_plan, Mapping):
+        raise ProfileError("structure_plan fan barrier duplicate fixture lost structure_plan")
+
+    violations: list[str] = []
+    fan_out_groups = structure_plan.get("fan_out_groups")
+    if isinstance(fan_out_groups, list):
+        for index, group in enumerate(fan_out_groups):
+            if not isinstance(group, Mapping):
+                continue
+            branches = group.get("branches")
+            if isinstance(branches, list):
+                seen: set[str] = set()
+                for branch in branches:
+                    if not isinstance(branch, str):
+                        continue
+                    if branch in seen:
+                        violations.append(
+                            "duplicate branch/source: "
+                            f"fan_out_groups[{index}].branches repeats {branch!r}"
+                        )
+                    seen.add(branch)
+
+    fan_in_groups = structure_plan.get("fan_in_groups")
+    if isinstance(fan_in_groups, list):
+        for index, group in enumerate(fan_in_groups):
+            if not isinstance(group, Mapping):
+                continue
+            sources = group.get("sources")
+            if isinstance(sources, list):
+                seen = set()
+                for source in sources:
+                    if not isinstance(source, str):
+                        continue
+                    if source in seen:
+                        violations.append(
+                            "duplicate branch/source: "
+                            f"fan_in_groups[{index}].sources repeats {source!r}"
+                        )
+                    seen.add(source)
+
+    return violations
+
+
+def _assert_no_duplicate_branch_source(request: Mapping[str, Any], label: str) -> None:
+    violations = _duplicate_branch_source_violations(request)
+    if violations:
+        raise ProfileError(
+            f"structure_plan fan barrier rejected: {label} carries "
+            + "; ".join(violations)
+        )
+
+
+def _assert_duplicate_branch_source_rejected(request: Mapping[str, Any]) -> None:
+    try:
+        _assert_no_duplicate_branch_source(request, "duplicate branch/source fixture")
+    except ProfileError as exc:
+        if "duplicate branch/source" in str(exc):
+            return
+        raise
+    else:
+        raise ProfileError(
+            "structure_plan fan barrier rejected evidence: duplicate branch/source fixture "
+            "did not carry a duplicate"
+        )
+
+
 def _topology_as_barrier_packet(topology: Mapping[str, Any]) -> dict[str, Any]:
     edges = []
     for index, edge in enumerate(topology.get("edges", [])):
@@ -115,6 +189,7 @@ def _topology_as_barrier_packet(topology: Mapping[str, Any]) -> dict[str, Any]:
 
 def run_structure_plan_fan_barrier(repo: Path) -> KernelResult:
     positive = _load_fixture(repo, POSITIVE_FIXTURE)
+    _assert_no_duplicate_branch_source(positive, "positive fixture")
     topology = _lowered_topology(positive)
     fan_in_groups = topology.get("fan_in_groups")
     if not isinstance(fan_in_groups, list) or len(fan_in_groups) != 1:
@@ -127,8 +202,37 @@ def run_structure_plan_fan_barrier(repo: Path) -> KernelResult:
     if fan_barrier_violations(barrier_packet):
         raise ProfileError("structure_plan fan barrier rejected: positive fixture failed graph barrier oracle")
 
+    multiple_fan_out = _load_fixture(repo, MULTIPLE_FAN_OUT_FIXTURE)
+    _assert_no_duplicate_branch_source(multiple_fan_out, "multiple fan-out fixture")
+    multiple_topology = _lowered_topology(multiple_fan_out)
+    multiple_fan_out_groups = multiple_topology.get("fan_out_groups")
+    multiple_fan_in_groups = multiple_topology.get("fan_in_groups")
+    if not isinstance(multiple_fan_out_groups, list) or len(multiple_fan_out_groups) != 2:
+        raise ProfileError(
+            "structure_plan fan barrier rejected: multiple fan-out fixture lost two fan-out groups"
+        )
+    if not isinstance(multiple_fan_in_groups, list) or len(multiple_fan_in_groups) != 1:
+        raise ProfileError(
+            "structure_plan fan barrier rejected: multiple fan-out fixture lost single fan-in"
+        )
+    multiple_barrier_packet = _topology_as_barrier_packet(multiple_topology)
+    if fan_barrier_violations(multiple_barrier_packet):
+        raise ProfileError(
+            "structure_plan fan barrier rejected: multiple fan-out fixture failed graph barrier oracle"
+        )
+
     no_fan_in = _load_fixture(repo, NO_FAN_IN_FIXTURE)
     _assert_rejected(no_fan_in, "exactly one convergence group", "no-fan-in fixture")
+
+    multiple_fan_out_missing_source = _load_fixture(repo, MULTIPLE_FAN_OUT_MISSING_SOURCE_FIXTURE)
+    _assert_rejected(
+        multiple_fan_out_missing_source,
+        "exactly match the single fan-in sources",
+        "multiple fan-out missing-source fixture",
+    )
+
+    duplicate_branch_source = _load_fixture(repo, DUPLICATE_BRANCH_SOURCE_FIXTURE)
+    _assert_duplicate_branch_source_rejected(duplicate_branch_source)
 
     wait_all_probe = json.loads(json.dumps(positive))
     wait_all_probe["structure_plan"]["fan_in_groups"][0]["wait_all"] = False
@@ -174,11 +278,13 @@ def run_structure_plan_fan_barrier(repo: Path) -> KernelResult:
 
     return KernelResult(
         check_id=CHECK_ID,
-        inspected=6,
+        inspected=9,
         output=(
-            "structure_plan fan barrier passed: positive fixture lowered to a single wait-all "
-            "fan-in; no-fan-in, wait-all, overlapping write-fence, held_for_coo_review, and "
-            "graph fan-barrier mutations RED-fired. "
+            "structure_plan fan barrier passed: positive fixture lowered to a single "
+            "wait-all fan-in; multiple fan-out fixture lowered to one convergence; "
+            "no-fan-in, multiple fan-out missing-source, duplicate branch/source, "
+            "wait-all, overlapping write-fence, held_for_coo_review, and graph "
+            "fan-barrier mutations RED-fired. "
             + PROOF_LIMIT
         ),
     )
