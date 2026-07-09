@@ -96,6 +96,7 @@ Proof limit: 이 절은 운영정책 support evidence이며 source truth·성공
 | ⑦ | route/walker integration | HOLD | checker green + human gate + route_materialization view 안정 후에만 |
 | ⑧ | 발주서작성 preset/Agent/menu/lowering | ✓ | ⑤d~⑤j declared Building/sandbox 경로로 관찰 완료. COO 직접 구현 금지 원칙 유지 |
 | ⑨ | dogfood/골 closure | 부분 완료 | Building Call quick direct + order_authoring dogfood 관찰 완료. Route V2 read-only view dogfood 관찰 완료. remaining human gates/cleanup 이후 parent closure |
+| ⑩ | customer UX CLI | 구현 관찰 | ⑩f worktree Building에서 `brick project new/list/show` + `brick progress [--write]` support CLI wrapper and focused checker/profile implemented. P7 repair covers generated PROGRESS.md redaction after progress --write. Focused/core/host profiles, compileall, git diff --check, and `check_profile.py --all` rc=0 observed; proof remains support evidence only |
 
 ---
 
@@ -408,6 +409,68 @@ purpose: draft-only validation/normalization for building_call_authoring_return_
 coverage repair: reroute pass tightened validation to reject unknown top-level fields, scan every declared return field for forbidden draft exposure, and catch embedded/case-varied provider/model/adapter markers.
 checker evidence: clean review worktree observed compileall rc=0, git diff --check rc=0, focused ⑤f profiles green, and check_profile.py --all rc=0 with 57/57 profile passes and real red observations=0. building_call_authoring_contract rejects unknown top-level, remaining_delta exposure, forbidden_exposure_scan key, and embedded case-varied exposure probes.
 limits: no launch authorization, no lowering, no route/walker integration, no source truth, no success judgment, no quality judgment, no Movement authority. ⑤j now covered by later sandbox dogfood evidence; this prior proof itself still did not launch a Building.
+```
+
+---
+
+## 4.5 ⑩ Customer UX CLI — current worktree Building
+
+```text
+building_id: customer-ux-10f-cli-tie-0709
+request: project/brick-protocol/status/kernel/customer-ux-10f-implementation-building-request-0709.md
+report: project/brick-protocol/status/kernel/customer-ux-10f-implementation-report-0709.md
+scope: customer-facing support CLI wrappers for project vessels and progress projection.
+```
+
+Implemented support CLI surfaces:
+
+```text
+brick project new [--id <slug>] [--label <name>] [--non-interactive]
+brick project list
+brick project show [<id>]
+brick progress [<id>] [--write]
+```
+
+Observed boundaries:
+
+```text
+project creation stays owned by brick_protocol/support/operator/project_creation.py.
+progress rendering/writing stays owned by brick_protocol/support/operator/progress_projection.py.
+list/show/progress default are read-only wrapper paths.
+progress --write calls generate_project_progress and reports the PROGRESS.md path.
+non-TTY project new refuses unless all charter fields are supplied explicitly.
+interactive project new requires typed project-id confirmation before create_project.
+secret/session-shaped declaration text is redacted from customer packets.
+generated PROGRESS.md redacts secret/session/provider-credential-shaped declaration and ledger text after progress --write.
+no Agent, Link, project declaration, README, inbox, credential, provider-session, scheduler, queue, or retry-runtime surface was intentionally edited.
+```
+
+Checker/profile evidence:
+
+```text
+focused profile: brick_protocol/support/checkers/profiles/customer_project_progress_cli.yaml
+kernel check: customer_project_progress_cli in brick_protocol/support/checkers/lib/brick_cli_entrypoint_check.py
+dispatch: brick_protocol/support/checkers/check_profile.py
+core inventory: brick_protocol/support/checkers/profiles/core.yaml
+```
+
+Current proof snapshot at GOAL update time:
+
+```text
+python3 brick_protocol/support/checkers/check_profile.py --profile customer_project_progress_cli: rc=0
+python3 -m compileall -q brick_protocol: rc=0
+python3 brick_protocol/support/checkers/check_profile.py --profile core: rc=0
+python3 brick_protocol/support/checkers/check_profile.py --profile building_skill_preset_intake_adapter_gate: rc=0
+python3 brick_protocol/support/checkers/check_profile.py --profile read_side_projection_boundary: rc=0
+git diff --check: rc=0
+python3 brick_protocol/support/checkers/check_profile.py --all: rc=0
+```
+
+Proof limits:
+
+```text
+support evidence only; no source truth, success judgment, quality judgment, or Movement authority.
+real provider behavior and future customer project semantic correctness are not proven.
 ```
 
 ---

@@ -1,0 +1,54 @@
+schema: checker-profile/v1
+profile_id: customer-project-progress-cli
+description: Customer-facing project/progress CLI wrapper profile over existing project_creation and progress_projection seams.
+kernel_checks:
+  - customer_project_progress_cli
+path_exists:
+  - brick_protocol/support/operator/cli.py
+  - brick_protocol/support/operator/project_creation.py
+  - brick_protocol/support/operator/progress_projection.py
+  - brick_protocol/support/checkers/lib/brick_cli_entrypoint_check.py
+  - brick_protocol/support/checkers/profiles/customer_project_progress_cli.yaml
+text_contains:
+  - path: brick_protocol/support/operator/cli.py
+    texts:
+      - 'from brick_protocol.support.operator.project_creation import create_project'
+      - 'generate_project_progress'
+      - 'render_project_progress'
+      - 'def _cmd_project_new'
+      - 'def _cmd_project_list'
+      - 'def _cmd_project_show'
+      - 'def _cmd_progress'
+      - '"project"'
+      - '"progress"'
+      - '"--write"'
+      - 'project new requires explicit charter fields in non-interactive mode'
+      - "type {values['"
+      - '_mask_public_text'
+  - path: brick_protocol/support/checkers/lib/brick_cli_entrypoint_check.py
+    texts:
+      - 'def run_customer_project_progress_cli'
+      - 'non-TTY project new without explicit'
+      - 'progress --write did not call'
+      - 'secret-shaped declaration text is redacted'
+      - 'generated PROGRESS.md leaked secret-shaped declaration text'
+text_absent:
+  - path: brick_protocol/support/operator/cli.py
+    texts:
+      - movement_choice
+      - route_target
+      - success_judgment
+      - quality_judgment
+      - scheduler runtime
+      - queue runtime
+      - retry runtime
+proof_limits:
+  - support CLI wrapper/profile evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic correctness of real customer project charters
+  - provider behavior
+  - future Building correctness

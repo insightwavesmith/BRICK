@@ -992,6 +992,290 @@ raise SystemExit(cli.main(["status", "--json", "--repo", str(repo)]))
     )
 
 
+def _file_snapshot(root: Path) -> dict[str, str]:
+    if not root.exists():
+        return {}
+    return {
+        str(path.relative_to(root)): path.read_text(encoding="utf-8")
+        for path in sorted(root.rglob("*"))
+        if path.is_file()
+    }
+
+
+def _call_cli_json(cli: Any, argv: list[str]) -> tuple[int, dict[str, Any], str]:
+    stdout = io.StringIO()
+    stderr = io.StringIO()
+    with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+        exit_code = cli.main(argv)
+    text = stdout.getvalue()
+    packet: dict[str, Any] = {}
+    if text.strip():
+        parsed = json.loads(text)
+        if not isinstance(parsed, dict):
+            raise ProfileError(f"customer_project_progress_cli emitted non-object JSON: {parsed!r}")
+        packet = parsed
+    return exit_code, packet, stderr.getvalue()
+
+
+def run_customer_project_progress_cli(repo: Path) -> KernelResult:
+    """Behavioral customer project/progress CLI check over a temp repo.
+
+    Support checker mechanics only: this observes the customer CLI wrapper over
+    project_creation/progress_projection, records no source truth, and does not
+    judge success, quality, or Movement.
+    """
+
+    _ensure_import_identity(repo)
+    cli = importlib.import_module("brick_protocol.support.operator.cli")
+    parser = cli.build_parser()
+    subparser_actions = [
+        action for action in parser._actions if isinstance(action, argparse._SubParsersAction)
+    ]
+    if len(subparser_actions) != 1:
+        raise ProfileError("customer_project_progress_cli: CLI parser lost public subparser action")
+    public_commands = set(subparser_actions[0].choices)
+    if not {"project", "progress"}.issubset(public_commands):
+        raise ProfileError(
+            "customer_project_progress_cli: parser does not expose project/progress commands"
+        )
+    project_parser = subparser_actions[0].choices["project"]
+    project_subparsers = [
+        action
+        for action in project_parser._actions
+        if isinstance(action, argparse._SubParsersAction)
+    ]
+    if len(project_subparsers) != 1:
+        raise ProfileError("customer_project_progress_cli: project parser lost subcommands")
+    if set(project_subparsers[0].choices) != {"new", "list", "show"}:
+        raise ProfileError(
+            "customer_project_progress_cli: project parser must expose exactly new/list/show"
+        )
+
+    source = inspect.getsource(cli)
+    for needle in (
+        "from brick_protocol.support.operator.project_creation import create_project",
+        "from brick_protocol.support.operator.progress_projection import (",
+        "render_project_progress",
+        "generate_project_progress",
+    ):
+        if needle not in source:
+            raise ProfileError(
+                f"customer_project_progress_cli: cli.py lost backend import needle {needle!r}"
+            )
+    forbidden_needles = (
+        "movement_choice",
+        "route_target",
+        "success_judgment",
+        "quality_judgment",
+        "scheduler",
+        "queue",
+        "retry runtime",
+    )
+    for needle in forbidden_needles:
+        if needle in source:
+            raise ProfileError(
+                f"customer_project_progress_cli: cli.py introduced forbidden boundary text {needle!r}"
+            )
+
+    with tempfile.TemporaryDirectory(prefix="bp-customer-project-cli-") as tmp:
+        temp_repo = Path(tmp)
+        project_root = temp_repo / "project"
+        project_root.mkdir()
+
+        refused_exit, _packet, _stderr = _call_cli_json(
+            cli,
+            [
+                "project",
+                "new",
+                "--json",
+                "--repo",
+                str(temp_repo),
+            ],
+        )
+        if refused_exit == 0:
+            raise ProfileError(
+                "customer_project_progress_cli: non-TTY project new without explicit "
+                "charter fields was accepted"
+            )
+        if any(project_root.iterdir()):
+            raise ProfileError(
+                "customer_project_progress_cli: rejected non-TTY project new created files"
+            )
+
+        secret_text = "direction token=SHOULD_NOT_APPEAR123456"
+        raw_needles = ("token=SHOULD_NOT_APPEAR123456", "SHOULD_NOT_APPEAR")
+        create_argv = [
+            "project",
+            "new",
+            "--json",
+            "--non-interactive",
+            "--repo",
+            str(temp_repo),
+            "--id",
+            "checker-cli-vessel",
+            "--label",
+            "Checker CLI Vessel",
+            "--why-exists",
+            "checker fixture for customer project CLI",
+            "--why-now",
+            "created inside a temporary checker repo",
+            "--direction",
+            secret_text,
+            "--done-means",
+            "checker assertions observed the wrapper",
+            "--out-of-scope",
+            "real customer work",
+            "--manager",
+            "checker-human",
+        ]
+        create_exit, create_packet, _stderr = _call_cli_json(cli, create_argv)
+        if create_exit != 0:
+            raise ProfileError(
+                f"customer_project_progress_cli: full non-interactive project new rejected: {create_packet!r}"
+            )
+        create_text = json.dumps(create_packet, sort_keys=True)
+        if any(needle in create_text for needle in raw_needles):
+            raise ProfileError(
+                "customer_project_progress_cli: project new leaked secret-shaped declaration text"
+            )
+        vessel = project_root / "checker-cli-vessel"
+        before_list = _file_snapshot(vessel)
+        list_exit, list_packet, _stderr = _call_cli_json(
+            cli, ["project", "list", "--json", "--repo", str(temp_repo)]
+        )
+        if list_exit != 0 or list_packet.get("command") != "project-list":
+            raise ProfileError(
+                f"customer_project_progress_cli: project list rejected or emitted wrong packet: {list_packet!r}"
+            )
+        if _file_snapshot(vessel) != before_list:
+            raise ProfileError("customer_project_progress_cli: project list mutated the vessel")
+        if any(needle in json.dumps(list_packet, sort_keys=True) for needle in raw_needles):
+            raise ProfileError("customer_project_progress_cli: project list leaked secret-shaped text")
+
+        before_show = _file_snapshot(vessel)
+        show_exit, show_packet, _stderr = _call_cli_json(
+            cli,
+            [
+                "project",
+                "show",
+                "checker-cli-vessel",
+                "--json",
+                "--repo",
+                str(temp_repo),
+            ],
+        )
+        if show_exit != 0 or show_packet.get("command") != "project-show":
+            raise ProfileError(
+                f"customer_project_progress_cli: project show rejected or emitted wrong packet: {show_packet!r}"
+            )
+        if _file_snapshot(vessel) != before_show:
+            raise ProfileError("customer_project_progress_cli: project show mutated the vessel")
+        if any(needle in json.dumps(show_packet, sort_keys=True) for needle in raw_needles):
+            raise ProfileError("customer_project_progress_cli: project show leaked secret-shaped text")
+
+        original_render = cli.render_project_progress
+        original_generate = cli.generate_project_progress
+        calls = {"render": 0, "generate": 0}
+
+        def observed_render(project_ref: str, *, repo_root: Path | str = repo) -> str:
+            calls["render"] += 1
+            return original_render(project_ref, repo_root=repo_root)
+
+        def observed_generate(project_ref: str, *, repo_root: Path | str = repo) -> dict[str, Any]:
+            calls["generate"] += 1
+            return original_generate(project_ref, repo_root=repo_root)
+
+        cli.render_project_progress = observed_render
+        cli.generate_project_progress = observed_generate
+        try:
+            before_progress = _file_snapshot(vessel)
+            progress_exit, progress_packet, _stderr = _call_cli_json(
+                cli,
+                [
+                    "progress",
+                    "checker-cli-vessel",
+                    "--json",
+                    "--repo",
+                    str(temp_repo),
+                ],
+            )
+            if progress_exit != 0 or progress_packet.get("command") != "progress":
+                raise ProfileError(
+                    "customer_project_progress_cli: progress default rejected or emitted "
+                    f"wrong packet: {progress_packet!r}"
+                )
+            if calls["render"] != 1 or calls["generate"] != 0:
+                raise ProfileError(
+                    "customer_project_progress_cli: progress default did not call only "
+                    f"render_project_progress, calls={calls!r}"
+                )
+            if _file_snapshot(vessel) != before_progress:
+                raise ProfileError("customer_project_progress_cli: progress default mutated the vessel")
+            if any(needle in json.dumps(progress_packet, sort_keys=True) for needle in raw_needles):
+                raise ProfileError("customer_project_progress_cli: progress default leaked secret-shaped text")
+
+            write_exit, write_packet, _stderr = _call_cli_json(
+                cli,
+                [
+                    "progress",
+                    "checker-cli-vessel",
+                    "--write",
+                    "--json",
+                    "--repo",
+                    str(temp_repo),
+                ],
+            )
+            if write_exit != 0 or write_packet.get("command") != "progress-write":
+                raise ProfileError(
+                    "customer_project_progress_cli: progress --write rejected or emitted "
+                    f"wrong packet: {write_packet!r}"
+                )
+            if calls["generate"] != 1:
+                raise ProfileError(
+                    "customer_project_progress_cli: progress --write did not call "
+                    f"generate_project_progress, calls={calls!r}"
+                )
+            if not (vessel / "PROGRESS.md").is_file():
+                raise ProfileError("customer_project_progress_cli: progress --write wrote no PROGRESS.md")
+            progress_record = write_packet.get("progress", {})
+            if not isinstance(progress_record, dict) or progress_record.get("progress_path") != (
+                "project/checker-cli-vessel/PROGRESS.md"
+            ):
+                raise ProfileError(
+                    "customer_project_progress_cli: progress --write packet did not report "
+                    f"the backend progress path: {write_packet!r}"
+                )
+            progress_body = (vessel / "PROGRESS.md").read_text(encoding="utf-8")
+            if any(needle in progress_body for needle in raw_needles):
+                raise ProfileError(
+                    "customer_project_progress_cli: generated PROGRESS.md leaked secret-shaped declaration text"
+                )
+            if "[redacted]" not in progress_body:
+                raise ProfileError(
+                    "customer_project_progress_cli: generated PROGRESS.md did not "
+                    "redact the secret-shaped declaration probe"
+                )
+            if any(needle in json.dumps(write_packet, sort_keys=True) for needle in raw_needles):
+                raise ProfileError("customer_project_progress_cli: progress --write leaked secret-shaped text")
+        finally:
+            cli.render_project_progress = original_render
+            cli.generate_project_progress = original_generate
+
+    return KernelResult(
+        check_id="customer_project_progress_cli",
+        inspected=10,
+        output=(
+            "customer project/progress CLI passed: parser exposes project new/list/show "
+            "and progress; non-TTY default project creation refuses without a vessel; "
+            "full non-interactive creation uses create_project; list/show/default "
+            "progress are read-only; progress --write calls generate_project_progress; "
+            "secret-shaped declaration text is redacted from customer packets and "
+            "generated PROGRESS.md; no "
+            "success/quality/Movement authority was observed"
+        ),
+    )
+
+
 def _run_brick_cli_entrypoint_profile(repo: Path) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         [

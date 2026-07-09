@@ -159,6 +159,7 @@ from brick_protocol.support.checkers.lib.kernel_checks import (
     run_agent_session_id_redaction,
     run_dashboard_productization_projection,
     run_brick_cli_entrypoint_smoke,
+    run_customer_project_progress_cli,
     run_sakana_wire_packet,
     run_building_call_authoring_contract,
     run_building_call_direct_escape_contract,
@@ -842,6 +843,7 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
     # inserted repo root before support seams are loaded. Removing the two
     # sys.path.insert bootstrap lines drives this RED with ModuleNotFoundError.
     "brick_cli_entrypoint_smoke": run_brick_cli_entrypoint_smoke,
+    "customer_project_progress_cli": run_customer_project_progress_cli,
     "import_identity_modes": run_import_identity_modes,
     # P3 first-use wizard. Executes the brick init FIRST_USE.md branch
     # IN-PROCESS with simulated doctor/build packets and a temp output root:

@@ -103,6 +103,7 @@ path_allowlist:
       - brick_protocol/support/checkers/profiles/cli_runner_stdin_devnull.yaml
       - brick_protocol/support/checkers/profiles/coo_operating_chain.yaml
       - brick_protocol/support/checkers/profiles/core.yaml
+      - brick_protocol/support/checkers/profiles/customer_project_progress_cli.yaml
       - brick_protocol/support/checkers/profiles/declaration_enforcement_parity.yaml
       - brick_protocol/support/checkers/profiles/gate_registry_single_source.yaml
       - brick_protocol/support/checkers/profiles/gate_policy_action_single_source.yaml

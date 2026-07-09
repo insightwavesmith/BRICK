@@ -35,6 +35,7 @@ import argparse
 import contextlib
 import io
 import json
+import re
 import subprocess
 from collections.abc import Mapping, Sequence
 from datetime import datetime, timezone
@@ -56,6 +57,18 @@ from brick_protocol.support.connection.adapter_constants import (
 from brick_protocol.support.connection.agent_adapter import adapter_is_write_capable
 from brick_protocol.support.connection.adapter_subprocess import preflight_provider
 from brick_protocol.support.operator.first_use import FIRST_USE_FILENAME, write_first_use
+from brick_protocol.support.operator.progress_projection import (
+    generate_project_progress,
+    render_project_progress,
+)
+from brick_protocol.support.operator.project_creation import create_project
+from brick_protocol.support.operator.project_declaration import (
+    PROJECT_DECLARATION_FILENAME,
+    PROJECT_REF_PREFIX,
+    ProjectDeclaration,
+    is_admissible_project_id,
+    load_project_declaration,
+)
 from brick_protocol.support.operator import onboard
 from brick_protocol.support.operator import resume_declaration
 from brick_protocol.support.operator.assembly import (
@@ -117,6 +130,16 @@ NOT_PROVEN = (
     "semantic quality of Agent returns",
     "real-provider credential readiness",
     "production runtime behavior",
+)
+
+_SECRET_SHAPED_RE = re.compile(
+    r"(?i)("
+    r"sk-[a-z0-9_-]{12,}|"
+    r"xox[baprs]-[a-z0-9-]{10,}|"
+    r"gh[pousr]_[a-z0-9_]{20,}|"
+    r"api[_-]?key\s*[:=]\s*\S+|"
+    r"(secret|token|credential|session)[\w-]*\s*[:=]\s*\S+"
+    r")"
 )
 
 # Retired raw graph CLI notes for stale in-scope checker text probes only:
@@ -799,6 +822,293 @@ def _cmd_status(args: argparse.Namespace) -> int:
     else:
         print(_render_status(packet))
     return 0
+
+
+def _mask_public_text(value: Any) -> Any:
+    if isinstance(value, str):
+        return _SECRET_SHAPED_RE.sub("[redacted]", value)
+    if isinstance(value, list):
+        return [_mask_public_text(item) for item in value]
+    if isinstance(value, tuple):
+        return [_mask_public_text(item) for item in value]
+    if isinstance(value, dict):
+        return {str(key): _mask_public_text(item) for key, item in value.items()}
+    return value
+
+
+def _project_id_from_arg(raw: str | None, *, default: str = "brick-protocol") -> str:
+    value = (raw or default).strip()
+    if value.startswith(PROJECT_REF_PREFIX):
+        value = value.removeprefix(PROJECT_REF_PREFIX)
+    if not is_admissible_project_id(value):
+        raise ValueError("project id must be a lowercase [-_a-z0-9] slug")
+    return value
+
+
+def _project_ref_from_id(project_id: str) -> str:
+    return f"{PROJECT_REF_PREFIX}{project_id}"
+
+
+def _project_declaration_packet(declaration: ProjectDeclaration) -> dict[str, Any]:
+    return {
+        "project_id": declaration.project_id,
+        "project_ref": declaration.project_ref,
+        "label": _mask_public_text(declaration.label),
+        "direction": _mask_public_text(declaration.direction),
+        "done_means": _mask_public_text(declaration.done_means),
+        "out_of_scope": _mask_public_text(declaration.out_of_scope),
+        "managers": _mask_public_text(list(declaration.managers)),
+        "declared_by": _mask_public_text(declaration.declared_by),
+        "declared_at": declaration.declared_at,
+        "charter_ref": declaration.charter_ref,
+    }
+
+
+def _iter_project_declarations(repo: Path) -> list[ProjectDeclaration]:
+    project_root = repo / "project"
+    if not project_root.is_dir():
+        return []
+    declarations: list[ProjectDeclaration] = []
+    for candidate in sorted(project_root.iterdir(), key=lambda path: path.name):
+        if not candidate.is_dir() or not (candidate / PROJECT_DECLARATION_FILENAME).is_file():
+            continue
+        declarations.append(load_project_declaration(repo, candidate.name))
+    return declarations
+
+
+def _project_new_required_slots() -> tuple[str, ...]:
+    return (
+        "project_id",
+        "label",
+        "why_exists",
+        "why_now",
+        "direction",
+        "done_means",
+        "out_of_scope",
+        "managers",
+    )
+
+
+def _project_new_prompt(args: argparse.Namespace) -> dict[str, Any]:
+    values: dict[str, Any] = {
+        "project_id": getattr(args, "project_id", "") or "",
+        "label": getattr(args, "label", "") or "",
+        "why_exists": getattr(args, "why_exists", "") or "",
+        "why_now": getattr(args, "why_now", "") or "",
+        "direction": getattr(args, "direction", "") or "",
+        "done_means": getattr(args, "done_means", "") or "",
+        "out_of_scope": getattr(args, "out_of_scope", "") or "",
+        "managers": list(getattr(args, "managers", []) or []),
+        "declared_by": getattr(args, "declared_by", "") or DEFAULT_DECLARED_BY,
+    }
+    prompts = {
+        "project_id": "project id",
+        "label": "project label",
+        "why_exists": "purpose / why exists",
+        "why_now": "why now",
+        "direction": "direction",
+        "done_means": "done/progress criteria",
+        "out_of_scope": "out of scope",
+    }
+    for key, label in prompts.items():
+        if not str(values[key]).strip():
+            values[key] = input(f"{label}: ").strip()
+    if not values["managers"]:
+        manager = input("manager human name: ").strip()
+        if manager:
+            values["managers"] = [manager]
+    if not str(values["declared_by"]).strip():
+        values["declared_by"] = input("declared by: ").strip()
+    return values
+
+
+def _project_new_values(args: argparse.Namespace) -> dict[str, Any]:
+    non_interactive = bool(getattr(args, "non_interactive", False))
+    if non_interactive or not sys.stdin.isatty():
+        values = {
+            "project_id": getattr(args, "project_id", "") or "",
+            "label": getattr(args, "label", "") or "",
+            "why_exists": getattr(args, "why_exists", "") or "",
+            "why_now": getattr(args, "why_now", "") or "",
+            "direction": getattr(args, "direction", "") or "",
+            "done_means": getattr(args, "done_means", "") or "",
+            "out_of_scope": getattr(args, "out_of_scope", "") or "",
+            "managers": list(getattr(args, "managers", []) or []),
+            "declared_by": getattr(args, "declared_by", "") or DEFAULT_DECLARED_BY,
+        }
+        missing = [
+            key
+            for key in _project_new_required_slots()
+            if not values[key] or (isinstance(values[key], str) and not values[key].strip())
+        ]
+        if missing:
+            raise ValueError(
+                "project new requires explicit charter fields in non-interactive mode: "
+                + ", ".join(missing)
+            )
+        return values
+
+    values = _project_new_prompt(args)
+    missing = [
+        key
+        for key in _project_new_required_slots()
+        if not values[key] or (isinstance(values[key], str) and not values[key].strip())
+    ]
+    if missing:
+        raise ValueError("project new missing required charter fields: " + ", ".join(missing))
+    confirmation = input(f"type {values['project_id']} to create project: ").strip()
+    if confirmation != values["project_id"]:
+        raise ValueError("project creation confirmation did not match project id")
+    return values
+
+
+def _cmd_project_new(args: argparse.Namespace) -> int:
+    repo = _repo_from_args(args)
+    values = _project_new_values(args)
+    project_id = _project_id_from_arg(str(values["project_id"]), default="")
+    record = create_project(
+        repo,
+        project_id=project_id,
+        label=str(values["label"]),
+        direction=str(values["direction"]),
+        why_exists=str(values["why_exists"]),
+        why_now=str(values["why_now"]),
+        done_means=str(values["done_means"]),
+        out_of_scope=str(values["out_of_scope"]),
+        managers=[str(item) for item in values["managers"]],
+        declared_by=str(values["declared_by"]),
+    )
+    packet = {
+        "command": "project-new",
+        "project": _mask_public_text(record),
+        "proof_limits": list(PROOF_LIMITS),
+        "not_proven": list(NOT_PROVEN),
+    }
+    if args.json:
+        print(_json_dump(packet))
+    else:
+        print("Brick project new support evidence")
+        print(f"project_ref: {packet['project'].get('project_ref', '')}")
+        print(f"charter_ref: {packet['project'].get('charter_ref', '')}")
+        print("proof_limits: " + "; ".join(packet["proof_limits"]))
+    return 0
+
+
+def _cmd_project_list(args: argparse.Namespace) -> int:
+    repo = _repo_from_args(args)
+    projects = [_project_declaration_packet(item) for item in _iter_project_declarations(repo)]
+    packet = {
+        "command": "project-list",
+        "repo_root": str(repo),
+        "projects": projects,
+        "proof_limits": list(PROOF_LIMITS),
+        "not_proven": list(NOT_PROVEN),
+    }
+    if args.json:
+        print(_json_dump(packet))
+    else:
+        print("Brick project list support evidence")
+        if projects:
+            for project in projects:
+                print(f"- {project['project_ref']}: {project['label']}")
+        else:
+            print("- (no declared projects)")
+        print("proof_limits: " + "; ".join(packet["proof_limits"]))
+    return 0
+
+
+def _cmd_project_show(args: argparse.Namespace) -> int:
+    repo = _repo_from_args(args)
+    project_id = _project_id_from_arg(getattr(args, "project_id", None))
+    declaration = load_project_declaration(repo, project_id)
+    packet = {
+        "command": "project-show",
+        "repo_root": str(repo),
+        "project": _project_declaration_packet(declaration),
+        "proof_limits": list(PROOF_LIMITS),
+        "not_proven": list(NOT_PROVEN),
+    }
+    if args.json:
+        print(_json_dump(packet))
+    else:
+        project = packet["project"]
+        print("Brick project show support evidence")
+        for key in (
+            "project_ref",
+            "label",
+            "direction",
+            "done_means",
+            "out_of_scope",
+            "managers",
+            "declared_by",
+            "declared_at",
+            "charter_ref",
+        ):
+            value = project[key]
+            if isinstance(value, list):
+                value = ", ".join(str(item) for item in value)
+            print(f"{key}: {value}")
+        print("proof_limits: " + "; ".join(packet["proof_limits"]))
+    return 0
+
+
+def _cmd_progress(args: argparse.Namespace) -> int:
+    repo = _repo_from_args(args)
+    project_id = _project_id_from_arg(getattr(args, "project_id", None))
+    project_ref = _project_ref_from_id(project_id)
+    if getattr(args, "write", False):
+        record = generate_project_progress(project_ref, repo_root=repo)
+        record = _redact_written_progress(repo, record)
+        packet = {
+            "command": "progress-write",
+            "project_ref": project_ref,
+            "progress": _mask_public_text(record),
+            "proof_limits": list(PROOF_LIMITS),
+            "not_proven": list(NOT_PROVEN),
+        }
+        if args.json:
+            print(_json_dump(packet))
+        else:
+            print("Brick progress write support evidence")
+            print(f"project_ref: {project_ref}")
+            print(f"progress_path: {packet['progress'].get('progress_path', '')}")
+            print(f"changed: {packet['progress'].get('changed', '')}")
+            print("proof_limits: " + "; ".join(packet["proof_limits"]))
+        return 0
+
+    text = _mask_public_text(render_project_progress(project_ref, repo_root=repo))
+    packet = {
+        "command": "progress",
+        "project_ref": project_ref,
+        "rendered_progress": text,
+        "proof_limits": list(PROOF_LIMITS),
+        "not_proven": list(NOT_PROVEN),
+    }
+    if args.json:
+        print(_json_dump(packet))
+    else:
+        print(text)
+    return 0
+
+
+def _redact_written_progress(repo: Path, record: dict[str, Any]) -> dict[str, Any]:
+    progress_path = str(record.get("progress_path") or "")
+    relative_path = Path(progress_path)
+    if not progress_path or relative_path.is_absolute() or ".." in relative_path.parts:
+        raise ValueError("progress --write returned an inadmissible progress_path")
+    path = (repo / relative_path).resolve()
+    if not path.is_relative_to(repo.resolve()):
+        raise ValueError("progress --write returned a progress_path outside repo")
+    previous = path.read_text(encoding="utf-8") if path.is_file() else ""
+    redacted = _mask_public_text(previous)
+    if not isinstance(redacted, str):
+        raise ValueError("progress --write redaction produced a non-text body")
+    if redacted != previous:
+        path.write_text(redacted, encoding="utf-8")
+        record = dict(record)
+        record["byte_count"] = len(redacted.encode("utf-8"))
+        record["changed"] = True
+    return record
 
 
 def _cmd_build(args: argparse.Namespace) -> int:
@@ -1728,6 +2038,52 @@ def build_parser() -> argparse.ArgumentParser:
     status = subparsers.add_parser("status", help="Print local support status evidence.", allow_abbrev=False)
     _add_common(status)
     status.set_defaults(func=_cmd_status)
+
+    project = subparsers.add_parser("project", help="Project vessel commands.", allow_abbrev=False)
+    _add_common(project)
+    project_sub = project.add_subparsers(dest="project_command")
+    project_new = project_sub.add_parser(
+        "new",
+        help="Create one declared project vessel through the existing project creation seam.",
+        allow_abbrev=False,
+    )
+    _add_common(project_new)
+    project_new.add_argument("--id", dest="project_id", default="", help="Project slug.")
+    project_new.add_argument("--label", default="", help="Project display label.")
+    project_new.add_argument("--why-exists", dest="why_exists", default="", help="Charter purpose slot.")
+    project_new.add_argument("--why-now", dest="why_now", default="", help="Charter why-now slot.")
+    project_new.add_argument("--direction", default="", help="Project direction slot.")
+    project_new.add_argument("--done-means", dest="done_means", default="", help="Done/progress criteria slot.")
+    project_new.add_argument("--out-of-scope", dest="out_of_scope", default="", help="Out-of-scope slot.")
+    project_new.add_argument("--manager", dest="managers", action="append", default=[], help="Human manager name; repeatable.")
+    project_new.add_argument("--declared-by", dest="declared_by", default=DEFAULT_DECLARED_BY, help="Declaration author ref.")
+    project_new.set_defaults(func=_cmd_project_new)
+    project_list = project_sub.add_parser(
+        "list",
+        help="List declared project vessels read-only.",
+        allow_abbrev=False,
+    )
+    _add_common(project_list)
+    project_list.set_defaults(func=_cmd_project_list)
+    project_show = project_sub.add_parser(
+        "show",
+        help="Show one declared project vessel read-only.",
+        allow_abbrev=False,
+    )
+    _add_common(project_show)
+    project_show.add_argument("project_id", nargs="?", default="brick-protocol", help="Project id or project:<id> ref.")
+    project_show.set_defaults(func=_cmd_project_show)
+    project.set_defaults(func=lambda args: (project.print_help() or 2))
+
+    progress = subparsers.add_parser(
+        "progress",
+        help="Render or write one project PROGRESS.md projection.",
+        allow_abbrev=False,
+    )
+    _add_common(progress)
+    progress.add_argument("project_id", nargs="?", default="brick-protocol", help="Project id or project:<id> ref.")
+    progress.add_argument("--write", action="store_true", help="Write PROGRESS.md through generate_project_progress.")
+    progress.set_defaults(func=_cmd_progress)
 
     auth = subparsers.add_parser("auth", help="Provider auth readiness + login guidance.", allow_abbrev=False)
     _add_common(auth)

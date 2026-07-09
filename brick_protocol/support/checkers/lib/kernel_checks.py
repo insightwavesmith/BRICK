@@ -124,7 +124,10 @@ from brick_protocol.support.checkers.lib.agent_adapter_return_shape_check import
     _proof_obligation_pipeline_probe,
     run_agent_adapter_return_shape,
 )
-from brick_protocol.support.checkers.lib.brick_cli_entrypoint_check import run_brick_cli_entrypoint_smoke
+from brick_protocol.support.checkers.lib.brick_cli_entrypoint_check import (
+    run_brick_cli_entrypoint_smoke,
+    run_customer_project_progress_cli,
+)
 from brick_protocol.support.checkers.lib.mcp_connect_projection_check import (
     run_claude_projection_native,
     run_codex_projection_native,
