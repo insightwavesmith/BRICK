@@ -1,112 +1,96 @@
-# ACTIVE COO GOAL — 04 운영 사다리 닫힘 / 제품 잔여 오픈
+# ACTIVE COO GOAL — residual 전부 밀기
 
 | | |
 |---|---|
-| **Status** | **OPERATOR_LADDER_CLOSED** · **PRODUCT_RESIDUAL_OPEN** · 2026-07-09 |
-| **Authority ladder** | `GOAL/04-goal-phases-0709-route-and-frontier.md` |
-| **Closure record** | `GOAL/05-coo-ladder-closure-0709.md` |
-| **Living route memo** | `OFFICIAL_ROUTE_MEMO.md` |
-| **Proof limit** | support evidence only · not source truth / success / quality / Movement |
+| **Status** | **ACTIVE** · 2026-07-09 |
+| **Parent** | GOAL/04 운영사다리 = CLOSED · 제품잔여 was OPEN → 이 골로 push |
+| **Authority** | `GOAL/04-goal-phases-0709-route-and-frontier.md` · `GOAL/05-coo-ladder-closure-0709.md` |
+| **Route memo** | `OFFICIAL_ROUTE_MEMO.md` |
+| **Proof limit** | support only · not success/quality/Movement |
 
 ---
 
-## 골 한 줄 (정직 정의)
+## 한 줄
 
 ```text
-운영자(COO)로서 GOAL/04 의 능력 계단 G0→G6 을
-「운영 사다리(operator ladder)」기준으로 닫고,
-동시에 제품 잔여(product residual) 큐를 숨기지 않는다.
-
-완료 = operator Exit 매트릭스 닫힘
-미완료 = 제품/릴리스/Smith 게이트 잔여 (아래 큐)
+PRODUCT_RESIDUAL 큐(R1–R11)를 숨기지 않고 끝까지 밀어
+  Smith 게이트는 게이트로 닫고,
+  Building 가능 항목은 공식 route 위 dogfood/land로 닫고,
+  not_proven 만 남긴 채 이 골을 Exit 한다.
 ```
 
-**완료 해석 (정직):**  
-- 코드·Building·프로필로 닫을 수 있는 **운영 Exit**는 닫음.  
-- **Smith human gate** (L3-3b raise, vessel migrate, Route V2 beyond A)는 Exit = *gate-ready HOLD*, 구현 아님.  
-- G6 full customer-fresh-auth reliability = **not_proven** (measured slice only).  
-- 「빌딩 1개로 전부 끝」 주장 **금지**. 아래 residual queue가 진실.
+---
+
+## Exit 정의 (모두 충족)
+
+```text
+1) residual 표 전 행 disposition ∈ {DONE, SMITH_HOLD, DEFERRED_WITH_REASON, NOT_PROVEN}
+2) OFFICIAL_ROUTE 유지: brick build --graph-decl + brick resume --decl
+3) overclaim 금지: operator closed ≠ customer-ready forever
+4) 이 문서가 표+증거 포인터로 최종 갱신된 뒤 Status=EXIT
+```
 
 ---
 
-## Exit 결과 (운영 사다리)
+## Residual push board (순서 고정)
 
-| Phase | 결과 |
-|---|---|
-| G0 | **EXIT** (route fuel / dead_end_kind) |
-| G1 | **EXIT** (mid-hold resume dogfood) |
-| G2 | **EXIT** (authoring land + profiles green) |
-| G2-c | **EXIT deferred optional** (map only; engine already ok) |
-| G3 | **EXIT observe** · L3-3b **Smith HOLD** |
-| G4 | **EXIT** (progress + charter land) |
-| G5 | **EXIT gate-ready** (no migrate / no R2 expand code) |
-| G6 | **EXIT measured slice** · broader release **not_proven** |
-
-Detail: `GOAL/05-coo-ladder-closure-0709.md`
-
----
-
-## Product residual queue (OPEN — 숨기지 않음)
-
-우선순위 높은 순. 각 항목은 **별도 Building 또는 Smith 게이트**가 필요.
-
-| # | Residual | 종류 | 다음 행동 |
+| # | Item | How | Exit / disposition |
 |---|---|---|---|
-| R1 | **L3-3b walker raise** (kill bypass) | Smith gate | Smith 승인 후 raise Building |
-| R2 | **G3 re-dogfood** (prevention live, fresh graph-decl) | Building | L1/L2/L3-3a 통합 live dogfood |
-| R3 | **G4 UX dogfood 확대** (progress/charter 실고객 경로) | Building | 공식 route 위 multi-building |
-| R4 | **G2-c ship-copy wording** (optional) | Building | 엔진 강제 이미 있음; 카피만 |
-| R5 | **Route V2 beyond SHAPE A** | Smith design gate | human gate 전 코드 금지 |
-| R6 | **project vessel physical split** | Smith design gate | 설계 확정 후 migrate |
-| R7 | **managed-settings hook lock / token-forgery harden** | Building | prevention hardening |
-| R8 | **fresh-clone brand-new-human auth reliability** | G6 proof | 측정 트랜스크립트 |
-| R9 | **commercial release/publication** | Release | R1–R8 후 |
-| R10 | **adapter:grok-local** first-class performer | Landed/landing | codex/claude/gemini와 동급 합류 |
-| R11 | **Deku implementation** | Separate frozen | BRICK residual 후 재개 |
-
-```text
-remaining_not_proven:
-  L3-3b raise · Route V2 beyond A · vessel physical split
-  managed-settings hook lock · token-forgery hardening
-  full fresh-clone brand-new-human auth reliability
-  commercial release · G2-c ship-copy optional
-  Deku implementation (design frozen)
-```
+| R1 | L3-3b walker raise | **Smith gate only** | approve→Building / **SMITH_HOLD** |
+| R2 | G3 prevention live re-dogfood | graph-decl Building | frontier complete or salvage+reroute |
+| R3 | G4 UX multi-path dogfood | progress/charter 고객경로 | measured transcript |
+| R4 | G2-c ship-copy (optional) | 소형 Building or DEFER | copy land or **DEFERRED_WITH_REASON** |
+| R5 | Route V2 beyond A | **Smith design gate** | **SMITH_HOLD** until design |
+| R6 | vessel physical split | **Smith design gate** | **SMITH_HOLD** until design |
+| R7 | prevention harden (hooks/token) | Building | land+probe |
+| R8 | G6 fresh-clone auth reliability | measured run | transcript or **NOT_PROVEN** |
+| R9 | commercial release | after R1–R8 choice | **NOT_PROVEN** ok if honest |
+| R10 | adapter:grok-local | land `dfc0c751b` | **DONE** (long dogfood=optional) |
+| R11 | Deku impl | frozen until residual choice | **DEFERRED** default |
 
 ---
 
-## Official route (frozen at operator close)
+## 실행 규율
 
 ```text
-brick build --graph-decl <file> --forward
-brick resume --decl <file>
-# mid-hold: non-terminal gates: [coo-review|human-review]
+- 제품 구현: BRICK Building only (live checkout 직접 구현 금지)
+- pause: mid-node gates:[coo-review|human-review] → brick resume --decl
+- walk-on dead_end: salvage · harvest-blind 금지
+- parallel OK: R2/R3/R7 동시 worktree; R1/R5/R6 = Smith 대기 큐
+- hygiene: salvage ref 유지 · archive 재오염 금지
+- Grok 사용 가능: preferred_adapter_ref: adapter:grok-local
 ```
 
----
-
-## Ops hygiene (not a G-number)
+## Official route (불변)
 
 ```text
-worktrees pruned · project buildings archive /tmp/brick-project-buildings-archive-0709-ops
-inbox archive /tmp/brick-inbox-archive-0709-ops · salvage refs kept
+brick build --graph-decl <decl> --forward
+brick resume --decl <resume.json>
 ```
 
----
-
-## COO disposition (정직)
+## 지금 다음 3수
 
 ```text
-OPERATOR_LADDER = CLOSED for GOAL/04 G0–G6 as defined in Exit matrix
-  (G5 = gate-ready hold, not code migrate; G3-3b = Smith hold; G6 = measured slice)
+1) Smith: R1 / R5 / R6 disposition (approve | hold)
+2) COO: R2 + R3 발주 (brick-task-author → graph-decl)
+3) R7 probe 스코프 확정 → Building
+```
 
-PRODUCT_RESIDUAL = OPEN (R1–R11 queue above)
-Customer-ready forever is NOT claimed.
-Do not report "ladder fully done via one building".
+## remaining_not_proven (골 안 허용)
 
-Smith next:
-  1) approve L3-3b / G5 designs if wanted
-  2) pull residual buildings from R2–R4
-  3) push origin/main when ready
-  4) reopen Deku G0 only after BRICK residual choice
+```text
+full commercial release · brand-new-human auth forever
+Route V2 code without design · vessel migrate without gate
+Deku runtime (별 골)
+```
+
+## COO disposition
+
+```text
+ACTIVE = push ALL residual to terminal disposition
+NOT = “이미 다 끝” 재주장
+board 전 행 terminal → 이 골 EXIT → memo freeze
+
+prior: OPERATOR_LADDER_CLOSED (04 G0–G6 Exit matrix) remains true.
+this goal owns only PRODUCT_RESIDUAL push-to-terminal.
 ```
