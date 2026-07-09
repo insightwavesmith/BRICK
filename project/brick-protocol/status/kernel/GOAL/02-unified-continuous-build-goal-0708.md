@@ -709,8 +709,9 @@ measured surface: brick_protocol/brick/building_plans/ has 4 fixture/example pla
 reason: current refs from package path admission, building_plans_boundary_sweep, core/link_routing_behavioral/building_operator_driver0 profiles, onboarding/quickstart docs, onboard.py, run.py, coo_operating_chain.py, and orchestration_packet.py make this path load-bearing.
 forbidden shortcut: no simple git mv under templates; no delete/archive now.
 future migration: declared Building only, with reader/checker/admission/profile/docs migration and clean detached --all proof.
-remaining_delta: ⑩f implementation Building; ⑥e/⑦ Smith implementation approval + declared route-walker Building run/landing; optional ⑩e repair candidate.
+remaining_delta: ⑩f implementation Building; ⑥e/⑦ declared route-walker Building run/landing; optional ⑩e repair candidate.
 closed_delta: ⑩g Smith decision recorded as Option A KEEP+clarify; no move/delete/archive.
+closed_gate: ⑥e/⑦ Smith implementation approval recorded as SHAPE A only; implementation still requires declared Building/worktree proof.
 ```
 
 ⑩f customer UX layer design — 2026-07-09 KST:
@@ -760,7 +761,8 @@ recommended_chain_preset_ref: building-chain-preset:brick-protocol-engine-featur
 route_family_candidate: preset_guided_graph
 scope: implement SHAPE A read-only advisory route_v2_view_observations beside dynamic_walker_evidence, without changing walker control flow, Link Movement, route targets, reroute/hold record contracts, AgentFact, Link resources, or concern_kind vocabulary.
 direct_preset: rejected (walker runtime seam, route/Movement boundary, resume parity, checker coverage).
-state: held_for_smith_implementation_approval; no code changed by this packet.
+approval: project/brick-protocol/status/kernel/route-walker-6e-7-implementation-approval-0709.md
+state: approved_for_declared_building_only; SHAPE A read-only advisory overlay only. No code changed by the approval packet; implementation must run through declared Building/worktree proof.
 ```
 
 ### 7.4 direct preset vs Building 판정 규칙
@@ -833,8 +835,8 @@ Then:
 ⑩b blocks retained/archive/superseded map — done at `project/brick-protocol/status/kernel/blocks-retained-map-0709.md` (8 retained, 0 archive/supersede/delete)
 ⑩d skills ship-copy drift map — done at `project/brick-protocol/status/kernel/skills-ship-copy-drift-map-0709.md`
 ⑩e COO order-chain consistency map — done at `project/brick-protocol/status/kernel/coo-order-chain-consistency-0709.md`
-⑩c building_plans decision — done at `project/brick-protocol/status/kernel/building-plans-location-decision-0709.md` (KEEP for now; no move/delete/archive). ⑩f customer UX design — done at `project/brick-protocol/status/kernel/customer-ux-layer-design-0709.md` (core gap = missing brick project/progress CLI tie; implementation pending). ⑩g dogfood vessel separation — gate closed by `project/brick-protocol/status/kernel/dogfood-vessel-separation-approval-0709.md` as Option A KEEP+clarify; no move/delete/archive. Remaining: declared ⑩f implementation Building run/landing, ⑥e/⑦ Smith approval + declared route-walker Building run/landing, optional cleanup-10e-order-chain-consistency-0709a
-⑥d route_materialization review — done at `project/brick-protocol/status/kernel/route-v2-6d-materialization-review-0709.md` (no code change needed); ⑥e walker integration design produced at `project/brick-protocol/status/kernel/route-v2-6e-walker-integration-design-0709.md`; implementation remains HOLD pending explicit declared Building/proof
+⑩c building_plans decision — done at `project/brick-protocol/status/kernel/building-plans-location-decision-0709.md` (KEEP for now; no move/delete/archive). ⑩f customer UX design — done at `project/brick-protocol/status/kernel/customer-ux-layer-design-0709.md` (core gap = missing brick project/progress CLI tie; implementation pending). ⑩g dogfood vessel separation — gate closed by `project/brick-protocol/status/kernel/dogfood-vessel-separation-approval-0709.md` as Option A KEEP+clarify; no move/delete/archive. ⑥e/⑦ route-walker implementation approval — gate closed by `project/brick-protocol/status/kernel/route-walker-6e-7-implementation-approval-0709.md` as SHAPE A only. Remaining: declared ⑩f implementation Building run/landing, declared ⑥e/⑦ route-walker Building run/landing, optional cleanup-10e-order-chain-consistency-0709a
+⑥d route_materialization review — done at `project/brick-protocol/status/kernel/route-v2-6d-materialization-review-0709.md` (no code change needed); ⑥e walker integration design produced at `project/brick-protocol/status/kernel/route-v2-6e-walker-integration-design-0709.md`; ⑥e/⑦ implementation approval recorded at `project/brick-protocol/status/kernel/route-walker-6e-7-implementation-approval-0709.md` as SHAPE A only; implementation remains pending declared Building/proof
 ```
 
 ---
