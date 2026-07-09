@@ -34,7 +34,10 @@ from brick_protocol.support.operator.ledger_projection import (
     project_orchestration_ledger_packet,
 )
 from brick_protocol.support.operator.project_declaration import load_project_declaration
-from brick_protocol.support.recording.capture import buildings_root_for
+from brick_protocol.support.recording.capture import (
+    buildings_root_for,
+    project_ref_for_building_root,
+)
 
 PROGRESS_FILENAME = "PROGRESS.md"
 
@@ -187,10 +190,79 @@ def generate_project_progress(
     }
 
 
+def refresh_project_progress_for_building_event(
+    *,
+    building_root: Path | str,
+    event_kind: str,
+    repo_root: Path | str = REPO_ROOT,
+    last_completed_step_ref: str = "",
+) -> dict[str, Any]:
+    """Refresh a vessel PROGRESS.md after a walker step event.
+
+    The trigger is support projection only. The building root path determines
+    the project through the capture inverse seam; non-project/legacy roots are
+    skipped so temp and historical walks keep their old behavior.
+    """
+
+    repo = Path(repo_root).resolve()
+    root = Path(building_root)
+    project_ref = project_ref_for_building_root(root, repo_root=repo)
+    base: dict[str, Any] = {
+        "kind": "project-progress-refresh-observation",
+        "schema_version": "project-progress-refresh-0",
+        "event_kind": event_kind,
+        "last_completed_step_ref": last_completed_step_ref,
+        "source_truth": False,
+        "proof_limits": [
+            "support projection refresh observation only",
+            "triggered after already-written walker step evidence",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+        ],
+        "not_proven": [
+            "semantic correctness of the projected Building work",
+            "that any provider process is currently alive",
+        ],
+    }
+    if project_ref is None:
+        return {
+            **base,
+            "progress_refresh_observation": "skipped_non_project_building_root",
+            "changed": False,
+        }
+    try:
+        generation = generate_project_progress(project_ref, repo_root=repo)
+    except Exception as exc:  # noqa: BLE001 - refresh must not break the walker.
+        return {
+            **base,
+            "progress_refresh_observation": "refresh_exception_observed",
+            "project_ref": project_ref,
+            "changed": False,
+            "delivery_status_class": "exception_observed",
+            "provider_response_status_class": exc.__class__.__name__,
+            "reason": str(exc),
+            "not_proven": [
+                *base["not_proven"],
+                "project progress projection refreshed for this event",
+            ],
+        }
+    return {
+        **base,
+        "progress_refresh_observation": "project_progress_refreshed",
+        "project_ref": project_ref,
+        "progress_path": generation.get("progress_path", ""),
+        "byte_count": generation.get("byte_count", 0),
+        "changed": bool(generation.get("changed")),
+    }
+
+
 __all__ = [
     "LATEST_BUILDINGS_LIMIT",
     "PROGRESS_FILENAME",
     "PROGRESS_MACHINE_HEADER",
     "generate_project_progress",
+    "refresh_project_progress_for_building_event",
     "render_project_progress",
 ]

@@ -4,10 +4,14 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 from brick_protocol.support.operator.contracts import BuildingRunSupportResult
 from brick_protocol.support.operator.gate_sequence import GateSequenceDecision
+from brick_protocol.support.operator.progress_projection import (
+    refresh_project_progress_for_building_event,
+)
 from brick_protocol.support.operator.reporter import emit_building_event_for_policy
 from brick_protocol.support.operator.walker_resume_seed import ResumeSeed
 from brick_protocol.support.operator.walker_step_fixture import (
@@ -72,16 +76,21 @@ def _emit_brick_grain_completion_step_events(
     report_slack_sender: Any | None,
     overwrite_existing: bool,
 ) -> tuple[Mapping[str, Any], ...]:
+    step_ref = step_result.preparation.step_rows.step_ref
+    last_completed_step_ref = _step_output_manifest_ref(step_ref, attempt_index)
+    _refresh_project_progress_for_completed_step_best_effort(
+        building_root=building_root,
+        repo_root=repo_root,
+        last_completed_step_ref=last_completed_step_ref,
+    )
     if not _report_policy_uses_brick_grain(policy):
         return ()
-    step_ref = step_result.preparation.step_rows.step_ref
     context = _brick_grain_step_context(
         step_result,
         linear_plan=linear_plan,
         step_index=step_index,
         gate_sequence_decision=gate_sequence_decision,
     )
-    last_completed_step_ref = _step_output_manifest_ref(step_ref, attempt_index)
     observations: list[Mapping[str, Any]] = []
     for event_kind in ("brick_returned", "gate_passed"):
         event = _emit_building_event_best_effort(
@@ -100,6 +109,45 @@ def _emit_brick_grain_completion_step_events(
         if event is not None:
             observations.append(event)
     return tuple(observations)
+
+
+def _refresh_project_progress_for_completed_step_best_effort(
+    *,
+    building_root: Path | str,
+    repo_root: Path,
+    last_completed_step_ref: str,
+) -> Mapping[str, Any]:
+    try:
+        return refresh_project_progress_for_building_event(
+            building_root=building_root,
+            event_kind="walker_step_completed",
+            repo_root=repo_root,
+            last_completed_step_ref=last_completed_step_ref,
+        )
+    except Exception as exc:  # noqa: BLE001 - progress projection must not break the walker.
+        return {
+            "kind": "project-progress-refresh-observation",
+            "schema_version": "project-progress-refresh-0",
+            "event_kind": "walker_step_completed",
+            "progress_refresh_observation": "refresh_exception_observed",
+            "changed": False,
+            "delivery_status_class": "exception_observed",
+            "provider_response_status_class": exc.__class__.__name__,
+            "reason": str(exc),
+            "source_truth": False,
+            "proof_limits": [
+                "support projection refresh observation only",
+                "progress refresh exception was not allowed to break walker step events",
+                "not source truth",
+                "not success judgment",
+                "not quality judgment",
+                "not Movement authority",
+            ],
+            "not_proven": [
+                "project progress projection refreshed for this event",
+                "semantic correctness of the projected Building work",
+            ],
+        }
 
 
 def _brick_grain_step_received_context(
@@ -294,3 +342,112 @@ def _report_repo_root_for_building_root(
         return root.parent.parent
     return root.parent
 
+
+def progress_autorefresh_probe_observations() -> tuple[Mapping[str, Any], ...]:
+    """Exercise the walker-step-completed -> PROGRESS refresh wiring.
+
+    This is a support fixture: it writes no files and uses a monkeypatched
+    refresh callable to prove the completion seam invokes the progress hook even
+    when brick-grain notification reporting is disabled.
+    """
+
+    observations: list[Mapping[str, Any]] = []
+    original_refresh = refresh_project_progress_for_building_event
+    calls: list[Mapping[str, Any]] = []
+
+    def observed_refresh(**kwargs: Any) -> Mapping[str, Any]:
+        calls.append(dict(kwargs))
+        return {
+            "kind": "project-progress-refresh-observation",
+            "progress_refresh_observation": "probe_refresh_called",
+            "source_truth": False,
+        }
+
+    step_result = SimpleNamespace(
+        preparation=SimpleNamespace(
+            step_rows=SimpleNamespace(step_ref="probe-step"),
+            brick_instance_ref="brick-probe",
+            next_brick_instance_ref="building-boundary:complete",
+        ),
+        recorded_at="",
+    )
+    gate_sequence_decision = SimpleNamespace(action="forward")
+    try:
+        globals()["refresh_project_progress_for_building_event"] = observed_refresh
+        report_observations = _emit_brick_grain_completion_step_events(
+            None,
+            linear_plan={"steps": [{"step_ref": "probe-step"}]},
+            building_id="probe-building",
+            building_root=Path("project/probe-vessel/buildings/probe-building"),
+            repo_root=Path("."),
+            step_result=step_result,
+            step_index=1,
+            attempt_index=3,
+            gate_sequence_decision=gate_sequence_decision,
+            report_env=None,
+            report_slack_sender=None,
+            overwrite_existing=True,
+        )
+        called = len(calls) == 1
+        no_report_drift = report_observations == ()
+        last_ref = str(calls[0].get("last_completed_step_ref") or "") if calls else ""
+        manifest_ref_ok = (
+            last_ref
+            == "work/step-outputs/probe-step-attempt-3/step-output.json"
+        )
+        observations.append(
+            {
+                "probe_ref": "progress-autorefresh:completion-call",
+                "passed": called and no_report_drift and manifest_ref_ok,
+                "call_count": len(calls),
+                "report_observation_count": len(report_observations),
+                "last_completed_step_ref": last_ref,
+                "proof_limits": ["support fixture only"],
+            }
+        )
+
+        class _RefreshSentinel(RuntimeError):
+            pass
+
+        def raising_refresh(**kwargs: Any) -> Mapping[str, Any]:
+            del kwargs
+            raise _RefreshSentinel("progress refresh hook reached")
+
+        globals()["refresh_project_progress_for_building_event"] = raising_refresh
+        sentinel_contained = False
+        try:
+            report_observations = _emit_brick_grain_completion_step_events(
+                None,
+                linear_plan={"steps": [{"step_ref": "probe-step"}]},
+                building_id="probe-building",
+                building_root=Path("project/probe-vessel/buildings/probe-building"),
+                repo_root=Path("."),
+                step_result=step_result,
+                step_index=1,
+                attempt_index=1,
+                gate_sequence_decision=gate_sequence_decision,
+                report_env=None,
+                report_slack_sender=None,
+                overwrite_existing=True,
+            )
+        except _RefreshSentinel:
+            sentinel_contained = False
+        else:
+            sentinel_contained = report_observations == ()
+        observations.append(
+            {
+                "probe_ref": "progress-autorefresh:exception-containment",
+                "passed": sentinel_contained,
+                "proof_limits": [
+                    "support fixture only",
+                    "if the completion-to-refresh call is unguarded, this probe goes RED",
+                ],
+            }
+        )
+    finally:
+        globals()["refresh_project_progress_for_building_event"] = original_refresh
+
+    failed = [item for item in observations if not item.get("passed")]
+    if failed:
+        raise AssertionError(f"progress autorefresh probe rejected: {failed!r}")
+    return tuple(observations)
