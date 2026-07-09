@@ -1,0 +1,17 @@
+{
+  "checks": {
+    "turns_10_to_20": true,
+    "followups_12_plus": true,
+    "blank0": true,
+    "pin_ok": true,
+    "state_ok": true,
+    "timeout_ok": true,
+    "status_ok": true,
+    "loaded": true,
+    "profile_real": true
+  },
+  "turn_count": 13,
+  "followups": 12,
+  "blank_turns": [],
+  "scratch": "/Users/smith/.brick/worktrees/deku-d2-real-conduct-0709c/project/deku/buildings/deku-d2-real-conduct-0709c/raw/d2-scratch"
+}

@@ -1,0 +1,36 @@
+{
+  "building_id": "deku-d2-real-conduct-0709c",
+  "declared_by": "coo-deku-fugu",
+  "author_ref": "coo:deku",
+  "action": "forward",
+  "adapter": "local",
+  "adapter_timeout_seconds": 10800,
+  "output_root": "/Users/smith/projects/BRICK/project/deku/buildings",
+  "task": "# D2 Real Conduct (retry 0709c) — project:deku\n\n## Prior attempt\n`deku-d2-real-conduct-0709` frontier=`evidence_incomplete`. Live probe measured only ~2 turns before adapter error; temp sandbox wiped `d2-session.log`. Partial: pin+state present after multi-round seed (calls=6, local_double). **Not Exit.**\n\n## Root causes to fix in this building\n1. **Durable scratch** — MUST set `DEKU_PROBE_SCRATCH` to **this building** `raw/d2-scratch` (absolute under BRICK), never only ephemeral codex sandbox.\n2. **Probe speed** — after 1 multi-round non-greeting seed (proves tool_call→worker), follow-ups must be **greeting** (`hello`/`안녕`) on `previous_response_id` so pin/state accumulate without 15× full Nemotron MAX_ROUNDS hangs.\n3. **Full gates** — blank_turns=0, pin_ok, state turn≥5, timeout graceful non-blank, log ≥10 turns; CallBudget violations recorded (0 expected on path).\n\n## Done means\n1. Multi-round seed on real Nemotron path (mock OFF) via shipped `/v1/responses` + `dispatch_worker` (`DEKU_WORKER_MODE=local_double` OK)\n2. 10–20 turn session log with pin/state survival\n3. Timeout → non-blank body, process survives\n4. `raw/d2-scratch/d2-session.log` on building root\n5. `docs/DEKU_STATUS.md` D2 EXIT + remaining_not_proven\n6. unittest 27 green\n\n## Environment\n- Code: `/Users/smith/projects/deku`\n- Python: `/Users/smith/projects/deku/.venv/bin/python` only\n- NO `DEKU_FORCE_MOCK=1`\n- Prefer patch `probes/real_path_probe.py` phase_d2 if write works; else write harness under building `raw/d2_harness.py` that still imports shipped `deku_server`\n\n## Command sketch\n```\nexport DEKU_WORKER_MODE=local_double\nexport DEKU_PROBE_SCRATCH=/Users/smith/projects/BRICK/project/deku/buildings/deku-d2-real-conduct-0709c/raw/d2-scratch\nmkdir -p \"$DEKU_PROBE_SCRATCH\"\ncd /Users/smith/projects/deku\n.venv/bin/python probes/real_path_probe.py --phase d2\n# or building-local harness if probe patch blocked\n```\nDo not claim D3 Exit.",
+  "write_scope": {
+    "allowed_paths": [
+      "/Users/smith/projects/deku/deku_core",
+      "/Users/smith/projects/deku/deku_server.py",
+      "/Users/smith/projects/deku/deku.py",
+      "/Users/smith/projects/deku/probes",
+      "/Users/smith/projects/deku/tests",
+      "/Users/smith/projects/deku/docs",
+      "/Users/smith/projects/BRICK/project/deku/buildings/deku-d2-real-conduct-0709c"
+    ],
+    "forbidden_paths": [".git/**", "vendor/**", "artifacts/**"]
+  },
+  "nodes": [
+    {
+      "kind": "work",
+      "work_statement": "D2 retry 0709c: (1) Fix phase_d2 or write building-local harness: seed=1 multi-round non-greeting with path pin; follow-ups=12+ greets on previous_response_id; timeout graceful; durable DEKU_PROBE_SCRATCH under this building raw/d2-scratch. (2) Run mock-off with .venv + local_double. (3) Produce d2-session.log meeting 10–20 turns, blank0, pin_ok, state_ok, timeout_ok. (4) If Exit met update /Users/smith/projects/deku/docs/DEKU_STATUS.md D2. (5) unittest green. Copy logs into building raw/."
+    },
+    {
+      "kind": "code-attack-qa",
+      "work_statement": "Attack D2: confirm d2-session.log is live server path not unit-only Pinboard; greets after multi-round seed still update same session pin/state; mock-off (no DEKU_FORCE_MOCK); timeout non-blank; flag incomplete turns or wiped scratch."
+    },
+    {
+      "kind": "closure",
+      "work_statement": "D2 Exit synthesis narrowly_proven vs not_proven. Do not mark D3 complete."
+    }
+  ]
+}

@@ -1,0 +1,165 @@
+repo_root: /Users/smith/projects/BRICK
+cwd_repo_root: /Users/smith/projects/BRICK
+{
+  "action": "forward",
+  "action_basis": "cli",
+  "adapter_ref": "adapter:local",
+  "approval_result": {
+    "action": "forward",
+    "author_ref": "coo:deku",
+    "building_id": "deku-d2-real-conduct-0709c",
+    "commit_sha": "",
+    "evidence_root": "/Users/smith/projects/BRICK/project/deku/buildings/deku-d2-real-conduct-0709c",
+    "frontier_kind": "agent_incomplete",
+    "frontier_reason": "adapter error evidence exists after Agent receipt and before returned AgentFact",
+    "isolation_mode": "worktree",
+    "isolation_reason": "git-head-resolved",
+    "ok": false,
+    "plan_path": "/Users/smith/projects/BRICK/project/deku/buildings/deku-d2-real-conduct-0709c/work/proposed-building-graph.json",
+    "proposal_ref": "/Users/smith/projects/BRICK/project/deku/buildings/deku-d2-real-conduct-0709c/work/proposed-building-graph.json",
+    "proposal_root_reused": false,
+    "ran": true,
+    "result_summary": {
+      "adapter_error_rows": [
+        {
+          "error_kind": "adapter_exception",
+          "exception_type": "ValueError",
+          "message_excerpt": "local_cli_output contains raw provider session-looking text",
+          "step_ref": "deku-d2-real-conduct-0709c-code-attack-qa"
+        }
+      ],
+      "building_root": "project/deku/buildings/deku-d2-real-conduct-0709c",
+      "closure": null,
+      "commit_sha_present": false,
+      "dispatch_timing_ms_total": 316479.371,
+      "frontier_kind": "agent_incomplete",
+      "frontier_reason": "adapter error evidence exists after Agent receipt and before returned AgentFact",
+      "kind": "building_result_summary",
+      "link_paused_rows": [
+        {
+          "pending_target_ref": "brick-deku-d2-real-conduct-0709c-code-attack-qa",
+          "reason_refs": [
+            "observation:adapter-error-frontier:deku-d2-real-conduct-0709c-code-attack-qa",
+            "observation:reroute-hold-reason-adapter_error_frontier"
+          ],
+          "required_disposition_owner": "caller-or-coo",
+          "step_ref": "deku-d2-real-conduct-0709c-code-attack-qa"
+        }
+      ],
+      "not_proven": [
+        "commit SHA presence from evidence_root alone",
+        "semantic correctness of recorded Agent returns",
+        "whether caller/COO should resume, reroute, or close"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "static evidence files only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "schema_version": "building-result-summary-0",
+      "step_attempts": [
+        {
+          "attempt_count": 1,
+          "step_ref": "deku-d2-real-conduct-0709c-work"
+        }
+      ],
+      "wip_anchor_present": true
+    },
+    "routed_through": "brick_protocol.support.operator.onboard.run_goal_approve_entry",
+    "wip_anchor_ref": "refs/brick/wip/deku-d2-real-conduct-0709c",
+    "wip_commit_sha": "a6be1522d23a569e679404c5cef26f355cdaece9",
+    "worktree_disposed": true,
+    "worktree_path": "/Users/smith/.brick/worktrees/deku-d2-real-conduct-0709c"
+  },
+  "build_input_mode": "graph_decl",
+  "building_id": "deku-d2-real-conduct-0709c",
+  "chain_preset_ref": "",
+  "command": "build",
+  "customer_visible_frontier_message": "not ready: Building frontier is agent_incomplete; inspect evidence_root before treating output as customer-ready.",
+  "customer_visible_frontier_state": "not_ready",
+  "customer_visible_not_ready": true,
+  "cwd_repo_root": "/Users/smith/projects/BRICK",
+  "declared_by": "coo-deku-fugu",
+  "evidence_root": "/Users/smith/projects/BRICK/project/deku/buildings/deku-d2-real-conduct-0709c",
+  "frontier_kind": "agent_incomplete",
+  "graph_decl_path": "/Users/smith/projects/BRICK/project/deku/buildings/_decls/d2-real-conduct-0709c.json",
+  "materialized_step_adapters": [
+    {
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "step_ref": "deku-d2-real-conduct-0709c-work",
+      "step_template_ref": "building-step-template:work"
+    },
+    {
+      "selected_adapter_ref": "adapter:claude-local",
+      "selected_model_ref": "model:claude:sonnet",
+      "step_ref": "deku-d2-real-conduct-0709c-code-attack-qa",
+      "step_template_ref": "building-step-template:code-attack-qa"
+    },
+    {
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "step_ref": "deku-d2-real-conduct-0709c-closure",
+      "step_template_ref": "building-step-template:closure"
+    }
+  ],
+  "not_proven": [
+    "provider reliability",
+    "future Building correctness",
+    "semantic quality of Agent returns",
+    "real-provider credential readiness",
+    "production runtime behavior"
+  ],
+  "output_root": "/Users/smith/projects/BRICK/project/deku/buildings",
+  "plan_path": "/Users/smith/projects/BRICK/project/deku/buildings/deku-d2-real-conduct-0709c/work/proposed-building-graph.json",
+  "plan_shape": "graph",
+  "proof_limits": [
+    "support CLI wrapper only",
+    "existing seams own run/checker behavior",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "proposal_ref": "/Users/smith/projects/BRICK/project/deku/buildings/deku-d2-real-conduct-0709c/work/proposed-building-graph.json",
+  "protocol_compliance_observation": {
+    "bare_brick_behavior": "status support evidence",
+    "not_proven": [
+      "external dynamic-design pipeline end-to-end proof",
+      "future route-surface drift"
+    ],
+    "proof_limits": [
+      "support CLI observation only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "public_route": "brick build",
+    "schema": "support-protocol-compliance-observation/v1"
+  },
+  "ran": true,
+  "readiness_blocker_observation": {
+    "not_proven": [
+      "real-provider credential readiness",
+      "future Building correctness"
+    ],
+    "observed_blockers": [],
+    "proof_limits": [
+      "support CLI observation only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "schema": "support-readiness-blocker-observation/v1"
+  },
+  "repo_root": "/Users/smith/projects/BRICK",
+  "repo_root_behind_count": "0",
+  "repo_root_upstream_ref": "origin/main",
+  "repo_root_warnings": [],
+  "selected_model_ref": "model:default"
+}

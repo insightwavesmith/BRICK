@@ -1,0 +1,63 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:deku-d2-real-conduct-0709c::work/building-work.json",
+  "building_id": "deku-d2-real-conduct-0709c",
+  "comparison_rule": "Work Brick is the implementer — it does the declared implementation inside the Brick write scope, coding directly or using subagents/workflows as tools when the work is large or benefits from parallelism.",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "frontier_observation": "Agent receipt observed before returned AgentFact",
+  "generatedAtTime": "2026-07-09T15:04:12Z",
+  "id": "urn:bp:building:deku-d2-real-conduct-0709c::work/building-work.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "filesystem-enforced source_write/probe_write separation",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "not proven: source truth",
+    "not proven: success judgment",
+    "not proven: quality judgment",
+    "not proven: Movement authority",
+    "provider or local callable behavior after the adapter exception",
+    "semantic correctness of the interrupted work",
+    "caller/COO disposition after frontier observation"
+  ],
+  "plan_ref": "building-plan:composed-graph",
+  "proof_limits": [
+    "support CLI wrapper only",
+    "existing seams own run/checker behavior",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-07-09T15:04:12Z",
+  "required_return_shape": "received_work_ref,received_deliverables_echo,made_changes,changed_files,observed_evidence,commands_run,blocked_or_missing_evidence,handoff_refs,not_proven",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:deku-d2-real-conduct-0709c",
+  "source_facts": [],
+  "specversion": "1.0",
+  "step_refs": [
+    "deku-d2-real-conduct-0709c-work",
+    "deku-d2-real-conduct-0709c-code-attack-qa"
+  ],
+  "subject": "work/building-work.json",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-07-09T15:04:12Z",
+  "type": "bp.building_work",
+  "work_statement": "D2 retry 0709c: (1) Fix phase_d2 or write building-local harness: seed=1 multi-round non-greeting with path pin; follow-ups=12+ greets on previous_response_id; timeout graceful; durable DEKU_PROBE_SCRATCH under this building raw/d2-scratch. (2) Run mock-off with .venv + local_double. (3) Produce d2-session.log meeting 10–20 turns, blank0, pin_ok, state_ok, timeout_ok. (4) If Exit met update /Users/smith/projects/deku/docs/DEKU_STATUS.md D2. (5) unittest green. Copy logs into building raw/."
+}

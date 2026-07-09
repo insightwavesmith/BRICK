@@ -1,0 +1,166 @@
+{
+  "building_id": "deku-d2-real-conduct-0709c",
+  "mock_off": true,
+  "worker_mode": "local_double",
+  "deku_root": "/Users/smith/projects/deku",
+  "scratch": "/Users/smith/.brick/worktrees/deku-d2-real-conduct-0709c/project/deku/buildings/deku-d2-real-conduct-0709c/raw/d2-scratch",
+  "load": {
+    "loaded_in_s": 25.042,
+    "profile": "deku-1",
+    "worker": "local_double"
+  },
+  "healthz": {
+    "status": "ok",
+    "loaded": true,
+    "profile": "deku-1",
+    "context_window": 40960,
+    "truncation_limit": 40960
+  },
+  "checks": {
+    "turns_10_to_20": true,
+    "followups_12_plus": true,
+    "blank0": true,
+    "pin_ok": true,
+    "state_ok": true,
+    "timeout_ok": true,
+    "status_ok": true,
+    "loaded": true,
+    "profile_real": true
+  },
+  "session": {
+    "turn_count": 13,
+    "followups": 12,
+    "blank0": true,
+    "blank_turns": [],
+    "status_ok": true,
+    "pin_ok": true,
+    "state_ok": true,
+    "turns": [
+      {
+        "turn": 0,
+        "kind": "seed_non_greeting_path_pin",
+        "response_id": "resp_9c25b77faac44bee",
+        "status_code": 200,
+        "blank": false,
+        "preview": "[mock:answer-1] processed: eeting path pin. Remember path pin exactly: /Users/smith/projects/deku/deku_server.py Error: D2-SEED-PIN-0709C. Analyze this as a har"
+      },
+      {
+        "turn": 1,
+        "kind": "previous_response_id_followup",
+        "response_id": "resp_2adb7468395a48f3",
+        "status_code": 200,
+        "blank": false,
+        "preview": "408"
+      },
+      {
+        "turn": 2,
+        "kind": "previous_response_id_followup",
+        "response_id": "resp_526eef4846e541b4",
+        "status_code": 200,
+        "blank": false,
+        "preview": "408"
+      },
+      {
+        "turn": 3,
+        "kind": "previous_response_id_followup",
+        "response_id": "resp_1546fa79bebd4490",
+        "status_code": 200,
+        "blank": false,
+        "preview": "408"
+      },
+      {
+        "turn": 4,
+        "kind": "previous_response_id_followup",
+        "response_id": "resp_45ff479fd8c44479",
+        "status_code": 200,
+        "blank": false,
+        "preview": "408"
+      },
+      {
+        "turn": 5,
+        "kind": "previous_response_id_followup",
+        "response_id": "resp_767e9d879d804483",
+        "status_code": 200,
+        "blank": false,
+        "preview": "안녕하세요. Deku-1 mock worker입니다. 무엇을 도와드릴까요?"
+      },
+      {
+        "turn": 6,
+        "kind": "previous_response_id_followup",
+        "response_id": "resp_af656c24b892435b",
+        "status_code": 200,
+        "blank": false,
+        "preview": "안녕하세요. Deku-1 mock worker입니다. 무엇을 도와드릴까요?"
+      },
+      {
+        "turn": 7,
+        "kind": "previous_response_id_followup",
+        "response_id": "resp_87e16d386d32448d",
+        "status_code": 200,
+        "blank": false,
+        "preview": "408"
+      },
+      {
+        "turn": 8,
+        "kind": "previous_response_id_followup",
+        "response_id": "resp_1785f899683e4ba0",
+        "status_code": 200,
+        "blank": false,
+        "preview": "408"
+      },
+      {
+        "turn": 9,
+        "kind": "previous_response_id_followup",
+        "response_id": "resp_6c62fb539a434547",
+        "status_code": 200,
+        "blank": false,
+        "preview": "408"
+      },
+      {
+        "turn": 10,
+        "kind": "previous_response_id_followup",
+        "response_id": "resp_76a5269d1d424459",
+        "status_code": 200,
+        "blank": false,
+        "preview": "408"
+      },
+      {
+        "turn": 11,
+        "kind": "previous_response_id_followup",
+        "response_id": "resp_5ad9c8edc62b4c30",
+        "status_code": 200,
+        "blank": false,
+        "preview": "안녕하세요. Deku-1 mock worker입니다. 무엇을 도와드릴까요?"
+      },
+      {
+        "turn": 12,
+        "kind": "previous_response_id_followup",
+        "response_id": "resp_9dbfe5c5feaa48c9",
+        "status_code": 200,
+        "blank": false,
+        "preview": "안녕하세요. Deku-1 mock worker입니다. 무엇을 도와드릴까요?"
+      }
+    ],
+    "sessions": {
+      "sess_2c9968e49911": {
+        "pinboard": {
+          "path:/Users/smith/projects/deku/deku_server.p": "/Users/smith/projects/deku/deku_server.py",
+          "last_error": "D2-SEED-PIN-0709C. Analyze this as a hard session-conduct problem and answer wit"
+        },
+        "state": {
+          "goal": "hello",
+          "notes": [],
+          "turn": 13,
+          "last_slot": "answer-1"
+        },
+        "event_count": 26
+      }
+    }
+  },
+  "timeout": {
+    "status_code": 200,
+    "blank": false,
+    "timeout_ok": true,
+    "preview": "[Deku-1] Worker produced no text. Please rephrase or retry — conductor does not synthesize user prose."
+  }
+}

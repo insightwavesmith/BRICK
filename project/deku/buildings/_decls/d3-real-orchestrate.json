@@ -1,0 +1,36 @@
+{
+  "building_id": "deku-d3-real-orchestrate-0709",
+  "declared_by": "coo-deku-fugu",
+  "author_ref": "coo:deku",
+  "action": "forward",
+  "adapter": "local",
+  "adapter_timeout_seconds": 10800,
+  "output_root": "/Users/smith/projects/BRICK/project/deku/buildings",
+  "task": "# D3 Real Orchestrate — project:deku\n\n## Prerequisite\nD2 Real Conduct EXIT (product gates via `deku-d2-real-conduct-0709c` work harness + d2-session.log; unit 27 green).\n\n## Objective\nClose **D3 Real Orchestrate** on shipped real path (mock OFF).\n\n## Done means\n1. Hard query produces multi-step strategy trajectory log on shipped dispatch path\n2. Greeting stays **1 call** (strategy greeting)\n3. verify/replan≤1 fires ≥1 on real-path fixture\n4. free-form WorkflowPlan remains **OFF**\n5. Capture `raw/d3-scratch/d3-orchestrate.log` under this building\n6. Update `/Users/smith/projects/deku/docs/DEKU_STATUS.md` D3 Exit + remaining_not_proven\n7. unittest 27 green\n\n## Environment\n- Code: `/Users/smith/projects/deku`\n- Python: `/Users/smith/projects/deku/.venv/bin/python` only\n- `DEKU_WORKER_MODE=local_double` allowed (declared doubles; shipped dispatch)\n- NO `DEKU_FORCE_MOCK=1`\n- Durable scratch: this building `raw/d3-scratch` absolute under BRICK\n- Prefer patch `probes/real_path_probe.py --phase d3` or building-local harness importing shipped deku_server\n- Avoid putting raw `sess_*` session tokens in Agent return bodies (QA redaction trap from D2)\n\n## Command sketch\n```\nexport DEKU_WORKER_MODE=local_double\nexport DEKU_PROBE_SCRATCH=/Users/smith/projects/BRICK/project/deku/buildings/deku-d3-real-orchestrate-0709/raw/d3-scratch\nmkdir -p \"$DEKU_PROBE_SCRATCH\"\ncd /Users/smith/projects/deku\n.venv/bin/python probes/real_path_probe.py --phase d3\n```\nDo not claim D4 Exit.",
+  "write_scope": {
+    "allowed_paths": [
+      "/Users/smith/projects/deku/deku_core",
+      "/Users/smith/projects/deku/deku_server.py",
+      "/Users/smith/projects/deku/deku.py",
+      "/Users/smith/projects/deku/probes",
+      "/Users/smith/projects/deku/tests",
+      "/Users/smith/projects/deku/docs",
+      "/Users/smith/projects/BRICK/project/deku/buildings/deku-d3-real-orchestrate-0709"
+    ],
+    "forbidden_paths": [".git/**", "vendor/**", "artifacts/**"]
+  },
+  "nodes": [
+    {
+      "kind": "work",
+      "work_statement": "D3 Real Orchestrate: durable scratch under this building raw/d3-scratch. Run mock-off real-path phase d3 (or building-local harness): hard multi-step trajectory log; greeting 1-call; verify/replan≤1 fixture≥1; free-form plan OFF. Write d3-orchestrate.log. Update DEKU_STATUS D3 if Exit met. unittest green. Do not embed raw sess_* ids in Agent return JSON."
+    },
+    {
+      "kind": "code-attack-qa",
+      "work_statement": "Attack D3 claims: multi-step log real path not unit-only; greeting calls==1; replan≤1; free-form still false; no DEKU_FORCE_MOCK."
+    },
+    {
+      "kind": "closure",
+      "work_statement": "D3 Exit synthesis narrowly_proven vs not_proven. Do not mark D4 complete."
+    }
+  ]
+}

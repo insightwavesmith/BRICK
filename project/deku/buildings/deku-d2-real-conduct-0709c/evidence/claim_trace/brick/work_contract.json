@@ -1,0 +1,195 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:deku-d2-real-conduct-0709c::evidence/claim_trace/brick/work_contract.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-deku-d2-real-conduct-0709c-work",
+        "comparison_rule": "Work Brick is the implementer — it does the declared implementation inside the Brick write scope, coding directly or using subagents/workflows as tools when the work is large or benefits from parallelism.",
+        "required_return_shape": "received_work_ref,received_deliverables_echo,made_changes,changed_files,observed_evidence,commands_run,blocked_or_missing_evidence,handoff_refs,not_proven",
+        "source_facts": [],
+        "work_statement": "D2 retry 0709c: (1) Fix phase_d2 or write building-local harness: seed=1 multi-round non-greeting with path pin; follow-ups=12+ greets on previous_response_id; timeout graceful; durable DEKU_PROBE_SCRATCH under this building raw/d2-scratch. (2) Run mock-off with .venv + local_double. (3) Produce d2-session.log meeting 10–20 turns, blank0, pin_ok, state_ok, timeout_ok. (4) If Exit met update /Users/smith/projects/deku/docs/DEKU_STATUS.md D2. (5) unittest green. Copy logs into building raw/."
+      },
+      "fact_ref": "brick-work:01:deku-d2-real-conduct-0709c-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "filesystem-enforced source_write/probe_write separation",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: received_work_ref, received_deliverables_echo, made_changes, changed_files, observed_evidence, commands_run, blocked_or_missing_evidence, handoff_refs, not_proven",
+          "observed_return_fields: adapter_ref, agent_object_ref, blocked_or_missing_evidence, brain_surface_ref, changed_files, cli_call_ref, cli_version_text, commands_run, evidence_refs, handoff_refs, made_changes, not_proven, observed_evidence, output_excerpt, proof_limits, received_deliverables_echo, received_work_ref, returned_summary, selected_adapter_ref, selected_model_ref, worktree_observation",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Work Brick is the implementer — it does the declared implementation inside the Brick write scope, coding directly or using subagents/workflows as tools when the work is large or benefits from parallelism.",
+        "forbidden_shortcut_evidence": [
+          "brick_protocol/support/run did not classify Agent return",
+          "brick_protocol/support/run did not judge success or quality",
+          "brick_protocol/support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "received_work_ref,received_deliverables_echo,made_changes,changed_files,observed_evidence,commands_run,blocked_or_missing_evidence,handoff_refs,not_proven",
+        "work_reference": "D2 retry 0709c: (1) Fix phase_d2 or write building-local harness: seed=1 multi-round non-greeting with path pin; follow-ups=12+ greets on previous_response_id; timeout graceful; durable DEKU_PROBE_SCRATCH under this building raw/d2-scratch. (2) Run mock-off with .venv + local_double. (3) Produce d2-session.log meeting 10–20 turns, blank0, pin_ok, state_ok, timeout_ok. (4) If Exit met update /Users/smith/projects/deku/docs/DEKU_STATUS.md D2. (5) unittest green. Copy logs into building raw/."
+      },
+      "fact_ref": "brick-comparison:01:deku-d2-real-conduct-0709c-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "filesystem-enforced source_write/probe_write separation",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:01:deku-d2-real-conduct-0709c-work",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: received_work_ref, received_deliverables_echo, made_changes, changed_files, observed_evidence, commands_run, blocked_or_missing_evidence, handoff_refs, not_proven",
+          "observed_return_fields: adapter_ref, agent_object_ref, blocked_or_missing_evidence, brain_surface_ref, changed_files, cli_call_ref, cli_version_text, commands_run, evidence_refs, handoff_refs, made_changes, not_proven, observed_evidence, output_excerpt, proof_limits, received_deliverables_echo, received_work_ref, returned_summary, selected_adapter_ref, selected_model_ref, worktree_observation",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Work Brick is the implementer — it does the declared implementation inside the Brick write scope, coding directly or using subagents/workflows as tools when the work is large or benefits from parallelism.",
+        "forbidden_shortcut_evidence": [
+          "brick_protocol/support/run did not classify Agent return",
+          "brick_protocol/support/run did not judge success or quality",
+          "brick_protocol/support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "received_work_ref,received_deliverables_echo,made_changes,changed_files,observed_evidence,commands_run,blocked_or_missing_evidence,handoff_refs,not_proven",
+        "work_reference": "D2 retry 0709c: (1) Fix phase_d2 or write building-local harness: seed=1 multi-round non-greeting with path pin; follow-ups=12+ greets on previous_response_id; timeout graceful; durable DEKU_PROBE_SCRATCH under this building raw/d2-scratch. (2) Run mock-off with .venv + local_double. (3) Produce d2-session.log meeting 10–20 turns, blank0, pin_ok, state_ok, timeout_ok. (4) If Exit met update /Users/smith/projects/deku/docs/DEKU_STATUS.md D2. (5) unittest green. Copy logs into building raw/."
+      },
+      "fact_ref": "brick-comparison:deku-d2-real-conduct-0709c:deku-d2-real-conduct-0709c-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "filesystem-enforced source_write/probe_write separation",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-deku-d2-real-conduct-0709c-code-attack-qa",
+        "comparison_rule": "Code attack QA Brick attacks implementation, regression, and negative-probe evidence against the declared work contract.",
+        "required_return_shape": "observed_evidence,attacked_work,checked_sources,regression_risks,negative_probe_observations,failing_or_missing_probes,boundary_violations,transition_concern_evidence,evidence_used,not_proven",
+        "source_facts": [
+          "work/step-outputs/deku-d2-real-conduct-0709c-work-attempt-1/step-output.json"
+        ],
+        "work_statement": "Attack D2: confirm d2-session.log is live server path not unit-only Pinboard; greets after multi-round seed still update same session pin/state; mock-off (no DEKU_FORCE_MOCK); timeout non-blank; flag incomplete turns or wiped scratch."
+      },
+      "fact_ref": "brick-work:02:deku-d2-real-conduct-0709c-code-attack-qa",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-07-09T15:04:12Z",
+  "id": "urn:bp:building:deku-d2-real-conduct-0709c::evidence/claim_trace/brick/work_contract.json",
+  "recorded_at": "2026-07-09T15:04:12Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:deku-d2-real-conduct-0709c",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/brick/work_contract.json",
+  "time": "2026-07-09T15:04:12Z",
+  "type": "bp.claim_trace"
+}

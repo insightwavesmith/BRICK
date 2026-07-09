@@ -1,0 +1,37 @@
+{
+  "building_id": "deku-d2-real-conduct-0709c",
+  "composition_mode": "caller_or_coo_declared_graph_composition",
+  "declaration_evidence_refs": [
+    "work/task.md",
+    "work/building-intake.json",
+    "work/preset-expansion.json",
+    "work/declared-building-plan.json",
+    "work/declared-building-plan.rev-*.json",
+    "work/link-launch-policy.json"
+  ],
+  "declared_by": "coo-deku-fugu",
+  "kind": "building_intake_provenance",
+  "not_proven": [
+    "selected preset ref was not exposed by the plan"
+  ],
+  "plan_ref": "building-plan:composed-graph",
+  "plan_shape": "graph",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "support CLI wrapper only",
+    "existing seams own run/checker behavior"
+  ],
+  "selected_adapter_ref": "adapter:local",
+  "selected_model_ref": "model:default",
+  "selected_preset_ref": "",
+  "selected_shape_ref": "",
+  "task_source_hash": "b737307d66e6ec73497247edf411906e78eef7e9d2dece5052567df57dd4aec1",
+  "task_source_hash_algorithm": "sha256",
+  "task_source_hash_basis": "utf-8 inline task_statement body at materialization time",
+  "task_source_hash_state": "matched",
+  "task_source_ref": "task-source:inline-statement"
+}

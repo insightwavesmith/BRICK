@@ -1,0 +1,319 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:deku-d2-real-conduct-0709c::work/building-map.json",
+  "agent_bindings": [
+    {
+      "agent_binding_id": "binding:01:deku-d2-real-conduct-0709c-work",
+      "agent_performer_ref": "agent-performer:agent-object:dev",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-deku-d2-real-conduct-0709c-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "filesystem-enforced source_write/probe_write separation",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "not proven: source truth",
+        "not proven: success judgment",
+        "not proven: quality judgment",
+        "not proven: Movement authority",
+        "provider or local callable behavior after the adapter exception",
+        "semantic correctness of the interrupted work",
+        "caller/COO disposition after frontier observation"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:01:deku-d2-real-conduct-0709c-work"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ],
+      "step_output_ref": "work/step-outputs/deku-d2-real-conduct-0709c-work-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:02:deku-d2-real-conduct-0709c-code-attack-qa",
+      "agent_performer_ref": "agent-performer:agent-object:qa",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-deku-d2-real-conduct-0709c-code-attack-qa",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "not proven: source truth",
+        "not proven: success judgment",
+        "not proven: quality judgment",
+        "not proven: Movement authority",
+        "provider or local callable behavior after the adapter exception",
+        "semantic correctness of the interrupted work",
+        "caller/COO disposition after frontier observation"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent-received:02",
+        "raw:adapter-error:02"
+      ],
+      "step_output_ref": "work/step-outputs/deku-d2-real-conduct-0709c-code-attack-qa-attempt-1/adapter-error.json"
+    }
+  ],
+  "brick_instances": [
+    {
+      "agent_binding_refs": [
+        "binding:01:deku-d2-real-conduct-0709c-work"
+      ],
+      "attempt_index": 1,
+      "brick_instance_id": "brick-deku-d2-real-conduct-0709c-work",
+      "brick_work_ref": "work:deku-d2-real-conduct-0709c-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "filesystem-enforced source_write/probe_write separation",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "not proven: source truth",
+        "not proven: success judgment",
+        "not proven: quality judgment",
+        "not proven: Movement authority",
+        "provider or local callable behavior after the adapter exception",
+        "semantic correctness of the interrupted work",
+        "caller/COO disposition after frontier observation"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01",
+        "raw:link:01",
+        "raw:brick:02",
+        "raw:agent-received:02"
+      ]
+    },
+    {
+      "agent_binding_refs": [
+        "binding:02:deku-d2-real-conduct-0709c-code-attack-qa"
+      ],
+      "attempt_index": 1,
+      "brick_instance_id": "brick-deku-d2-real-conduct-0709c-code-attack-qa",
+      "brick_work_ref": "work:deku-d2-real-conduct-0709c-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "filesystem-enforced source_write/probe_write separation",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "not proven: source truth",
+        "not proven: success judgment",
+        "not proven: quality judgment",
+        "not proven: Movement authority",
+        "provider or local callable behavior after the adapter exception",
+        "semantic correctness of the interrupted work",
+        "caller/COO disposition after frontier observation"
+      ],
+      "proof_limits": [
+        "support CLI wrapper only",
+        "existing seams own run/checker behavior",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01",
+        "raw:link:01",
+        "raw:brick:02",
+        "raw:agent-received:02"
+      ]
+    }
+  ],
+  "building_id": "deku-d2-real-conduct-0709c",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "declaration_provenance": {
+    "building_id": "deku-d2-real-conduct-0709c",
+    "composition_mode": "caller_or_coo_declared_graph_composition",
+    "declaration_evidence_refs": [
+      "work/task.md",
+      "work/building-intake.json",
+      "work/preset-expansion.json",
+      "work/declared-building-plan.json",
+      "work/declared-building-plan.rev-*.json",
+      "work/link-launch-policy.json"
+    ],
+    "declared_by": "coo-deku-fugu",
+    "declared_gate_refs": [
+      "link-gate:default-transition"
+    ],
+    "expanded_brick_spec_refs": [
+      "brick_protocol/brick/templates/bricks/work/brick.md",
+      "brick_protocol/brick/templates/bricks/code-attack-qa/brick.md",
+      "brick_protocol/brick/templates/bricks/closure/brick.md"
+    ],
+    "expanded_brick_template_refs": [
+      "brick_protocol/brick/templates/bricks/work/return.yaml",
+      "brick_protocol/brick/templates/bricks/transition-concern-return.yaml",
+      "brick_protocol/brick/templates/bricks/code-attack-qa/return.yaml",
+      "brick_protocol/brick/templates/bricks/closure/return.yaml"
+    ],
+    "expanded_step_template_refs": [
+      "building-step-template:work",
+      "building-step-template:code-attack-qa",
+      "building-step-template:closure"
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "runtime or scheduler behavior",
+      "tool or hook execution",
+      "not proven: source truth",
+      "not proven: success judgment",
+      "not proven: quality judgment",
+      "not proven: Movement authority",
+      "provider or local callable behavior after the adapter exception",
+      "semantic correctness of the interrupted work",
+      "caller/COO disposition after frontier observation",
+      "selected preset ref was not exposed by the plan"
+    ],
+    "plan_ref": "building-plan:composed-graph",
+    "plan_shape": "graph",
+    "proof_limits": [
+      "support declaration provenance evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "support CLI wrapper only",
+      "existing seams own run/checker behavior"
+    ],
+    "selected_preset_ref": "",
+    "selected_shape_ref": "",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "frontier_observation": {
+    "adapter_error_ref": "adapter-error:deku-d2-real-conduct-0709c-code-attack-qa:attempt-1",
+    "frontier_kind": "agent_incomplete",
+    "proof_limits": [
+      "graph support projection only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ]
+  },
+  "generatedAtTime": "2026-07-09T15:04:12Z",
+  "groups": [],
+  "id": "urn:bp:building:deku-d2-real-conduct-0709c::work/building-map.json",
+  "kind": "building_graph_map",
+  "link_edges": [
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:01:deku-d2-real-conduct-0709c-work",
+        "brick-comparison:01:deku-d2-real-conduct-0709c-work",
+        "movement-fact:01:deku-d2-real-conduct-0709c-work"
+      ],
+      "link_edge_id": "edge:deku-d2-real-conduct-0709c-work-to-deku-d2-real-conduct-0709c-code-attack-qa",
+      "movement_fact_ref": "movement-fact:01:deku-d2-real-conduct-0709c-work",
+      "public_fact_refs": [
+        "agent-fact:01:deku-d2-real-conduct-0709c-work",
+        "brick-comparison:01:deku-d2-real-conduct-0709c-work",
+        "movement-fact:01:deku-d2-real-conduct-0709c-work"
+      ],
+      "source_brick_instance_ref": "brick-deku-d2-real-conduct-0709c-work",
+      "step_output_ref": "work/step-outputs/deku-d2-real-conduct-0709c-work-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-deku-d2-real-conduct-0709c-code-attack-qa",
+      "transition_fact_ref": "transition-fact:01:deku-d2-real-conduct-0709c-work"
+    }
+  ],
+  "not_proven": [
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "not proven: source truth",
+    "not proven: success judgment",
+    "not proven: quality judgment",
+    "not proven: Movement authority",
+    "provider or local callable behavior after the adapter exception",
+    "semantic correctness of the interrupted work",
+    "caller/COO disposition after frontier observation"
+  ],
+  "profile": "planning-v0",
+  "proof_limits": [
+    "support CLI wrapper only",
+    "existing seams own run/checker behavior",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "raw_refs": [
+    "raw:brick:01",
+    "raw:agent:01",
+    "raw:link:01",
+    "raw:brick:02",
+    "raw:agent-received:02",
+    "raw:adapter-error:02",
+    "raw:link-frontier:02"
+  ],
+  "recorded_at": "2026-07-09T15:04:12Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:deku-d2-real-conduct-0709c",
+  "specversion": "1.0",
+  "subject": "work/building-map.json",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-07-09T15:04:12Z",
+  "type": "bp.building_graph_map"
+}

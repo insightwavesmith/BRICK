@@ -1,0 +1,59 @@
+{
+  "building_id": "deku-d2-real-conduct-0709c",
+  "declared_gate_refs": [
+    "link-gate:default-transition"
+  ],
+  "kind": "link_launch_policy_provenance",
+  "launch_rows": [
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:deku-d2-real-conduct-0709c-work-to-deku-d2-real-conduct-0709c-code-attack-qa",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "deku-d2-real-conduct-0709c-work",
+      "target_ref": "brick-deku-d2-real-conduct-0709c-code-attack-qa"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:deku-d2-real-conduct-0709c-code-attack-qa-to-deku-d2-real-conduct-0709c-closure",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "deku-d2-real-conduct-0709c-code-attack-qa",
+      "target_ref": "brick-deku-d2-real-conduct-0709c-closure"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:deku-d2-real-conduct-0709c-closure-to-boundary-closed",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "deku-d2-real-conduct-0709c-closure",
+      "target_ref": "building-boundary:closed"
+    }
+  ],
+  "max_attempts_by_boundary": {},
+  "node_reroute_budgets": {
+    "brick-deku-d2-real-conduct-0709c-closure": 5,
+    "brick-deku-d2-real-conduct-0709c-code-attack-qa": 5,
+    "brick-deku-d2-real-conduct-0709c-work": 5
+  },
+  "not_proven": [],
+  "plan_ref": "building-plan:composed-graph",
+  "plan_shape": "graph",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "support CLI wrapper only",
+    "existing seams own run/checker behavior",
+    "P3 records launch parameters only; P4 owns Carry budget evidence"
+  ],
+  "selected_shape_ref": ""
+}
