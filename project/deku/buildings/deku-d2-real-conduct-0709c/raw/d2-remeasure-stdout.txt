@@ -1,0 +1,27 @@
+[Deku-1] loading Nemotron-8B…
+  지휘자 로딩(Nemotron-8B, MPS)...
+Loading weights:   0%|          | 0/399 [00:00<?, ?it/s]Loading weights:   0%|          | 1/399 [00:01<12:52,  1.94s/it]Loading weights:  18%|█▊        | 70/399 [00:02<00:07, 41.91it/s]Loading weights:  21%|██        | 84/399 [00:02<00:07, 40.43it/s]Loading weights:  23%|██▎       | 93/399 [00:02<00:08, 37.57it/s]Loading weights:  26%|██▌       | 103/399 [00:03<00:07, 41.24it/s]Loading weights:  29%|██▊       | 114/399 [00:03<00:07, 38.05it/s]Loading weights:  31%|███▏      | 125/399 [00:03<00:08, 31.24it/s]Loading weights:  34%|███▍      | 136/399 [00:04<00:10, 24.68it/s]Loading weights:  37%|███▋      | 147/399 [00:05<00:11, 21.23it/s]Loading weights:  40%|███▉      | 158/399 [00:06<00:12, 19.10it/s]Loading weights:  42%|████▏     | 169/399 [00:06<00:11, 19.87it/s]Loading weights:  43%|████▎     | 172/399 [00:07<00:13, 17.06it/s]Loading weights:  45%|████▌     | 180/399 [00:07<00:14, 14.80it/s]Loading weights:  46%|████▌     | 182/399 [00:07<00:15, 14.21it/s]Loading weights:  48%|████▊     | 191/399 [00:08<00:14, 14.02it/s]Loading weights:  51%|█████     | 202/399 [00:09<00:14, 13.90it/s]Loading weights:  53%|█████▎    | 213/399 [00:10<00:13, 13.96it/s]Loading weights:  56%|█████▌    | 224/399 [00:10<00:12, 14.02it/s]Loading weights:  59%|█████▉    | 235/399 [00:11<00:11, 14.03it/s]Loading weights:  62%|██████▏   | 246/399 [00:12<00:09, 15.34it/s]Loading weights:  64%|██████▍   | 257/399 [00:13<00:09, 15.40it/s]Loading weights:  65%|██████▍   | 259/399 [00:13<00:09, 14.63it/s]Loading weights:  67%|██████▋   | 268/399 [00:13<00:09, 14.22it/s]Loading weights:  68%|██████▊   | 270/399 [00:14<00:09, 14.26it/s]Loading weights:  70%|██████▉   | 279/399 [00:14<00:08, 13.54it/s]Loading weights:  73%|███████▎  | 290/399 [00:15<00:08, 13.21it/s]Loading weights:  75%|███████▌  | 301/399 [00:16<00:07, 13.45it/s]Loading weights:  78%|███████▊  | 312/399 [00:16<00:05, 16.53it/s]Loading weights:  81%|████████  | 323/399 [00:17<00:04, 15.85it/s]Loading weights:  84%|████████▎ | 334/399 [00:18<00:04, 15.14it/s]Loading weights:  86%|████████▋ | 345/399 [00:19<00:03, 14.66it/s]Loading weights:  89%|████████▉ | 356/399 [00:19<00:03, 14.32it/s]Loading weights:  92%|█████████▏| 367/399 [00:20<00:02, 13.96it/s]Loading weights:  95%|█████████▍| 378/399 [00:21<00:01, 16.25it/s]Loading weights:  95%|█████████▌| 380/399 [00:21<00:01, 16.30it/s]Loading weights:  97%|█████████▋| 389/399 [00:22<00:00, 15.17it/s]Loading weights: 100%|██████████| 399/399 [00:22<00:00, 18.10it/s]
+[Deku-1] ready.
+/Users/smith/projects/deku/.venv/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+=== d2 ===
+
+  [2mR1[0m [38;5;178m▸ answer(fallback)[0m [2m·[0m [38;5;178mGrok4.5[0m [2m지휘 34s · 툴 미선택→직접 응답 위임…[0m
+{
+  "shipped_path": "/v1/responses + wrap(run_conduct)",
+  "worker_mode": "local_double",
+  "turns": [
+    {
+      "turn": 0,
+      "kind": "seed_multiround",
+      "blank": false,
+      "status": 200,
+      "preview": "[mock:answer-1] processed: i-round seed path pin: Remember this path for later: /Users/smith/projects/deku/deku_server.p",
+      "calls_used": 3,
+      "call_cap_violations": 0,
+      "parsed_kind": "strategy",
+      "steps": [
+        {
+          "tool": "search",
+          "slo
+ALL_PHASES_OK ['d2']

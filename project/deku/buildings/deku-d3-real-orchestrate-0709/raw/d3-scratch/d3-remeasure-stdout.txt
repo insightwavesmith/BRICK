@@ -1,0 +1,29 @@
+[Deku-1] loading Nemotron-8B…
+  지휘자 로딩(Nemotron-8B, MPS)...
+Loading weights:   0%|          | 0/399 [00:00<?, ?it/s]Loading weights:   0%|          | 1/399 [00:01<12:28,  1.88s/it]Loading weights:  18%|█▊        | 70/399 [00:02<00:07, 42.73it/s]Loading weights:  21%|██        | 83/399 [00:02<00:07, 40.21it/s]Loading weights:  23%|██▎       | 92/399 [00:02<00:08, 37.10it/s]Loading weights:  26%|██▌       | 103/399 [00:03<00:07, 41.99it/s]Loading weights:  29%|██▊       | 114/399 [00:03<00:07, 37.22it/s]Loading weights:  31%|███▏      | 125/399 [00:04<00:09, 30.29it/s]Loading weights:  34%|███▍      | 136/399 [00:05<00:12, 20.50it/s]Loading weights:  35%|███▌      | 140/399 [00:05<00:13, 19.21it/s]Loading weights:  37%|███▋      | 147/399 [00:05<00:15, 16.00it/s]Loading weights:  40%|███▉      | 158/399 [00:06<00:15, 15.71it/s]Loading weights:  42%|████▏     | 169/399 [00:07<00:12, 18.92it/s]Loading weights:  45%|████▌     | 180/399 [00:07<00:12, 17.86it/s]Loading weights:  46%|████▌     | 183/399 [00:07<00:12, 17.69it/s]Loading weights:  48%|████▊     | 191/399 [00:08<00:13, 15.77it/s]Loading weights:  51%|█████     | 202/399 [00:09<00:13, 14.58it/s]Loading weights:  53%|█████▎    | 213/399 [00:10<00:12, 15.05it/s]Loading weights:  56%|█████▌    | 224/399 [00:10<00:11, 15.06it/s]Loading weights:  59%|█████▉    | 235/399 [00:11<00:11, 14.79it/s]Loading weights:  62%|██████▏   | 246/399 [00:12<00:09, 16.22it/s]Loading weights:  64%|██████▍   | 257/399 [00:12<00:08, 16.32it/s]Loading weights:  65%|██████▍   | 259/399 [00:13<00:09, 15.32it/s]Loading weights:  67%|██████▋   | 268/399 [00:13<00:08, 14.96it/s]Loading weights:  68%|██████▊   | 270/399 [00:13<00:08, 15.30it/s]Loading weights:  70%|██████▉   | 279/399 [00:14<00:08, 14.15it/s]Loading weights:  73%|███████▎  | 290/399 [00:15<00:07, 13.97it/s]Loading weights:  75%|███████▌  | 301/399 [00:16<00:06, 14.01it/s]Loading weights:  78%|███████▊  | 312/399 [00:16<00:05, 17.17it/s]Loading weights:  79%|███████▊  | 314/399 [00:16<00:04, 17.30it/s]Loading weights:  81%|████████  | 323/399 [00:17<00:04, 15.98it/s]Loading weights:  84%|████████▎ | 334/399 [00:17<00:04, 15.85it/s]Loading weights:  86%|████████▋ | 345/399 [00:18<00:03, 15.84it/s]Loading weights:  89%|████████▉ | 356/399 [00:19<00:02, 15.55it/s]Loading weights:  92%|█████████▏| 367/399 [00:19<00:02, 15.73it/s]Loading weights:  95%|█████████▍| 378/399 [00:20<00:01, 17.68it/s]Loading weights:  97%|█████████▋| 389/399 [00:21<00:00, 17.82it/s]Loading weights: 100%|██████████| 399/399 [00:21<00:00, 18.93it/s]
+[Deku-1] ready.
+/Users/smith/projects/deku/.venv/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+=== d3 ===
+{
+  "shipped_path": "/v1/responses + wrap(run_conduct) \u2014 no direct run_conduct for hard/verify",
+  "free_form_off": true,
+  "greeting_calls": 1,
+  "greeting_blank": false,
+  "hard_http_status": 200,
+  "hard_blank": false,
+  "hard_strategy_id_seen": "search_reason_answer",
+  "hard_steps": [
+    {
+      "tool": "search",
+      "slot": "search-1",
+      "access": "none"
+    },
+    {
+      "tool": "enhance_reasoning",
+      "slot": "reasoner-1",
+      "access": "prev"
+    },
+    {
+      "tool":
+ALL_PHASES_OK ['d3']

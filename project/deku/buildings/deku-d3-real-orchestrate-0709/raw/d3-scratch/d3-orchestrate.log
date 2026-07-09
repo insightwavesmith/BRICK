@@ -1,7 +1,11 @@
 {
+  "shipped_path": "/v1/responses + wrap(run_conduct) — no direct run_conduct for hard/verify",
   "free_form_off": true,
   "greeting_calls": 1,
   "greeting_blank": false,
+  "hard_http_status": 200,
+  "hard_blank": false,
+  "hard_strategy_id_seen": "search_reason_answer",
   "hard_steps": [
     {
       "tool": "search",
@@ -22,10 +26,20 @@
       "tool": "grounding",
       "ok": true,
       "fail_tags": []
+    },
+    {
+      "tool": "verify_skip",
+      "reason": "grounding_ok"
     }
   ],
   "hard_calls": 3,
   "hard_kind": "strategy",
+  "hard_call_cap_violations": 0,
+  "hard_answer_preview": "[mock:answer-1] processed: al answer with explicit trade-off table.\nProblem: Design a multi-step research plan for distributed systems CAP tradeoffs including s",
+  "verify_http_status": 200,
+  "verify_blank": false,
+  "verify_strategy_id_seen": "high_risk_verify",
+  "verify_force_verify": true,
   "verify_replans": 0,
   "verify_steps": [
     {
@@ -51,5 +65,5 @@
       "notes_preview": "unsupported: none critical"
     }
   ],
-  "hard_answer_preview": "[mock:answer-1] processed:  for distributed systems CAP tradeoffs\nProblem: Design a multi-step research plan for distributed systems CAP tradeoffs\nProblem: Desi"
+  "verify_call_cap_violations": 0
 }

@@ -1,0 +1,2 @@
+{"kind": "policy_inject", "version": "policy.v0", "chars": 65, "into_conduct_history": true, "ts": 1783612363.229045}
+{"kind": "turn", "slot": null, "calls": 2, "preview": "[Deku-1] Worker produced no text. Please rephrase or retry — conductor does not synthesize user prose.", "ts": 1783612419.453673}

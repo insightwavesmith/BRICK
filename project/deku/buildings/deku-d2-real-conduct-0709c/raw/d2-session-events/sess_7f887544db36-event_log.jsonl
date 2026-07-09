@@ -1,0 +1,26 @@
+{"kind": "policy_inject", "version": "policy.v0", "chars": 24, "into_conduct_history": true, "ts": 1783612363.204193}
+{"kind": "turn", "slot": "answer-1", "calls": 3, "preview": "[mock:answer-1] processed: i-round seed path pin: Remember this path for later: /Users/smith/projects/deku/deku_server.p", "ts": 1783612363.206571}
+{"kind": "policy_inject", "version": "policy.v0", "chars": 64, "into_conduct_history": true, "ts": 1783612363.209024}
+{"kind": "turn", "slot": "answer-1", "calls": 1, "preview": "[mock:answer-1] processed:  pin: Remember this path for later: /Users/smith/projects/deku/deku_server.p\", \"ts\": 17836123", "ts": 1783612363.209447}
+{"kind": "policy_inject", "version": "policy.v0", "chars": 64, "into_conduct_history": true, "ts": 1783612363.211015}
+{"kind": "turn", "slot": "answer-1", "calls": 1, "preview": "[mock:answer-1] processed: or later: /Users/smith/projects/deku/deku_server.p\\\", \\\"ts\\\": 17836123\", \"ts\": 1783612363.209", "ts": 1783612363.211424}
+{"kind": "policy_inject", "version": "policy.v0", "chars": 64, "into_conduct_history": true, "ts": 1783612363.212783}
+{"kind": "turn", "slot": "answer-1", "calls": 1, "preview": "[mock:answer-1] processed: jects/deku/deku_server.p\\\\\\\", \\\\\\\"ts\\\\\\\": 17836123\\\", \\\"ts\\\": 1783612363.209\", \"ts\": 17836123", "ts": 1783612363.2131681}
+{"kind": "policy_inject", "version": "policy.v0", "chars": 64, "into_conduct_history": true, "ts": 1783612363.214516}
+{"kind": "turn", "slot": "answer-1", "calls": 1, "preview": "[mock:answer-1] processed: \\\\\\\\\\\\\": 17836123\\\\\\\", \\\\\\\"ts\\\\\\\": 1783612363.209\\\", \\\"ts\\\": 17836123\", \"ts\": 1783612363.2131", "ts": 1783612363.2147388}
+{"kind": "policy_inject", "version": "policy.v0", "chars": 64, "into_conduct_history": true, "ts": 1783612363.216067}
+{"kind": "turn", "slot": "answer-1", "calls": 1, "preview": "[mock:answer-1] processed: \\\\\\\\\\\": 1783612363.209\\\\\\\", \\\\\\\"ts\\\\\\\": 17836123\\\", \\\"ts\\\": 1783612363.2131\", \"ts\": 178361236", "ts": 1783612363.216317}
+{"kind": "policy_inject", "version": "policy.v0", "chars": 64, "into_conduct_history": true, "ts": 1783612363.217603}
+{"kind": "turn", "slot": "answer-1", "calls": 1, "preview": "[mock:answer-1] processed: \\\\\\\\\\\": 17836123\\\\\\\", \\\\\\\"ts\\\\\\\": 1783612363.2131\\\", \\\"ts\\\": 178361236\", \"ts\": 1783612363.216", "ts": 1783612363.217833}
+{"kind": "policy_inject", "version": "policy.v0", "chars": 64, "into_conduct_history": true, "ts": 1783612363.2191439}
+{"kind": "turn", "slot": "answer-1", "calls": 1, "preview": "[mock:answer-1] processed: \\\\\\\\\\\": 1783612363.2131\\\\\\\", \\\\\\\"ts\\\\\\\": 178361236\\\", \\\"ts\\\": 1783612363.216\", \"ts\": 17836123", "ts": 1783612363.219383}
+{"kind": "policy_inject", "version": "policy.v0", "chars": 64, "into_conduct_history": true, "ts": 1783612363.2207549}
+{"kind": "turn", "slot": "answer-1", "calls": 1, "preview": "[mock:answer-1] processed: \\\\\\\\\\\\\": 178361236\\\\\\\", \\\\\\\"ts\\\\\\\": 1783612363.216\\\", \\\"ts\\\": 17836123\", \"ts\": 1783612363.219", "ts": 1783612363.220999}
+{"kind": "policy_inject", "version": "policy.v0", "chars": 64, "into_conduct_history": true, "ts": 1783612363.222356}
+{"kind": "turn", "slot": "answer-1", "calls": 1, "preview": "[mock:answer-1] processed: \\\\\\\\\\\\\\\": 1783612363.216\\\\\\\", \\\\\\\"ts\\\\\\\": 17836123\\\", \\\"ts\\\": 1783612363.219\", \"ts\": 17836123", "ts": 1783612363.222629}
+{"kind": "policy_inject", "version": "policy.v0", "chars": 65, "into_conduct_history": true, "ts": 1783612363.223899}
+{"kind": "turn", "slot": "answer-1", "calls": 1, "preview": "[mock:answer-1] processed: \\\\\\\\\\\\\": 17836123\\\\\\\", \\\\\\\"ts\\\\\\\": 1783612363.219\\\", \\\"ts\\\": 17836123\", \"ts\": 1783612363.2226", "ts": 1783612363.224391}
+{"kind": "policy_inject", "version": "policy.v0", "chars": 65, "into_conduct_history": true, "ts": 1783612363.22595}
+{"kind": "turn", "slot": "answer-1", "calls": 1, "preview": "[mock:answer-1] processed: \\\\\\\\\\\": 1783612363.219\\\\\\\", \\\\\\\"ts\\\\\\\": 17836123\\\", \\\"ts\\\": 1783612363.2226\", \"ts\": 178361236", "ts": 1783612363.2261639}
+{"kind": "policy_inject", "version": "policy.v0", "chars": 65, "into_conduct_history": true, "ts": 1783612363.227475}
+{"kind": "turn", "slot": "answer-1", "calls": 1, "preview": "[mock:answer-1] processed: \\\\\\\": 17836123\\\\\\\", \\\\\\\"ts\\\\\\\": 1783612363.2226\\\", \\\"ts\\\": 178361236\", \"ts\": 1783612363.22616", "ts": 1783612363.2277088}
