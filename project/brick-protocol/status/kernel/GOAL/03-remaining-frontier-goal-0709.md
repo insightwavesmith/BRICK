@@ -55,28 +55,47 @@ W4: #7 릴리스 게이트 (#1~#6 착지 후에만 개시)
 이 골 진행 동안 COO의 모든 결정·판단(발주 판정, 순서, 게이트, 착지 판정)은 sequentialthinking 커넥터로 사고한 뒤 내린다. Smith 0709 지시.
 ```
 
-## 진행 로그
+## 진행 로그 (0709, HEAD==origin==2d7cdb02e)
 
 ```text
-[W1a 착지] structure_plan schema (커밋 ed092ae637, salvage anchor 94e4bbbf4에서 착지)
-  - #1 authoring 선행: confirmed_building_call_request_v1_1 에 optional structure_plan 수용 + graph_topology validate + building-map lowering + 하위호환.
-  - D1(building_call.py 수용·lowering) implemented / D3(하위호환 회귀 fixture) implemented / D2(fan-barrier checker) 코어 implemented.
-  - 착지 판정: delta-green. baseline fcf937117 clean --all RED set == 착지 ed092ae63 RED set (양쪽 유일 RED=agent_session_id_redaction, 선재). W1a 새 RED=0, passed 61→62. write_scope 100% 준수(operator/checkers만).
+[✅ W1a 착지] structure_plan schema (ed092ae637 + 골기록 3fc20420e). salvage anchor 94e4bbbf4.
+  - D1(building_call.py 수용·lowering)·D3(하위호환 fixture) implemented / D2(fan-barrier checker) 코어 implemented.
+  - 착지 판정: delta-green (baseline 대비 새 RED=0, passed 61→62). write_scope 100% 준수.
+
+[✅ 방지책 3층 설계 착지] prevention-official-route-3layer-design-0709.md (22bb27baf).
+  - 워크플로 wf_36994c47-3d4(11에이전트, 우회59건, 적대검증). L1 SessionStart / L2 PreToolUse Bash / L3 walker contextvar 토큰 게이트(유일 hard closure). 롤아웃 2단(observe→raise).
+
+[✅ checker 오탐 수정 착지] agent_session_id_redaction claude.ai artifact URL UUID 예외 (2d7cdb02e).
+  - 정탐 6종 불변(sess_/chatcmpl-/JWT/ULID/keyed/non-URL bare-UUID 여전히 감지) + evil.com URL도 감지(위장방어) + artifact URL만 통과. 직접 함수프로브+clean-tree --all RC0 검증.
+  - ★효과: handoff:107 선재 session-id RED 근본 해소 → 이후 --all이 깨끗한 RC0. delta-green 우회 불요.
+  - 이력: v1 design 어댑터 크래시(task의 session-id 리터럴이 어댑터 출력가드 자극) → v2에서 리터럴 제거·프로브헬퍼 재사용으로 재발주 complete.
+
+[🔄 방지책 L3-3a observe 재발주] prevention-l3-3a-observe-0709-v2 (도는 중, design 단계).
+  - v1 work-2에서 세션전환 사망(resume=dead_end 미완사망). 작업물 salvage refs/brick-salvage/prevention-l3-3a-observe-0709(9a9b7cf0f, +248: walker_kernel+5 토큰게이트·import_identity+49·cli.py+10 mint). v2가 이 참조로 이어받아 QA·closure 완주 목표.
+
+[🔄 방지책 L1/L2 hook 재발주] prevention-l1-l2-hook-0709-v2 (도는 중, work 단계).
+  - .claude/settings.json + SessionStart/PreToolUse 스크립트. v1은 작업물 0줄 사망 → fresh 재발주.
+
+[✅ 정리] 워크트리 106→3(BRICK+도는 v2 2), buildings 산출물 30개 /tmp 아카이브(비파괴). 미커밋 작업물 전량 salvage(refs/brick-salvage/ 21개, c2-recovery 541파일·struct-surgery 447줄 포함). 디스크 ~1.1G 회수.
 ```
 
 ## 마스터 잔여큐
 
 ```text
-[W1a defer — 후속 소형 브릭] D2 방어 fixture 2갭 (Smith 0709 승인 defer):
-  - duplicate_branch_source_rejection: structure_plan fan_out_groups/fan_in_groups 중복 브랜치·소스명 거부 probe 부재.
-  - multiple_fan_out_groups: 복수 fan-out이 단일 fan_in 수렴하는 shape fixture 부재("if that shape is intended to be admitted" 조건부).
-  (코드 로직은 존재, negative fixture·변이RED만 미비. authoring 프리셋으로 발주서 뽑아 COO 재검토 후 정식 CLI.)
+[🔄 도는 중 — 완주·게이트·착지 대기]
+  - L3-3a-v2 (walker 토큰 게이트 observe): 완주 시 게이트(observe전용·변이RED·clean floor build/resume/resume absent=0) → 착지.
+  - L1/L2-v2 (hook): 완주 시 게이트(스크립트 단위실행·deny/allow 변이) → 착지. 실 hook 발동은 착지 후 새 세션에서 확인.
 
-[선재 결함 — 별건, Smith 판단 대기] agent_session_id_redaction RED:
-  - handoff-coo-0709-remaining-frontier.md:107 artifact URL의 bare UUID(8f7781ef-...)가 session-id 패턴에 감지. baseline fcf937117부터 존재(W1a 무관). --all RC1의 유일 원인.
-  - 성격: 진짜 session-id 누출 아님(claude.ai artifact id 오탐 성격). 핸드오프 문서 수정 + artifact 참조 처리 방식은 Smith 판단.
+[⏳ Smith 결정 대기]
+  - L3-3b (raise 살상 게이트): L3-3a observe clean floor 확인 후. walker raise 전환 = chokepoint critical. Smith 승인 필수.
+  - 방지책 정직한 한계 2개(코드로 못막음): managed-settings hook잠금(allowManagedHooksOnly)=조직정책 / 고의 토큰위조 하드닝=별건(AI격리서명).
+  - W2 UX(#5 build→progress refresh, #6 charter-fill) 착수 시점: W1a 착지됨, 표면 불변이면 병렬 가능.
+  - W3(#4 vessel 물리분리, #2 Route V2 확장): 설계-먼저·human gate.
 
-[W1b — 다음] authoring STEP3 방출 + 스킬 노출 + cap-hold enforcement (building-call-authoring 프리셋으로 발주서→COO 재검토→태우기).
-[#3] cleanup-10e order-chain 수리 (소형, W1 병렬).
-[방지책] "어떤 AI도 정식루트만 사고" 3층 기계강제 설계 — Smith 0709 지시로 워크플로 설계 진행 중(별도).
+[⏳ W1 잔여 소형 (병렬 가능)]
+  - W1a defer 2갭: structure_plan checker의 duplicate-branch·multiple-fan-out negative fixture + 변이RED. 코드 로직 존재, fixture만 미비.
+  - W1b: authoring STEP3 방출 + 스킬 노출 + cap-hold enforcement (authoring 프리셋→COO 재검토→정식 CLI).
+  - #3: cleanup-10e order-chain 수리 (소형).
+
+[📦 보존 자산] refs/brick-salvage/ 21개 (git checkout으로 회수). buildings 아카이브=/private/tmp/brick-buildings-archive-0709(30개).
 ```
