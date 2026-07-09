@@ -1299,6 +1299,38 @@ def is_project_status_path(path: str, *, is_dir: bool) -> bool:
         return is_dir
     if len(parts) == 3 and parts[1] == "source-records":
         return is_dir and parts[2] in {"full-spec", "physical-blueprint"}
+    # Official route dogfood inputs (G0/G1/G2 ops): kernel/fixtures + resume-declarations.
+    # Narrow: slug filenames only; no nested trees; yaml/json for fixtures; json for resume.
+    if len(parts) == 2 and parts[1] in {"fixtures", "resume-declarations"}:
+        return is_dir
+    if (
+        len(parts) == 3
+        and parts[1] == "fixtures"
+        and not is_dir
+        and (
+            (
+                parts[2].endswith(".yaml")
+                and slug_part(parts[2].removesuffix(".yaml"))
+            )
+            or (
+                parts[2].endswith(".yml")
+                and slug_part(parts[2].removesuffix(".yml"))
+            )
+            or (
+                parts[2].endswith(".json")
+                and slug_part(parts[2].removesuffix(".json"))
+            )
+        )
+    ):
+        return True
+    if (
+        len(parts) == 3
+        and parts[1] == "resume-declarations"
+        and not is_dir
+        and parts[2].endswith(".json")
+        and slug_part(parts[2].removesuffix(".json"))
+    ):
+        return True
     if is_dir:
         return len(parts) >= 2 and all(slug_part(part) for part in parts[1:])
     if (
@@ -1330,6 +1362,13 @@ def package_path_admission_self_probe_violations() -> list[str]:
         "project/brick-protocol/status/kernel/arbitrary.json": False,
         "project/brick-protocol/status/kernel/lessons-ledger.yaml": True,
         "project/brick-protocol/status/kernel/other-ledger.yaml": False,
+        "project/brick-protocol/status/kernel/fixtures/": True,
+        "project/brick-protocol/status/kernel/fixtures/g1-mid-hold-resume-dogfood-decl-0709.yaml": True,
+        "project/brick-protocol/status/kernel/fixtures/g2-authoring-w1b-decl-0709.yaml": True,
+        "project/brick-protocol/status/kernel/fixtures/not_a_slug!.yaml": False,
+        "project/brick-protocol/status/kernel/resume-declarations/": True,
+        "project/brick-protocol/status/kernel/resume-declarations/g1-mid-hold-resume-dogfood-0709-forward.json": True,
+        "project/brick-protocol/status/kernel/resume-declarations/nested/x.json": False,
         "project/brick-protocol/status/arbitrary.json": False,
         "project/brick-protocol/buildings/agents-md-align-0702a/task-statement-30d7bc45e2bc-node/": True,
         "project/brick-protocol/buildings/agents-md-align-0702a/task-statement-30d7bc45e2bc-node/capture/": True,

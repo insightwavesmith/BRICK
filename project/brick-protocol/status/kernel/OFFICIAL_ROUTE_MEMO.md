@@ -115,6 +115,7 @@ G6 Release
 |---|---|---|
 | 2026-07-09 | — | Memo created; G0 open; Deku impl frozen |
 | 2026-07-09 | **G0 EXIT** | resume `dead_end_kind` honesty; mid-node `gates:[coo-review]` assemble HOLD proven; terminal gates fail-closed with hint |
+| 2026-07-09 | **G2 profiles green** | building_call_authoring/lowering/structure_plan_fan_barrier rc=0 after fixtures admission + untracked buildings archive
 | 2026-07-09 | **G2 Building complete** | `g2-authoring-w1b-0709b` hold→resume→complete; WIP landed on main as 0b2f43dc5 (authoring STEP3 fixtures/checkers). Product Exit still needs focused profile green on main.
 | 2026-07-09 | **G1 EXIT** | dogfood `g1-mid-hold-resume-dogfood-0709`: graph-decl → link_paused(coo hold) → `brick resume` forward → fake_landing hold → resume forward → **frontier=complete** |
 

@@ -315,17 +315,23 @@ Evidence: status/kernel/g0-g1-exit-evidence-0709.md
 ### 다음 (G2+ — BRICK buildings only)
 
 ```text
-[ ] G2-b authoring STEP3 제품 dogfood
+[x] G2 Exit seal: focused profiles green (authoring/lowering/fan_barrier rc=0 after path admission)
+[ ] G2-c cleanup-10e order-chain (∥)
 [ ] G3 L1/L2/L3-3a 공식 경로 재발사
 [ ] L3-3b Smith 승인 게이트
 ```
 
-### 병렬 소형 (route 비의존)
+### 병렬 소형 / ops hygiene (route 비의존 · 전용 G 번호 아님)
 
 ```text
-[ ] G2-a structure_plan negative fixtures
+[x] 0709 earlier: worktree 106→3, buildings→/tmp archive (03 log) — 1회 수행됨
+[ ] ops: stale git worktree remove (disposable /tmp + finished .brick sandboxes)
+[ ] ops: untracked project/buildings + inbox → /tmp archive (비파괴; salvage refs 유지)
+[ ] G2-a structure_plan negative fixtures (if still open after land)
 [ ] G2-c cleanup-10e order-chain
 [ ] salvage refs 회수·착지 후보 목록 유지 (refs/brick-salvage/*)
+NOTE: "BRICK 디렉토리/워크트리 정리" = ops hygiene 또는 G5 vessel / G6 release 인접.
+      G0–G4 critical path 항목 이름이 아님.
 ```
 
 ### 나중 (human gate)

@@ -30,7 +30,7 @@ OFFICIAL_ROUTE_MEMO 와 04 마스터 큐를 Exit 로그와 함께
 |---|---|---|---|
 | **G0** | Route Fuel | mid-hold 문법·resume dead_end 정직·한 루트 유지 | **EXIT** (d30517894 + probes) |
 | **G1** | Official Continuity | graph-decl → hold → resume → complete dogfood | **EXIT** (g1-mid-hold-resume-dogfood-0709) |
-| **G2** | Authoring Product | W1a defer fixtures + W1b 제품 + #3 order-chain; focused profile green | **IN PROGRESS** (building complete + WIP land 0b2f43dc5; Exit 미확정) |
+| **G2** | Authoring Product | W1a defer fixtures + W1b 제품 + #3 order-chain; focused profile green | **EXIT pending G2-c optional only** (profiles green after path admission + archive) |
 | **G3** | Prevention Live | L1/L2/L3-3a observe live on official path; L3-3b only after Smith | **OPEN** |
 | **G4** | Customer Surfaces | #5 progress auto-refresh + #6 charter-fill + residual #3 | **OPEN** |
 | **G5** | Structural Gates | #4 vessel + #2 Route V2 beyond A — 설계+human gate only until approved | **OPEN** |
@@ -62,12 +62,26 @@ OFFICIAL_ROUTE_MEMO 와 04 마스터 큐를 Exit 로그와 함께
 
 ---
 
-## 진행 스냅샷 (설정 시점)
+## 병렬·위생 트랙 (골 페이즈 안에서의 위치)
+
+| 항목 | 골 페이즈? | 어디에 있나 | 병렬? |
+|---|---|---|---|
+| **워크트리/buildings/inbox 디스크 정리** | **전용 G 번호 없음** | 03 로그에 0709 1회 수행 기록(106→3); 상시 **ops hygiene** | **예** — critical path 비차단 |
+| **cleanup-10e order-chain** | **G2-c** (#3) | 04 G2 하위 · 소형 코드 수리 | **예** — G3와 병렬 |
+| **cleanup-scope-invariants / UX ship-copy** | G4·G6 인접 | `cleanup-scope-invariants-0709.md` | G4와 묶음 |
+| **project vessel 물리분리·디렉토리 이주** | **G5-a** | 설계+human gate · 파괴적 이동 기본 금지 | G2–G4 안정 후 |
+| **customer release pruning / cruft** | **G6** 인접 | 구 customer-ready P7/P8 뒤 위생 | G6 |
+
+**정리 원칙:** salvage refs / WIP anchor 삭제 금지. worktree remove + `/tmp` 아카이브(비파괴)만 ops로 허용.  
+제품 코드 삭제·vessel 이동은 Building + (G5면) human gate.
+
+## 진행 스냅샷
 
 ```text
-HEAD ladder: d30517894 (G0/G1) → 0b2f43dc5 (G2 WIP land) → fd10b8ae5 (G2 records)
-G0 EXIT · G1 EXIT · G2 building complete / product Exit pending focused green
-Next operator move: close G2 Exit (profiles) → G3 prevention official fire → G4 → G5 gates → G6
+G0 EXIT · G1 EXIT
+G2 IN PROGRESS (building complete + code on main; focused profile Exit pending)
+G3–G6 OPEN
+Parallel now: G2 profile measure · G2-c research · worktree/dir hygiene ops
 ```
 
 ---
