@@ -28,6 +28,8 @@ ROUTE_V2_VIEW_SCHEMA = "route-v2-read-only-view/v1"
 # the read-only view path and the walker observation path (SHAPE B helper).
 # Still not Movement authority — classification evidence only.
 ROUTE_V2_SHARED_CLASSIFIER_REF = "route_v2_shared_eligibility_v1"
+PURE_DEV_D1_BUILDING_ID = "pure-dev-d1-r5-shape-b-0709"
+PURE_DEV_D1_SLICE = "shape_b_shared_classifier"
 GATE_LIFECYCLE_STATES: tuple[str, ...] = ("hold", "paused", "held_for_coo_review")
 NON_REROUTE_ROUTE_V2_CONCERN_KINDS: tuple[str, ...] = tuple(
     sorted(kind for kind in TRANSITION_CONCERN_KINDS if is_non_reroute_transition_concern_kind(kind))

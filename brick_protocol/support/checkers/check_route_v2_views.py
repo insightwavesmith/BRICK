@@ -14,6 +14,8 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 from brick_protocol.support.operator.route_v2_views import (  # noqa: E402
+    PURE_DEV_D1_BUILDING_ID,
+    PURE_DEV_D1_SLICE,
     ROUTE_V2_SHARED_CLASSIFIER_REF,
     classify_route_v2_concern_eligibility,
     route_v2_policy_packet,
@@ -38,6 +40,11 @@ def run(repo: Path) -> str:
     from brick_protocol.support.operator import walker_kernel
 
     policy = _load_yaml_minimal(repo / "brick_protocol/link/route_policies/basic_qa_repair.yaml")
+    if PURE_DEV_D1_BUILDING_ID != "pure-dev-d1-r5-shape-b-0709":
+        raise AssertionError("Pure-dev D1 building stamp drifted")
+    if PURE_DEV_D1_SLICE != "shape_b_shared_classifier":
+        raise AssertionError("Pure-dev D1 slice stamp drifted")
+
     impl_view = render_route_v2_view(
         transition_concern_evidence={
             "concern_ref": "transition-concern:route-v2-view-implementation-gap",
