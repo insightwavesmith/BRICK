@@ -1,0 +1,11 @@
+{
+  "building_ref": "/Users/smith/.brick/project/brick-protocol/buildings/g2-authoring-w1b-0709b",
+  "author_ref": "coo:g2-authoring-0709b",
+  "chain": "until-terminal",
+  "adapter_timeout_seconds": 900,
+  "dispositions": [
+    {"on": "gate_sequence_missing_required_facts:link-gate:coo", "action": "forward"},
+    {"on": "declared Link transition_lifecycle.state is paused", "action": "forward"},
+    {"on": "fake_landing_write_scope_diff_absent", "action": "forward"}
+  ]
+}

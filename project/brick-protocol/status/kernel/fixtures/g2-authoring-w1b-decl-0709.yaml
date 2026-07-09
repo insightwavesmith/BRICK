@@ -1,0 +1,43 @@
+# G2 Authoring product Building (W1b) — official graph-decl after G1 route fuel.
+# Scope: building-call authoring STEP3 emission + skill surface + cap-hold policy
+# alignment with official brick build path. Prefer bounded edits under
+# brick_protocol/ and agent skills; no vessel migration; no Route V2 expansion.
+declared_by: coo
+task: >
+  G2 Authoring product (W1b): implement building-call authoring STEP3 release
+  path so operators can author → confirm → lower → brick build without
+  hand-injecting return shapes. Align skills/docs with OFFICIAL_ROUTE_MEMO
+  mid-hold resume grammar. Prefer no broad refactors. Support evidence only.
+building_id: g2-authoring-w1b-0709b
+nodes:
+  - kind: design
+    work_statement: |
+      ## Deliverables
+      D1: design bounded file plan for authoring STEP3 emission, skill exposure,
+          and cap-hold enforcement vs current code under brick_protocol/ and
+          agent/skills (or brick_protocol/agent/skills)
+      D2: list exact modules/tests to touch; no vessel split; no Route V2 beyond SHAPE A
+      ## Done Criteria
+      observed file plan + invariants (official route only, no return-shape injection)
+    gates:
+      - coo-review
+  - kind: work
+    work_statement: |
+      ## Deliverables
+      D1: implement design plan with focused code under brick_protocol/**
+      D2: add/adjust unit/fixture coverage for STEP3 / authoring path if present
+      ## Done Criteria
+      observed diff + compileall/focused checks green as support evidence
+    write: true
+  - kind: code-attack-qa
+    work_statement: |
+      ## Deliverables
+      D1: attack regressions on authoring/official route; run focused compile/checks
+      ## Done Criteria
+      observed QA return without source mutation unless write required by template
+  - kind: closure
+    work_statement: |
+      ## Deliverables
+      D1: fan-in design/work/QA; remaining_delta; not_proven; no success/quality/Movement claims
+      ## Done Criteria
+      observed closure packet
