@@ -319,7 +319,11 @@ def anchor_wip_snapshot(
         "-p",
         sandbox.base_sha,
         "-m",
-        _wip_commit_message(message, building_id=building_id, base_sha=sandbox.base_sha),
+        _wip_commit_message(
+            _with_ignored_leftover_note(message, observation),
+            building_id=building_id,
+            base_sha=sandbox.base_sha,
+        ),
     )
     if commit is None or not commit.strip():
         raise WorktreeSandboxError(f"git commit-tree failed in worktree {wt}")
@@ -328,6 +332,27 @@ def anchor_wip_snapshot(
         building_id=building_id,
         commit_sha=commit.strip(),
         base_sha=sandbox.base_sha,
+    )
+
+
+def _with_ignored_leftover_note(
+    message: str,
+    observation: "WorktreePreservationObservation",
+) -> str:
+    """Surface gitignored leftovers on the anchor message (loud, durable).
+
+    0710e O1 live-E2E: mixed dirt (trackable work + ignored byproducts such as
+    __pycache__/) anchors the trackable bytes; the ignored paths a git tree
+    cannot preserve are recorded HERE instead of silently vanishing or
+    fail-closing the whole anchor.
+    """
+
+    if not observation.ignored_paths:
+        return message
+    return (
+        message
+        + "\n\nnot-preserved (gitignored, git tree cannot carry): "
+        + ", ".join(observation.ignored_paths)
     )
 
 
@@ -381,7 +406,11 @@ def anchor_wip_worktree_snapshot(
         "-p",
         base.strip(),
         "-m",
-        _wip_commit_message(message, building_id=building_id, base_sha=base.strip()),
+        _wip_commit_message(
+            _with_ignored_leftover_note(message, observation),
+            building_id=building_id,
+            base_sha=base.strip(),
+        ),
     )
     if commit is None or not commit.strip():
         raise WorktreeSandboxError(f"git commit-tree failed in worktree {repo}")
@@ -979,7 +1008,14 @@ def _require_anchorable_observation(
 ) -> None:
     if not observation.status_readable:
         raise WorktreeSandboxError(f"{source} could not read complete git status in {worktree}")
-    if observation.ignored_paths:
+    # 0710e O1 live-E2E finding: refuse ONLY when the ignored writes are the
+    # WHOLE of the dirt (true ignored-only — anchoring would silently preserve
+    # nothing). A real run inevitably grows ignored byproducts (__pycache__/
+    # from imports inside the worktree) NEXT TO trackable work; refusing then
+    # blocked every non-complete close of a real run. Mixed dirt proceeds: the
+    # anchor preserves the trackable bytes and the ignored leftovers ride the
+    # anchor commit message (loud, durable), never silently.
+    if observation.ignored_paths and not observation.tracked_or_untracked_paths:
         raise WorktreeSandboxError(
             f"{source} observed ignored-only writes that a git tree cannot preserve: "
             + ", ".join(observation.ignored_paths)
@@ -1200,11 +1236,22 @@ def _require_active_disposal_recovery(sandbox: WorktreeSandbox) -> None:
             )
         building_id = building_id or marker.building_id
     observation = observe_worktree_preservation(sandbox.path)
-    _require_anchorable_observation(
-        observation,
-        worktree=sandbox.path,
-        source="sandbox dispose",
-    )
+    if not observation.status_readable:
+        raise WorktreeSandboxError(
+            f"sandbox dispose could not read complete git status in {sandbox.path}"
+        )
+    # 0710e O1 live-E2E: dispose-time semantics differ from anchor-time. Ignored
+    # leftovers here (e.g. __pycache__/ grown by the run) are unpreservable
+    # byproducts NEXT TO an already-landed/anchored trackable tree (verified
+    # below) — refusing dispose preserved nothing extra and left a zombie
+    # worktree after every real run. Dirty submodules still refuse: those bytes
+    # may be real work the parent tree cannot carry.
+    if observation.dirty_submodule_paths:
+        raise WorktreeSandboxError(
+            "sandbox dispose observed dirty submodule worktrees that the parent "
+            "git tree cannot preserve: "
+            + ", ".join(observation.dirty_submodule_paths)
+        )
     sensitive_paths = _raw_sensitive_path_writes(observation.tracked_or_untracked_paths)
     if sensitive_paths:
         raise WorktreeSandboxError(
