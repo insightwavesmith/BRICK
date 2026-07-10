@@ -38,9 +38,7 @@ from brick_protocol.support.connection.agent_resources import (
     _TOOL_POLICY_PROBE_WRITE_SCOPED,
 )
 from brick_protocol.support.operator.provider_registry import (
-    first_ready_registered_adapter,
     load_provider_registry,
-    model_ref_for_adapter,
     provider_ladder_enabled,
     registry_static_preference_ready,
     resolve_casting_tier,
@@ -369,8 +367,26 @@ def _clean_selected_adapter_ref(label: str, value: str) -> str:
 _STEP_ADAPTER_SOURCE_BUILDING_DEFAULT = "building-default"
 _STEP_ADAPTER_SOURCE_STEP_DECLARATION = "step-declaration"
 _STEP_ADAPTER_SOURCE_LANE_PREFERENCE = "lane-preference"
-_STEP_ADAPTER_SOURCE_PROVIDER_REGISTRY_FALLBACK = "provider-registry-fallback"
 _STEP_ADAPTER_SOURCE_VERDICT_FLOOR = "verdict-non-local-floor"
+
+
+class DeclaredPerformerUnavailableError(ValueError):
+    """Fail before dispatch when the declared lane performer is not ready.
+
+    Provider readiness is an observation about whether the declared casting can
+    run.  It is never authority to replace that casting with a different
+    adapter.  The structured attributes are safe refs for CLI/support packets;
+    no credential or provider-session body is carried.
+    """
+
+    def __init__(self, *, label: str, agent_object_ref: str, adapter_ref: str) -> None:
+        self.step_label = str(label)
+        self.agent_object_ref = str(agent_object_ref)
+        self.adapter_ref = str(adapter_ref)
+        super().__init__(
+            f"{label}: declared performer is not ready: "
+            f"{agent_object_ref} requires {adapter_ref}; automatic adapter substitution is forbidden"
+        )
 
 
 def _resolve_step_casting_tier_authoring(
@@ -535,27 +551,16 @@ def _resolve_casting_field(
                     preferred,
                 )
                 registry = load_provider_registry()
-                adapter_refs = agent_object.get("adapter_refs")
-                allowed_refs: set[str] = set()
-                if isinstance(adapter_refs, Sequence) and not isinstance(
-                    adapter_refs, (str, bytes)
-                ):
-                    allowed_refs = {str(item).strip() for item in adapter_refs}
                 if (
                     registry is not None
                     and provider_ladder_enabled(registry)
                     and not registry_static_preference_ready(registry, preferred_adapter)
                 ):
-                    fallback = first_ready_registered_adapter(
-                        registry,
-                        allowed_adapter_refs=allowed_refs,
+                    raise DeclaredPerformerUnavailableError(
+                        label=label,
+                        agent_object_ref=agent_object_ref,
+                        adapter_ref=preferred_adapter,
                     )
-                    if fallback:
-                        selected = fallback
-                        source = _STEP_ADAPTER_SOURCE_PROVIDER_REGISTRY_FALLBACK
-                    else:
-                        selected = preferred_adapter
-                        source = _STEP_ADAPTER_SOURCE_LANE_PREFERENCE
                 else:
                     selected = preferred_adapter
                     source = _STEP_ADAPTER_SOURCE_LANE_PREFERENCE
@@ -586,13 +591,6 @@ def _resolve_casting_field(
         preferred = agent_object.get(descriptor.field_name)
         if preferred is not None:
             return _clean_text(f"{agent_object_ref}.{descriptor.field_name}", preferred), None, agent_object
-    if (
-        descriptor.field_name == "preferred_model_ref"
-        and inherited_source == _STEP_ADAPTER_SOURCE_PROVIDER_REGISTRY_FALLBACK
-    ):
-        inherited_value = inherited[0] if inherited is not None else None
-        if inherited_value:
-            return model_ref_for_adapter(load_provider_registry(), inherited_value), None, agent_object
     if inherited_source != _STEP_ADAPTER_SOURCE_BUILDING_DEFAULT:
         return descriptor.default_ref, None, agent_object
     _clean_text(selected_key, plan_default)

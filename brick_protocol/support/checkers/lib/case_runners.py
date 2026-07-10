@@ -750,6 +750,10 @@ def run_link_route_evidence_case(repo: Path, profile: Mapping[str, Any]) -> int:
     if not items:
         return 0
     from brick_protocol.support.operator.building_operation import observe_building_frontier
+    from brick_protocol.support.operator.import_identity import (
+        mint_official_launch_token,
+        reset_official_launch_token,
+    )
     from brick_protocol.support.operator.run import run_building_plan
 
     count = 0
@@ -805,14 +809,18 @@ def run_link_route_evidence_case(repo: Path, profile: Mapping[str, Any]) -> int:
             return returned
 
         with tempfile.TemporaryDirectory(prefix="bp-link-route-evidence-") as tmpdir:
-            result = run_building_plan(
-                plan,
-                output_root=Path(tmpdir),
-                overwrite_existing=True,
-                local_callables={"callable:local:agent-invoke0-smoke": _brain},
-                adapter_cwd=repo,
-                adapter_timeout_seconds=10,
-            )
+            launch_token = mint_official_launch_token()
+            try:
+                result = run_building_plan(
+                    plan,
+                    output_root=Path(tmpdir),
+                    overwrite_existing=True,
+                    local_callables={"callable:local:agent-invoke0-smoke": _brain},
+                    adapter_cwd=repo,
+                    adapter_timeout_seconds=10,
+                )
+            finally:
+                reset_official_launch_token(launch_token)
             root = Path(result.lifecycle_write.root)
             frontier = observe_building_frontier(root, repo_root=repo)
             if frontier.get("frontier_kind") != "complete":

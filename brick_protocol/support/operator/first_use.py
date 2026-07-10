@@ -91,7 +91,10 @@ def _step_adapter_lines(build_packet: Mapping[str, Any]) -> list[str]:
         step_ref = _packet_text(row, "step_ref")
         adapter_ref = _packet_text(row, "selected_adapter_ref")
         model_ref = _packet_text(row, "selected_model_ref")
-        rendered.append(f"- `{step_ref}` -> `{adapter_ref}` (`{model_ref}`)")
+        effort_ref = _packet_text(row, "selected_reasoning_effort_ref")
+        rendered.append(
+            f"- `{step_ref}` -> `{adapter_ref}` (`{model_ref}`, `{effort_ref}`)"
+        )
     return rendered or ["- not recorded"]
 
 
@@ -152,9 +155,10 @@ def render_first_use(
         "",
         "1. `cat FIRST_USE.md`",
         "2. `brick auth login`",
-        "3. Run your real build with `--real-provider` after readiness is observed. "
-        "With no explicit `--adapter`, Brick uses the first ready provider-backed "
-        "observed-write adapter and falls back to `adapter:local` when none is ready.",
+        "3. Run your real build with `--real-provider --adapter <declared-adapter>` "
+        "after readiness is observed. Brick uses the exact provider adapter declared "
+        "by the caller; a missing or unready declaration stops before dispatch and "
+        "does not select or substitute a different ready provider.",
         "",
         "Proof limits: this file is support evidence only; it is not source truth, "
         "not success judgment, not quality judgment, and not Movement authority.",

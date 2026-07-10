@@ -16,6 +16,7 @@ path_exists:
   - brick_protocol/support/checkers/lib/re_instruction_endline_gate_check.py
   - brick_protocol/support/checkers/profiles/re-instruction-endline-gate.yaml
   - brick_protocol/brick/building_plans/onboarding-example-0.yaml
+  - brick_protocol/support/checkers/fixtures/route_v2/wo4_n2_reroute_graph_decl.json
 text_contains:
   - path: AGENTS.md
     texts:
@@ -105,6 +106,14 @@ text_contains:
       # adapter_cwd walk that parks/stops still anchors the dirty worktree, and a
       # pre-existing dirty adapter_cwd is warned (observation-only) at launch.
       - def _park_stop_anchor_and_launch_dirty_fire
+      # WO-4 process-boundary acceptance: a writer child exits after durable
+      # HOLD/WIP, then a fresh installed CLI process resumes and lands the exact
+      # bytes. Abrupt SIGKILL and real-provider integrity remain explicitly open.
+      - def _wo4_subprocess_resume_continuity_fire
+      - WO-4 subprocess resume continuity FIRE passed
+      - brick resume --decl
+      - remaining_not_proven
+      - not abrupt SIGKILL proof
       - D1 park-stop anchor + launch dirty FIRE passed
       - d1-park-stop-anchor
       - d1-park-stop-anchor mutation-RED
@@ -125,16 +134,30 @@ text_contains:
       - fire(graph) sugar FIRE passed
       - fire-graph-sugar
       - from brick_protocol.support.operator.assembly import Authority, build, fan, fire
-  # ONBOARDING-WIZARD-0 PART-2: the example routes through the PART-1 seam, the
-  # real-vs-local adapter is driven by preflight readiness evidence, and the
-  # handoff names the seam verb. (onboard_seam_case executes these; the source
-  # pins keep the routing/handoff honest even if the case stops covering them.)
+  - path: brick_protocol/support/checkers/fixtures/route_v2/wo4_n2_reroute_graph_decl.json
+    texts:
+      - '"action": "stop"'
+      - '"kind": "code-attack-qa"'
+      - '"kind": "axis-attack-qa"'
+      - 'concern_kind implementation_gap'
+      - '"back": 1'
+      - '"budget": 1'
+      - 'transition_concern_evidence null'
+  # ONBOARDING-WIZARD-0 PART-2: the example routes through the PART-1 seam, its
+  # adapter comes only from an explicit declaration, readiness verifies without
+  # substitution, and the handoff names the seam verb.
   - path: brick_protocol/support/operator/onboard.py
     texts:
       - from brick_protocol.support.operator.driver import run_building_intake
       - 'SEAM_VERB = "brick_protocol.support.operator.driver.run_building_intake"'
       - result_obj = run_building_intake(
-      - def _choose_example_adapter
+      - def _resolve_declared_example_casting
+      - 'selected_example_adapter_ref: str'
+      - 'example_adapter_ref: str'
+      - 'substitution_performed": False'
+      - missing_example_adapter_declaration
+      - example_adapter_preflight_mismatch
+      - declared_example_adapter_not_ready
       - def _preflight_readiness
       - 'command_runner: Any | None = None'
       - 'preflight_provider(adapter_ref, command_runner=command_runner)'
@@ -148,15 +171,12 @@ text_contains:
       - credential_validity
       - materialized_step_adapters
       - _materialized_step_adapter_evidence
-      # c2 (0610): the adapter-write gate reads the CANONICAL observed-write set
-      # (adapter_is_write_capable -- codex/claude/gemini local), not a codex
-      # literal. Pins updated to the corrected fact.
-      - adapter_is_write_capable(real_ref)
-      - 'adapter_ref": real_ref'
-      - preflight readiness=ready for observed-write adapter
+      - adapter_is_write_capable(declared_ref)
+      - 'declared_adapter_ref": declared_ref'
+      - provider readiness cannot choose one
+      - support refuses substitution
       - '"routed_through": SEAM_VERB'
       - '"preflight_readiness": readiness'
-      - allow_real_provider
       - def _unsafe_live_repo_adapter_cwd
       - adapter_cwd_refused_live_repo
       - missing_disposition_action
@@ -245,7 +265,7 @@ proof_limits:
   - not real-provider proof
   - not concurrency proof
 onboard_seam_case:
-  - label: onboarding example routes through the PART-1 seam (preferred-step adapter fallback)
+  - label: onboarding example routes through the PART-1 seam with declared casting
     host: codex
     bogus_host: definitely-not-a-host
     # provider-availability dependent (measured: 8 runs split agent_incomplete /
@@ -312,6 +332,47 @@ step_output_drain_case:
         - brick-qa-reroute-code-attack-qa
         - brick-qa-reroute-work
         - brick-qa-reroute-closure
+  # WO-4 exact closure-origin N=2 chain. The first closure attempt emits one
+  # implementation_gap concern targeting work; default-transition must replay
+  # work and BOTH QA siblings before closure attempt 2 returns no concern.
+  # This remains adapter:local support evidence only and does not change the
+  # Movement or concern vocabularies.
+  - label: driver0-live-closure-concern-reroutes-through-two-qa-fan-in
+    case_kind: live_closure_reroute_fanin_n2
+    expected:
+      adopted_target_ref: brick-closure-reroute-work
+      source_brick_ref: brick-closure-reroute-closure
+      source_concern_ref: transition-concern:brick-closure-reroute-closure
+      recorded_brick_instance_refs:
+        - brick-closure-reroute-work
+        - brick-closure-reroute-code-attack-qa
+        - brick-closure-reroute-axis-attack-qa
+        - brick-closure-reroute-closure
+        - brick-closure-reroute-work
+        - brick-closure-reroute-code-attack-qa
+        - brick-closure-reroute-axis-attack-qa
+        - brick-closure-reroute-closure
+      replay_closure_source_fact_body_refs:
+        - work/step-outputs/closure-reroute-code-attack-qa-attempt-2/step-output.json
+        - work/step-outputs/closure-reroute-axis-attack-qa-attempt-2/step-output.json
+      replay_closure_carried_markers:
+        - brick-closure-reroute-code-attack-qa
+        - brick-closure-reroute-axis-attack-qa
+      expected_node_budget: 1
+      expected_node_landings: 1
+  # Post-materialization mutation proof: removing the target node's assigned
+  # budget must HOLD at the first closure concern. No attempt-2 work or QA
+  # output may be produced.
+  - label: driver0-live-closure-concern-without-budget-holds-before-replay
+    case_kind: live_closure_reroute_fanin_no_budget_hold
+    expected:
+      hold_reason: target_node_has_no_link_assigned_budget
+      pending_target_ref: brick-closure-reroute-work
+      recorded_brick_instance_refs:
+        - brick-closure-reroute-work
+        - brick-closure-reroute-code-attack-qa
+        - brick-closure-reroute-axis-attack-qa
+        - brick-closure-reroute-closure
 not_proven:
   - semantic correctness of Agent transition_concern_evidence
   - caller/COO disposition after a portfolio HOLD

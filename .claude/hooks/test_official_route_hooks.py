@@ -71,6 +71,8 @@ def _assert_pretooluse() -> None:
         "python -c 'from brick_protocol.support.operator.run import run_building_once'",
         "python -c 'from brick_protocol.support.operator.run import resume_building_plan'",
         "python -c 'from brick_protocol.support.operator.onboard import launch_assembled_building'",
+        "python -m brick_protocol.support.operator.onboard",
+        "python3 -m brick_protocol.support.operator.onboard --goal-approve /tmp/building",
         "python -c 'from brick_protocol.support.operator.driver import run_customer_graph_building_in_sandbox'",
         "python /tmp/launch_building.py",
         "python -c 'import os; os.system(\"run_building_plan\")'",
@@ -111,6 +113,10 @@ def _assert_mutation_probes() -> None:
     _assert_allowed(
         "python -c 'from brick_protocol.support.operator.walker_kernel import _run_dynamic_graph_walker'",
         env={"BRICK_HOOK_TEST_REMOVE_DENY_PATTERN": "_run_dynamic_graph_walker"},
+    )
+    _assert_allowed(
+        "python -m brick_protocol.support.operator.onboard",
+        env={"BRICK_HOOK_TEST_REMOVE_DENY_PATTERN": "operator\\.onboard"},
     )
 
 

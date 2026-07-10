@@ -1464,13 +1464,25 @@ def persist_proposed_building_graph(
     raw_goal_id = _optional_text(goal_id) or composed.building_id
     proposal_dir = root / _composition_slug(raw_goal_id)
     proposal_path = proposal_dir / "work" / _PROPOSED_BUILDING_GRAPH_FILENAME
+    canonical_text = json.dumps(composed.composed_plan, indent=2, sort_keys=True) + "\n"
     if proposal_path.exists() and not overwrite:
-        raise FileExistsError(f"proposed Building graph already exists: {proposal_path}")
+        try:
+            existing = json.loads(proposal_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise FileExistsError(
+                "proposed Building graph already exists but is not the identical "
+                f"canonical proposal: {proposal_path}"
+            ) from exc
+        if existing == composed.composed_plan:
+            # stop -> explicit forward is a continuation of the SAME frozen
+            # proposal, not an overwrite. Reuse its identity automatically.
+            return proposal_path
+        raise FileExistsError(
+            "proposed Building graph already exists with different canonical content: "
+            f"{proposal_path}"
+        )
     proposal_path.parent.mkdir(parents=True, exist_ok=True)
-    proposal_path.write_text(
-        json.dumps(composed.composed_plan, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
+    proposal_path.write_text(canonical_text, encoding="utf-8")
     return proposal_path
 
 

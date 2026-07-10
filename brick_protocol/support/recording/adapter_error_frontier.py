@@ -499,6 +499,7 @@ _DECLARATION_CHAIN_ROOT_ARTIFACTS: frozenset[Path] = frozenset(
         Path("work/task.md"),
         Path("work/building-intake.json"),
         Path("work/preset-expansion.json"),
+        Path("work/proposed-building-graph.json"),
         Path("work/declared-building-plan.json"),
         Path("work/link-launch-policy.json"),
     }
@@ -509,6 +510,7 @@ _DECLARATION_CHAIN_PARENT_DIRS: frozenset[Path] = frozenset(
 _DECLARATION_CHAIN_PLAN_ARTIFACTS: frozenset[Path] = frozenset(
     {
         Path("declared-building-plan.json"),
+        Path("work/proposed-building-graph.json"),
         Path("work/declared-building-plan.json"),
     }
 )

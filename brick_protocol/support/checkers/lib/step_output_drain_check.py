@@ -41,6 +41,8 @@ def run_step_output_drain_case(repo: Path, profile: Mapping[str, Any]) -> int:
         mapping = require_mapping(item, "step_output_drain_case item")
         label = require_string(mapping.get("label"), "step_output_drain_case.label")
         case_kind = require_string(mapping.get("case_kind"), f"{label}: case_kind")
+        if case_kind == "live_closure_reroute_fanin_n2":
+            _check_wo4_official_graph_decl_fixture(repo, label=label)
         plan, _walker_mode = _step_output_drain_plan(case_kind, missing=False)
         if case_kind == "live_dynamic_full_replay_n3":
             _check_dynamic_full_replay_policy(plan, label=label)
@@ -52,6 +54,12 @@ def run_step_output_drain_case(repo: Path, profile: Mapping[str, Any]) -> int:
                 reroute_once_from_brick=(
                     "brick-replay-closure-a"
                     if case_kind == "live_dynamic_full_replay_n3"
+                    else "brick-closure-reroute-closure"
+                    if case_kind
+                    in {
+                        "live_closure_reroute_fanin_n2",
+                        "live_closure_reroute_fanin_no_budget_hold",
+                    }
                     else "brick-qa-reroute-code-attack-qa"
                     if case_kind == "live_qa_reroute_to_work_n2"
                     else ""
@@ -59,6 +67,12 @@ def run_step_output_drain_case(repo: Path, profile: Mapping[str, Any]) -> int:
                 reroute_target_brick=(
                     "brick-replay-work-b"
                     if case_kind == "live_dynamic_full_replay_n3"
+                    else "brick-closure-reroute-work"
+                    if case_kind
+                    in {
+                        "live_closure_reroute_fanin_n2",
+                        "live_closure_reroute_fanin_no_budget_hold",
+                    }
                     else "brick-qa-reroute-work"
                     if case_kind == "live_qa_reroute_to_work_n2"
                     else ""
@@ -94,6 +108,20 @@ def run_step_output_drain_case(repo: Path, profile: Mapping[str, Any]) -> int:
                     expected,
                     label=label,
                 )
+            elif case_kind == "live_closure_reroute_fanin_n2":
+                _check_closure_reroute_fanin_expected(
+                    result,
+                    observed,
+                    expected,
+                    label=label,
+                )
+            elif case_kind == "live_closure_reroute_fanin_no_budget_hold":
+                _check_closure_reroute_fanin_no_budget_hold_expected(
+                    result,
+                    observed,
+                    expected,
+                    label=label,
+                )
             elif case_kind == "live_dynamic_fan_in_source_concerns_n4":
                 _check_source_lane_transition_concerns_expected(
                     result,
@@ -120,6 +148,10 @@ def _run_step_output_drain_plan(
     repo: Path,
 ) -> tuple[Any, int]:
     from brick_protocol.support.operator import evidence_assembly
+    from brick_protocol.support.operator.import_identity import (
+        mint_official_launch_token,
+        reset_official_launch_token,
+    )
     from brick_protocol.support.operator.run import run_building_plan
 
     calls = 0
@@ -130,19 +162,99 @@ def _run_step_output_drain_plan(
         calls += 1
         return original_write_step_outputs(*args, **kwargs)
 
+    launch_token = mint_official_launch_token()
     evidence_assembly.write_step_outputs = _observed_batch_write_step_outputs
     try:
-        result = run_building_plan(
-            plan,
-            output_root=output_root,
-            overwrite_existing=True,
-            local_callables={"callable:local:agent-invoke0-smoke": observed.callable},
-            adapter_cwd=repo,
-            adapter_timeout_seconds=10,
-        )
+        try:
+            result = run_building_plan(
+                plan,
+                output_root=output_root,
+                overwrite_existing=True,
+                local_callables={"callable:local:agent-invoke0-smoke": observed.callable},
+                adapter_cwd=repo,
+                adapter_timeout_seconds=10,
+            )
+        finally:
+            evidence_assembly.write_step_outputs = original_write_step_outputs
     finally:
-        evidence_assembly.write_step_outputs = original_write_step_outputs
+        reset_official_launch_token(launch_token)
     return result, calls
+
+
+def _check_wo4_official_graph_decl_fixture(repo: Path, *, label: str) -> None:
+    """Assemble, but never fire, the stop-defaulted WO-4 customer fixture."""
+
+    from brick_protocol.support.operator.assembly import (
+        assemble_graph_declaration,
+        graph_declaration_action,
+    )
+
+    fixture_ref = (
+        "brick_protocol/support/checkers/fixtures/route_v2/"
+        "wo4_n2_reroute_graph_decl.json"
+    )
+    fixture_path = repo / fixture_ref
+    try:
+        declaration = json.loads(fixture_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: invalid WO-4 graph-decl fixture: {exc}"
+        ) from exc
+    if not isinstance(declaration, Mapping):
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: WO-4 graph-decl fixture was not a mapping"
+        )
+    if graph_declaration_action(declaration) != "stop":
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: WO-4 graph-decl fixture must remain stop-defaulted"
+        )
+    try:
+        assembled = assemble_graph_declaration(declaration, repo_root=repo)
+        nodes, edges, groups = assembled.as_compose_args()
+    except (TypeError, ValueError) as exc:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: WO-4 graph-decl did not assemble: {exc}"
+        ) from exc
+
+    expected_node_ids = [
+        "wo4-n2-closure-reroute-e2e-0710-work",
+        "wo4-n2-closure-reroute-e2e-0710-code-attack-qa",
+        "wo4-n2-closure-reroute-e2e-0710-axis-attack-qa",
+        "wo4-n2-closure-reroute-e2e-0710-closure",
+    ]
+    observed_node_ids = [str(node.get("node_id") or "") for node in nodes]
+    if observed_node_ids != expected_node_ids:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: WO-4 graph-decl node spine mismatch "
+            f"(got={observed_node_ids}, expected={expected_node_ids})"
+        )
+    work_node = nodes[0]
+    closure_node = nodes[-1]
+    if work_node.get("node_reroute_budget") != 1:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: WO-4 work target budget was not 1"
+        )
+    expected_policy = {
+        "implementation_gap": {
+            "action": "target",
+            "target_ref": expected_node_ids[0],
+        }
+    }
+    if closure_node.get("closure_transition_target_policy") != expected_policy:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: WO-4 closure route policy mismatch"
+        )
+    if len(edges) != 5:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: WO-4 graph-decl expected five edges"
+        )
+    group_roles = [str(group.get("group_role") or "") for group in groups]
+    if group_roles != ["fan_out", "fan_in"] or any(
+        len(group.get("member_refs", ())) != 2 for group in groups
+    ):
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: WO-4 two-sibling fan topology mismatch"
+        )
 
 
 def run_step_output_drain_rejects(repo: Path, profile: Mapping[str, Any]) -> int:
@@ -712,6 +824,302 @@ def _check_qa_reroute_expected(
         raise ProfileError(f"step_output_drain_case rejected {label}: QA reroute proof held")
 
 
+def _check_closure_reroute_fanin_expected(
+    result: Any,
+    observed: _StepOutputDrainObserved,
+    expected: Mapping[str, Any],
+    *,
+    label: str,
+) -> None:
+    """Pin the exact WO-4 closure -> N=2 fan-in replay chain.
+
+    The sibling QA order is declared and adapter:local is deterministic here;
+    this check deliberately rejects a partial replay, a closure that skips the
+    second fan-in, or a second closure concern that would consume more route
+    budget. It is support evidence only and assigns no Movement authority.
+    """
+
+    recorded = [
+        str(step_result.preparation.brick_instance_ref)
+        for step_result in result.step_results
+    ]
+    expected_recorded = require_string_list(
+        expected.get("recorded_brick_instance_refs", []),
+        f"{label}: expected.recorded_brick_instance_refs",
+    )
+    if recorded != expected_recorded:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: closure reroute sequence mismatch "
+            f"(got={recorded}, expected={expected_recorded})"
+        )
+
+    closure_ref = require_string(
+        expected.get("source_brick_ref"),
+        f"{label}: expected.source_brick_ref",
+    )
+    closure_results = [
+        step_result
+        for step_result in result.step_results
+        if str(step_result.preparation.brick_instance_ref) == closure_ref
+    ]
+    if len(closure_results) != 2:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: expected exactly two closure attempts, "
+            f"observed {len(closure_results)}"
+        )
+    first_return = require_mapping(
+        closure_results[0].adapter_result.returned_value,
+        f"{label}: closure attempt-1 returned_value",
+    )
+    first_concern = require_mapping(
+        first_return.get("transition_concern_evidence"),
+        f"{label}: closure attempt-1 transition_concern_evidence",
+    )
+    expected_concern_ref = require_string(
+        expected.get("source_concern_ref"),
+        f"{label}: expected.source_concern_ref",
+    )
+    if first_concern.get("concern_ref") != expected_concern_ref:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: closure attempt-1 concern_ref mismatch"
+        )
+    if first_concern.get("concern_kind") != "implementation_gap":
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: closure attempt-1 concern_kind "
+            "was not implementation_gap"
+        )
+    if first_concern.get("binding") is not False:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: closure attempt-1 concern was binding"
+        )
+    expected_target = require_string(
+        expected.get("adopted_target_ref"),
+        f"{label}: expected.adopted_target_ref",
+    )
+    if first_concern.get("related_boundary_refs") != [expected_target]:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: closure attempt-1 target address mismatch"
+        )
+    second_return = require_mapping(
+        closure_results[1].adapter_result.returned_value,
+        f"{label}: closure attempt-2 returned_value",
+    )
+    if second_return.get("transition_concern_evidence") is not None:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: closure attempt-2 did not return a null concern"
+        )
+    if not observed._reroute_emitted:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: closure concern fixture was not emitted"
+        )
+
+    records = getattr(result, "_dynamic_walker_reroute_records", ())
+    adopted = [
+        record
+        for record in records
+        if isinstance(record, Mapping) and not record.get("disposition_required")
+    ]
+    if len(records) != 1 or len(adopted) != 1:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: expected one and only one adopted reroute "
+            f"record (records={len(records)}, adopted={len(adopted)})"
+        )
+    record = adopted[0]
+    if record.get("source_brick_ref") != closure_ref:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: reroute source was not closure"
+        )
+    if record.get("source_transition_concern_ref") != expected_concern_ref:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: adopted concern ref mismatch"
+        )
+    if record.get("target_brick") != expected_target:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: adopted reroute target mismatch"
+        )
+    if record.get("budget_exhausted") is not False:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: adopted reroute exhausted its budget"
+        )
+
+    dynamic_evidence = require_mapping(
+        getattr(result, "_dynamic_walker_evidence", {}),
+        f"{label}: _dynamic_walker_evidence",
+    )
+    if dynamic_evidence.get("held") is True:
+        raise ProfileError(f"step_output_drain_case rejected {label}: closure reroute proof held")
+    expected_budget_text = require_string(
+        expected.get("expected_node_budget"),
+        f"{label}: expected.expected_node_budget",
+    )
+    expected_landings_text = require_string(
+        expected.get("expected_node_landings"),
+        f"{label}: expected.expected_node_landings",
+    )
+    if not expected_budget_text.isdigit() or not expected_landings_text.isdigit():
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: expected node budget/landings must be decimal integers"
+        )
+    expected_budget = int(expected_budget_text)
+    expected_landings = int(expected_landings_text)
+    budgets = require_mapping(
+        dynamic_evidence.get("node_reroute_budgets", {}),
+        f"{label}: node_reroute_budgets",
+    )
+    landings = require_mapping(
+        dynamic_evidence.get("node_reroute_landings", {}),
+        f"{label}: node_reroute_landings",
+    )
+    if budgets.get(expected_target) != expected_budget:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: target node budget mismatch"
+        )
+    if landings.get(expected_target) != expected_landings:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: target node landing count mismatch"
+        )
+
+    assert observed.events is not None
+    closure_events = [
+        event
+        for event in observed.events
+        if event.get("brick_instance_ref") == closure_ref
+    ]
+    if len(closure_events) != 2:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: expected two observed closure calls"
+        )
+    expected_first_refs = [
+        "work/step-outputs/closure-reroute-code-attack-qa-attempt-1/step-output.json",
+        "work/step-outputs/closure-reroute-axis-attack-qa-attempt-1/step-output.json",
+    ]
+    if closure_events[0].get("source_fact_body_refs") != expected_first_refs:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: closure attempt-1 missed the two-QA fan-in"
+        )
+    expected_replay_refs = require_string_list(
+        expected.get("replay_closure_source_fact_body_refs", []),
+        f"{label}: expected.replay_closure_source_fact_body_refs",
+    )
+    expected_replay_markers = require_string_list(
+        expected.get("replay_closure_carried_markers", []),
+        f"{label}: expected.replay_closure_carried_markers",
+    )
+    replay_event = closure_events[1]
+    if replay_event.get("source_fact_body_refs") != expected_replay_refs:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: closure attempt-2 missed the two-QA replay fan-in"
+        )
+    if replay_event.get("carried_markers") != expected_replay_markers:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: closure attempt-2 carried markers mismatch"
+        )
+    replay_files = replay_event.get("source_fact_files_existed_at_call")
+    if not isinstance(replay_files, Mapping) or any(
+        replay_files.get(ref) is not True for ref in expected_replay_refs
+    ):
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: closure attempt-2 ran before QA attempt-2 "
+            "step outputs were drained"
+        )
+
+
+def _check_closure_reroute_fanin_no_budget_hold_expected(
+    result: Any,
+    observed: _StepOutputDrainObserved,
+    expected: Mapping[str, Any],
+    *,
+    label: str,
+) -> None:
+    """Pin the post-materialization no-budget mutation to a loud HOLD."""
+
+    recorded = [
+        str(step_result.preparation.brick_instance_ref)
+        for step_result in result.step_results
+    ]
+    expected_recorded = require_string_list(
+        expected.get("recorded_brick_instance_refs", []),
+        f"{label}: expected.recorded_brick_instance_refs",
+    )
+    if recorded != expected_recorded:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: no-budget sequence mismatch "
+            f"(got={recorded}, expected={expected_recorded})"
+        )
+    if not observed._reroute_emitted:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: no-budget closure concern was not emitted"
+        )
+
+    dynamic_evidence = require_mapping(
+        getattr(result, "_dynamic_walker_evidence", {}),
+        f"{label}: _dynamic_walker_evidence",
+    )
+    if dynamic_evidence.get("held") is not True:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: missing target budget did not HOLD"
+        )
+    hold = require_mapping(dynamic_evidence.get("hold"), f"{label}: hold")
+    expected_reason = require_string(
+        expected.get("hold_reason"),
+        f"{label}: expected.hold_reason",
+    )
+    expected_target = require_string(
+        expected.get("pending_target_ref"),
+        f"{label}: expected.pending_target_ref",
+    )
+    if hold.get("hold_reason") != expected_reason:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: no-budget HOLD reason mismatch"
+        )
+    if hold.get("pending_target_ref") != expected_target:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: no-budget HOLD target mismatch"
+        )
+    if hold.get("source_brick_ref") != "brick-closure-reroute-closure":
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: no-budget HOLD source was not closure"
+        )
+    if hold.get("disposition_required") is not True or hold.get("budget_exhausted") is not True:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: no-budget HOLD lost disposition/budget flags"
+        )
+    budgets = require_mapping(
+        dynamic_evidence.get("node_reroute_budgets", {}),
+        f"{label}: node_reroute_budgets",
+    )
+    landings = require_mapping(
+        dynamic_evidence.get("node_reroute_landings", {}),
+        f"{label}: node_reroute_landings",
+    )
+    if expected_target in budgets or landings.get(expected_target, 0) != 0:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: no-budget HOLD consumed a target landing"
+        )
+    records = getattr(result, "_dynamic_walker_reroute_records", ())
+    if len(records) != 1 or not isinstance(records[0], Mapping) or records[0] != hold:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: no-budget HOLD was not the sole reroute record"
+        )
+
+    attempt_two = (
+        result.lifecycle_write.root
+        / "work"
+        / "step-outputs"
+        / "closure-reroute-work-attempt-2"
+        / "step-output.json"
+    )
+    if attempt_two.exists():
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: no-budget HOLD wrote work attempt-2"
+        )
+    assert observed.events is not None
+    if len(observed.events) != len(expected_recorded):
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: no-budget HOLD invoked an attempt-2 callable"
+        )
+
+
 def _source_lane_transition_concern_fixture() -> Mapping[str, Any]:
     concerns: dict[str, Any] = {}
     for brick_ref in (
@@ -861,6 +1269,10 @@ def _step_output_drain_plan(case_kind: str, *, missing: bool) -> tuple[Mapping[s
         return _dynamic_full_replay_drain_plan(partial=False), "dynamic"
     if case_kind == "live_qa_reroute_to_work_n2":
         return _qa_reroute_to_work_drain_plan(), "dynamic"
+    if case_kind == "live_closure_reroute_fanin_n2":
+        return _closure_reroute_fanin_drain_plan(), "dynamic"
+    if case_kind == "live_closure_reroute_fanin_no_budget_hold":
+        return _closure_reroute_fanin_no_budget_mutant_plan(), "dynamic"
     if case_kind == "live_dynamic_fan_in_source_concerns_n4":
         return _dynamic_source_lane_transition_concern_plan(), "dynamic"
     if case_kind == "live_dynamic_partial_replay_rejected":
@@ -1081,6 +1493,115 @@ def _qa_reroute_to_work_drain_plan() -> Mapping[str, Any]:
         ],
         "node_reroute_budgets": {"brick-qa-reroute-work": 1},
     }
+
+
+def _closure_reroute_fanin_drain_plan() -> Mapping[str, Any]:
+    """Return the exact WO-4 closure-origin N=2 replay fixture.
+
+    This is already-materialized graph-plan input and carries an explicit
+    Link-assigned target budget. No provider is invoked.
+    """
+
+    plan: dict[str, Any] = {
+        "plan_ref": "building-plan:checker-live-closure-reroute-fanin",
+        "building_id": "checker-live-closure-reroute-fanin",
+        "plan_shape": "graph",
+        "selected_adapter_ref": "adapter:local",
+        "proof_limits": _step_output_drain_proof_limits(),
+        "not_proven": ["checker live runner proof only"],
+        "execution_order": [
+            "closure-reroute-work",
+            "closure-reroute-code-attack-qa",
+            "closure-reroute-axis-attack-qa",
+            "closure-reroute-closure",
+        ],
+        "brick_steps": [
+            _graph_brick_step(
+                "closure-reroute-work",
+                "brick-closure-reroute-work",
+                "edge:closure-reroute-work-to-code-attack-qa",
+            ),
+            _graph_brick_step(
+                "closure-reroute-code-attack-qa",
+                "brick-closure-reroute-code-attack-qa",
+                "edge:closure-reroute-code-attack-qa-to-closure",
+            ),
+            _graph_brick_step(
+                "closure-reroute-axis-attack-qa",
+                "brick-closure-reroute-axis-attack-qa",
+                "edge:closure-reroute-axis-attack-qa-to-closure",
+            ),
+            _graph_brick_step(
+                "closure-reroute-closure",
+                "brick-closure-reroute-closure",
+                "edge:closure-reroute-closure-to-boundary",
+            ),
+        ],
+        "link_edges": [
+            _graph_link_edge(
+                "edge:closure-reroute-work-to-code-attack-qa",
+                "closure-reroute-work",
+                "closure-reroute-code-attack-qa",
+                "brick-closure-reroute-code-attack-qa",
+            ),
+            _graph_link_edge(
+                "edge:closure-reroute-work-to-axis-attack-qa",
+                "closure-reroute-work",
+                "closure-reroute-axis-attack-qa",
+                "brick-closure-reroute-axis-attack-qa",
+            ),
+            _graph_link_edge(
+                "edge:closure-reroute-code-attack-qa-to-closure",
+                "closure-reroute-code-attack-qa",
+                "closure-reroute-closure",
+                "brick-closure-reroute-closure",
+            ),
+            _graph_link_edge(
+                "edge:closure-reroute-axis-attack-qa-to-closure",
+                "closure-reroute-axis-attack-qa",
+                "closure-reroute-closure",
+                "brick-closure-reroute-closure",
+            ),
+            _graph_link_edge(
+                "edge:closure-reroute-closure-to-boundary",
+                "closure-reroute-closure",
+                "",
+                "building-boundary:checker-live-closure-reroute-fanin-closed",
+            ),
+        ],
+        "groups": [
+            {
+                "group_id": "group:checker-closure-reroute-fan-out",
+                "group_role": "fan_out",
+                "member_ref_kind": "link_edge",
+                "member_refs": [
+                    "edge:closure-reroute-work-to-code-attack-qa",
+                    "edge:closure-reroute-work-to-axis-attack-qa",
+                ],
+            },
+            {
+                "group_id": "group:checker-closure-reroute-fan-in",
+                "group_role": "fan_in",
+                "member_ref_kind": "link_edge",
+                "member_refs": [
+                    "edge:closure-reroute-code-attack-qa-to-closure",
+                    "edge:closure-reroute-axis-attack-qa-to-closure",
+                ],
+            },
+        ],
+        "node_reroute_budgets": {"brick-closure-reroute-work": 1},
+    }
+    return plan
+
+
+def _closure_reroute_fanin_no_budget_mutant_plan() -> Mapping[str, Any]:
+    """Delete the target budget after materialization for the HOLD RED/green probe."""
+
+    plan = dict(_closure_reroute_fanin_drain_plan())
+    materialized_budgets = plan.pop("node_reroute_budgets", None)
+    if materialized_budgets != {"brick-closure-reroute-work": 1}:
+        raise AssertionError("WO-4 no-budget mutant did not remove the materialized target budget")
+    return plan
 
 
 def _dynamic_source_lane_transition_concern_plan() -> Mapping[str, Any]:

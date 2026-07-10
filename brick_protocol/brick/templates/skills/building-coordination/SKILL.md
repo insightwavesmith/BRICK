@@ -127,8 +127,8 @@ Use the active startup order:
    fan-out/fan-in, portfolio, repair, replay, or parallel QA is implied.
 10. If multiple verification lanes exist, declare `fan_in_first_candidate` as
    the default analysis policy before closure-synthesis.
-11. Name the startup path candidate only after the prior candidate/declaration
-    chain is present.
+11. Name the official customer execution entrance candidate only after the
+    prior candidate/declaration chain is present.
 ```
 
 Claude master-sequence and engine detail are support evidence only. They may
@@ -140,11 +140,12 @@ they must not decide task meaning, route family, Movement, success, or quality.
 
 COO must not jump from `task.md` directly to `run_building_plan`. A confirmed
 `task.md` is input evidence; catalog scope, preset/manual grammar, route family,
-graph movement case, fan-in-first policy, and startup path remain separate
+graph movement case, fan-in-first policy, and customer entry remain separate
 candidates until caller / COO declaration. Once `task.md` AND `chain_preset_ref`
 are confirmed and declared, `run_building_intake` is the single seam from
-confirmed intent to running Building; it sequences materialize -> run and does
-not select the preset.
+confirmed intent to the Builder's internal lowering/run machinery; it sequences
+materialize -> run and does not select the preset. It is not a separate customer
+entry.
 
 Chain presets live under `brick_protocol/brick/templates/presets/`; each `presets/<name>.md`
 declares route structure in frontmatter and route-intent prose in `## Route`.
@@ -152,27 +153,38 @@ declares route structure in frontmatter and route-intent prose in `## Route`.
 candidates; common presets carry `catalog_scope: common`. The set is indexed by
 `brick_protocol/brick/templates/shapes/catalog.yaml`.
 
-Startup / handoff path candidates:
+Official customer execution entrances:
 
 ```text
-A: brick_protocol.support.operator.composition_intent.materialize_building_intent
-B: brick_protocol.support.operator.composition_intent.render_declared_step_template_plan
-C: brick_protocol.support.operator.composition_compose.compose_building
-D: brick_protocol.support.operator.run.run_building_plan
-E: brick_protocol.support.operator.driver.run_declared_portfolio
-F: brick_protocol.support.operator.auto_repair_replay.run_declared_auto_repair_replay_case
+brick build = declare/materialize and run a Building through the official build route
+brick resume --decl = continue or reroute a held declared Building
+brick init = bootstrap/example setup only; not Building execution
 ```
 
-Single confirmed-intent -> running-Building seam (task.md + chain preset -> run):
+Builder-internal declared route-family executors (not customer/startup entrances):
+
+```text
+existing_declared_plan | linear_chain_preset | preset_guided_graph | full_manual_graph
+  -> materialize_building_intent / render_declared_step_template_plan / compose_building
+  -> brick_protocol.support.operator.run.run_building_plan
+declared_portfolio
+  -> brick_protocol.support.operator.driver.run_declared_portfolio
+declared_repair_replay
+  -> brick_protocol.support.operator.auto_repair_replay.run_declared_auto_repair_replay_case
+read/run packet material
+  -> brick_protocol.support.operator.orchestration_packet._coo_run_orchestration_packet
+```
+
+Builder-internal confirmed-intent -> running-Building seam (task.md + chain preset -> run):
 
 ```text
 SEAM: brick_protocol.support.operator.driver.run_building_intake
 ```
 
 For confirmed `task.md` + selected `chain_preset_ref`, `run_building_intake`
-calls `materialize_building_intent` (A), writes the plan, admits only
+calls `materialize_building_intent`, writes the plan, admits only
 `plan_shape: graph`, dispatches the dynamic graph walker, then calls
-`run_building_plan` (D). It selects no preset, chooses no Movement, picks no
+`run_building_plan`. It selects no preset, chooses no Movement, picks no
 agent outside NEED<->CAPABILITY, and judges no success / sufficiency / quality.
 
 Confirmed intent may carry optional `project_ref` (`project:<id>`). When
@@ -180,9 +192,9 @@ declared, output root derives through `buildings_root_for`; undeclared /
 charterless vessels are refused at intake. Absence lands in project #1 by
 mechanical compat default, not as a NEW-work intake answer.
 
-Do not claim CLI startup. Do not present native_dispatch or
-building_operation as the runner. Do not present `target_word` as Link
-Movement. Do not present `selected_preset_ref` as canonical proof.
+Do not present Builder-internal functions, native_dispatch, or
+building_operation as customer startup entrances. Do not present `target_word`
+as Link Movement. Do not present `selected_preset_ref` as canonical proof.
 
 Pre-run declaration / evidence refs, when caller / COO or an admitted composer
 materializes them, are:

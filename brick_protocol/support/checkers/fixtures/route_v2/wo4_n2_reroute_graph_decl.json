@@ -1,0 +1,75 @@
+{
+  "_doc": "WO-4 official graph-decl transport fixture. It is stop-defaulted and must not be fired by the checker. The deterministic adapter:local execution proof lives in building_operator_driver0.",
+  "building_id": "wo4-n2-closure-reroute-e2e-0710",
+  "declared_by": "coo-smith",
+  "author_ref": "coo:smith",
+  "action": "stop",
+  "adapter": "codex-local",
+  "adapter_timeout_seconds": 1200,
+  "task": "Prove one exact editable-work route: work attempt 1, two QA siblings attempt 1, closure attempt 1 emits one non-binding implementation_gap, Link reroutes to work under budget 1, both QA siblings replay at attempt 2, and closure attempt 2 returns transition_concern_evidence null. This declaration is a compatibility-transport fixture; do not infer product success or provider reliability from assembly or checker proof.",
+  "write_scope": {
+    "allowed_paths": [
+      "project/brick-protocol/wo4-probe/**"
+    ],
+    "forbidden_paths": [
+      ".git/**",
+      "**/.env",
+      "**/.env.*",
+      "**/*.pem",
+      "**/*.key",
+      "brick_protocol/**",
+      "project/deku/**"
+    ]
+  },
+  "nodes": [
+    {
+      "kind": "work",
+      "alias": "work",
+      "write": true,
+      "write_scope": {
+        "allowed_paths": [
+          "project/brick-protocol/wo4-probe/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "brick_protocol/**",
+          "project/deku/**"
+        ]
+      },
+      "work_statement": "## Deliverables\nD1: Modify only project/brick-protocol/wo4-probe/route-byte.txt. If it is absent, write exactly attempt-1 followed by one newline. If its exact content is attempt-1 followed by one newline, append exactly attempt-2 followed by one newline. For any other content, do not normalize it; return the observed mismatch and make no write.\nD2: Return the exact observed final bytes and whether this was attempt 1 or attempt 2. Do not commit or push.\n## Done Criteria\n종료선: D1-D2 complete with the exact byte state recorded."
+    },
+    {
+      "fan": {
+        "branches": [
+          {
+            "kind": "code-attack-qa",
+            "alias": "code-attack-qa",
+            "work_statement": "Read project/brick-protocol/wo4-probe/route-byte.txt and the received work step-output. Report the exact bytes and attempt number. Make no files and return transition_concern_evidence null. This lane observes only; it does not choose Movement or judge success."
+          },
+          {
+            "kind": "axis-attack-qa",
+            "alias": "axis-attack-qa",
+            "work_statement": "Read project/brick-protocol/wo4-probe/route-byte.txt and the received work step-output. Report the exact bytes and attribute declarations to Brick, returned evidence to Agent, and adoption to Link. Make no files and return transition_concern_evidence null. This lane observes only; it does not choose Movement or judge success."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "closure",
+      "alias": "closure",
+      "work_statement": "Fan in both QA sibling step-outputs. On the first closure attempt, when route-byte.txt contains exactly attempt-1 followed by one newline, return exactly one non-binding transition_concern_evidence with concern_kind implementation_gap, related_boundary_refs [\"brick-wo4-n2-closure-reroute-e2e-0710-work\"], and ledger-local reason_refs [\"work/step-outputs/wo4-n2-closure-reroute-e2e-0710-code-attack-qa-attempt-1/step-output.json\"]. On the second closure attempt, only when route-byte.txt contains exactly attempt-1 newline then attempt-2 newline and both received QA sibling refs are attempt-2 refs, return transition_concern_evidence null. Otherwise return the observed mismatch without a false completion claim. Do not choose Movement or judge product success.",
+      "route": [
+        {
+          "action": "reroute",
+          "on": "implementation_gap",
+          "back": 1,
+          "budget": 1
+        }
+      ]
+    }
+  ]
+}

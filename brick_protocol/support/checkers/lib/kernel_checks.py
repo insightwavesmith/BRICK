@@ -355,6 +355,141 @@ def run_building_call_authoring_contract(repo: Path) -> KernelResult:
     )
 
 
+def run_building_call_order_chain_contract(repo: Path) -> KernelResult:
+    """Validate O1-O3 freeze, question-HOLD, explicit forward, and re-lowering."""
+
+    from brick_protocol.support.operator.building_call import (
+        BuildingCallLoweringError,
+        ORDER_FORWARD_PACKET_SCHEMA_VERSION,
+        ORDER_QUESTION_HOLD_SCHEMA_VERSION,
+        ORDER_RELOWER_PACKET_SCHEMA_VERSION,
+        ORDER_REVIEW_PACKET_SCHEMA_VERSION,
+        forward_frozen_building_call_order_v1,
+        freeze_building_call_order_v1,
+        relower_building_call_order_v1,
+    )
+
+    authoring_path = (
+        repo
+        / "brick_protocol/support/checkers/fixtures/building_call_authoring/positive_return.json"
+    )
+    answers_path = (
+        repo
+        / "brick_protocol/support/checkers/fixtures/building_call_order_chain/sizing_answers.json"
+    )
+    authored = json.loads(authoring_path.read_text(encoding="utf-8"))
+    authored["remaining_delta"] = []
+    answers = json.loads(answers_path.read_text(encoding="utf-8"))
+    task = "Implement the frozen Building order-chain contract."
+    building_id = "building-call-order-chain-checker"
+
+    review = freeze_building_call_order_v1(
+        task_statement=task,
+        sizing_answers=answers,
+        authoring_return=authored,
+        repo_root=repo,
+        building_id=building_id,
+    )
+    if review.get("kind") != ORDER_REVIEW_PACKET_SCHEMA_VERSION:
+        raise ProfileError("building_call_order_chain_contract: ready draft did not freeze")
+    if review.get("state") != "held_for_coo_review" or review.get("launch_authorized") is not False:
+        raise ProfileError("building_call_order_chain_contract: frozen order bypassed COO review")
+    casting = review.get("declared_casting_table")
+    if not isinstance(casting, list) or not casting:
+        raise ProfileError("building_call_order_chain_contract: frozen casting table missing")
+    for row in casting:
+        if not isinstance(row, Mapping) or not all(
+            str(row.get(key) or "").strip()
+            for key in (
+                "selected_adapter_ref",
+                "selected_model_ref",
+                "selected_reasoning_effort_ref",
+            )
+        ):
+            raise ProfileError("building_call_order_chain_contract: casting row is incomplete")
+
+    forwarded = forward_frozen_building_call_order_v1(
+        review,
+        repo_root=repo,
+        review_action="forward",
+    )
+    if forwarded.get("kind") != ORDER_FORWARD_PACKET_SCHEMA_VERSION:
+        raise ProfileError("building_call_order_chain_contract: explicit forward did not hand off")
+    if forwarded.get("graph_declaration") != review.get("frozen_order"):
+        raise ProfileError("building_call_order_chain_contract: forward changed the frozen order")
+
+    unresolved = json.loads(json.dumps(authored))
+    unresolved["remaining_delta"] = [
+        "Which declared Brick boundary owns the remaining edit?"
+    ]
+    held = freeze_building_call_order_v1(
+        task_statement=task,
+        sizing_answers=answers,
+        authoring_return=unresolved,
+        repo_root=repo,
+        building_id=building_id,
+    )
+    if (
+        held.get("kind") != ORDER_QUESTION_HOLD_SCHEMA_VERSION
+        or held.get("lowering_performed") is not False
+        or not held.get("questions")
+    ):
+        raise ProfileError("building_call_order_chain_contract: remaining_delta did not HOLD")
+
+    revised = json.loads(json.dumps(authored))
+    revised["scope_draft"]["allowed_path_candidates"] = [
+        "brick_protocol/support/operator/building_call.py"
+    ]
+    relowered = relower_building_call_order_v1(
+        review,
+        task_statement=task,
+        sizing_answers=answers,
+        revised_authoring_return=revised,
+        repo_root=repo,
+        building_id=building_id,
+    )
+    measured = relowered.get("draft_diff")
+    if (
+        relowered.get("kind") != ORDER_RELOWER_PACKET_SCHEMA_VERSION
+        or not isinstance(measured, Mapping)
+        or measured.get("flipped") is not True
+    ):
+        raise ProfileError("building_call_order_chain_contract: revised draft exposed no diff")
+
+    for label, mutated, action in (
+        ("blank action", review, "stop"),
+        (
+            "direct frozen edit",
+            {
+                **review,
+                "frozen_order": {**review["frozen_order"], "task": "tampered"},
+            },
+            "forward",
+        ),
+    ):
+        try:
+            forward_frozen_building_call_order_v1(
+                mutated,
+                repo_root=repo,
+                review_action=action,
+            )
+        except BuildingCallLoweringError:
+            pass
+        else:
+            raise ProfileError(f"building_call_order_chain_contract: {label} was accepted")
+
+    return KernelResult(
+        check_id="building_call_order_chain_contract",
+        inspected=6,
+        output=(
+            "task + exact eight answers + draft froze to one review packet; declared "
+            "adapter/model/effort table exposed; explicit forward preserved the frozen "
+            "graph; unresolved remaining_delta held before lowering; revised draft "
+            "re-lowered with a non-empty diff; stop and direct-frozen-edit probes RED-fired"
+        ),
+    )
+
+
 def run_building_call_lowering_contract(repo: Path) -> KernelResult:
     """Validate ⑤g confirmed-only Building Call lowering fixtures."""
 

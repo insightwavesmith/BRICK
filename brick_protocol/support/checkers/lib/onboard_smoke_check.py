@@ -9,6 +9,7 @@ from brick_protocol.support.checkers.lib.yaml_subset import KernelResult, Profil
 
 _ONBOARD_SMOKE_REQUIRED_KEYS = (
     "host",
+    "declared_example_adapter_ref",
     "preflight",
     "preflight_readiness",
     "connect_hint",
@@ -40,6 +41,10 @@ def run_onboard_smoke(repo: Path) -> KernelResult:
     onboard = importlib.import_module("brick_protocol.support.operator.onboard")
     agent_adapter = importlib.import_module("brick_protocol.support.connection.agent_adapter")
     from brick_protocol.support.checkers.lib.case_runners import _preset_completion_command_runner
+    from brick_protocol.support.operator.import_identity import (
+        mint_official_launch_token,
+        reset_official_launch_token,
+    )
 
     command_runner = _preset_completion_command_runner(agent_adapter.LocalCliCompleted)
 
@@ -87,22 +92,31 @@ def run_onboard_smoke(repo: Path) -> KernelResult:
     # (a)+(b)+(d) Happy path on adapter:local with a TEMP output_root (NOT repo).
     with tempfile.TemporaryDirectory(prefix="bp-onboard-smoke-") as tmp:
         tmp_root = Path(tmp)
+        launch_token = mint_official_launch_token()
         try:
-            result = onboard.run_onboard(
-                "codex",
-                repo_root=repo,
-                run_example=True,
-                output_root=tmp_root,
-                command_runner=command_runner,
-            )
-        except Exception as exc:  # noqa: BLE001 -- no-raise is the invariant under test
-            raise ProfileError(
-                "onboard_smoke: run_onboard('codex', run_example=True) raised "
-                f"{type(exc).__name__}: {exc}"
-            ) from exc
+            try:
+                result = onboard.run_onboard(
+                    "codex",
+                    repo_root=repo,
+                    selected_example_adapter_ref="adapter:local",
+                    run_example=True,
+                    output_root=tmp_root,
+                    command_runner=command_runner,
+                )
+            except Exception as exc:  # noqa: BLE001 -- no-raise is the invariant under test
+                raise ProfileError(
+                    "onboard_smoke: run_onboard('codex', run_example=True) raised "
+                    f"{type(exc).__name__}: {exc}"
+                ) from exc
+        finally:
+            reset_official_launch_token(launch_token)
 
         _onboard_smoke_assert_shape("codex", result)
 
+        if result["declared_example_adapter_ref"] != "adapter:local":
+            raise ProfileError(
+                "onboard_smoke: run_onboard rewrote the explicit example adapter"
+            )
         if result["ok"] is not True:
             raise ProfileError(
                 "onboard_smoke: adapter:local example must make ok True; got "
@@ -114,6 +128,13 @@ def run_onboard_smoke(repo: Path) -> KernelResult:
             raise ProfileError("onboard_smoke: example_result must be a mapping")
         if example.get("ran") is not True:
             raise ProfileError("onboard_smoke: bundled example did not run (ran != True)")
+        if example.get("declared_adapter_ref") != "adapter:local":
+            raise ProfileError(
+                "onboard_smoke: bundled example did not preserve its explicit "
+                "adapter:local declaration"
+            )
+        if example.get("substitution_performed") is not False:
+            raise ProfileError("onboard_smoke: bundled example substituted adapters")
         building_id = example.get("building_id")
         if not isinstance(building_id, str) or not building_id.strip():
             raise ProfileError("onboard_smoke: example_result missing a building_id")
@@ -161,18 +182,23 @@ def run_onboard_smoke(repo: Path) -> KernelResult:
 
     # (c) A bogus host must return ok False WITHOUT raising. Skip the example so
     #     this stays cheap; the never-raise guard is what matters here.
+    launch_token = mint_official_launch_token()
     try:
-        bogus = onboard.run_onboard(
-            "definitely-not-a-host",
-            repo_root=repo,
-            run_example=False,
-            command_runner=command_runner,
-        )
-    except Exception as exc:  # noqa: BLE001 -- no-raise is the invariant under test
-        raise ProfileError(
-            "onboard_smoke: run_onboard must not raise for a bogus host; raised "
-            f"{type(exc).__name__}: {exc}"
-        ) from exc
+        try:
+            bogus = onboard.run_onboard(
+                "definitely-not-a-host",
+                repo_root=repo,
+                selected_example_adapter_ref="adapter:local",
+                run_example=False,
+                command_runner=command_runner,
+            )
+        except Exception as exc:  # noqa: BLE001 -- no-raise is the invariant under test
+            raise ProfileError(
+                "onboard_smoke: run_onboard must not raise for a bogus host; raised "
+                f"{type(exc).__name__}: {exc}"
+            ) from exc
+    finally:
+        reset_official_launch_token(launch_token)
     _onboard_smoke_assert_shape("bogus", bogus)
     if bogus["ok"] is not False:
         raise ProfileError("onboard_smoke: bogus host must return ok False")
@@ -185,7 +211,7 @@ def run_onboard_smoke(repo: Path) -> KernelResult:
             "onboard smoke passed: doctor reports environment readiness rows "
             "(python, pipx, git, uv, disk, github network) and gemini host "
             "readiness evidence with API-key presence and credential_validity=not_proven; "
-            "run_onboard drives the bundled adapter:local "
+            "run_onboard drives the explicitly declared bundled adapter:local "
             "example end-to-end to a TEMP output_root, returns the structured "
             "{preflight, connect_hint, example_result, handoff_message_ko, ok} "
             "dict with ok True + a building_id + landed evidence, and never raises "

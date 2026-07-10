@@ -30,8 +30,9 @@ REQUIRED_TEXTS = (
     EXPECTED_DISCLAIMER,
     "brick auth login",
     "--real-provider",
-    "first ready provider-backed observed-write adapter",
-    "falls back to `adapter:local`",
+    "the exact provider adapter declared by the caller",
+    "does not select or substitute a different ready provider",
+    "missing or unready declaration stops before dispatch",
     "adapter:local",
     "customer_visible_frontier_state",
     "frontier_complete",
@@ -43,6 +44,7 @@ REQUIRED_TEXTS = (
     "inspect `evidence_root`",
     "Agent adapter evidence",
     "materialized-step",
+    "effort:xhigh",
     "Provider readiness evidence",
     "target=gemini",
     "api_key_env_present=yes",
@@ -118,6 +120,7 @@ def _fake_wizard_packet(*, example_ok: bool) -> dict[str, Any]:
                     "step_ref": "materialized-step",
                     "selected_adapter_ref": "adapter:codex-local",
                     "selected_model_ref": "model:codex:default",
+                    "selected_reasoning_effort_ref": "effort:xhigh",
                 }
             ],
         }

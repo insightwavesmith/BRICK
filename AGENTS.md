@@ -60,6 +60,21 @@ Agent Adapter connects the brain.
 Link owns Movement.
 ```
 
+Customer/startup authority is narrower than the internal support call graph:
+
+```text
+Official customer execution entrances = brick build | brick resume --decl
+brick init = bootstrap/example setup only; not Building execution
+declared_portfolio = declared route-family plan kind
+declared_repair_replay = declared route-family plan kind
+```
+
+`run_declared_portfolio` and `run_declared_auto_repair_replay_case` are
+Builder-internal declared route-family executors, not customer/startup
+entrances. `_coo_run_orchestration_packet`, lowering/materialization helpers,
+and `fire()` are Builder-internal material as well. Their presence in the
+support call graph does not create another public execution entrance.
+
 Canonical public import:
 
 ```text

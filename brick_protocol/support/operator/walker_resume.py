@@ -167,7 +167,12 @@ def hold_disposition_action_menu(
     """
 
     if _adapter_error_hold_without_return(hold_record):
-        return ("stop",)
+        # An adapter exception happens before the held Brick returns an
+        # AgentFact.  The caller/COO may either close that incomplete frontier
+        # on paper (stop) or, after repairing provider readiness, retry the
+        # exact pending Brick in the preserved workspace (forward).  Budget
+        # raise and route invention remain inadmissible for this evidence class.
+        return ("forward", "stop")
     reason = (
         _optional_text_value(hold_record.get("hold_reason"))
         or _optional_text_value(frontier_reason)
@@ -736,7 +741,8 @@ def resume_admission_decision(
         )
 
     recorded_returns = list(recorded_returns_loader())
-    if not recorded_returns:
+    adapter_error_forward_retry = _adapter_error_forward_retry(action, hold_record)
+    if not recorded_returns and not adapter_error_forward_retry:
         raise ValueError(_NO_RECORDED_RETURNS_REFUSAL)
     replay_returns: dict[str, list[Any]] = {}
     for item in recorded_returns:
@@ -830,6 +836,22 @@ def _adapter_error_hold_without_return(hold_record: Mapping[str, Any]) -> bool:
         isinstance(ref, str) and "adapter_error_frontier" in ref
         for ref in reason_refs
     )
+
+
+def _adapter_error_forward_retry(
+    action: str,
+    hold_record: Mapping[str, Any],
+) -> bool:
+    """Identify the one no-return resume that retries live work.
+
+    Adapter-error frontier evidence proves that provider invocation stopped
+    before an AgentFact existed.  ``forward`` therefore has no held-step return
+    to replay; the existing resume kernel must invoke that pending step live.
+    This helper does not choose forward.  It only recognizes the explicit
+    human/COO disposition already being validated.
+    """
+
+    return action == "forward" and _adapter_error_hold_without_return(hold_record)
 
 
 def _paper_stop_adapter_error_hold(
@@ -1561,9 +1583,10 @@ def validate_disposition_intake(
     # SINGLE-SOURCE resume admission (D1/D2): delegate the whole overlapping
     # validation clause chain to the SAME pure sequence the live resume path
     # runs, so the accept/refuse SET stays identical by construction (invariant
-    # I2). Intake does NOT enforce the resume-only budget_increment check and
-    # does NOT take the resume-only paper-stop early-accept (both flags False) --
-    # the measured resume-only divergences are preserved, not silently unified.
+    # I2). Intake does not enforce the resume-only budget_increment check, but it
+    # DOES take the same adapter-error paper-stop early-accept as the live reader.
+    # Otherwise the public menu advertises stop while pre-persist validation
+    # rejects the no-return evidence class that paper-stop exists to close.
     decision = resume_admission_decision(
         evidence=evidence,
         disposition=disposition,
@@ -1574,7 +1597,7 @@ def validate_disposition_intake(
             root / "evidence" / "claim_trace" / "agent" / "returned_claims.json"
         ).is_file(),
         enforce_raise_budget_increment=False,
-        adapter_error_stop_short_circuit=False,
+        adapter_error_stop_short_circuit=True,
     )
     hold_record = decision.hold_record
 

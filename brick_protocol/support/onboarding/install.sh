@@ -59,7 +59,7 @@ set -eu
 REPO_SLUG="${BRICK_REPO:-}"
 # uv run resolves the synced .venv (where brick-protocol + PyYAML live); a
 # bare python3 outside the venv raises ModuleNotFoundError.
-ONBOARD_ENTRY="uv run python3 -m brick_protocol.support.operator.onboard codex"
+ONBOARD_ENTRY="uv run brick init --non-interactive --host codex"
 
 print_install_splash() {
     assets_dir="$1/support/onboarding/assets"
@@ -345,7 +345,7 @@ main() {
         "끝! 다음 한 줄부터 쓰면 돼요:" \
         "  brick status" \
         "" \
-        "옛 온보딩 seam 확인이 필요하면:" \
+        "온보딩을 다시 실행하려면:" \
         "  cd $target && $ONBOARD_ENTRY" \
         "" \
         "막히면 그냥 한국어로 에이전트한테 물어보면 돼요. 천천히 하셔도 괜찮아요 🙂"

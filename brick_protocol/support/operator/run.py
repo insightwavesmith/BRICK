@@ -668,6 +668,7 @@ def _anchor_park_stop_wip(
                 f"BRICK WIP anchor: {building_id}\n\n"
                 f"source={source}\n"
             ),
+            include_clean=True,
         )
     except (OSError, WorktreeSandboxError):
         return
@@ -815,8 +816,8 @@ def resume_building_plan(
         raise ValueError(adapter_cwd_refusal)
     frontier = observe_building_frontier(root, repo_root=_REPO_ROOT)
     if frontier.get("frontier_kind") == "chat_session_parked":
-        return _with_close_wip_anchor(
-            _resume_chat_session_parked_building_plan(
+        try:
+            resumed_chat_result = _resume_chat_session_parked_building_plan(
                 root,
                 overwrite_existing=overwrite_existing,
                 local_callables=local_callables,
@@ -826,7 +827,16 @@ def resume_building_plan(
                 checked_proof_limits=checked_proof_limits,
                 report_env=report_env,
                 report_slack_sender=report_slack_sender,
-            ),
+            )
+        except ChatSessionParkFrontierEvidenceWritten as parked:
+            _anchor_park_stop_wip(
+                adapter_cwd,
+                building_id=parked.building_id,
+                source="resume_building_plan_chat_park_stop",
+            )
+            raise
+        return _with_close_wip_anchor(
+            resumed_chat_result,
             adapter_cwd=adapter_cwd,
         )
     frontier_history = _adapter_error_frontier_history_snapshot(root)
@@ -851,6 +861,18 @@ def resume_building_plan(
             report_env=report_env,
             report_slack_sender=report_slack_sender,
         )
+    except ChatSessionParkFrontierEvidenceWritten as parked:
+        # A resumed generic walk can park before the normal close result exists.
+        # Mirror the first-run fail-safe so direct caller-owned adapter_cwd bytes
+        # are anchored before the typed park signal continues outward.  An
+        # engine-owned resume additionally passes through the outer sandbox
+        # lifecycle bracket, which verifies preservation before disposal.
+        _anchor_park_stop_wip(
+            adapter_cwd,
+            building_id=parked.building_id,
+            source="resume_building_plan_park_stop",
+        )
+        raise
     except AdapterFrontierEvidenceWritten as adapter_frontier:
         # A resumed walk can hit a FRESH adapter exception/timeout (the held step's
         # provider call after disposition). The forward walk has already written the
@@ -2408,6 +2430,18 @@ def _candidate_source_fact_building_roots(
     building_id: str,
 ) -> tuple[Path, ...]:
     roots: list[Path] = []
+    # 0710d live2 loss-context fix: a lifecycle replay packet (walker_hold hold
+    # re-stamp) carries the ACTUAL building evidence root. Custom --output-root
+    # buildings (e.g. /private/tmp/...) are invisible to every guessed root
+    # below, which made existing step-output bodies read as "missing
+    # step-output source_fact body/evidence" right before land. An explicitly
+    # declared building_root is therefore the FIRST candidate.
+    declared_root = _optional_text_from_mapping(packet, "building_root")
+    if declared_root:
+        try:
+            roots.append(Path(declared_root).expanduser().resolve())
+        except (OSError, ValueError):
+            pass
     project_ref = _optional_text_from_mapping(packet, "project_ref")
     if project_ref and building_id:
         try:
@@ -2415,7 +2449,9 @@ def _candidate_source_fact_building_roots(
         except ValueError:
             pass
     if building_id:
-        roots.append((Path(DEFAULT_BUILDINGS_ROOT) / building_id).resolve())
+        candidate = (Path(DEFAULT_BUILDINGS_ROOT) / building_id).resolve()
+        if str(candidate) not in {str(root) for root in roots}:
+            roots.append(candidate)
     seen: set[str] = {str(root) for root in roots}
     if building_id:
         for base in (_REPO_ROOT / "project").glob("*/buildings"):

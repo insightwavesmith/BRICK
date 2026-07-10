@@ -317,13 +317,19 @@ name reroute_replay_scope_candidate as full affected-segment replay unless a
 name slack_payload_candidate and payload_delivery_scope_notes only as support
   delivery payload notes, not as route or Movement authority
 name partial_qa_reuse_not_proven when the task asks to reuse prior QA outputs
-name startup_path_candidate only as one of:
-  A: brick_protocol.support.operator.composition_intent.materialize_building_intent
-  B: brick_protocol.support.operator.composition_intent.render_declared_step_template_plan
-  C: brick_protocol.support.operator.composition_compose.compose_building
-  D: brick_protocol.support.operator.run.run_building_plan
-  E: brick_protocol.support.operator.driver.run_declared_portfolio
-  F: brick_protocol.support.operator.auto_repair_replay.run_declared_auto_repair_replay_case
+name startup_path_candidate only as an official customer execution entrance candidate
+Official customer execution entrances:
+  brick build = declare/materialize and run through the official build route
+  brick resume --decl = continue or reroute a held declared Building
+  brick init = bootstrap/example setup only; not Building execution
+Builder-internal declared route-family executors (not customer/startup entrances):
+  existing_declared_plan | linear_chain_preset | preset_guided_graph | full_manual_graph
+    -> brick_protocol.support.operator.run.run_building_plan
+  declared_portfolio
+    -> brick_protocol.support.operator.driver.run_declared_portfolio
+  declared_repair_replay
+    -> brick_protocol.support.operator.auto_repair_replay.run_declared_auto_repair_replay_case
+  lowering/materialization remains internal to the Builder and is not another entrance
 name no_preset_fallback when no chain preset should drive the work
 name declaration / evidence refs when present:
   work/task.md

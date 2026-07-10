@@ -928,6 +928,7 @@ def process_one_node(
     repo_root_path: Path,
     report_env: Mapping[str, str] | None,
     report_slack_sender: Any | None,
+    official_launch_observation: Mapping[str, Any],
     record_step_output_immediately: bool = True,
     defer_frontier_writes: bool = False,
 ) -> NodeProcessingOutcome:
@@ -1611,6 +1612,7 @@ def _run_dynamic_graph_walker(
             repo_root_path=repo_root_path,
             report_env=report_env,
             report_slack_sender=report_slack_sender,
+            official_launch_observation=official_launch_observation,
             record_step_output_immediately=record_step_output_immediately,
             defer_frontier_writes=defer_frontier_writes,
         )
@@ -2114,6 +2116,7 @@ def _run_dynamic_graph_walker(
                     replay_step=resume_seed.replay_step,
                     checked_proof_limits=checked_proof_limits,
                     held_occurrence_index=held_occurrence_index,
+                    building_root=str(building_root),
                 )
                 _drain_pending_outcomes_before_terminal()
                 break
@@ -3110,6 +3113,7 @@ def _run_dynamic_graph_walker(
                 replay_step=resume_seed.replay_step,
                 checked_proof_limits=checked_proof_limits,
                 held_occurrence_index=held_occurrence_index,
+                building_root=str(building_root),
             )
         resume_observations.append(
             _build_resume_disposition_observation(

@@ -1,6 +1,6 @@
 schema: checker-profile/v1
 profile_id: brick-cli-entrypoint
-description: P1 customer-facing brick CLI entrypoint bootstrap profile.
+description: Customer-facing brick CLI bootstrap plus fail-closed authoring-funnel profile.
 kernel_checks:
   - brick_cli_entrypoint_smoke
   - first_use_wizard
@@ -30,9 +30,23 @@ text_contains:
       - 'def _load_graph_packet'
       - 'build_input_mode'
       - 'graph_packet'
-      - 'DEFAULT_REAL_TASK_PRESET_REF = "building-chain-preset:fast-fix"'
-      - 'REAL_PROVIDER_SELECTION_ORDER = ('
-      - '_first_ready_real_provider_choice'
+      - 'FAST_FIX_PRESET_REF = "building-chain-preset:fast-fix"'
+      - 'BUILDING_CALL_AUTHORING_PRESET_REF = "building-chain-preset:building-call-authoring"'
+      - 'class BuildTriageRequiredError'
+      - 'No preset was auto-selected'
+      - 'def _build_request'
+      - 'building_call.lower_building_call_request_v1_1'
+      - 'building_call.building_call_direct_preset_admission_v1'
+      - '"build_input_mode": "direct_preset"'
+      - '"build_input_mode": "building_call_authoring"'
+      - '"build_input_mode": "confirmed_building_call"'
+      - 'class ProviderReadinessStopError'
+      - 'explicit_adapter_required'
+      - 'declared_adapter_not_ready'
+      - 'substitution_performed'
+      - 'class BuildTimeoutRequiredError'
+      - 'resolved_timeout_seconds'
+      - 'timeout_basis'
       - 'provider_readiness_observations'
       - 'derived_worktree_write_scope()'
       - 'adapter_is_write_capable(adapter)'
@@ -49,17 +63,25 @@ text_contains:
       - 'default_evidence_root'
       - 'default_build_root_basis'
       - 'materialized_step_adapters'
+      - 'selected_reasoning_effort_ref'
       - 'adapter_boundary_matrix'
       - 'adapter_boundary_matrix_rows:'
       - 'boundary_strength'
       - 'credential_path_class'
       - 'adapter identity is not write authority'
       - 'init_parser.add_argument("--host", default="codex"'
+      - '"--example-adapter"'
+      - 'example_adapter_ref=str(args.example_adapter).strip()'
       - 'onboard.run_doctor()'
       - 'check_profile.main(verify_argv)'
       - 'write_first_use('
       - 'next: read {FIRST_USE_FILENAME}'
       - 'build.add_argument('
+      - '"--building-call"'
+      - '"--building-case"'
+      - '"--intensity"'
+      - '"--direct-preset"'
+      - '"--fast-confirm"'
       - '"--graph-packet"'
       - '"--graph"'
       - 'declare either graph packet mode or task/task-source mode, not both'
@@ -69,12 +91,13 @@ text_contains:
       - 'FIRST_USE_FILENAME = "FIRST_USE.md"'
       - '이건 예제입니다 -- 실제 빌딩은 `brick auth login` 후 `--real-provider`.'
       - 'Agent adapter evidence'
+      - 'selected_reasoning_effort_ref'
       - 'This was a local example stub.'
       - '`brick auth login`'
       - '`--real-provider`'
-      - 'first ready provider-backed '
-      - 'observed-write adapter'
-      - 'falls back to `adapter:local`'
+      - 'the exact provider adapter declared '
+      - 'by the caller; a missing or unready declaration stops before dispatch'
+      - 'does not select or substitute a different ready provider'
       - 'not source truth'
   - path: brick_protocol/support/checkers/check_first_use_wizard.py
     texts:
@@ -102,6 +125,11 @@ text_contains:
       - 'resolved repo_root must be the FIRST launch line'
       - 'CLI --preset intent drifted from the shared'
       - 'unadmitted model alias must be rejected loudly'
+      - '_assert_brick_cli_authoring_funnel'
+      - 'task without --preset or explicit triage'
+      - 'sandbox dispatch seam'
+      - 'quick preset launched without --fast-confirm'
+      - 'unready declared adapter was silently'
   - path: brick_protocol/support/operator/cli.py
     texts:
       # build-unify #12 D3/D4: casting convergence comment + first-line repo_root emit.
@@ -110,6 +138,19 @@ text_contains:
       - 'stale_refused = _emit_launch_repo_root_observation(args'
       - 'repo_root: {repo_observation.get'
       - '--allow-stale-repo'
+      - 'resolved_casting_table'
+      - 'declared_performer_unavailable'
+  - path: brick_protocol/support/operator/assembly.py
+    texts:
+      - 'if existing == composed.composed_plan:'
+      - 'different canonical content'
+      - 'stop -> explicit forward is a continuation of the SAME frozen'
+  - path: brick_protocol/support/checkers/lib/brick_cli_entrypoint_check.py
+    texts:
+      - '_assert_brick_cli_timeout_and_review_packet'
+      - '_assert_identical_proposal_reentry'
+      - 'non-quick provider work inherited'
+      - 'mismatched proposal silently reused or overwrote'
   - path: brick_protocol/support/operator/onboard.py
     texts:
       - 'def build_preset_intent'
@@ -138,6 +179,7 @@ text_absent:
       - 'lane_return'
       - 'large-graph-declared'
       - 'p3_easy_large_graph'
+      - 'DEFAULT_REAL_TASK_PRESET_REF'
 proof_limits:
   - support evidence only
   - not source truth

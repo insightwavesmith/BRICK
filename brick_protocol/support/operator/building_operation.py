@@ -14,11 +14,13 @@ packet, native-dispatch open/close) plus axis-internal reach in ONE file. Its
 single-concern parts were lifted into collaborator modules under
 ``brick_protocol/support/operator/`` (one concern per module, each a registered
 module_registry.yaml row, G4) and this module is now the THIN READ-PROJECTION
-FACADE: it re-exports every previously-public name so external importers
+FACADE: it re-exports the admitted operator/read-projection names so external importers
 (driver.py / reporter.py observe_building_frontier; the checker lib case runners
 compose_building / render_declared_step_template_plan / observe_building_frontier
 / CompositionError; mcp_projection's coo_operating_chain_packet reference) keep
-importing the SAME names from the SAME path. It homes NO crossing mechanics any
+importing the SAME names from the SAME path. WO-3 intentionally excludes the
+Builder-internal orchestration packet from this customer-adjacent facade. It
+homes NO crossing mechanics any
 more (owns_crossings lowered 9 -> 0); the brick_protocol/agent/performance + brick_protocol/link/movement +
 brick_protocol/link/transition axis imports moved into the native_dispatch / plan_rendering
 collaborators that cross via the canonical contract (G3). The G6 ceiling
@@ -34,7 +36,7 @@ Collaborator sublayer (each a registered module_registry.yaml row, G4):
   operator/coo_operating_chain.py        COO operating-chain / operator-loop / closure
   operator/plan_rendering.py             declared-plan rendering from step templates
   operator/composition_*.py              compose_building Brick plan assembly family
-  operator/orchestration_packet.py       coo_run_orchestration read packet
+  operator/orchestration_packet.py       Builder-internal orchestration read/run material
   operator/native_dispatch.py            POSITION-A native-dispatch open/close seam
 
 It chooses no Movement and judges no success or quality.
@@ -194,14 +196,6 @@ from brick_protocol.support.operator.composition_graph_validate import (
     _composition_problem_from_validator,
 )
 
-# coo_run_orchestration read packet.
-from brick_protocol.support.operator.orchestration_packet import (
-    coo_run_orchestration_packet,
-    _orchestration_gap_notes,
-    _step_output_refs_from_building_map,
-    _link_decision_refs_from_building_map,
-)
-
 # POSITION-A native-dispatch open/close recording seam.
 from brick_protocol.support.operator.native_dispatch import (
     NATIVE_DISPATCH_EXECUTION_PATH,
@@ -228,12 +222,11 @@ from brick_protocol.support.operator.native_dispatch import (
     _write_native_dispatch_task,
 )
 
-# P3d-FIX (codex P2): the pre-decomposition module had NO __all__, so
-# `from building_operation import *` exposed all 28 public top-level names. A
-# 10-name __all__ silently narrowed that star-import surface (direct imports
-# were preserved, but the "0 public names dropped" claim was star-import-false).
-# Restore the full 28-name surface so star-import is behavior-identical; every
-# name resolves from the facade re-exports above.
+# P3d-FIX (codex P2): the pre-decomposition module had NO __all__, and a later
+# narrow __all__ silently dropped admitted facade names. Keep the admitted
+# facade surface explicitly enumerated. WO-3 deliberately retires the
+# orchestration-packet re-export because that helper is Builder-internal
+# material, not a public/customer startup surface.
 __all__ = [
     "BuildingEvidenceAnalysis",
     "BuildingPreflight",
@@ -249,7 +242,6 @@ __all__ = [
     "closure_draft",
     "compose_building",
     "coo_operating_chain_packet",
-    "coo_run_orchestration_packet",
     "evidence_analysis_packet",
     "evidence_status",
     "gap_note",
@@ -272,10 +264,9 @@ __all__ = [
     "render_declared_step_template_plan",
     "render_project_orchestration_ledger_view",
     "run_checker_profile",
-    # CLOSE-1/F1: base (6a58dd2) building_operation.py had 51 public top-level
-    # names; the post-decompose __all__ kept only the 28 functions/classes and
-    # dropped these 23 public CONSTANTS, silently narrowing `import *`. Restored
-    # so the star-import surface matches base (all re-export from split modules).
+    # CLOSE-1/F1: retain the admitted public constants that the first
+    # post-decomposition __all__ accidentally dropped. The Builder-internal
+    # orchestration packet is intentionally outside this facade.
     "CALLER_OR_COO_DECLARATION_MARKERS",
     "COMPACT_LINK_GATE_TOKENS",
     "COO_OPERATING_CHAIN_DEEP_INTAKE_FIELDS",

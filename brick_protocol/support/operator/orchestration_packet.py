@@ -1,9 +1,10 @@
-"""coo_run_orchestration read packet (P3d concern module).
+"""Builder-internal orchestration packet material (P3d concern module).
 
 Assembles the COO run-orchestration packet (declared plan projection + evidence
 analysis + closure draft + gap notes) over already-written evidence. It chooses
 no Movement or target and judges no success or quality. Reaches no axis (composes
-the other read-projection collaborators)."""
+the other read-projection collaborators). It is not a customer/startup entrance
+and is not re-exported by the customer-adjacent Building operation facade."""
 
 from __future__ import annotations
 
@@ -35,7 +36,7 @@ from brick_protocol.support.operator.plan_rendering import (
 )
 
 
-def coo_run_orchestration_packet(
+def _coo_run_orchestration_packet(
     *,
     task_source_ref: str | Path,
     selected_shape_ref: str = "",
@@ -53,11 +54,12 @@ def coo_run_orchestration_packet(
     adapter_timeout_seconds: int = 120,
     packet_ref: str = "coo-run-orchestration:coo-run-orchestration-0",
 ) -> Mapping[str, Any]:
-    """Operate a declared COO task/plan/run/evidence loop as support evidence.
+    """Builder-internal read/run material for an already-declared Building Plan.
 
     This helper may call ``brick_protocol/support/operator/run.py`` only when the caller gives
     a declared plan path or fully declared plan intent. It does not derive a
-    plan from task text, choose Movement, infer targets, or judge the run.
+    plan from task text, choose Movement, infer targets, or judge the run. It is
+    not a customer/startup entrance.
     """
 
     repo = Path(repo_root).resolve()

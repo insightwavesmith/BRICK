@@ -133,20 +133,31 @@ the caller / COO declared shape (shape membership is not enforced).
 Only after preset declaration, or after an explicit no-preset/manual
 fallback, name `active_plan_ref` or fully declared intent.
 
-Startup / handoff path candidates:
+Official customer execution entrances:
 
 ```text
-A: brick_protocol.support.operator.composition_intent.materialize_building_intent
-B: brick_protocol.support.operator.composition_intent.render_declared_step_template_plan
-C: brick_protocol.support.operator.composition_compose.compose_building
-D: brick_protocol.support.operator.run.run_building_plan
-E: brick_protocol.support.operator.driver.run_declared_portfolio
-F: brick_protocol.support.operator.auto_repair_replay.run_declared_auto_repair_replay_case
+brick build = declare/materialize and run a Building through the official build route
+brick resume --decl = continue or reroute a held declared Building
+brick init = bootstrap/example setup only; not Building execution
 ```
 
-These are support startup candidates over declared Brick / Agent / Link facts,
-not CLI startup proof, native dispatch proof, Building authority, or Link
-Movement authority.
+Builder-internal declared route-family executors (not customer/startup entrances):
+
+```text
+existing_declared_plan | linear_chain_preset | preset_guided_graph | full_manual_graph
+  -> materialize_building_intent / render_declared_step_template_plan / compose_building
+  -> brick_protocol.support.operator.run.run_building_plan
+declared_portfolio
+  -> brick_protocol.support.operator.driver.run_declared_portfolio
+declared_repair_replay
+  -> brick_protocol.support.operator.auto_repair_replay.run_declared_auto_repair_replay_case
+read/run packet material
+  -> brick_protocol.support.operator.orchestration_packet._coo_run_orchestration_packet
+```
+
+These internal helpers operate only over already-declared Brick / Agent / Link
+facts. They are not CLI startup proof, native dispatch proof, Building
+authority, Link Movement authority, or alternate customer entrances.
 
 Run that intake as a conversational loop, not a batch questionnaire:
 

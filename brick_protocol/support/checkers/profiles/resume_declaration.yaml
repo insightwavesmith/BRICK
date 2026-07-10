@@ -5,13 +5,15 @@ kernel_checks:
   - resume_declaration
 path_exists:
   - brick_protocol/support/operator/resume_declaration.py
+  - brick_protocol/support/operator/walker_resume.py
   - brick_protocol/support/operator/cli.py
   - brick_protocol/support/checkers/check_resume_declaration.py
   - brick_protocol/support/checkers/profiles/resume_declaration.yaml
 text_contains:
   - path: brick_protocol/support/operator/resume_declaration.py
     texts:
-      - RESUME_DECL_ACTIONS = ("raise", "forward", "stop")
+      - RESUME_DECL_ACTIONS = ("raise", "forward", "stop", "reroute")
+      - '"choice_kind": "engine_worktree_lifecycle"'
       - def load_resume_declaration
       - def validate_resume_declaration
       - def preflight_resume_declaration
@@ -25,6 +27,13 @@ text_contains:
       - runtime_error_kind
       - run_approve_entry
       - not Movement authority
+  - path: brick_protocol/support/operator/walker_resume.py
+    texts:
+      - def _adapter_error_forward_retry
+      - return ("forward", "stop")
+      - adapter_error_forward_retry = _adapter_error_forward_retry(action, hold_record)
+      - if not recorded_returns and not adapter_error_forward_retry
+      - Adapter-error frontier evidence proves that provider invocation stopped
   - path: brick_protocol/support/operator/cli.py
     texts:
       - def _cmd_resume

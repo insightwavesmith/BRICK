@@ -26,18 +26,41 @@ gh repo clone {OWNER}/BRICK-dist ~/BRICK && sh ~/BRICK/support/onboarding/instal
 cd ~/BRICK && brick doctor
 ```
 
-공식 고객 실행 표면은 하나입니다: `brick build`. 표준 작업은
-`--task`/`--preset`으로 말합니다. design-first 또는 multi-lane 그래프는
-`assemble()` / `build()` / `fan()` DSL로 선언하고 실행합니다. 손으로 작성한
-raw `graph_packet` JSON을 CLI에 넘기던 `--graph`/`--graph-packet` 입력은
-retired입니다.
+공식 고객 실행 표면은 하나입니다: `brick build`. task만 주고 프리셋 선택을
+엔진에 맡기는 hidden default는 없습니다. 다음 셋 중 하나를 caller/COO가
+명시해야 합니다: (1) `--preset`, (2) `--building-case` + `--intensity`,
+(3) 확인된 Building Call JSON인 `--building-call`. 아무것도 명시하지 않은
+`brick build --task ...`는 실행 전에 fail-closed하며 advisory 선택 절차를
+안내합니다.
+
+`quick_check`/`quick_fix`만 명시 프리셋 + `--fast-confirm` 또는 명시 triage의
+`--direct-preset --fast-confirm`과 함께 직접 lowering됩니다. 다른 명시 프리셋도
+바로 발사하지 않고 발주 저작 레인으로 보냅니다. normal/complex/critical triage는 먼저
+`building-chain-preset:building-call-authoring` Building을 실행해 STEP1~STEP5
+발주 초안을 만듭니다. 확인된 Building Call JSON은 canonical lowerer를 거쳐
+동일한 sandbox dispatch로 들어갑니다. `--graph-decl`은 기존 선언을 위한 호환
+transport로만 유지하며 신규 사용자 입구로 가르치지 않습니다. 손으로 작성한
+raw `graph_packet`의 `--graph`/`--graph-packet` 입력은 retired입니다.
 
 ```bash
-cd ~/BRICK && brick build --task "첫 실행을 support evidence only로 기록해 주세요." --preset building-chain-preset:design-contract-only --adapter adapter:local --timeout 20
+cd ~/BRICK && brick build --task "첫 실행을 support evidence only로 기록해 주세요." --preset building-chain-preset:quick-check --fast-confirm --adapter adapter:local --timeout 20
 ```
 
-실제 저장소를 바꾸는 작업은 auth 뒤에 `--real-provider`를 붙이거나,
-명시적인 observed-write adapter를 고른 다음 실행하세요.
+```bash
+# fast-confirmed direct quick fix
+brick build --task "버튼 라벨 오타 한 곳을 고쳐 주세요" --building-case quick_fix --intensity easy --direct-preset --fast-confirm --real-provider --adapter adapter:codex-local
+
+# normal work first runs the draft-only authoring Building
+brick build --task "여러 파일에 걸친 기능을 설계하고 구현해 주세요" --building-case standard_delivery --intensity normal --real-provider --adapter adapter:codex-local --timeout 3600
+
+# reviewed/confirmed Building Call
+brick build --building-call /path/to/confirmed-building-call.json --real-provider --adapter adapter:codex-local --timeout 3600
+```
+
+실제 저장소를 바꾸는 작업은 auth 뒤에 exact observed-write `--adapter`를 선언하세요.
+`--real-provider`가 머신의 로그인 상태를 보고 다른 performer를 고르지 않습니다.
+선언 어댑터가 준비되지 않으면 실행 0 typed stop이며, non-quick provider 작업은
+명시적인 양수 `--timeout`도 필요합니다.
 `run_building_intake`, `assemble`, `launch_assembled_building`, `goal-approve`는
 brick_protocol/support/operator helper 또는 고급/내부 경로이지 별도 고객 실행 루트가
 아닙니다.
@@ -54,7 +77,7 @@ command: cd ~/BRICK && brick doctor
 expected: provider별 준비 상태 표와 증상 -> 처방 표가 출력되고 exit 0.
 failure signal: doctor 자체 stack trace, 또는 repo 루트가 아닌 곳에서 실행한 import 실패.
 
-command: cd ~/BRICK && brick build --task "첫 실행을 support evidence only로 기록해 주세요." --preset building-chain-preset:design-contract-only --adapter adapter:local --timeout 20
+command: cd ~/BRICK && brick build --task "첫 실행을 support evidence only로 기록해 주세요." --preset building-chain-preset:quick-check --fast-confirm --adapter adapter:local --timeout 20
 expected: build_input_mode=preset_task, building_id, evidence_root, frontier_kind가 출력된다. provider 준비 전 local/support-only 확인은 frontier_kind=agent_incomplete/not_ready일 수 있으며, customer-visible closure는 frontier_kind=complete일 때뿐이다. brick build exit 0은 CLI가 support evidence를 반환했다는 뜻이지 phase PASS가 아니다. complete가 아닌 frontier는 not_ready로 보고 evidence_root를 inspect한다. raw graph_packet CLI 입력은 retired이고, 그래프형 작업은 DSL로 선언한다.
 failure signal: FileExistsError이면 building_id를 새로 정한다; ModuleNotFoundError이면 루트에서 uv run python3 -c 로 호출했는지 확인한다; frontier가 complete가 아니라는 안내.
 
@@ -75,18 +98,17 @@ verdict-bearing 노드에서 provider-backed adapter가 필요할 수 있어, pr
 
 Start here: [quickstart](brick_protocol/support/docs/references/quickstart.md) · [setup](brick_protocol/support/docs/references/setup.md) · [repository invite issuance](brick_protocol/support/docs/references/repo-invite-issuance.md) · [three-axis overview](brick_protocol/support/docs/references/three-axis-overview.md)
 
-You do not author task files for the common path: SPEAK your task as text
-through `brick build --task`. That is the official public first-run surface.
-Preset task runs use `brick build --task ... --preset ...`. For design-first or
-multi-lane work, the official way to construct and launch a Building is the
-`assemble()` / `build()` / `fan()` Python DSL (`brick_protocol/support/operator/assembly.py`)
-plus `run_building_plan()`. Hand-authored `graph_packet` JSON via
-`brick build --graph <packet.json>` is retired from the public customer CLI
-surface now that sibling independence, per-node `write_scope`, and mid-graph
-human/COO gates are expressible in the DSL. `run_building_intake`,
-`launch_assembled_building`, and
-`goal-approve` remain helper or advanced/internal paths, not separate customer
-execution routes.
+You do not author task files for the common path: SPEAK your task through
+`brick build --task`, then explicitly declare either a preset or Building Call
+triage. Untriaged task text never auto-selects `fast-fix`. Only quick_check and
+quick_fix may use direct lowering, and only with an explicitly named quick
+preset plus `--fast-confirm`, or triage with `--direct-preset --fast-confirm`;
+larger work first runs the Building Call authoring preset.
+Reviewed Building Call JSON enters with `--building-call`. The assembly DSL and
+`--graph-decl` remain Builder/internal and compatibility materials, not extra
+customer entrances. `run_building_intake`, `run_building_plan`,
+`launch_assembled_building`, and `goal-approve` are internal helpers rather than
+separate execution routes.
 
 For bigger work, the easy route is still the same public surface. Say the work
 as `brick build --task` when a declared preset fits. When the work needs
@@ -95,12 +117,14 @@ caller/COO declares that road with the `assemble()`/`build()`/`fan()` DSL and
 runs it with `run_building_plan()`. There is no separate `--large` mode, no
 raw `--graph` packet input, and no support-owned route chooser.
 
-Use the first-run example with `building-chain-preset:design-contract-only` and
-`--adapter adapter:local --timeout 20` only as a support-evidence check: it may
+Use the first-run example with `building-chain-preset:quick-check`,
+`--fast-confirm`, and `--adapter adapter:local --timeout 20` only as a
+support-evidence check: it may
 return `agent_incomplete`/`not_ready` until provider-backed verdict lanes are
 ready. For a provider-free green check, run `brick verify`. For real
-repository-changing work, authenticate first and use `--real-provider`, or choose
-an explicit observed-write adapter.
+repository-changing work, authenticate first and declare the exact observed-write
+adapter with `--real-provider --adapter ...`; Brick never substitutes a different
+ready provider. Non-quick provider work also requires an explicit `--timeout`.
 
 - Brick = work
 - Agent = performer

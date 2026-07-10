@@ -155,6 +155,8 @@ def observe_building_frontier(
         in {
             "fake_landing_write_scope_diff_absent",
             "write_scope_forbidden_diff_present",
+            "write_scope_outside_diff_present",
+            "land_force_commit_absent",
         }
     ):
         frontier_kind = _FRONTIER_HUMAN_REVIEW_WAITING

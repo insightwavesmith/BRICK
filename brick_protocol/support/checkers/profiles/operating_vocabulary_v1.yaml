@@ -1,0 +1,39 @@
+schema: checker-profile/v1
+profile_id: operating-vocabulary-v1
+description: Smith-approved v1 seal for Building authoring kinds, Agent lanes, and chain presets.
+kernel_checks:
+  - operating_vocabulary_v1
+path_exists:
+  - brick_protocol/brick/templates/operating-vocabulary-v1.yaml
+  - brick_protocol/support/operator/building_call_authoring.py
+  - brick_protocol/support/operator/building_call.py
+  - brick_protocol/support/checkers/check_operating_vocabulary.py
+  - brick_protocol/support/checkers/profiles/operating_vocabulary_v1.yaml
+text_contains:
+  - path: brick_protocol/brick/templates/operating-vocabulary-v1.yaml
+    texts:
+      - '"schema": "brick-operating-vocabulary/v1"'
+      - '"approved_by": "smith"'
+      - '"inline_authoring_amendment_forbidden": true'
+      - '"lowering_surface": "deterministic_cli_after_authoring_return"'
+  - path: brick_protocol/support/operator/building_call_authoring.py
+    texts:
+      - operating_vocabulary_violations
+      - operating vocabulary v1 rejects Brick kind
+      - operating vocabulary v1 rejects Agent lane
+      - operating vocabulary v1 rejects chain preset
+  - path: brick_protocol/support/checkers/check_operating_vocabulary.py
+    texts:
+      - operating vocabulary mutation RED failed
+      - 30 chain presets
+proof_limits:
+  - support checker evidence only
+  - Brick declaration vocabulary only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - future Smith-approved vocabulary amendments
+  - semantic fitness of any admitted kind, lane, or preset
+  - provider readiness or runtime behavior

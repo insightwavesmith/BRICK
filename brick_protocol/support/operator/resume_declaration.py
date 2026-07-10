@@ -10,7 +10,6 @@ It does not choose Movement, route targets, sufficiency, quality, or success.
 from __future__ import annotations
 
 import json
-import subprocess
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
@@ -21,10 +20,9 @@ from brick_protocol.support.operator.walker_resume import (
     hold_disposition_action_menu,
     validate_hold_disposition_action,
 )
-from brick_protocol.support.operator.worktree_sandbox import probe_worktree_capable
 
 
-RESUME_DECL_ACTIONS = ("raise", "forward", "stop")
+RESUME_DECL_ACTIONS = ("raise", "forward", "stop", "reroute")
 _RESUME_DECL_TOP_KEYS = frozenset(
     {
         "building_ref",
@@ -34,7 +32,15 @@ _RESUME_DECL_TOP_KEYS = frozenset(
         "adapter_timeout_seconds",
     }
 )
-_DISPOSITION_KEYS = frozenset({"on", "action", "budget_increment"})
+_DISPOSITION_KEYS = frozenset(
+    {
+        "on",
+        "action",
+        "budget_increment",
+        "reroute_target_ref",
+        "re_instruction",
+    }
+)
 _CHAIN_MODES = ("single", "until-terminal")
 _MAX_CHAIN_ROUNDS = 24
 _DEFAULT_AUTHOR_REF = "coo:resume-decl"
@@ -142,6 +148,19 @@ def validate_resume_declaration(decl: Mapping[str, Any]) -> dict[str, Any]:
                 + ", ".join(RESUME_DECL_ACTIONS)
             )
         normalized: dict[str, Any] = {"on": on_text, "action": action_text}
+        reroute_target_text = str(item.get("reroute_target_ref") or "").strip()
+        re_instruction_text = str(item.get("re_instruction") or "").strip()
+        if action_text == "reroute":
+            if not reroute_target_text:
+                raise ValueError("reroute action requires reroute_target_ref")
+            if not re_instruction_text:
+                raise ValueError("reroute action requires re_instruction")
+        elif reroute_target_text:
+            raise ValueError("reroute_target_ref is admitted only for action=reroute")
+        if "reroute_target_ref" in item:
+            normalized["reroute_target_ref"] = item["reroute_target_ref"]
+        if "re_instruction" in item:
+            normalized["re_instruction"] = item["re_instruction"]
         if "budget_increment" in item:
             if action_text != "raise":
                 raise ValueError("budget_increment is admitted only for action=raise")
@@ -251,10 +270,6 @@ def run_resume_declaration(
         packet["message_ko"] = "resume declaration dry-run preflight passed."
         return packet
 
-    adapter_cwd = resolve_dispo_adapter_cwd(
-        repo_root=repo,
-        building_id=building_root.name,
-    )
     seen: set[tuple[str, str, str]] = {_frontier_key(preflight)}
     current_preflight = preflight
     for _round_number in range(1, _MAX_CHAIN_ROUNDS + 1):
@@ -266,10 +281,26 @@ def run_resume_declaration(
             selected,
             author_ref=str(normalized["author_ref"]),
             repo_root=repo,
-            adapter_cwd=adapter_cwd,
+            adapter_cwd=None,
             adapter_timeout_seconds=int(normalized["adapter_timeout_seconds"]),
         )
         packet["rounds"].append(result)
+        for field in (
+            "evidence_root",
+            "frontier_kind",
+            "isolation_mode",
+            "isolation_reason",
+            "adapter_cwd_base_sha",
+            "worktree_path",
+            "worktree_disposed",
+            "commit_sha",
+            "wip_anchor_ref",
+            "wip_commit_sha",
+            "landed_ref",
+            "recovery_handle",
+        ):
+            if field in result:
+                packet[field] = result[field]
         if result.get("error_kind") == "not_approval_hold":
             packet.update(
                 _dead_end_payload(
@@ -463,61 +494,27 @@ def preflight_resume_declaration(
     return packet
 
 
-def resolve_dispo_adapter_cwd(*, repo_root: Path | str, building_id: str) -> Path:
-    """Choose the explicit adapter cwd used for every declaration round."""
+def resolve_dispo_adapter_cwd(
+    *, repo_root: Path | str, building_id: str
+) -> None:
+    """Retired compatibility seam: resume cwd belongs to the shared lifecycle.
 
-    choice = _dispo_adapter_cwd_choice(repo_root=repo_root, building_id=building_id)
-    path = Path(str(choice["adapter_cwd"])).resolve()
-    if choice["choice_kind"] in {"residue", "existing_fallback"}:
-        return path
-    if choice["choice_kind"] == "fallback_probe_unavailable":
-        path.mkdir(parents=True, exist_ok=True)
-        return path
-    if choice["choice_kind"] != "git_worktree_add":
-        raise ValueError(f"unknown adapter_cwd choice kind: {choice['choice_kind']!r}")
-    path.parent.mkdir(parents=True, exist_ok=True)
-    result = subprocess.run(
-        ["git", "worktree", "add", "--detach", str(path), str(choice["base_sha"])],
-        cwd=str(Path(repo_root).resolve()),
-        check=False,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
-    if result.returncode != 0:
-        path.mkdir(parents=True, exist_ok=True)
-    return path
+    ``run_resume_declaration`` never calls this helper.  Returning ``None`` keeps
+    old imports non-destructive while preventing the former residue reuse and
+    ``/tmp`` fallback from bypassing the driver close bracket.
+    """
+
+    _ = (repo_root, building_id)
+    return None
 
 
 def _dispo_adapter_cwd_choice(*, repo_root: Path | str, building_id: str) -> dict[str, Any]:
-    """Purely choose adapter cwd policy; caller performs git/filesystem effects."""
+    """Describe the one admitted cwd policy without performing side effects."""
 
-    repo = Path(repo_root).resolve()
-    residue = Path.home() / ".brick" / "worktrees" / building_id
-    if residue.is_dir():
-        return {
-            "choice_kind": "residue",
-            "adapter_cwd": str(residue.resolve()),
-            "fallback_warning": "",
-        }
-    fallback = Path("/tmp") / f"brick-coo-dispo-{building_id}"
-    if fallback.is_dir():
-        return {
-            "choice_kind": "existing_fallback",
-            "adapter_cwd": str(fallback.resolve()),
-            "fallback_warning": "",
-        }
-    probe = probe_worktree_capable(repo)
-    if not probe.ok:
-        return {
-            "choice_kind": "fallback_probe_unavailable",
-            "adapter_cwd": str(fallback.resolve()),
-            "fallback_warning": "adapter_cwd fallback: git worktree capability probe was not ok",
-        }
+    _ = (repo_root, building_id)
     return {
-        "choice_kind": "git_worktree_add",
-        "adapter_cwd": str(fallback.resolve()),
-        "base_sha": probe.base_sha,
+        "choice_kind": "engine_worktree_lifecycle",
+        "adapter_cwd": None,
         "fallback_warning": "",
     }
 
@@ -528,7 +525,7 @@ def _run_approve_entry(
     *,
     author_ref: str,
     repo_root: Path,
-    adapter_cwd: Path,
+    adapter_cwd: Path | None,
     adapter_timeout_seconds: int,
 ) -> dict[str, Any]:
     from brick_protocol.support.operator.onboard import run_approve_entry
@@ -542,6 +539,10 @@ def _run_approve_entry(
     }
     if "budget_increment" in row:
         kwargs["budget_increment"] = int(row["budget_increment"])
+    if "reroute_target_ref" in row:
+        kwargs["reroute_target_ref"] = row["reroute_target_ref"]
+    if "re_instruction" in row:
+        kwargs["re_instruction"] = row["re_instruction"]
     return dict(run_approve_entry(building_root, **kwargs))
 
 
@@ -573,8 +574,6 @@ __all__ = [
     "RESUME_DECL_ACTIONS",
     "load_resume_declaration",
     "preflight_resume_declaration",
-    "resolve_dispo_adapter_cwd",
     "run_resume_declaration",
     "validate_resume_declaration",
-    "_dispo_adapter_cwd_choice",
 ]

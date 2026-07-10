@@ -6,6 +6,7 @@ Pure relocation sibling of case_runners; support evidence only.
 from __future__ import annotations
 
 import importlib
+import inspect
 import tempfile
 from collections.abc import Mapping
 from pathlib import Path
@@ -18,43 +19,138 @@ from brick_protocol.support.checkers.lib.yaml_subset import ProfileError, requir
 def run_onboard_seam_case(repo: Path, profile: Mapping[str, Any]) -> int:
     """ONBOARDING-WIZARD-0 PART-2: assert the example routes through the PART-1 seam.
 
-    Drives the REAL ``support.operator.onboard.run_onboard`` end-to-end on the
-    default (no real-provider opt-in) path with a TEMP output_root and asserts the
+    Drives the REAL ``support.operator.onboard.run_onboard`` end-to-end with an
+    explicit ``adapter:local`` declaration and a TEMP output_root, and asserts the
     PART-2 contract:
 
       1. ROUTED-THROUGH-SEAM: the example_result records ``routed_through ==
          support.operator.driver.run_building_intake`` (the PART-1 seam), not the
          old raw run_building_plan path.
-      2. PREFLIGHT-READINESS-EVIDENCE: the result carries a structured
+      2. DECLARATION-ONLY CASTING: the result carries a structured
          ``preflight_readiness`` token (ready/unauthed/missing/unknown), mirrored
-         onto the example_result -- preflight is auditable evidence, not just a
-         Korean string. The example_result also records the adapter it used and the
-         ``adapter_choice_basis`` (WHY), so the real-vs-local routing is auditable.
+         onto the example_result, but the declared adapter is stable across those
+         states. Preflight verifies; it never selects or substitutes casting.
       3. HANDOFF-NAMES-SEAM: the closing handoff_message_ko NAMES the seam verb.
       4. FRONTIER-EVIDENCE: the default example routes through the seam and
          reaches the expected frontier with landed evidence under the TEMP
          output_root (never the repo). After preferred step-adapter resolution,
          no-provider machines may honestly record agent_incomplete for verdict
          rows that resolve to non-local preferred adapters.
-      5. NEVER-RAISES-MISSING-PROVIDER: a bogus / missing-provider host stays
-         ok-friendly (no raise) and STILL routes the friendly fallback through the
-         seam on adapter:local.
+      5. FAIL-CLOSED-MISSING-PROVIDER: an explicitly declared provider adapter
+         that is missing/mismatched stays no-raise but stops before dispatch. It
+         is never replaced with adapter:local.
 
-    SELF-FIRE: the case REDs if the example bypasses the seam (routed_through is not
-    the seam verb, or the default branch did not run on adapter:local) OR if the
-    handoff omits the seam pointer OR if preflight readiness is not recorded. The
-    last item additionally asserts run_onboard NEVER raises for a missing provider.
+    SELF-FIRE: the case REDs if removing the explicit declaration reintroduces a
+    readiness-driven choice, if an unready declaration dispatches, or if it is
+    silently substituted with adapter:local.
     """
     items = rule_items(profile, "onboard_seam_case")
     if not items:
         return 0
 
+    onboard_source = (
+        repo / "brick_protocol" / "support" / "operator" / "onboard.py"
+    ).read_text(encoding="utf-8")
+    if "def main(" in onboard_source or 'if __name__ == "__main__"' in onboard_source:
+        raise ProfileError(
+            "onboard_seam_case rejected module CLI: operator/onboard.py must remain "
+            "an import-only support library; public commands enter through brick CLI"
+        )
+    if '_BUILD_SELECTED_ADAPTER = "codex-local"' in onboard_source:
+        raise ProfileError(
+            "onboard_seam_case rejected hidden adapter default: onboard.build must "
+            "require the caller/COO to declare selected_adapter_ref"
+        )
+
     onboard = importlib.import_module("brick_protocol.support.operator.onboard")
+    build_signature = inspect.signature(onboard.build)
+    selected_adapter = build_signature.parameters.get("selected_adapter_ref")
+    if selected_adapter is None or selected_adapter.default is not inspect.Parameter.empty:
+        raise ProfileError(
+            "onboard_seam_case rejected onboard.build signature: "
+            "selected_adapter_ref must be an explicit required declaration"
+        )
+    run_onboard_signature = inspect.signature(onboard.run_onboard)
+    selected_example_adapter = run_onboard_signature.parameters.get(
+        "selected_example_adapter_ref"
+    )
+    if (
+        selected_example_adapter is None
+        or selected_example_adapter.default is not inspect.Parameter.empty
+    ):
+        raise ProfileError(
+            "onboard_seam_case rejected run_onboard signature: "
+            "selected_example_adapter_ref must be an explicit required declaration"
+        )
+    if "allow_real_provider" in run_onboard_signature.parameters:
+        raise ProfileError(
+            "onboard_seam_case rejected readiness-driven casting toggle: "
+            "allow_real_provider must not select an example adapter"
+        )
+    wizard_signature = inspect.signature(onboard.run_install_wizard)
+    declared_wizard_adapter = wizard_signature.parameters.get("example_adapter_ref")
+    if (
+        declared_wizard_adapter is None
+        or declared_wizard_adapter.default is not inspect.Parameter.empty
+    ):
+        raise ProfileError(
+            "onboard_seam_case rejected install wizard signature: "
+            "example_adapter_ref must be an explicit required declaration"
+        )
+    if hasattr(onboard, "_choose_example_adapter"):
+        raise ProfileError(
+            "onboard_seam_case rejected environment casting selector: "
+            "_choose_example_adapter must be removed"
+        )
     agent_adapter = importlib.import_module("brick_protocol.support.connection.agent_adapter")
+    from brick_protocol.support.operator.import_identity import (
+        mint_official_launch_token,
+        reset_official_launch_token,
+    )
+
     seam_verb = onboard.SEAM_VERB
     command_runner = _preset_completion_command_runner(agent_adapter.LocalCliCompleted)
     expected_local_adapter = "adapter:local"
     allowed_readiness = {"ready", "unauthed", "missing", "unknown"}
+
+    # RED/GREEN seam: the same local declaration must resolve identically across
+    # opposite readiness observations, while an unready provider declaration
+    # remains itself and is refused before execution.
+    local_ready = onboard._resolve_declared_example_casting(
+        {"adapter_ref": "adapter:codex-local"},
+        "ready",
+        selected_example_adapter_ref=expected_local_adapter,
+    )
+    local_missing = onboard._resolve_declared_example_casting(
+        {"adapter_ref": "adapter:codex-local"},
+        "missing",
+        selected_example_adapter_ref=expected_local_adapter,
+    )
+    for packet in (local_ready, local_missing):
+        if packet.get("adapter_ref") != expected_local_adapter:
+            raise ProfileError(
+                "onboard_seam_case: machine readiness changed the declared local adapter"
+            )
+        if packet.get("substitution_performed") is not False:
+            raise ProfileError(
+                "onboard_seam_case: local declaration reported adapter substitution"
+            )
+    unready_provider = onboard._resolve_declared_example_casting(
+        {"adapter_ref": "adapter:codex-local"},
+        "missing",
+        selected_example_adapter_ref="adapter:codex-local",
+    )
+    if (
+        unready_provider.get("dispatch_allowed") is not False
+        or unready_provider.get("adapter_ref") != "adapter:codex-local"
+        or unready_provider.get("error_kind") != "declared_example_adapter_not_ready"
+        or unready_provider.get("substitution_performed") is not False
+        or unready_provider.get("execution_started") is not False
+    ):
+        raise ProfileError(
+            "onboard_seam_case: unready declared provider did not fail closed "
+            f"without substitution: {unready_provider!r}"
+        )
 
     count = 0
     for item in items:
@@ -89,23 +185,27 @@ def run_onboard_seam_case(repo: Path, profile: Mapping[str, Any]) -> int:
                 )
             }
 
-        # (1)-(4) Default path: no real-provider opt-in -> adapter:local through seam.
+        # (1)-(4) Explicit bundled declaration: adapter:local through the seam.
         with tempfile.TemporaryDirectory(prefix="bp-onboard-seam-") as tmp:
             tmp_root = Path(tmp)
+            launch_token = mint_official_launch_token()
             try:
-                result = onboard.run_onboard(
-                    host,
-                    repo_root=repo,
-                    run_example=True,
-                    output_root=tmp_root,
-                    allow_real_provider=False,
-                    command_runner=command_runner,
-                )
-            except Exception as exc:  # noqa: BLE001 -- no-raise is under test
-                raise ProfileError(
-                    f"onboard_seam_case rejected {label}: run_onboard raised "
-                    f"{type(exc).__name__}: {exc}"
-                ) from exc
+                try:
+                    result = onboard.run_onboard(
+                        host,
+                        repo_root=repo,
+                        selected_example_adapter_ref=expected_local_adapter,
+                        run_example=True,
+                        output_root=tmp_root,
+                        command_runner=command_runner,
+                    )
+                except Exception as exc:  # noqa: BLE001 -- no-raise is under test
+                    raise ProfileError(
+                        f"onboard_seam_case rejected {label}: run_onboard raised "
+                        f"{type(exc).__name__}: {exc}"
+                    ) from exc
+            finally:
+                reset_official_launch_token(launch_token)
 
             readiness = result.get("preflight_readiness")
             if readiness not in allowed_readiness:
@@ -138,10 +238,19 @@ def run_onboard_seam_case(repo: Path, profile: Mapping[str, Any]) -> int:
                     f"recorded preflight_readiness {readiness!r}; got "
                     f"{example.get('preflight_readiness')!r}"
                 )
-            if not str(example.get("adapter_choice_basis") or "").strip():
+            if not str(example.get("adapter_declaration_basis") or "").strip():
                 raise ProfileError(
                     f"onboard_seam_case rejected {label}: example must record an "
-                    "adapter_choice_basis (WHY the adapter was chosen)"
+                    "adapter_declaration_basis (which declaration was verified)"
+                )
+            if example.get("declared_adapter_ref") != expected_local_adapter:
+                raise ProfileError(
+                    f"onboard_seam_case rejected {label}: example did not preserve "
+                    "its explicit adapter declaration"
+                )
+            if example.get("substitution_performed") is not False:
+                raise ProfileError(
+                    f"onboard_seam_case rejected {label}: example substituted adapters"
                 )
             if example.get("adapter_ref") != expected_local_adapter:
                 raise ProfileError(
@@ -180,41 +289,59 @@ def run_onboard_seam_case(repo: Path, profile: Mapping[str, Any]) -> int:
                     f"onboard_seam_case rejected {label}: example produced no evidence files"
                 )
 
-        # (5) FIRE / friendliness: a bogus / missing-provider host must NOT raise and
-        #     must STILL route the friendly fallback through the seam on adapter:local.
+        # (5) FIRE: a missing/mismatched explicitly declared provider adapter
+        #     must NOT raise, dispatch, or silently substitute adapter:local.
         with tempfile.TemporaryDirectory(prefix="bp-onboard-seam-missing-") as tmp:
             tmp_root = Path(tmp)
+            launch_token = mint_official_launch_token()
             try:
-                missing = onboard.run_onboard(
-                    bogus_host,
-                    repo_root=repo,
-                    run_example=True,
-                    output_root=tmp_root,
-                    allow_real_provider=True,
-                    command_runner=command_runner,
-                )
-            except Exception as exc:  # noqa: BLE001 -- no-raise is the invariant under test
-                raise ProfileError(
-                    f"onboard_seam_case rejected {label}: run_onboard raised for a "
-                    f"missing/bogus provider host (friendly contract broken): "
-                    f"{type(exc).__name__}: {exc}"
-                ) from exc
+                try:
+                    missing = onboard.run_onboard(
+                        bogus_host,
+                        repo_root=repo,
+                        selected_example_adapter_ref="adapter:codex-local",
+                        run_example=True,
+                        output_root=tmp_root,
+                        command_runner=command_runner,
+                    )
+                except Exception as exc:  # noqa: BLE001 -- no-raise is the invariant under test
+                    raise ProfileError(
+                        f"onboard_seam_case rejected {label}: run_onboard raised for a "
+                        f"missing/bogus provider host (friendly contract broken): "
+                        f"{type(exc).__name__}: {exc}"
+                    ) from exc
+            finally:
+                reset_official_launch_token(launch_token)
             missing_example = missing.get("example_result")
             if not isinstance(missing_example, Mapping):
                 raise ProfileError(
                     f"onboard_seam_case rejected {label}: missing-provider example_result "
                     "must be a mapping"
                 )
-            if missing_example.get("routed_through") != seam_verb:
+            if missing_example.get("ran") is not False:
                 raise ProfileError(
-                    f"onboard_seam_case rejected {label}: missing-provider fallback must still "
-                    f"route through the seam {seam_verb!r}; got "
-                    f"{missing_example.get('routed_through')!r}"
+                    f"onboard_seam_case rejected {label}: missing declared provider dispatched"
                 )
-            if missing_example.get("adapter_ref") != expected_local_adapter:
+            if missing_example.get("adapter_ref") != "adapter:codex-local":
                 raise ProfileError(
-                    f"onboard_seam_case rejected {label}: missing-provider fallback must use "
-                    f"{expected_local_adapter!r}; got {missing_example.get('adapter_ref')!r}"
+                    f"onboard_seam_case rejected {label}: missing declared provider was "
+                    f"substituted: {missing_example!r}"
+                )
+            if missing_example.get("substitution_performed") is not False:
+                raise ProfileError(
+                    f"onboard_seam_case rejected {label}: missing provider substitution flag drifted"
+                )
+            if missing_example.get("execution_started") is not False:
+                raise ProfileError(
+                    f"onboard_seam_case rejected {label}: missing provider execution started"
+                )
+            if missing_example.get("error_kind") not in {
+                "example_adapter_preflight_mismatch",
+                "declared_example_adapter_not_ready",
+            }:
+                raise ProfileError(
+                    f"onboard_seam_case rejected {label}: missing provider stop reason drifted: "
+                    f"{missing_example!r}"
                 )
             if missing.get("preflight_readiness") not in {"missing", "unauthed", "unknown"}:
                 raise ProfileError(

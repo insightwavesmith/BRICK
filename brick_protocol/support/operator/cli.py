@@ -52,10 +52,6 @@ try:
 except ModuleNotFoundError:
     from brick_protocol.support.checkers import check_profile
 from brick_protocol.support.connection.adapter_constants import (
-    ADAPTER_CLAUDE_LOCAL,
-    ADAPTER_CODEX_LOCAL,
-    ADAPTER_GEMINI_LOCAL,
-    ADAPTER_GROK_LOCAL,
     ALLOWED_ADAPTER_REFS,
     adapter_boundary_matrix,
 )
@@ -75,6 +71,7 @@ from brick_protocol.support.operator.project_declaration import (
     load_project_declaration,
 )
 from brick_protocol.support.operator import onboard
+from brick_protocol.support.operator import building_call
 from brick_protocol.support.operator import resume_declaration
 from brick_protocol.support.operator.assembly import (
     assemble_graph_declaration,
@@ -94,6 +91,9 @@ from brick_protocol.support.operator.graph_draft import (
     draft_launch_guidance,
     write_draft_declaration,
 )
+from brick_protocol.support.operator.plan_rendering import (
+    DeclaredPerformerUnavailableError,
+)
 from brick_protocol.support.operator.draft_diff import (
     run_draft_diff as run_draft_diff_module,
     THOUGHT_STALL_CANARY,
@@ -102,19 +102,16 @@ from brick_protocol.support.recording.capture import default_buildings_root
 
 
 ADAPTER_LOCAL = "adapter:local"
-REAL_PROVIDER_SELECTION_ORDER = (
-    ADAPTER_CLAUDE_LOCAL,
-    ADAPTER_CODEX_LOCAL,
-    ADAPTER_GEMINI_LOCAL,
-    ADAPTER_GROK_LOCAL,
-)
 DEFAULT_EXAMPLE_BUILDING_ID = "brick-cli-example"
 DEFAULT_EXAMPLE_TASK_SOURCE_REF = "brick_protocol/brick/templates/tasks/source-template.md"
 DEFAULT_LOCAL_PRESET_REF = "building-chain-preset:onboarding-example-graph"
-DEFAULT_REAL_TASK_PRESET_REF = "building-chain-preset:fast-fix"
+FAST_FIX_PRESET_REF = "building-chain-preset:fast-fix"
+QUICK_CHECK_PRESET_REF = "building-chain-preset:quick-check"
+BUILDING_CALL_AUTHORING_PRESET_REF = "building-chain-preset:building-call-authoring"
 DEFAULT_DECLARED_BY = "coo"
+DEFAULT_QUICK_OR_LOCAL_TIMEOUT_SECONDS = 120
 # build-unify #12 (표17 casting convergence): the CLI no longer synthesizes
-# per-node ``selected_*`` casting. --real-provider now ONLY chooses stub vs a real
+# per-node ``selected_*`` casting. --real-provider now verifies one caller-declared
 # observed-write adapter (D3); the per-step performer is interpreted at the SINGLE
 # casting interpretation point (plan_rendering._resolve_casting_selection via the
 # agent-object ladder), identically for CLI --preset and build(preset=) (D1/D2).
@@ -147,6 +144,61 @@ _SECRET_SHAPED_RE = re.compile(
     r"(secret|token|credential|session)[\w-]*\s*[:=]\s*\S+"
     r")"
 )
+
+BUILD_TRIAGE_ADVISORY = {
+    "selection_rule": "caller_or_coo_declared_only",
+    "preset_path": (
+        "review advisory candidates with "
+        "render_preset_ranking_packet(task, repo_root=...), then rerun with an explicit --preset"
+    ),
+    "direct_path": (
+        "quick_check/quick_fix only: declare --building-case, --intensity easy, "
+        "--direct-preset, and --fast-confirm"
+    ),
+    "authoring_path": (
+        "normal/complex/critical: declare --building-case and --intensity to run "
+        "building-chain-preset:building-call-authoring"
+    ),
+    "confirmed_path": "pass a confirmed Building Call JSON with --building-call",
+}
+
+
+class BuildTriageRequiredError(ValueError):
+    """Raised before launch when task authoring authority is still undeclared."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "task requires an explicit --preset or explicit triage with "
+            "--building-case and --intensity; quick direct lowering additionally "
+            "requires --direct-preset and --fast-confirm. No preset was auto-selected."
+        )
+        self.advisory = dict(BUILD_TRIAGE_ADVISORY)
+
+
+class ProviderReadinessStopError(RuntimeError):
+    """Typed pre-dispatch stop for a missing or unready declared provider."""
+
+    def __init__(
+        self,
+        *,
+        adapter_ref: str,
+        reason: str,
+        readiness_observations: Sequence[Mapping[str, Any]] = (),
+    ) -> None:
+        super().__init__("declared provider is not ready; execution did not start")
+        self.adapter_ref = adapter_ref
+        self.reason = reason
+        self.readiness_observations = [dict(row) for row in readiness_observations]
+
+
+class BuildTimeoutRequiredError(ValueError):
+    """Typed pre-dispatch stop when non-quick provider work lacks a timeout."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "non-quick provider work requires an explicit positive --timeout; "
+            "no silent 120-second provider timeout was applied"
+        )
 
 # Retired raw graph CLI notes for stale in-scope checker text probes only:
 # run_customer_graph_building_in_sandbox remains the internal DSL driver seam;
@@ -317,18 +369,154 @@ def _task_building_id() -> str:
 
 
 def _selected_build_preset(args: argparse.Namespace, *, adapter: str, task: str) -> str:
+    del adapter
     declared = (getattr(args, "preset", "") or "").strip()
     if declared:
         return declared
-    if task and adapter_is_write_capable(adapter):
-        return DEFAULT_REAL_TASK_PRESET_REF
+    if task:
+        raise BuildTriageRequiredError()
     return DEFAULT_LOCAL_PRESET_REF
 
 
-def _task_write_scope(*, adapter: str, task: str) -> dict[str, Any] | None:
-    if task and adapter_is_write_capable(adapter):
-        return derived_worktree_write_scope()
-    return None
+def _load_confirmed_building_call(path: str | Path) -> Mapping[str, Any]:
+    declaration_path = Path(path).expanduser().resolve()
+    if declaration_path.suffix.lower() != ".json":
+        raise ValueError("--building-call requires a confirmed Building Call JSON file")
+    loaded = json.loads(declaration_path.read_text(encoding="utf-8"))
+    if not isinstance(loaded, Mapping):
+        raise TypeError("confirmed Building Call JSON must contain one object")
+    return loaded
+
+
+def _selected_adapter_choice(args: argparse.Namespace) -> tuple[str, dict[str, Any]]:
+    """Return one caller-declared adapter after a fail-closed readiness check.
+
+    Provider readiness is an admission observation, never performer selection.
+    Therefore ``--real-provider`` cannot scan the machine and substitute the
+    first logged-in provider: the caller must declare ``--adapter`` and that
+    exact adapter must be ready before any Building dispatch is reachable.
+    """
+
+    declared_adapter = str(getattr(args, "adapter", "") or "").strip()
+    real_provider = bool(getattr(args, "real_provider", False))
+    if real_provider and not declared_adapter:
+        raise ProviderReadinessStopError(
+            adapter_ref="",
+            reason="explicit_adapter_required",
+        )
+
+    adapter = declared_adapter or ADAPTER_LOCAL
+    if adapter not in ALLOWED_ADAPTER_REFS:
+        raise ValueError(f"adapter_ref is not admitted for customer CLI: {adapter}")
+
+    if real_provider and not adapter_is_write_capable(adapter):
+        raise ProviderReadinessStopError(
+            adapter_ref=adapter,
+            reason="declared_adapter_is_not_observed_write_capable",
+        )
+
+    readiness_choice: dict[str, Any] = {}
+    if adapter_is_write_capable(adapter):
+        row = _readiness_evidence(dict(preflight_provider(adapter)))
+        if not row["ok"]:
+            raise ProviderReadinessStopError(
+                adapter_ref=adapter,
+                reason="declared_adapter_not_ready",
+                readiness_observations=(row,),
+            )
+        readiness_choice = {
+            "adapter_choice_basis": (
+                "caller-declared provider admitted after readiness observation; "
+                "no environment-driven performer substitution"
+            ),
+            "provider_readiness_observations": [row],
+        }
+    return adapter, readiness_choice
+
+
+def _bind_cli_adapter(
+    intent: Mapping[str, Any],
+    *,
+    adapter: str,
+    readiness_choice: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Bind the CLI-level Agent declaration after canonical Building Call lowering."""
+
+    bound = dict(intent)
+    bound["selected_adapter_ref"] = adapter
+    bound.setdefault("selected_model_ref", "model:default")
+    if readiness_choice:
+        bound["adapter_choice_basis"] = str(
+            readiness_choice.get("adapter_choice_basis") or ""
+        )
+        bound["provider_readiness_observations"] = list(
+            readiness_choice.get("provider_readiness_observations") or []
+        )
+    return bound
+
+
+def _declared_triage_fields(args: argparse.Namespace) -> bool:
+    return any(
+        (
+            bool((getattr(args, "building_case", "") or "").strip()),
+            bool((getattr(args, "intensity", "") or "").strip()),
+            bool(getattr(args, "direct_preset", False)),
+            bool(getattr(args, "fast_confirm", False)),
+        )
+    )
+
+
+def _authoring_task_statement(task: str, *, building_case: str, intensity: str) -> str:
+    return (
+        task.rstrip()
+        + "\n\nCaller/COO-declared Building Call triage:\n"
+        + f"building_case: {building_case}\n"
+        + f"intensity: {intensity}\n"
+        + "Produce draft-only STEP1-STEP5 authoring evidence; do not launch the drafted order."
+    )
+
+
+def _preset_authoring_task_statement(task: str, *, requested_preset_ref: str) -> str:
+    """Turn a non-quick preset request into reviewable order-authoring input."""
+
+    return (
+        task.rstrip()
+        + "\n\nCaller/COO-declared preset candidate for Building Call review:\n"
+        + f"requested_preset_ref: {requested_preset_ref}\n"
+        + "This preset is not admitted to the direct shortcut. Produce draft-only "
+        "STEP1-STEP5 authoring evidence; validate or replace the candidate in the "
+        "review packet and do not launch the drafted order."
+    )
+
+
+def _is_quick_preset_ref(preset_ref: str) -> bool:
+    return preset_ref in {QUICK_CHECK_PRESET_REF, FAST_FIX_PRESET_REF}
+
+
+def _resolved_build_timeout(
+    args: argparse.Namespace,
+    *,
+    intent: Mapping[str, Any],
+    routing: Mapping[str, Any],
+) -> tuple[int, str]:
+    """Resolve a visible timeout without a silent non-quick provider default."""
+
+    declared = getattr(args, "timeout", None)
+    if declared is not None:
+        if isinstance(declared, bool) or int(declared) <= 0:
+            raise ValueError("--timeout must be a positive integer")
+        return int(declared), "cli_explicit"
+
+    adapter = str(intent.get("selected_adapter_ref") or "")
+    preset_ref = str(intent.get("chain_preset_ref") or "")
+    if adapter == ADAPTER_LOCAL:
+        return DEFAULT_QUICK_OR_LOCAL_TIMEOUT_SECONDS, "local_default"
+    if (
+        routing.get("build_input_mode") in {"direct_preset", "preset_task"}
+        and _is_quick_preset_ref(preset_ref)
+    ):
+        return DEFAULT_QUICK_OR_LOCAL_TIMEOUT_SECONDS, "quick_preset_default"
+    raise BuildTimeoutRequiredError()
 
 def _readiness_evidence(row: dict[str, Any]) -> dict[str, Any]:
     """Return redacted provider-readiness evidence safe for CLI packets."""
@@ -370,38 +558,6 @@ def _adapter_boundary_packet() -> dict[str, Any]:
     }
 
 
-def _first_ready_real_provider_choice() -> dict[str, Any]:
-    """Choose the first ready observed-write provider from declared support order.
-
-    This is support readiness observation only. It stores no credential/session
-    bodies and falls back to adapter:local when no observed-write provider is
-    ready.
-    """
-
-    observed_rows: list[dict[str, Any]] = []
-    for adapter_ref in REAL_PROVIDER_SELECTION_ORDER:
-        status = preflight_provider(adapter_ref)
-        row = _readiness_evidence(dict(status))
-        observed_rows.append(row)
-        if row["ok"] and adapter_is_write_capable(adapter_ref):
-            return {
-                "adapter_ref": adapter_ref,
-                "adapter_choice_basis": (
-                    "real-provider omitted --adapter; first ready observed-write "
-                    f"adapter in declared order selected: {adapter_ref}"
-                ),
-                "provider_readiness_observations": observed_rows,
-            }
-    return {
-        "adapter_ref": ADAPTER_LOCAL,
-        "adapter_choice_basis": (
-            "real-provider omitted --adapter; no ready observed-write provider "
-            "observed in declared order -> adapter:local fallback"
-        ),
-        "provider_readiness_observations": observed_rows,
-    }
-
-
 def _customer_visible_frontier_state(frontier_kind: str) -> str:
     return "frontier_complete" if frontier_kind == "complete" else "not_ready"
 
@@ -423,35 +579,187 @@ def _customer_visible_frontier_message(frontier_kind: str) -> str:
     )
 
 
-def _build_intent(args: argparse.Namespace) -> dict[str, Any]:
-    # --real-provider is friendly sugar: when the customer opts into a real
-    # provider and omits --adapter, observe provider readiness and select the
-    # first ready observed-write adapter. An explicit --adapter always wins.
-    explicit_adapter = bool(getattr(args, "adapter", ""))
-    readiness_choice: dict[str, Any] = {}
-    adapter = args.adapter if explicit_adapter else ADAPTER_LOCAL
-    if getattr(args, "real_provider", False) and not explicit_adapter:
-        readiness_choice = _first_ready_real_provider_choice()
-        adapter = str(readiness_choice["adapter_ref"])
-    if adapter not in ALLOWED_ADAPTER_REFS:
-        raise ValueError(f"adapter_ref is not admitted for customer CLI: {adapter}")
-    task = (args.task or "").strip()
-    preset = _selected_build_preset(args, adapter=adapter, task=task)
-    if task:
-        building_id = args.building_id or _task_building_id()
-        # build-unify #12 D1/D2: the confirmed task/preset intent is built by the
-        # SINGLE shared builder onboard.build_preset_intent, so CLI --preset and
-        # build_preset() cannot drift. The CLI adds ONLY human-declared rungs
-        # (task text, preset, the plan-level adapter, worktree write_scope); it no
-        # longer synthesizes per-node casting -- the per-step performer is
-        # interpreted at the single casting interpretation point downstream.
-        return onboard.build_preset_intent(
+def _build_request(args: argparse.Namespace) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Resolve one declared authoring form without choosing a preset from task text."""
+
+    task = (getattr(args, "task", "") or "").strip()
+    preset = (getattr(args, "preset", "") or "").strip()
+    building_call_path = (getattr(args, "building_call", "") or "").strip()
+    building_case = (getattr(args, "building_case", "") or "").strip()
+    intensity = (getattr(args, "intensity", "") or "").strip()
+    direct_preset = bool(getattr(args, "direct_preset", False))
+    fast_confirm = bool(getattr(args, "fast_confirm", False))
+    triage_declared = _declared_triage_fields(args)
+
+    if building_call_path:
+        conflicts = []
+        if task:
+            conflicts.append("--task")
+        if preset:
+            conflicts.append("--preset")
+        if triage_declared:
+            conflicts.append("triage flags")
+        if (getattr(args, "building_id", "") or "").strip():
+            conflicts.append("--building-id")
+        if conflicts:
+            raise ValueError(
+                "--building-call is a confirmed input and cannot be combined with: "
+                + ", ".join(conflicts)
+            )
+        adapter, readiness_choice = _selected_adapter_choice(args)
+        request = _load_confirmed_building_call(building_call_path)
+        lowering = building_call.lower_building_call_request_v1_1(request)
+        intent = _bind_cli_adapter(
+            lowering["lowered_intent"],
+            adapter=adapter,
+            readiness_choice=readiness_choice,
+        )
+        return intent, {
+            "build_input_mode": "confirmed_building_call",
+            "building_call_path": str(Path(building_call_path).expanduser().resolve()),
+            "building_case": str(lowering.get("building_case") or ""),
+            "routing_mode_evidence": "confirmed_lowering",
+        }
+
+    if task and preset and any((building_case, intensity, direct_preset)):
+        raise ValueError(
+            "declare either explicit --preset or Building Call triage, not both; "
+            "--fast-confirm is the only triage-adjacent flag admitted with a quick preset"
+        )
+    if task and not preset and not triage_declared:
+        raise BuildTriageRequiredError()
+    if triage_declared and not task:
+        raise ValueError("Building Call triage flags require --task")
+
+    adapter, readiness_choice = _selected_adapter_choice(args)
+    if task and preset:
+        if _is_quick_preset_ref(preset):
+            if not fast_confirm:
+                raise ValueError(
+                    "quick_check/quick_fix preset launch requires explicit --fast-confirm"
+                )
+            # build-unify #12 D1/D2: the confirmed task/preset intent is built by
+            # the SINGLE shared builder. The only direct shortcut is an explicitly
+            # confirmed quick preset; quick-check never acquires write authority.
+            write_scope = (
+                derived_worktree_write_scope()
+                if preset == FAST_FIX_PRESET_REF and adapter_is_write_capable(adapter)
+                else None
+            )
+            intent = onboard.build_preset_intent(
+                declared_by=args.declared_by,
+                selected_adapter_ref=adapter,
+                chain_preset_ref=preset,
+                task_statement=task,
+                building_id=args.building_id or _task_building_id(),
+                write_scope=write_scope,
+                adapter_choice_basis=(
+                    readiness_choice.get("adapter_choice_basis", "")
+                    if readiness_choice
+                    else ""
+                ),
+                provider_readiness_observations=(
+                    readiness_choice.get("provider_readiness_observations")
+                    if readiness_choice
+                    else None
+                ),
+            )
+            return intent, {
+                "build_input_mode": "direct_preset",
+                "routing_mode_evidence": "explicit_quick_preset_confirmation",
+                "direct_preset_admission": True,
+                "fast_confirm": True,
+            }
+
+        if fast_confirm:
+            raise ValueError(
+                "--fast-confirm is admitted only for quick_check/quick_fix presets"
+            )
+        authoring_statement = _preset_authoring_task_statement(
+            task,
+            requested_preset_ref=preset,
+        )
+        intent = onboard.build_preset_intent(
             declared_by=args.declared_by,
             selected_adapter_ref=adapter,
-            chain_preset_ref=preset,
-            task_statement=task,
-            building_id=building_id,
-            write_scope=_task_write_scope(adapter=adapter, task=task),
+            chain_preset_ref=BUILDING_CALL_AUTHORING_PRESET_REF,
+            task_statement=authoring_statement,
+            building_id=args.building_id or _task_building_id(),
+            adapter_choice_basis=(
+                readiness_choice.get("adapter_choice_basis", "")
+                if readiness_choice
+                else ""
+            ),
+            provider_readiness_observations=(
+                readiness_choice.get("provider_readiness_observations")
+                if readiness_choice
+                else None
+            ),
+        )
+        return intent, {
+            "build_input_mode": "building_call_authoring",
+            "requested_preset_ref": preset,
+            "routing_mode_evidence": "non_quick_preset_redirected_to_order_authoring",
+            "direct_preset_admission": False,
+            "fast_confirm": False,
+        }
+
+    if task:
+        if not building_case or not intensity:
+            raise ValueError(
+                "explicit triage requires both --building-case and --intensity"
+            )
+        if fast_confirm and not direct_preset:
+            raise ValueError("--fast-confirm is admitted only with --direct-preset")
+        triage_request: dict[str, Any] = {
+            "kind": building_call.DIRECT_PRESET_TRIAGE_REQUEST_KIND,
+            "building_case": building_case,
+            "intensity": intensity,
+            "direct_preset_admission": direct_preset,
+            "fast_confirm": fast_confirm,
+            "task_statement": task,
+            "declared_by": args.declared_by,
+            "building_id": args.building_id or _task_building_id(),
+        }
+        if (
+            direct_preset
+            and building_case == "quick_fix"
+            and adapter_is_write_capable(adapter)
+        ):
+            triage_request["write_scope"] = derived_worktree_write_scope()
+        triage_evidence = building_call.building_call_direct_preset_admission_v1(
+            triage_request
+        )
+        if direct_preset:
+            if triage_evidence.get("direct_preset_admission") is not True:
+                raise ValueError("direct preset triage was not admitted")
+            intent = _bind_cli_adapter(
+                triage_evidence["lowered_intent"],
+                adapter=adapter,
+                readiness_choice=readiness_choice,
+            )
+            return intent, {
+                "build_input_mode": "direct_preset",
+                "building_case": building_case,
+                "intensity": intensity,
+                "routing_mode_evidence": str(
+                    triage_evidence.get("routing_mode_evidence") or ""
+                ),
+                "direct_preset_admission": True,
+                "fast_confirm": True,
+            }
+
+        authoring_statement = _authoring_task_statement(
+            task,
+            building_case=building_case,
+            intensity=intensity,
+        )
+        intent = onboard.build_preset_intent(
+            declared_by=args.declared_by,
+            selected_adapter_ref=adapter,
+            chain_preset_ref=BUILDING_CALL_AUTHORING_PRESET_REF,
+            task_statement=authoring_statement,
+            building_id=args.building_id or _task_building_id(),
             adapter_choice_basis=(
                 readiness_choice.get("adapter_choice_basis", "") if readiness_choice else ""
             ),
@@ -461,10 +769,22 @@ def _build_intent(args: argparse.Namespace) -> dict[str, Any]:
                 else None
             ),
         )
-    return onboard.build_preset_intent(
+        return intent, {
+            "build_input_mode": "building_call_authoring",
+            "building_case": building_case,
+            "intensity": intensity,
+            "routing_mode_evidence": str(
+                triage_evidence.get("routing_mode_evidence") or "order_authoring"
+            ),
+            "direct_preset_admission": False,
+            "fast_confirm": False,
+        }
+
+    selected_preset = _selected_build_preset(args, adapter=adapter, task=task)
+    intent = onboard.build_preset_intent(
         declared_by=args.declared_by,
         selected_adapter_ref=adapter,
-        chain_preset_ref=preset,
+        chain_preset_ref=selected_preset,
         task_source_ref=args.task_source_ref,
         building_id=args.building_id or DEFAULT_EXAMPLE_BUILDING_ID,
         adapter_choice_basis=(
@@ -476,6 +796,17 @@ def _build_intent(args: argparse.Namespace) -> dict[str, Any]:
             else None
         ),
     )
+    return intent, {
+        "build_input_mode": "preset_task",
+        "routing_mode_evidence": "explicit_preset_or_bundled_example",
+    }
+
+
+def _build_intent(args: argparse.Namespace) -> dict[str, Any]:
+    """Compatibility helper returning only the declared intent."""
+
+    intent, _routing = _build_request(args)
+    return intent
 
 
 def _materialized_step_adapter_evidence(plan_path: Path) -> list[dict[str, str]]:
@@ -500,6 +831,9 @@ def _materialized_step_adapter_evidence(plan_path: Path) -> list[dict[str, str]]
             "step_template_ref": str(step.get("step_template_ref") or ""),
             "selected_adapter_ref": str(step.get("selected_adapter_ref") or ""),
             "selected_model_ref": str(step.get("selected_model_ref") or ""),
+            "selected_reasoning_effort_ref": str(
+                step.get("selected_reasoning_effort_ref") or ""
+            ),
         }
         if any(row.values()):
             rows.append(row)
@@ -508,6 +842,8 @@ def _materialized_step_adapter_evidence(plan_path: Path) -> list[dict[str, str]]
 
 def _run_build(args: argparse.Namespace) -> dict[str, Any]:
     repo = _repo_from_args(args)
+    if getattr(args, "order_freeze", "") or getattr(args, "order_forward", ""):
+        return _run_order_chain_build(args, repo=repo)
     if getattr(args, "graph_decl", ""):
         return _run_graph_declaration_build(args, repo=repo)
     output_root = (
@@ -515,30 +851,41 @@ def _run_build(args: argparse.Namespace) -> dict[str, Any]:
         if args.output_root
         else _active_slack_buildings_root()
     )
-    intent = _build_intent(args)
-    overwrite_existing = bool(args.overwrite_existing or not args.task)
+    intent, routing = _build_request(args)
+    resolved_timeout_seconds, timeout_basis = _resolved_build_timeout(
+        args,
+        intent=intent,
+        routing=routing,
+    )
+    overwrite_existing = bool(
+        args.overwrite_existing or not str(intent.get("task_statement") or "").strip()
+    )
     result = run_customer_building_in_sandbox(
         intent,
         customer_repo_root=repo,
         output_root=output_root,
         overwrite_existing=overwrite_existing,
-        adapter_timeout_seconds=args.timeout,
+        adapter_timeout_seconds=resolved_timeout_seconds,
         proof_limits=PROOF_LIMITS,
     )
     intake = result.intake_result
     frontier_kind = result.frontier_kind
     packet: dict[str, Any] = {
         "command": "build",
-        "build_input_mode": "preset_task",
+        "build_input_mode": routing["build_input_mode"],
         "repo_root": str(repo),
         "output_root": str(output_root),
         "building_id": result.building_id,
-        "declared_by": intent["declared_by"],
-        "task_source_basis": "task_statement" if args.task else "task_source_ref",
+        "declared_by": intent.get("declared_by", ""),
+        "task_source_basis": (
+            "task_statement" if intent.get("task_statement") else "task_source_ref"
+        ),
         "chain_preset_ref": intent["chain_preset_ref"],
         "adapter_ref": intent["selected_adapter_ref"],
         "adapter_choice_basis": intent.get("adapter_choice_basis", "explicit-or-local-adapter"),
         "provider_readiness_observations": intent.get("provider_readiness_observations", []),
+        "resolved_timeout_seconds": resolved_timeout_seconds,
+        "timeout_basis": timeout_basis,
         "isolation_mode": result.isolation_mode,
         "isolation_reason": result.isolation_reason,
         "base_sha": result.base_sha,
@@ -549,25 +896,130 @@ def _run_build(args: argparse.Namespace) -> dict[str, Any]:
         "customer_visible_not_ready": frontier_kind != "complete",
         "customer_visible_frontier_message": _customer_visible_frontier_message(frontier_kind),
         "commit_sha": result.commit_sha,
+        "wip_anchor_ref": str(getattr(result, "wip_anchor_ref", "") or ""),
+        "wip_commit_sha": str(getattr(result, "wip_commit_sha", "") or ""),
+        "landed_ref": str(getattr(result, "landed_ref", "") or ""),
+        "recovery_handle": dict(getattr(result, "recovery_handle", {}) or {}),
         "worktree_disposed": result.worktree_disposed,
         "proof_limits": list(PROOF_LIMITS),
         "not_proven": list(NOT_PROVEN),
     }
     packet.update(_resolved_repo_root_observation(repo))
     packet.update(_support_observation_packet())
+    for field in (
+        "building_call_path",
+        "building_case",
+        "intensity",
+        "routing_mode_evidence",
+        "direct_preset_admission",
+        "fast_confirm",
+        "requested_preset_ref",
+    ):
+        if field in routing:
+            packet[field] = routing[field]
     if intake is not None:
+        resolved_casting_table = _materialized_step_adapter_evidence(intake.plan_path)
         packet.update(
             {
                 "plan_path": str(intake.plan_path),
                 "plan_shape": intake.plan_shape,
                 "walker_mode": intake.walker_mode,
                 "walker_mode_basis": intake.walker_mode_basis,
-                "materialized_step_adapters": _materialized_step_adapter_evidence(
-                    intake.plan_path
-                ),
+                "materialized_step_adapters": resolved_casting_table,
+                "resolved_casting_table": resolved_casting_table,
             }
         )
     return packet
+
+
+def _run_order_chain_build(args: argparse.Namespace, *, repo: Path) -> dict[str, Any]:
+    """O1-O3 vertical wiring INSIDE brick build (no new subcommand).
+
+    --order-freeze: authoring return + exact eight answers -> one deterministic
+      frozen review packet (held_for_coo_review) or a question HOLD; NEVER launches.
+    --order-forward: digest-verified handoff of a frozen review packet into the
+      EXISTING --graph-decl path. The launch action keeps the existing double
+      key untouched: default stop persists the proposal only; explicit --forward
+      runs the declared Building.
+    """
+
+    freeze_path = (getattr(args, "order_freeze", "") or "").strip()
+    forward_path = (getattr(args, "order_forward", "") or "").strip()
+    if freeze_path and forward_path:
+        raise ValueError("declare either --order-freeze or --order-forward, not both")
+    if getattr(args, "graph_decl", ""):
+        raise ValueError("--order-freeze/--order-forward cannot be combined with --graph-decl")
+
+    if forward_path:
+        review_file = Path(forward_path).expanduser().resolve()
+        review = json.loads(review_file.read_text(encoding="utf-8"))
+        forwarded = building_call.forward_frozen_building_call_order_v1(
+            review,
+            repo_root=repo,
+            review_action="forward",
+        )
+        declaration = forwarded.get("graph_declaration")
+        if not isinstance(declaration, Mapping):
+            raise ValueError("order forward returned no graph_declaration")
+        decl_path = review_file.with_name(review_file.stem + "-forwarded-decl.json")
+        decl_path.write_text(
+            json.dumps(declaration, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        args.graph_decl = str(decl_path)
+        packet = _run_graph_declaration_build(args, repo=repo)
+        packet["order_review_ref"] = str(review_file)
+        packet["order_forward_kind"] = str(forwarded.get("kind") or "")
+        packet["order_digest"] = str(
+            review.get("order_digest") or forwarded.get("order_digest") or ""
+        )
+        return packet
+
+    task = (getattr(args, "task", "") or "").strip()
+    answers_path = (getattr(args, "order_answers", "") or "").strip()
+    if not task or not answers_path:
+        raise ValueError("--order-freeze requires --task and --order-answers")
+    if (getattr(args, "preset", "") or "").strip():
+        raise ValueError("--order-freeze cannot be combined with --preset")
+    authoring_file = Path(freeze_path).expanduser().resolve()
+    answers_file = Path(answers_path).expanduser().resolve()
+    authoring_return = json.loads(authoring_file.read_text(encoding="utf-8"))
+    answers = json.loads(answers_file.read_text(encoding="utf-8"))
+    building_id = (getattr(args, "building_id", "") or "").strip() or _task_building_id()
+    packet = building_call.freeze_building_call_order_v1(
+        task_statement=task,
+        sizing_answers=answers,
+        authoring_return=authoring_return,
+        repo_root=repo,
+        building_id=building_id,
+    )
+    kind = str(packet.get("kind") or "")
+    is_review = kind == building_call.ORDER_REVIEW_PACKET_SCHEMA_VERSION
+    suffix = "-order-review.json" if is_review else "-order-questions.json"
+    out_path = _default_drafts_root() / f"{building_id}{suffix}"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(
+        json.dumps(packet, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    return {
+        "ok": is_review,
+        "kind": kind,
+        "state": str(packet.get("state") or ""),
+        "launch_authorized": bool(packet.get("launch_authorized", False)),
+        "order_packet_path": str(out_path),
+        "building_id": building_id,
+        "questions": list(packet.get("questions") or ()),
+        "declared_casting_table": list(packet.get("declared_casting_table") or ()),
+        "order_digest": str(packet.get("order_digest") or ""),
+        "next_command": (
+            f"brick build --order-forward {out_path} [--forward]"
+            if is_review
+            else "resolve the returned questions, revise the authoring return, and re-run --order-freeze"
+        ),
+        "proof_limits": list(packet.get("proof_limits") or ()),
+        "not_proven": list(packet.get("not_proven") or ()),
+    }
 
 
 def _run_graph_declaration_build(args: argparse.Namespace, *, repo: Path) -> dict[str, Any]:
@@ -594,7 +1046,38 @@ def _run_graph_declaration_build(args: argparse.Namespace, *, repo: Path) -> dic
     )
     action = action_resolution["action"]
     action_basis = action_resolution["basis"]
-    timeout = graph_declaration_timeout(declaration, args.timeout)
+    declared_graph_timeout = "adapter_timeout_seconds" in declaration
+    if declared_graph_timeout or args.timeout is not None:
+        timeout = graph_declaration_timeout(
+            declaration,
+            args.timeout
+            if args.timeout is not None
+            else DEFAULT_QUICK_OR_LOCAL_TIMEOUT_SECONDS,
+        )
+        timeout_basis = "declaration" if declared_graph_timeout else "cli_explicit"
+    elif action == "stop":
+        timeout = DEFAULT_QUICK_OR_LOCAL_TIMEOUT_SECONDS
+        timeout_basis = "proposal_stop_no_dispatch_default"
+    elif composed.selected_adapter_ref == ADAPTER_LOCAL:
+        timeout = DEFAULT_QUICK_OR_LOCAL_TIMEOUT_SECONDS
+        timeout_basis = "local_default"
+    else:
+        raise BuildTimeoutRequiredError()
+
+    provider_readiness_observations: list[dict[str, Any]] = []
+    if action == "forward" and adapter_is_write_capable(composed.selected_adapter_ref):
+        readiness_row = _readiness_evidence(
+            dict(preflight_provider(composed.selected_adapter_ref))
+        )
+        provider_readiness_observations.append(readiness_row)
+        if not readiness_row["ok"]:
+            raise ProviderReadinessStopError(
+                adapter_ref=composed.selected_adapter_ref,
+                reason="declared_adapter_not_ready",
+                readiness_observations=provider_readiness_observations,
+            )
+
+    resolved_casting_table = _materialized_step_adapter_evidence(proposal_path)
     approval = run_goal_approve_entry(
         proposal_path,
         action=action,
@@ -619,10 +1102,14 @@ def _run_graph_declaration_build(args: argparse.Namespace, *, repo: Path) -> dic
         "approval_result": approval,
         "action": action,
         "action_basis": action_basis,
+        "resolved_timeout_seconds": timeout,
+        "timeout_basis": timeout_basis,
+        "provider_readiness_observations": provider_readiness_observations,
         "ran": bool(approval.get("ran")),
         "plan_path": str(proposal_path),
         "plan_shape": composed.composed_plan.get("plan_shape", "graph"),
-        "materialized_step_adapters": _materialized_step_adapter_evidence(proposal_path),
+        "materialized_step_adapters": resolved_casting_table,
+        "resolved_casting_table": resolved_casting_table,
         "proof_limits": list(PROOF_LIMITS),
         "not_proven": list(NOT_PROVEN),
     }
@@ -630,6 +1117,20 @@ def _run_graph_declaration_build(args: argparse.Namespace, *, repo: Path) -> dic
     packet.update(_support_observation_packet())
     if approval.get("evidence_root"):
         packet["evidence_root"] = approval.get("evidence_root")
+    for field in (
+        "isolation_mode",
+        "isolation_reason",
+        "base_sha",
+        "worktree_path",
+        "worktree_disposed",
+        "commit_sha",
+        "wip_anchor_ref",
+        "wip_commit_sha",
+        "landed_ref",
+        "recovery_handle",
+    ):
+        if field in approval:
+            packet[field] = approval[field]
     if approval.get("frontier_kind"):
         frontier_kind = str(approval.get("frontier_kind"))
         packet["frontier_kind"] = frontier_kind
@@ -653,14 +1154,28 @@ def _render_build(packet: dict[str, Any]) -> str:
         f"adapter_ref: {packet['adapter_ref']}",
         f"adapter_choice_basis: {packet.get('adapter_choice_basis', 'not recorded')}",
         f"chain_preset_ref: {packet['chain_preset_ref']}",
+        f"resolved_timeout_seconds: {packet.get('resolved_timeout_seconds', '')}",
+        f"timeout_basis: {packet.get('timeout_basis', '')}",
         f"isolation_mode: {packet.get('isolation_mode', 'proposal-approval')}",
         f"evidence_root: {packet.get('evidence_root', '')}",
         f"frontier_kind: {packet['frontier_kind']}",
+        f"recovery_handle: {packet.get('recovery_handle', {})}",
         f"customer_visible_frontier_state: {packet['customer_visible_frontier_state']}",
         "customer_visible_not_ready: "
         + ("yes" if packet.get("customer_visible_not_ready") else "no"),
         f"frontier_message: {packet['customer_visible_frontier_message']}",
     ]
+    for field in (
+        "building_case",
+        "intensity",
+        "routing_mode_evidence",
+        "direct_preset_admission",
+        "fast_confirm",
+        "building_call_path",
+        "requested_preset_ref",
+    ):
+        if field in packet:
+            lines.append(f"{field}: {packet[field]}")
     if packet.get("plan_path"):
         lines.append(f"plan_path: {packet['plan_path']}")
     if packet.get("proposal_ref"):
@@ -700,7 +1215,34 @@ def _public_error_packet(args: argparse.Namespace, exc: Exception) -> dict[str, 
     command = str(getattr(args, "command", "") or "")
     public_code = "operator_error"
     public_message = "command rejected; inspect support evidence and retry with corrected input"
-    if isinstance(exc, FileExistsError):
+    advisory: Mapping[str, Any] | None = None
+    if isinstance(exc, BuildTriageRequiredError):
+        public_code = "build_triage_required"
+        public_message = (
+            "task was not launched: use explicit --preset, or --building-case with "
+            "--intensity; quick_check/quick_fix direct lowering also requires "
+            "--direct-preset and --fast-confirm. No preset was auto-selected"
+        )
+        advisory = exc.advisory
+    elif isinstance(exc, ProviderReadinessStopError):
+        public_code = "provider_readiness_stop"
+        public_message = (
+            "Building execution did not start: declare one provider adapter and "
+            "make that exact provider ready; Brick did not substitute another adapter"
+        )
+    elif isinstance(exc, BuildTimeoutRequiredError):
+        public_code = "build_timeout_required"
+        public_message = (
+            "Building execution did not start: non-quick provider work requires an "
+            "explicit positive --timeout"
+        )
+    elif isinstance(exc, DeclaredPerformerUnavailableError):
+        public_code = "declared_performer_unavailable"
+        public_message = (
+            "Building execution did not start: a declared lane performer is not "
+            "ready and Brick did not substitute another adapter"
+        )
+    elif isinstance(exc, FileExistsError):
         public_code = "building_root_exists"
         public_message = (
             "Building evidence root already exists; choose a new building id or "
@@ -719,7 +1261,7 @@ def _public_error_packet(args: argparse.Namespace, exc: Exception) -> dict[str, 
             "import identity is not ready; run from the repo root or use the "
             "documented uv command"
         )
-    return {
+    packet = {
         "command": command,
         "error_kind": error_kind,
         "public_error_code": public_code,
@@ -727,6 +1269,61 @@ def _public_error_packet(args: argparse.Namespace, exc: Exception) -> dict[str, 
         "proof_limits": list(PROOF_LIMITS),
         "not_proven": list(NOT_PROVEN),
     }
+    if advisory is not None:
+        packet["advisory"] = dict(advisory)
+    if isinstance(exc, ProviderReadinessStopError):
+        packet["provider_readiness_stop"] = {
+            "schema": "support-provider-readiness-stop/v1",
+            "adapter_ref": exc.adapter_ref,
+            "reason": exc.reason,
+            "execution_started": False,
+            "substitution_performed": False,
+            "provider_readiness_observations": [
+                _readiness_evidence(dict(row)) for row in exc.readiness_observations
+            ],
+        }
+    if isinstance(exc, BuildTimeoutRequiredError):
+        packet["timeout_stop"] = {
+            "schema": "support-build-timeout-stop/v1",
+            "execution_started": False,
+            "silent_default_applied": False,
+        }
+    if isinstance(exc, DeclaredPerformerUnavailableError):
+        packet["declared_performer_unavailable"] = {
+            "schema": "support-declared-performer-unavailable/v1",
+            "step_label": exc.step_label,
+            "agent_object_ref": exc.agent_object_ref,
+            "adapter_ref": exc.adapter_ref,
+            "execution_started": False,
+            "substitution_performed": False,
+            "readiness_observation": {
+                "adapter_ref": exc.adapter_ref,
+                "ready": False,
+            },
+        }
+    recovery_handle = getattr(exc, "recovery_handle", None)
+    if isinstance(recovery_handle, Mapping):
+        safe_recovery_keys = (
+            "ref",
+            "sha",
+            "base",
+            "resume_command",
+            "worktree_path",
+            "preservation_state",
+        )
+        packet["recovery_handle"] = {
+            key: str(recovery_handle.get(key) or "") for key in safe_recovery_keys
+        }
+        for key in (
+            "concurrent_wip_ref",
+            "concurrent_wip_sha",
+            "concurrent_wip_base",
+        ):
+            if key in recovery_handle:
+                packet["recovery_handle"][key] = str(recovery_handle.get(key) or "")
+        if packet["recovery_handle"]["worktree_path"]:
+            packet["worktree_path"] = packet["recovery_handle"]["worktree_path"]
+    return packet
 
 
 def _render_doctor(packet: dict[str, Any]) -> str:
@@ -1554,8 +2151,8 @@ def _cmd_init(args: argparse.Namespace) -> int:
     wizard = onboard.run_install_wizard(
         repo_root=repo,
         host=selected_host,
+        example_adapter_ref=str(args.example_adapter).strip(),
         output_root=args.output_root,
-        allow_real_provider=True,
         run_example=not args.skip_build,
         wire_recording=not getattr(args, "skip_recording", False),
         register_mcp=not getattr(args, "skip_plugin", False),
@@ -1793,7 +2390,10 @@ def _cmd_auth_login(args: argparse.Namespace) -> int:
         "gemini -> gemini  (또는 GEMINI_API_KEY 설정 / or set GEMINI_API_KEY)",
         "local  -> 설치/로그인 불필요 / no install or login needed",
     ]
-    next_step = 'brick build --task "..." --real-provider'
+    next_step = (
+        'brick build --task "..." --building-case standard_delivery '
+        "--intensity normal --real-provider"
+    )
     if args.json:
         print(
             _json_dump(
@@ -1857,6 +2457,15 @@ def build_parser() -> argparse.ArgumentParser:
     init_parser.add_argument("--skip-verify", action="store_true", help="Skip the final hermetic verify.")
     init_parser.add_argument("--host", default="codex", help="Onboarding host (codex/claude/gemini/fugu/local).")
     init_parser.add_argument(
+        "--example-adapter",
+        default=onboard.EXAMPLE_DECLARED_ADAPTER_REF,
+        help=(
+            "Exact adapter declaration for the bundled example (default: "
+            "adapter:local). Host readiness verifies this value and never "
+            "selects or substitutes another adapter."
+        ),
+    )
+    init_parser.add_argument(
         "--slack-bot-token",
         dest="slack_bot_token",
         default=None,
@@ -1888,18 +2497,52 @@ def build_parser() -> argparse.ArgumentParser:
         "--preset",
         default="",
         help=(
-            "Declared chain preset ref. Defaults to the local onboarding graph for "
-            "stub/example runs, or fast-fix for write-capable task runs."
+            "Caller/COO-declared chain preset ref. Task runs never auto-select a "
+            "preset; omit only when declaring Building Call triage."
         ),
+    )
+    build.add_argument(
+        "--building-call",
+        default="",
+        help=(
+            "Confirmed Building Call v1.1 JSON. Canonically lowers it before the same "
+            "customer sandbox dispatch; mutually exclusive with --task/--preset/triage."
+        ),
+    )
+    build.add_argument(
+        "--building-case",
+        choices=tuple(sorted(building_call.BUILDING_CASE_TO_CHAIN_PRESET_REF)),
+        default="",
+        help=(
+            "Caller/COO Building Call case. Requires --intensity. quick_check/quick_fix "
+            "need --direct-preset plus --fast-confirm for direct lowering; other cases "
+            "run the draft-only building-call-authoring preset."
+        ),
+    )
+    build.add_argument(
+        "--intensity",
+        choices=("easy", "normal", "complex", "critical"),
+        default="",
+        help="Caller/COO-declared whole-Building intensity for Building Call triage.",
+    )
+    build.add_argument(
+        "--direct-preset",
+        action="store_true",
+        help="Request direct lowering; admitted only for quick_check/quick_fix.",
+    )
+    build.add_argument(
+        "--fast-confirm",
+        action="store_true",
+        help="Explicit fast confirmation required together with --direct-preset.",
     )
     build.add_argument("--adapter", default="", help="Declared adapter ref.")
     build.add_argument(
         "--real-provider",
         action="store_true",
         help=(
-            "Use the first ready provider-backed observed-write adapter instead of "
-            "the local example stub. Explicit --adapter still wins; no ready provider "
-            "falls back to adapter:local. Run `brick auth login` to inspect readiness."
+            "Run with the exact provider-backed observed-write --adapter declared by "
+            "the caller. Missing/unready declarations stop before dispatch; Brick never "
+            "substitutes the first ready provider."
         ),
     )
     build.add_argument("--building-id", default="", help="Optional explicit Building id.")
@@ -1915,9 +2558,35 @@ def build_parser() -> argparse.ArgumentParser:
         "--graph-decl",
         default="",
         help=(
-            "JSON/YAML assemble-argument graph declaration file; rejects raw graph packet keys. "
+            "Compatibility transport for a JSON/YAML canonical graph declaration; "
+            "not a separate new-user entrance and rejects raw graph packet keys. "
             "Declaration action defaults to stop, which writes only work/proposed-building-graph.json; "
             "set action=forward to run the declared Building."
+        ),
+    )
+    build.add_argument(
+        "--order-freeze",
+        default="",
+        help=(
+            "Authoring return JSON (order-author STEP1-5) to freeze deterministically "
+            "into one held review packet with the declared per-node casting table. "
+            "Requires --task and --order-answers; unresolved remaining_delta HOLDs "
+            "with questions; never launches."
+        ),
+    )
+    build.add_argument(
+        "--order-answers",
+        default="",
+        help="Exact eight sizing answers JSON consumed by --order-freeze.",
+    )
+    build.add_argument(
+        "--order-forward",
+        default="",
+        help=(
+            "Frozen order review packet JSON to hand off (digest-verified, "
+            "direct-edit rejected) into the existing --graph-decl path. The launch "
+            "action keeps the existing double key: default stop persists the "
+            "proposal only; add --forward to run the declared Building."
         ),
     )
     build.add_argument(
@@ -1942,7 +2611,15 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Allow overwriting an existing Building evidence root.",
     )
-    build.add_argument("--timeout", type=int, default=120, help="Adapter timeout seconds.")
+    build.add_argument(
+        "--timeout",
+        type=int,
+        default=None,
+        help=(
+            "Explicit adapter timeout seconds. Omission resolves to 120 only for "
+            "local or confirmed quick presets; non-quick provider work fails closed."
+        ),
+    )
     build.set_defaults(func=_cmd_build)
 
     draft = subparsers.add_parser(

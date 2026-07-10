@@ -1,0 +1,10 @@
+{
+  "walker_adjacent": "no",
+  "size": "medium",
+  "splittable": "no",
+  "file_conflict": "no",
+  "failure_cost": "low",
+  "human_approval": "no",
+  "termination_shape": "checker-pinned",
+  "difficulty": "medium"
+}

@@ -128,6 +128,16 @@ modules:
     decomposition_target: ""
     pinned_by: route_v2_sealed_materialization profile (Route V2 read-only view projection checker)
 
+  - module: brick_protocol/support/checkers/check_operating_vocabulary.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: [brick]
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: operating_vocabulary_v1 profile (Smith-approved v1 kind/lane/preset seal and mutation RED)
+
   - module: brick_protocol/support/checkers/check_axis_contract_projection.py
     layer: checkers
     role: oracle
@@ -206,7 +216,7 @@ modules:
     imports_axis: []
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
-    pinned_by: model_lane_matching_discipline profile (0705/0706 fable-class/fugu reconciliation text pin + mutation-RED probes)
+    pinned_by: model_lane_matching_discipline profile (0710 Fable5 PM + GPT-5.6-sol dev recast pin + mutation-RED probes)
 
   - module: brick_protocol/support/checkers/check_import_identity_modes.py
     layer: checkers
@@ -1662,13 +1672,13 @@ modules:
   # allowlisted checker-profile subprocess, evidence presence/analysis, project
   # orchestration-ledger projection+view, Building frontier observation, COO
   # operating-chain/operator-loop/closure projection, declared-plan rendering,
-  # compose_building plan assembly, coo_run_orchestration packet, native-dispatch
+  # compose_building plan assembly, Builder-internal orchestration packet, native-dispatch
   # open/close seam) were lifted into single-concern operator collaborators
   # (brick_protocol/support/operator/{building_operation_common,checker_runner,evidence_status,
   # ledger_projection,frontier_observation,coo_operating_chain,plan_rendering,
   # composition,orchestration_packet,native_dispatch}.py, each a registered row
   # below). This module is now the THIN READ-PROJECTION FACADE: it re-exports
-  # every previously-public name (driver/reporter observe_building_frontier; the
+  # admitted facade names (driver/reporter observe_building_frontier; the
   # checker lib case runners' compose_building / render_declared_step_template_plan
   # / observe_building_frontier / CompositionError; mcp_projection's
   # coo_operating_chain_packet reference) as thin re-exports. It homes NO crossing
@@ -2174,7 +2184,7 @@ modules:
     imports_axis: []
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
-    pinned_by: building_operator_driver0 (coo_run_orchestration read packet composing the declared-plan + evidence-analysis + closure-draft collaborators; chooses no Movement or target)
+    pinned_by: driver_public_intake_seal (Builder-internal _coo_run_orchestration_packet composing the declared-plan + evidence-analysis + closure-draft collaborators; not re-exported by building_operation, not a customer/startup entrance, chooses no Movement or target)
 
   - module: brick_protocol/support/operator/native_dispatch.py
     layer: operator

@@ -37,6 +37,9 @@ from brick_protocol.support.operator.walker_frontier import _dynamic_frontier_wr
 
 
 PARENTS_BINDING_REGISTRY = {
+    # 0710d WO-3: building_call_authoring resolves the repo root via parents[2]
+    # (added by the order-chain authoring work; registered so the binding stays pinned).
+    "brick_protocol/support/operator/building_call_authoring.py": {2},
     "brick_protocol/support/operator/cli.py": {3},
     "brick_protocol/support/operator/dashboard_export.py": {3},
     "brick_protocol/support/operator/primitives.py": {3},
@@ -274,6 +277,33 @@ print(json.dumps({
         return 1
 
 
+def _assert_spoofed_mint_binding_refused(module_name: str, function_name: str) -> None:
+    """Exercise the real mint guard with forged caller globals and code filename."""
+
+    checker_path = _REPO_ROOT / "brick_protocol/support/checkers/check_import_identity_modes.py"
+    namespace: dict[str, Any] = {
+        "__name__": module_name,
+        "__file__": str(checker_path),
+        "mint_official_launch_token": mint_official_launch_token,
+    }
+    source = (
+        f"def {function_name}():\n"
+        "    return mint_official_launch_token()\n"
+    )
+    exec(compile(source, str(checker_path), "exec"), namespace)
+    try:
+        namespace[function_name]()
+    except RuntimeError as exc:
+        if "exact admitted checkout binding" not in str(exc):
+            raise ProfileError(
+                f"official-launch spoofed binding refusal message unexpected: {exc}"
+            ) from exc
+    else:
+        raise ProfileError(
+            "official-launch mint accepted a suffix/general-__main__ spoofed binding"
+        )
+
+
 def _assert_official_launch_token_fixture() -> int:
     from brick_protocol.support.operator.import_identity import enforce_official_launch_token
 
@@ -328,7 +358,14 @@ def _assert_official_launch_token_fixture() -> int:
         reset_official_launch_token(forge_token)
 
     try:
-        OfficialLaunchProof(nonce="fake", minter_module="attacker")
+        OfficialLaunchProof(
+            nonce="fake",
+            minter_module="attacker.check_import_identity_modes",
+            minter_file="brick_protocol/support/checkers/check_import_identity_modes.py",
+            minter_function="_assert_official_launch_token_fixture",
+            identity_mode="source",
+            identity_root=str(_REPO_ROOT),
+        )
     except RuntimeError as exc:
         if "mint only via mint_official_launch_token" not in str(exc):
             raise ProfileError(
@@ -336,6 +373,12 @@ def _assert_official_launch_token_fixture() -> int:
             ) from exc
     else:
         raise ProfileError("official-launch direct proof construction was not refused")
+
+    _assert_spoofed_mint_binding_refused(
+        "attacker.check_import_identity_modes",
+        "_assert_official_launch_token_fixture",
+    )
+    _assert_spoofed_mint_binding_refused("__main__", "_unadmitted_main")
 
     with _checker_tempdir(_REPO_ROOT, "bp-official-launch-main-forge-") as tmp:
         script = tmp / "evil_main.py"
@@ -374,12 +417,23 @@ def _assert_official_launch_token_fixture() -> int:
             )
 
     token = mint_official_launch_token()
+    retired_proof: OfficialLaunchProof | None = None
     try:
         proof = _OFFICIAL_LAUNCH_TOKEN.get()
         if type(proof) is not OfficialLaunchProof:
             raise ProfileError("official-launch mint did not set OfficialLaunchProof")
-        if not proof.nonce or not proof.minter_module:
-            raise ProfileError("official-launch proof missing nonce or minter_module")
+        retired_proof = proof
+        if not all(
+            (
+                proof.nonce,
+                proof.minter_module,
+                proof.minter_file,
+                proof.minter_function,
+                proof.identity_mode,
+                proof.identity_root,
+            )
+        ):
+            raise ProfileError("official-launch proof missing exact checkout binding fields")
         present = official_launch_token_observation()
         if present.get("token_present") is not True:
             raise ProfileError("official-launch token fixture did not observe minted token")
@@ -387,6 +441,23 @@ def _assert_official_launch_token_fixture() -> int:
             raise ProfileError("official-launch minted proof was marked forged")
         if present.get("forged_unminted_proof_observed") is not False:
             raise ProfileError("official-launch minted proof was marked unminted")
+        if present.get("forged_binding_mismatch_observed") is not False:
+            raise ProfileError("official-launch minted proof was marked binding-mismatched")
+        expected_source = (
+            "brick_protocol.support.checkers.check_import_identity_modes."
+            "_assert_official_launch_token_fixture"
+        )
+        if present.get("token_source") != expected_source:
+            raise ProfileError(
+                "official-launch observation did not report the real checker minter: "
+                f"{present.get('token_source')!r}"
+            )
+        if present.get("token_source_file") != (
+            "brick_protocol/support/checkers/check_import_identity_modes.py"
+        ):
+            raise ProfileError("official-launch observation minter file drifted")
+        if present.get("token_identity_mode") != "source":
+            raise ProfileError("official-launch observation checkout identity mode drifted")
         enforced = enforce_official_launch_token(present)
         if enforced.get("token_present") is not True:
             raise ProfileError("lethal gate rejected a present official-launch token")
@@ -401,8 +472,40 @@ def _assert_official_launch_token_fixture() -> int:
                 ) from exc
         else:
             raise ProfileError("official-launch stale caller observation was trusted")
+        forged_provenance = dict(present)
+        forged_provenance["token_source"] = "brick_protocol.support.operator.cli.main"
+        try:
+            enforce_official_launch_token(forged_provenance)
+        except RuntimeError as exc:
+            if "caller-supplied observation disagrees" not in str(exc):
+                raise ProfileError(
+                    f"official-launch forged provenance message unexpected: {exc}"
+                ) from exc
+        else:
+            raise ProfileError("official-launch hardcoded provenance bypass was trusted")
     finally:
         reset_official_launch_token(token)
+
+    if retired_proof is None:
+        raise ProfileError("official-launch fixture did not retain the minted proof for retirement probe")
+    retired_token = _OFFICIAL_LAUNCH_TOKEN.set(retired_proof)
+    try:
+        retired = official_launch_token_observation()
+        if retired.get("token_present") is not False:
+            raise ProfileError("official-launch reset left the retired nonce reusable")
+        if retired.get("forged_unminted_proof_observed") is not True:
+            raise ProfileError("official-launch reset did not retire the closed proof nonce")
+        try:
+            enforce_official_launch_token(retired)
+        except RuntimeError as exc:
+            if "official launch proof forged" not in str(exc):
+                raise ProfileError(
+                    f"official-launch retired proof refusal message unexpected: {exc}"
+                ) from exc
+        else:
+            raise ProfileError("official-launch retired proof was accepted after reset")
+    finally:
+        reset_official_launch_token(retired_token)
 
     suppress_token = suppress_official_launch_token_for_probe()
     try:

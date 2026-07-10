@@ -202,6 +202,7 @@ def _replace_held_source_with_lifecycle(
     author_ref: str,
     replay_step,
     checked_proof_limits: tuple[str, ...],
+    building_root: str = "",
 ) -> list[BuildingRunSupportResult]:
     source_step_ref = _optional_text_value(hold_record.get("source_step_ref")) or ""
     target_index = len(step_results) - 1
@@ -236,6 +237,18 @@ def _replace_held_source_with_lifecycle(
         link_row["next_brick_instance_ref"] = boundary_ref
     fixture = {
         "building_id": prepared.building_id,
+        # 0710d live2 loss-context fix: the hold re-stamp replays the held source
+        # through the same preparation pipeline, and any prior step-output
+        # source_fact must resolve against the RUN'S ACTUAL evidence root (custom
+        # --output-root buildings live outside every guessed default root).
+        # Without this the replay died "missing step-output source_fact
+        # body/evidence" right before land while the files existed on disk.
+        # The threaded building_root wins: on a RESUME the held source is a
+        # REPLAYED result whose lifecycle_write carries an EMPTY root
+        # (run.py _replay_building_step_from_returned builds
+        # lifecycle_write=BuildingLifecycleWriteResult(root=Path(), ...)), so the
+        # source_result fallback only covers the same-run (non-replayed) case.
+        "building_root": building_root or str(source_result.lifecycle_write.root or ""),
         "selected_adapter_ref": source_result.adapter_result.request.adapter_ref,
         "selected_model_ref": source_result.adapter_result.request.selected_model_ref,
         "step_rows": {

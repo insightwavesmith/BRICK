@@ -48,6 +48,12 @@ def _assert_loader_and_shape(repo: Path) -> int:
                 "dispositions": [
                     {"on": "human_or_coo_gate_pause", "action": "forward"},
                     {"on": "target_node_budget_exhausted", "action": "raise", "budget_increment": 1},
+                    {
+                        "on": "implementation_gap",
+                        "action": "reroute",
+                        "reroute_target_ref": "brick:repair-target",
+                        "re_instruction": "Repair the declared gap before resuming.",
+                    },
                 ],
             },
         )
@@ -56,22 +62,57 @@ def _assert_loader_and_shape(repo: Path) -> int:
             raise AssertionError("chain was not normalized from the declaration")
         if normalized["author_ref"] != "coo:resume-decl":
             raise AssertionError("default author_ref drifted")
+        reroute = normalized["dispositions"][2]
+        if reroute.get("reroute_target_ref") != "brick:repair-target":
+            raise AssertionError("reroute_target_ref was not preserved")
+        if reroute.get("re_instruction") != "Repair the declared gap before resuming.":
+            raise AssertionError("re_instruction was not preserved")
 
-        bad = root / "bad.json"
-        _write_json(
-            bad,
-            {
-                "building_ref": str(building),
-                "dispositions": [{"on": "human_or_coo_gate_pause", "action": "reroute"}],
-            },
+        invalid_reroutes = (
+            (
+                "reroute-missing-target.json",
+                {
+                    "on": "human_or_coo_gate_pause",
+                    "action": "reroute",
+                    "re_instruction": "Repair before resuming.",
+                },
+                "reroute action requires reroute_target_ref",
+            ),
+            (
+                "reroute-missing-instruction.json",
+                {
+                    "on": "human_or_coo_gate_pause",
+                    "action": "reroute",
+                    "reroute_target_ref": "brick:repair-target",
+                },
+                "reroute action requires re_instruction",
+            ),
+            (
+                "forward-with-reroute-target.json",
+                {
+                    "on": "human_or_coo_gate_pause",
+                    "action": "forward",
+                    "reroute_target_ref": "brick:repair-target",
+                },
+                "reroute_target_ref is admitted only for action=reroute",
+            ),
         )
-        try:
-            mod.validate_resume_declaration(mod.load_resume_declaration(bad))
-        except ValueError as exc:
-            if "one of raise, forward, stop" not in str(exc):
-                raise
-        else:
-            raise AssertionError("reroute action was accepted by the narrow decl grammar")
+        for filename, row, expected in invalid_reroutes:
+            bad = root / filename
+            _write_json(
+                bad,
+                {
+                    "building_ref": str(building),
+                    "dispositions": [row],
+                },
+            )
+            try:
+                mod.validate_resume_declaration(mod.load_resume_declaration(bad))
+            except ValueError as exc:
+                if expected not in str(exc):
+                    raise
+            else:
+                raise AssertionError(f"invalid disposition was accepted: {filename}")
 
         forward_budget = root / "forward-budget.json"
         _write_json(
@@ -90,10 +131,10 @@ def _assert_loader_and_shape(repo: Path) -> int:
                 raise
         else:
             raise AssertionError("forward+budget_increment was accepted")
-    return 6
+    return 10
 
 
-def _assert_preflight_class_action_reject(repo: Path) -> int:
+def _assert_adapter_error_forward_preflight(repo: Path) -> int:
     from brick_protocol.support.operator import resume_declaration as mod
 
     building = repo / "project" / "brick-protocol" / "buildings" / "resume-decl-checker-preflight"
@@ -120,217 +161,144 @@ def _assert_preflight_class_action_reject(repo: Path) -> int:
             "adapter_timeout_seconds": 120,
             "dispositions": [{"on": "adapter_error_frontier", "action": "forward"}],
         }
-        try:
-            mod.preflight_resume_declaration(normalized, repo_root=repo)
-        except ValueError as exc:
-            if "not admitted for hold_reason='adapter_error_frontier'" not in str(exc):
-                raise
-        else:
-            raise AssertionError("class/action mismatch did not fail loudly")
+        packet = mod.preflight_resume_declaration(normalized, repo_root=repo)
     finally:
         mod.observe_building_frontier = original_observe
         mod._read_written_dynamic_plan = original_read
-    return 1
+    if packet.get("allowed_disposition_actions") != ["forward", "stop"]:
+        raise AssertionError(
+            "adapter-error preflight did not expose the narrow forward/stop menu: "
+            f"{packet!r}"
+        )
+    if packet.get("selected_disposition") != {
+        "on": "adapter_error_frontier",
+        "action": "forward",
+    }:
+        raise AssertionError(f"adapter-error forward was not selected: {packet!r}")
+    if not packet.get("matched"):
+        raise AssertionError(f"adapter-error forward did not match the current hold: {packet!r}")
+    return 3
 
 
-def _assert_class_action_prevalidation_mutation_red(repo: Path) -> int:
-    from brick_protocol.support.operator import resume_declaration as mod
+def _assert_adapter_error_forward_no_return_admission(repo: Path) -> int:
+    from brick_protocol.support.operator import walker_resume as mod
 
-    building = repo / "project" / "brick-protocol" / "buildings" / "resume-decl-checker-prevalidation-red"
+    del repo
     hold = {
         "hold_reason": "adapter_error_frontier",
         "source_step_ref": "resume-check-step",
         "pending_target_ref": "brick-resume-check-target",
     }
-    original_observe = mod.observe_building_frontier
-    original_read = mod._read_written_dynamic_plan
-    original_run = mod._run_approve_entry
-    original_cwd = mod.resolve_dispo_adapter_cwd
+    evidence = {"held": True, "hold": hold}
+    disposition = {"disposition_action": "forward"}
+    decision = mod.resume_admission_decision(
+        evidence=evidence,
+        disposition=disposition,
+        declared_plan={"steps": []},
+        recorded_returns_loader=lambda: (),
+        completed_step_frontier_loader=lambda: {},
+        returned_claims_present_loader=lambda: False,
+        enforce_raise_budget_increment=True,
+        adapter_error_stop_short_circuit=True,
+    )
+    if decision.action != "forward" or decision.recorded_returns:
+        raise AssertionError(
+            "adapter-error forward did not admit an empty replay frontier for live retry"
+        )
+    if decision.adapter_error_stop:
+        raise AssertionError("adapter-error forward was misclassified as paper-stop")
+
+    # Paper-stop remains an early accept and must not touch replay ledgers.
+    stop = mod.resume_admission_decision(
+        evidence=evidence,
+        disposition={"disposition_action": "stop"},
+        declared_plan={"steps": []},
+        recorded_returns_loader=lambda: (_ for _ in ()).throw(
+            AssertionError("adapter-error paper-stop read the return ledger")
+        ),
+        completed_step_frontier_loader=lambda: (_ for _ in ()).throw(
+            AssertionError("adapter-error paper-stop read the step-output ledger")
+        ),
+        returned_claims_present_loader=lambda: (_ for _ in ()).throw(
+            AssertionError("adapter-error paper-stop read returned claims")
+        ),
+        enforce_raise_budget_increment=True,
+        adapter_error_stop_short_circuit=True,
+    )
+    if not stop.adapter_error_stop:
+        raise AssertionError("adapter-error paper-stop early accept was removed")
+
+    # The no-return exception stays closed for every non-adapter HOLD.
     try:
-        mod.observe_building_frontier = lambda _root, repo_root: {
-            "frontier_kind": "link_paused",
-            "frontier_reason": "adapter_error_frontier",
-        }
-        mod._read_written_dynamic_plan = lambda _root: (
-            {},
-            {"walker_mode": "dynamic", "hold": hold},
-        )
-        mod.resolve_dispo_adapter_cwd = lambda repo_root, building_id: Path("/tmp") / "bp-resume-red"
-        mod._run_approve_entry = lambda *args, **kwargs: (_ for _ in ()).throw(
-            AssertionError("class/action prevalidation removal caused misjudgment acceptance")
-        )
-        try:
-            mod.run_resume_declaration(
-                {
-                    "building_ref": str(building),
-                    "chain": "single",
-                    "dispositions": [{"on": "adapter_error_frontier", "action": "forward"}],
+        mod.resume_admission_decision(
+            evidence={
+                "held": True,
+                "hold": {
+                    **hold,
+                    "hold_reason": "human_or_coo_gate_pause",
                 },
-                repo_root=repo,
+            },
+            disposition=disposition,
+            declared_plan={"steps": []},
+            recorded_returns_loader=lambda: (),
+            completed_step_frontier_loader=lambda: {},
+            returned_claims_present_loader=lambda: False,
+            enforce_raise_budget_increment=True,
+            adapter_error_stop_short_circuit=True,
+        )
+    except ValueError as exc:
+        if "no recorded Agent returns" not in str(exc):
+            raise
+    else:
+        raise AssertionError("non-adapter HOLD admitted a no-return forward retry")
+
+    # Mutation-RED: removing the explicit adapter-forward recognition must
+    # restore the shared no-return refusal.
+    original_recognizer = mod._adapter_error_forward_retry
+    try:
+        mod._adapter_error_forward_retry = lambda _action, _hold: False
+        try:
+            mod.resume_admission_decision(
+                evidence=evidence,
+                disposition=disposition,
+                declared_plan={"steps": []},
+                recorded_returns_loader=lambda: (),
+                completed_step_frontier_loader=lambda: {},
+                returned_claims_present_loader=lambda: False,
+                enforce_raise_budget_increment=True,
+                adapter_error_stop_short_circuit=True,
             )
         except ValueError as exc:
-            if "not admitted for hold_reason='adapter_error_frontier'" not in str(exc):
+            if "no recorded Agent returns" not in str(exc):
                 raise
         else:
             raise AssertionError(
-                "class-action prevalidation removal mutation-RED did not reject misjudgment acceptance"
+                "adapter-error forward recognizer mutation did not turn the probe RED"
             )
     finally:
-        mod.observe_building_frontier = original_observe
-        mod._read_written_dynamic_plan = original_read
-        mod._run_approve_entry = original_run
-        mod.resolve_dispo_adapter_cwd = original_cwd
-    return 1
+        mod._adapter_error_forward_retry = original_recognizer
+    return 5
 
 
 def _assert_adapter_cwd_choice(repo: Path) -> int:
     from brick_protocol.support.operator import resume_declaration as mod
 
-    with tempfile.TemporaryDirectory(prefix="bp-resume-decl-home-") as tmpdir:
-        old_home = os.environ.get("HOME")
-        os.environ["HOME"] = tmpdir
-        residue = Path(tmpdir) / ".brick" / "worktrees" / "resume-decl-pure-residue"
-        residue.mkdir(parents=True)
-        try:
-            choice = mod._dispo_adapter_cwd_choice(
-                repo_root=repo,
-                building_id="resume-decl-pure-residue",
-            )
-            if choice.get("choice_kind") != "residue":
-                raise AssertionError("_dispo_adapter_cwd_choice did not expose residue policy")
-            if Path(str(choice.get("adapter_cwd"))).resolve() != residue.resolve():
-                raise AssertionError("_dispo_adapter_cwd_choice returned the wrong residue path")
-        finally:
-            if old_home is None:
-                os.environ.pop("HOME", None)
-            else:
-                os.environ["HOME"] = old_home
-
-    with tempfile.TemporaryDirectory(prefix="bp-resume-decl-home-") as tmpdir:
-        old_home = os.environ.get("HOME")
-        os.environ["HOME"] = tmpdir
-        original_probe = mod.probe_worktree_capable
-        try:
-            mod.probe_worktree_capable = lambda _repo: type(
-                "Probe",
-                (),
-                {"ok": False, "base_sha": ""},
-            )()
-            choice = mod._dispo_adapter_cwd_choice(
-                repo_root=repo,
-                building_id=f"resume-decl-pure-fallback-{Path(tmpdir).name}",
-            )
-            if choice.get("choice_kind") != "fallback_probe_unavailable":
-                raise AssertionError("_dispo_adapter_cwd_choice did not expose probe fallback")
-            if "fallback" not in str(choice.get("fallback_warning") or ""):
-                raise AssertionError("_dispo_adapter_cwd_choice did not report fallback warning")
-        finally:
-            mod.probe_worktree_capable = original_probe
-            if old_home is None:
-                os.environ.pop("HOME", None)
-            else:
-                os.environ["HOME"] = old_home
-
-    with tempfile.TemporaryDirectory(prefix="bp-resume-decl-home-") as tmpdir:
-        old_home = os.environ.get("HOME")
-        os.environ["HOME"] = tmpdir
-        original_probe = mod.probe_worktree_capable
-        try:
-            mod.probe_worktree_capable = lambda _repo: type(
-                "Probe",
-                (),
-                {"ok": True, "base_sha": "abc123"},
-            )()
-            choice = mod._dispo_adapter_cwd_choice(
-                repo_root=repo,
-                building_id=f"resume-decl-pure-git-{Path(tmpdir).name}",
-            )
-            if choice.get("choice_kind") != "git_worktree_add":
-                raise AssertionError("_dispo_adapter_cwd_choice did not expose git add policy")
-            if choice.get("base_sha") != "abc123":
-                raise AssertionError("_dispo_adapter_cwd_choice did not carry base sha")
-        finally:
-            mod.probe_worktree_capable = original_probe
-            if old_home is None:
-                os.environ.pop("HOME", None)
-            else:
-                os.environ["HOME"] = old_home
-
-    with tempfile.TemporaryDirectory(prefix="bp-resume-decl-home-") as tmpdir:
-        old_home = os.environ.get("HOME")
-        os.environ["HOME"] = tmpdir
-        residue = Path(tmpdir) / ".brick" / "worktrees" / "resume-decl-residue"
-        residue.mkdir(parents=True)
-        try:
-            chosen = mod.resolve_dispo_adapter_cwd(
-                repo_root=repo,
-                building_id="resume-decl-residue",
-            )
-            if chosen != residue.resolve():
-                raise AssertionError("existing ~/.brick/worktrees residue was not reused")
-        finally:
-            if old_home is None:
-                os.environ.pop("HOME", None)
-            else:
-                os.environ["HOME"] = old_home
-
-    with tempfile.TemporaryDirectory(prefix="bp-resume-decl-home-") as tmpdir:
-        old_home = os.environ.get("HOME")
-        os.environ["HOME"] = tmpdir
-        original_probe = mod.probe_worktree_capable
-        building_id = "resume-decl-fallback-no-git"
-        fallback = Path("/tmp") / f"brick-coo-dispo-{building_id}"
-        try:
-            mod.probe_worktree_capable = lambda _repo: type(
-                "Probe",
-                (),
-                {"ok": False, "base_sha": ""},
-            )()
-            chosen = mod.resolve_dispo_adapter_cwd(
-                repo_root=repo,
-                building_id=building_id,
-            )
-            if chosen != fallback.resolve() or not fallback.is_dir():
-                raise AssertionError("non-git adapter_cwd fallback did not create /tmp path")
-        finally:
-            mod.probe_worktree_capable = original_probe
-            if old_home is None:
-                os.environ.pop("HOME", None)
-            else:
-                os.environ["HOME"] = old_home
-
-    with tempfile.TemporaryDirectory(prefix="bp-resume-decl-home-") as tmpdir:
-        old_home = os.environ.get("HOME")
-        os.environ["HOME"] = tmpdir
-        original_probe = mod.probe_worktree_capable
-        original_run = mod.subprocess.run
-        building_id = "resume-decl-fallback-git-fail"
-        fallback = Path("/tmp") / f"brick-coo-dispo-{building_id}"
-        try:
-            mod.probe_worktree_capable = lambda _repo: type(
-                "Probe",
-                (),
-                {"ok": True, "base_sha": "abc123"},
-            )()
-            mod.subprocess.run = lambda *args, **kwargs: type(
-                "Completed",
-                (),
-                {"returncode": 1, "stdout": "", "stderr": "fixture failure"},
-            )()
-            chosen = mod.resolve_dispo_adapter_cwd(
-                repo_root=repo,
-                building_id=building_id,
-            )
-            if chosen != fallback.resolve() or not fallback.is_dir():
-                raise AssertionError("git-worktree failure fallback did not create /tmp path")
-        finally:
-            mod.probe_worktree_capable = original_probe
-            mod.subprocess.run = original_run
-            if old_home is None:
-                os.environ.pop("HOME", None)
-            else:
-                os.environ["HOME"] = old_home
-    return 6
+    choice = mod._dispo_adapter_cwd_choice(
+        repo_root=repo,
+        building_id="resume-decl-engine-lifecycle",
+    )
+    if choice.get("choice_kind") != "engine_worktree_lifecycle":
+        raise AssertionError(
+            "resume declaration must delegate cwd ownership to the shared engine lifecycle"
+        )
+    if choice.get("adapter_cwd") is not None:
+        raise AssertionError("resume declaration reintroduced a caller-side adapter cwd")
+    if mod.resolve_dispo_adapter_cwd(
+        repo_root=repo,
+        building_id="resume-decl-engine-lifecycle",
+    ) is not None:
+        raise AssertionError("resume declaration must not create/reuse an unbracketed cwd")
+    return 3
 
 
 def _assert_dead_end_guidance_mutation_red(repo: Path) -> int:
@@ -357,8 +325,8 @@ def _assert_dead_end_guidance_mutation_red(repo: Path) -> int:
             mod.observe_building_frontier = original_observe
         if packet.get("error_kind") != "resume_declaration_dead_end":
             raise AssertionError(f"dead-end preflight did not return declared error: {packet!r}")
-        if "COO_GATE_HARVEST_SHA=<anchor>" not in str(packet.get("next_command") or ""):
-            raise AssertionError("dead-end orphan-harvest guidance pin was removed")
+        if "Inspect evidence_root / dynamic plan" not in str(packet.get("next_command") or ""):
+            raise AssertionError("evidence-incomplete inspection guidance pin was removed")
     return 1
 
 
@@ -409,8 +377,8 @@ def _assert_runtime_not_approval_hold_dead_end(repo: Path) -> int:
             raise AssertionError(f"runtime not_approval_hold did not map to dead-end: {packet!r}")
         if packet.get("runtime_error_kind") != "not_approval_hold":
             raise AssertionError("runtime dead-end did not preserve runtime_error_kind")
-        if "COO_GATE_HARVEST_SHA=<anchor>" not in str(packet.get("next_command") or ""):
-            raise AssertionError("runtime dead-end did not print orphan-harvest next command")
+        if "refs/brick-salvage" not in str(packet.get("next_command") or ""):
+            raise AssertionError("runtime dead-end did not print salvage guidance")
     return 1
 
 
@@ -709,6 +677,44 @@ def _assert_chain_lowering(repo: Path) -> int:
     return 2
 
 
+def _assert_reroute_run_approve_entry_lowering(repo: Path) -> int:
+    from brick_protocol.support.operator import onboard
+    from brick_protocol.support.operator import resume_declaration as mod
+
+    calls: list[dict[str, Any]] = []
+
+    def fake_run_approve_entry(building_ref: str, **kwargs: Any) -> dict[str, Any]:
+        calls.append({"building_ref": building_ref, **kwargs})
+        return {"ok": True, "frontier_kind": "link_paused"}
+
+    original = onboard.run_approve_entry
+    try:
+        onboard.run_approve_entry = fake_run_approve_entry
+        packet = mod._run_approve_entry(
+            repo / "project/brick-protocol/buildings/reroute-lowering-check",
+            {
+                "on": "implementation_gap",
+                "action": "reroute",
+                "reroute_target_ref": "brick:repair-target",
+                "re_instruction": "Repair the declared gap before resuming.",
+            },
+            author_ref="coo:resume-decl-checker",
+            repo_root=repo,
+            adapter_cwd=repo,
+            adapter_timeout_seconds=120,
+        )
+    finally:
+        onboard.run_approve_entry = original
+    if not packet.get("ok") or len(calls) != 1:
+        raise AssertionError(f"reroute lowering did not call run_approve_entry once: {calls!r}")
+    call = calls[0]
+    if call.get("reroute_target_ref") != "brick:repair-target":
+        raise AssertionError("reroute_target_ref was not forwarded to run_approve_entry")
+    if call.get("re_instruction") != "Repair the declared gap before resuming.":
+        raise AssertionError("re_instruction was not forwarded to run_approve_entry")
+    return 2
+
+
 def _assert_mid_chain_complete_repreflight(repo: Path) -> int:
     from brick_protocol.support.operator import resume_declaration as mod
 
@@ -767,7 +773,6 @@ def _assert_adapter_cwd_automatic_removal_mutation_red(repo: Path) -> int:
     with tempfile.TemporaryDirectory(prefix="bp-resume-decl-cwd-red-") as tmpdir:
         building = Path(tmpdir) / "building"
         building.mkdir()
-        adapter = Path(tmpdir) / "adapter"
         hold = {
             "hold_reason": "human_or_coo_gate_pause",
             "source_step_ref": "step-a",
@@ -786,7 +791,11 @@ def _assert_adapter_cwd_automatic_removal_mutation_red(repo: Path) -> int:
                 {},
                 {"walker_mode": "dynamic", "hold": hold},
             )
-            mod.resolve_dispo_adapter_cwd = lambda repo_root, building_id: adapter
+            mod.resolve_dispo_adapter_cwd = lambda repo_root, building_id: (_ for _ in ()).throw(
+                AssertionError(
+                    "resume declaration must not resolve an unbracketed adapter cwd"
+                )
+            )
 
             def fake_run(
                 building_root: Path,
@@ -794,13 +803,13 @@ def _assert_adapter_cwd_automatic_removal_mutation_red(repo: Path) -> int:
                 *,
                 author_ref: str,
                 repo_root: Path,
-                adapter_cwd: Path,
+                adapter_cwd: Path | None,
                 adapter_timeout_seconds: int,
             ) -> dict[str, Any]:
                 del building_root, row, author_ref, repo_root, adapter_timeout_seconds
-                if adapter_cwd != adapter:
+                if adapter_cwd is not None:
                     raise AssertionError(
-                        "adapter_cwd automatic removal mutation-RED: explicit cwd was not lowered"
+                        "resume declaration bypassed the shared lifecycle with explicit cwd"
                     )
                 return {"ok": True, "frontier_kind": "complete"}
 
@@ -847,14 +856,15 @@ def _assert_cli_and_profile_pins(repo: Path) -> int:
 def run(repo: Path) -> int:
     inspected = 0
     inspected += _assert_loader_and_shape(repo)
-    inspected += _assert_preflight_class_action_reject(repo)
-    inspected += _assert_class_action_prevalidation_mutation_red(repo)
+    inspected += _assert_adapter_error_forward_preflight(repo)
+    inspected += _assert_adapter_error_forward_no_return_admission(repo)
     inspected += _assert_adapter_cwd_choice(repo)
     inspected += _assert_dead_end_guidance_mutation_red(repo)
     inspected += _assert_runtime_not_approval_hold_dead_end(repo)
     inspected += _assert_terminal_guards(repo)
     inspected += _assert_already_complete_noop(repo)
     inspected += _assert_chain_lowering(repo)
+    inspected += _assert_reroute_run_approve_entry_lowering(repo)
     inspected += _assert_mid_chain_complete_repreflight(repo)
     inspected += _assert_adapter_cwd_automatic_removal_mutation_red(repo)
     inspected += _assert_cli_and_profile_pins(repo)

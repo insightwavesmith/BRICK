@@ -7,11 +7,30 @@ choose Movement, choose a route target, or judge success / quality.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from collections.abc import Mapping, Sequence
+from pathlib import Path
 from typing import Any
 
 from brick_protocol.support.recording.contracts import require_positive_int
+from brick_protocol.support.operator.building_call_authoring import (
+    BuildingCallAuthoringValidationError,
+    REQUIRED_AUTHORING_RETURN_FIELDS,
+    normalize_building_call_authoring_return,
+    operating_vocabulary_violations,
+)
+from brick_protocol.support.operator.draft_diff import diff_declarations
+from brick_protocol.support.operator.graph_draft import (
+    SIZING_ANSWER_ENUMS,
+    SIZING_QUESTION_IDS,
+    answer_fingerprint,
+    draft_graph_declaration,
+)
+from brick_protocol.support.operator.provider_registry import (
+    CASTING_REASONING_EFFORT_DEFAULT,
+    CASTING_TIER_DECLARATIONS,
+)
 
 
 BUILDING_CALL_LOWERING_SCHEMA_VERSION = "building-call-lowering-v1"
@@ -20,6 +39,20 @@ CONFIRMED_BUILDING_CALL_REQUEST_KIND = "confirmed_building_call_request_v1_1"
 DIRECT_PRESET_TRIAGE_REQUEST_KIND = "building_call_direct_preset_triage_v1"
 CONFIRMED_STATE = "confirmed"
 HELD_FOR_COO_REVIEW_STATE = "held_for_coo_review"
+ORDER_REVIEW_PACKET_SCHEMA_VERSION = "building-call-order-review-packet-v1"
+ORDER_QUESTION_HOLD_SCHEMA_VERSION = "building-call-order-question-hold-v1"
+ORDER_FORWARD_PACKET_SCHEMA_VERSION = "building-call-order-forward-packet-v1"
+ORDER_RELOWER_PACKET_SCHEMA_VERSION = "building-call-order-relower-packet-v1"
+ORDER_DIGEST_ALGORITHM = "sha256"
+ORDER_QUESTION_HOLD_STATE = "held_for_authoring_questions"
+_ORDER_CHAIN_PROOF_LIMITS: tuple[str, ...] = (
+    "deterministic support lowering and review evidence only",
+    "no Building execution",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+)
 
 BUILDING_CASE_TO_CHAIN_PRESET_REF: Mapping[str, str] = {
     "order_authoring": "building-chain-preset:building-call-authoring",
@@ -121,6 +154,262 @@ class BuildingCallLoweringError(ValueError):
     def __init__(self, violations: Sequence[str]) -> None:
         self.violations = tuple(violations)
         super().__init__("; ".join(self.violations))
+
+
+def freeze_building_call_order_v1(
+    *,
+    task_statement: str,
+    sizing_answers: Mapping[str, Any],
+    authoring_return: Mapping[str, Any],
+    repo_root: Path | str,
+    building_id: str,
+    declared_by: str = "coo",
+    author_ref: str = "coo:building-call-order",
+) -> dict[str, Any]:
+    """Freeze one reviewed-order candidate, or return a question HOLD.
+
+    The Agent-authored STEP1-STEP5 return remains draft-only.  This deterministic
+    support seam consumes the caller/COO's task plus the exact eight intake
+    answers, refuses to lower while ``remaining_delta`` is non-empty, and uses
+    the existing graph drafter as the sole structure conversion tool.  The
+    resulting graph declaration deliberately carries no ``action`` key: the
+    existing graph-decl stop default remains in force until a later explicit
+    ``forward`` call.
+    """
+
+    task = _required_text("task_statement", task_statement)
+    bid = _required_text("building_id", building_id)
+    declaration_owner = _required_text("declared_by", declared_by)
+    author = _required_text("author_ref", author_ref)
+    answers = _normalize_order_intake_answers(sizing_answers)
+    try:
+        normalized_return = normalize_building_call_authoring_return(authoring_return)
+    except BuildingCallAuthoringValidationError as exc:
+        raise BuildingCallLoweringError(exc.violations) from exc
+    authoring_fields = {
+        field: _normalize_json_value(normalized_return[field])
+        for field in REQUIRED_AUTHORING_RETURN_FIELDS
+    }
+    questions = _remaining_delta_questions(authoring_fields.get("remaining_delta"))
+    if authoring_fields.get("launch_confirmation_state") == "needs_human_gate":
+        questions.append(
+            "The authoring return requires a human gate decision before deterministic lowering."
+        )
+    questions = list(dict.fromkeys(questions))
+    if questions:
+        return {
+            "kind": ORDER_QUESTION_HOLD_SCHEMA_VERSION,
+            "state": ORDER_QUESTION_HOLD_STATE,
+            "task_statement": task,
+            "building_id": bid,
+            "declared_by": declaration_owner,
+            "sizing_answers": answers,
+            "answer_fingerprint": answer_fingerprint(answers),
+            "authoring_return": authoring_fields,
+            "questions": questions,
+            "lowering_performed": False,
+            "review_packet_created": False,
+            "launch_authorized": False,
+            "proof_limits": list(_ORDER_CHAIN_PROOF_LIMITS),
+            "not_proven": [
+                "semantic sufficiency of answers to the returned questions",
+                "future Building execution behavior",
+            ],
+        }
+
+    allowed_paths, forbidden_paths = _authoring_scope_paths(authoring_fields)
+    drafted = draft_graph_declaration(
+        task,
+        answers,
+        repo_root=repo_root,
+        building_id=bid,
+        allowed_paths=allowed_paths,
+        forbidden_paths=forbidden_paths,
+        declared_by=declaration_owner,
+        author_ref=author,
+    )
+    precheck = _normalize_json_value(drafted.precheck)
+    if precheck.get("composed_ok") is not True:
+        evidence = str(precheck.get("reject_evidence") or "graph draft precheck rejected")
+        raise BuildingCallLoweringError((f"order graph draft rejected: {evidence}",))
+
+    frozen_order = _normalize_json_value(drafted.declaration)
+    if "action" in frozen_order:
+        raise BuildingCallLoweringError(
+            ("frozen order must omit action so the existing stop default remains authoritative",)
+        )
+    casting_table = _declared_order_casting_table(frozen_order)
+    basis = {
+        "task_statement": task,
+        "building_id": bid,
+        "declared_by": declaration_owner,
+        "author_ref": author,
+        "sizing_answers": answers,
+        "authoring_return": authoring_fields,
+        "frozen_order": frozen_order,
+        "declared_casting_table": casting_table,
+    }
+    digest = _order_digest(basis)
+    warnings = _normalize_json_value(precheck.get("ungated_write_node_warnings") or [])
+    checklist = [
+        {
+            "check_ref": "remaining-delta-empty",
+            "observed": True,
+            "requires_attention": False,
+        },
+        {
+            "check_ref": "graph-precheck-composed",
+            "observed": True,
+            "requires_attention": False,
+        },
+        {
+            "check_ref": "declared-casting-visible",
+            "observed": bool(casting_table),
+            "row_count": len(casting_table),
+            "requires_attention": not bool(casting_table),
+        },
+        {
+            "check_ref": "ungated-write-warning-review",
+            "observed": warnings,
+            "requires_attention": bool(warnings),
+        },
+        {
+            "check_ref": "explicit-forward-required",
+            "observed": False,
+            "requires_attention": True,
+        },
+    ]
+    return {
+        "kind": ORDER_REVIEW_PACKET_SCHEMA_VERSION,
+        "state": HELD_FOR_COO_REVIEW_STATE,
+        "building_id": bid,
+        "declared_by": declaration_owner,
+        "answer_fingerprint": answer_fingerprint(answers),
+        "frozen_order": frozen_order,
+        "declared_casting_table": casting_table,
+        "rationale": {
+            "authoring_observed_evidence": _normalize_json_value(
+                authoring_fields.get("observed_evidence") or []
+            ),
+            "authoring_intensity": _normalize_json_value(
+                authoring_fields.get("building_intensity_routing_draft") or {}
+            ),
+            "graph_rule_rows": _normalize_json_value(drafted.rationale_rows),
+            "graph_precheck": precheck,
+        },
+        "review_checklist": checklist,
+        "frozen_order_basis": basis,
+        "order_digest_algorithm": ORDER_DIGEST_ALGORITHM,
+        "order_digest": digest,
+        "lowering_performed": True,
+        "forward_required": True,
+        "launch_authorized": False,
+        "forward_transport": "brick build --graph-decl <frozen-order-path> --forward",
+        "proof_limits": list(_ORDER_CHAIN_PROOF_LIMITS),
+        "not_proven": [
+            "provider readiness at later dispatch",
+            "semantic fitness of the authored order",
+            "future Building execution behavior",
+        ],
+    }
+
+
+def forward_frozen_building_call_order_v1(
+    review_packet: Mapping[str, Any],
+    *,
+    repo_root: Path | str,
+    review_action: str,
+) -> dict[str, Any]:
+    """Return the exact frozen graph only after an explicit, canonical forward.
+
+    This helper does not run the Building.  It re-lowers from the human-editable
+    source basis, proves the frozen JSON was not edited directly, and hands the
+    exact declaration to the already-existing graph-decl dispatch path.
+    """
+
+    action = str(review_action or "").strip().lower()
+    if action != "forward":
+        raise BuildingCallLoweringError(
+            ("review_action must be explicit forward; stop/blank cannot dispatch a frozen order",)
+        )
+    canonical = _recomputed_order_review_packet(review_packet, repo_root=repo_root)
+    return {
+        "kind": ORDER_FORWARD_PACKET_SCHEMA_VERSION,
+        "state": "forwarded_to_existing_graph_dispatch",
+        "building_id": canonical["building_id"],
+        "review_action": "forward",
+        "explicit_forward_observed": True,
+        "order_digest_algorithm": ORDER_DIGEST_ALGORITHM,
+        "order_digest": canonical["order_digest"],
+        "graph_declaration": _normalize_json_value(canonical["frozen_order"]),
+        "declared_casting_table": _normalize_json_value(
+            canonical["declared_casting_table"]
+        ),
+        "dispatch_surface": "existing brick build --graph-decl --forward",
+        "dispatch_candidate_ready": True,
+        "execution_started": False,
+        "proof_limits": list(_ORDER_CHAIN_PROOF_LIMITS),
+        "not_proven": [
+            "provider readiness at dispatch",
+            "future Building execution behavior",
+        ],
+    }
+
+
+def relower_building_call_order_v1(
+    previous_review_packet: Mapping[str, Any],
+    *,
+    task_statement: str,
+    sizing_answers: Mapping[str, Any],
+    revised_authoring_return: Mapping[str, Any],
+    repo_root: Path | str,
+    building_id: str,
+    declared_by: str = "coo",
+    author_ref: str = "coo:building-call-order",
+) -> dict[str, Any]:
+    """Re-lower an edited human draft and expose the deterministic draft diff."""
+
+    previous = _recomputed_order_review_packet(
+        previous_review_packet,
+        repo_root=repo_root,
+    )
+    revised = freeze_building_call_order_v1(
+        task_statement=task_statement,
+        sizing_answers=sizing_answers,
+        authoring_return=revised_authoring_return,
+        repo_root=repo_root,
+        building_id=building_id,
+        declared_by=declared_by,
+        author_ref=author_ref,
+    )
+    if revised.get("kind") == ORDER_QUESTION_HOLD_SCHEMA_VERSION:
+        return {
+            "kind": ORDER_RELOWER_PACKET_SCHEMA_VERSION,
+            "state": ORDER_QUESTION_HOLD_STATE,
+            "previous_order_digest": previous["order_digest"],
+            "review_packet": revised,
+            "draft_diff": None,
+            "lowering_performed": False,
+            "launch_authorized": False,
+            "proof_limits": list(_ORDER_CHAIN_PROOF_LIMITS),
+        }
+    before_basis = previous.get("frozen_order_basis")
+    after_basis = revised.get("frozen_order_basis")
+    if not isinstance(before_basis, Mapping) or not isinstance(after_basis, Mapping):
+        raise BuildingCallLoweringError(("order review packet is missing a diffable basis",))
+    measured_diff = diff_declarations(before_basis, after_basis)
+    return {
+        "kind": ORDER_RELOWER_PACKET_SCHEMA_VERSION,
+        "state": HELD_FOR_COO_REVIEW_STATE,
+        "previous_order_digest": previous["order_digest"],
+        "new_order_digest": revised["order_digest"],
+        "review_packet": revised,
+        "draft_diff": measured_diff,
+        "lowering_performed": True,
+        "forward_required": True,
+        "launch_authorized": False,
+        "proof_limits": list(_ORDER_CHAIN_PROOF_LIMITS),
+    }
 
 
 def lower_building_call_request_v1_1(request: Mapping[str, Any]) -> dict[str, Any]:
@@ -355,6 +644,7 @@ def validate_building_call_lowering_request(request: Mapping[str, Any]) -> list[
 
     _validate_roster_overrides(request.get("roster_overrides"), violations)
     _validate_structure_plan(request.get("structure_plan"), violations)
+    violations.extend(operating_vocabulary_violations(request))
     return violations
 
 
@@ -907,6 +1197,227 @@ def _coerce_direct_red_flags(value: Any, label: str, violations: list[str]) -> l
     return []
 
 
+def _normalize_order_intake_answers(value: Mapping[str, Any]) -> dict[str, str]:
+    if not isinstance(value, Mapping):
+        raise BuildingCallLoweringError(("sizing_answers must be an object",))
+    violations: list[str] = []
+    missing = [question for question in SIZING_QUESTION_IDS if question not in value]
+    unexpected = sorted(str(key) for key in value if str(key) not in SIZING_QUESTION_IDS)
+    if missing:
+        violations.append("sizing_answers missing required question(s): " + ", ".join(missing))
+    if unexpected:
+        violations.append(
+            "sizing_answers must contain exactly the eight v1 questions; unexpected: "
+            + ", ".join(unexpected)
+        )
+    normalized: dict[str, str] = {}
+    for question in SIZING_QUESTION_IDS:
+        raw = value.get(question)
+        if not isinstance(raw, str):
+            violations.append(f"sizing_answers.{question} must be text")
+            continue
+        answer = raw.strip().lower()
+        allowed = SIZING_ANSWER_ENUMS[question]
+        if answer not in allowed:
+            violations.append(
+                f"sizing_answers.{question} must be one of: {', '.join(allowed)}"
+            )
+            continue
+        normalized[question] = answer
+    if violations:
+        raise BuildingCallLoweringError(violations)
+    return normalized
+
+
+def _remaining_delta_questions(value: Any) -> list[str]:
+    if not isinstance(value, Sequence) or isinstance(value, (str, bytes, bytearray)):
+        raise BuildingCallLoweringError(
+            ("remaining_delta must be an array of explicit question strings",)
+        )
+    questions: list[str] = []
+    for index, item in enumerate(value):
+        if not isinstance(item, str) or not item.strip():
+            raise BuildingCallLoweringError(
+                (f"remaining_delta[{index}] must be a non-empty question string",)
+            )
+        questions.append(item.strip())
+    return questions
+
+
+def _authoring_scope_paths(
+    authoring_return: Mapping[str, Any],
+) -> tuple[list[str], list[str]]:
+    scope = authoring_return.get("scope_draft")
+    if not isinstance(scope, Mapping):
+        raise BuildingCallLoweringError(("scope_draft must be a mapping",))
+    allowed = _order_text_sequence(
+        "scope_draft.allowed_path_candidates",
+        scope.get("allowed_path_candidates"),
+    )
+    forbidden = _order_text_sequence(
+        "scope_draft.forbidden_path_candidates",
+        scope.get("forbidden_path_candidates"),
+    )
+    return allowed, forbidden or [".git/**"]
+
+
+def _order_text_sequence(label: str, value: Any) -> list[str]:
+    if value is None:
+        return []
+    if not isinstance(value, Sequence) or isinstance(value, (str, bytes, bytearray)):
+        raise BuildingCallLoweringError((f"{label} must be an array of text",))
+    rows: list[str] = []
+    for index, item in enumerate(value):
+        if not isinstance(item, str) or not item.strip():
+            raise BuildingCallLoweringError((f"{label}[{index}] must be non-empty text",))
+        rows.append(item.strip())
+    return rows
+
+
+def _declared_order_casting_table(
+    graph_declaration: Mapping[str, Any],
+) -> list[dict[str, str]]:
+    nodes = graph_declaration.get("nodes")
+    if not isinstance(nodes, Sequence) or isinstance(nodes, (str, bytes, bytearray)):
+        raise BuildingCallLoweringError(("frozen order nodes must be an array",))
+    table: list[dict[str, str]] = []
+
+    def append_row(entry: Mapping[str, Any], node_ref: str) -> None:
+        tier_ref = str(entry.get("casting_tier_ref") or "").strip()
+        lens_ref = str(entry.get("casting_lens_ref") or "").strip()
+        declaration = CASTING_TIER_DECLARATIONS.get(tier_ref)
+        rows = declaration.get("adapter_ladder") if isinstance(declaration, Mapping) else None
+        if (
+            not isinstance(rows, Sequence)
+            or isinstance(rows, (str, bytes, bytearray))
+            or len(rows) != 1
+            or not isinstance(rows[0], Mapping)
+        ):
+            raise BuildingCallLoweringError(
+                (
+                    f"{node_ref}: {tier_ref or 'missing casting tier'} must declare exactly "
+                    "one frozen performer row; environment-driven ladder selection is forbidden",
+                )
+            )
+        row = rows[0]
+        adapter_ref = str(row.get("adapter_ref") or "").strip()
+        model_ref = str(row.get("model_ref") or "").strip()
+        effort_ref = str(
+            row.get("selected_reasoning_effort_ref") or CASTING_REASONING_EFFORT_DEFAULT
+        ).strip()
+        if not adapter_ref or not model_ref or not lens_ref:
+            raise BuildingCallLoweringError(
+                (f"{node_ref}: frozen casting requires adapter/model/effort and lens",)
+            )
+        table.append(
+            {
+                "node_ref": node_ref,
+                "brick_kind": str(entry.get("kind") or "").strip(),
+                "casting_tier_ref": tier_ref,
+                "casting_lens_ref": lens_ref,
+                "selected_adapter_ref": adapter_ref,
+                "selected_model_ref": model_ref,
+                "selected_reasoning_effort_ref": effort_ref,
+                "selection_basis": "single declared casting-tier row; readiness not consulted",
+            }
+        )
+
+    for node_index, raw_node in enumerate(nodes):
+        if not isinstance(raw_node, Mapping):
+            raise BuildingCallLoweringError((f"frozen order nodes[{node_index}] must be an object",))
+        fan = raw_node.get("fan")
+        if fan is None:
+            append_row(raw_node, f"nodes[{node_index}]")
+            continue
+        if not isinstance(fan, Mapping):
+            raise BuildingCallLoweringError((f"frozen order nodes[{node_index}].fan must be an object",))
+        branches = fan.get("branches")
+        if not isinstance(branches, Sequence) or isinstance(
+            branches, (str, bytes, bytearray)
+        ):
+            raise BuildingCallLoweringError(
+                (f"frozen order nodes[{node_index}].fan.branches must be an array",)
+            )
+        for branch_index, branch in enumerate(branches):
+            if not isinstance(branch, Mapping):
+                raise BuildingCallLoweringError(
+                    (
+                        f"frozen order nodes[{node_index}].fan.branches[{branch_index}] "
+                        "must be an object",
+                    )
+                )
+            append_row(
+                branch,
+                f"nodes[{node_index}].fan.branches[{branch_index}]",
+            )
+    if not table:
+        raise BuildingCallLoweringError(("frozen order must expose at least one casting row",))
+    return table
+
+
+def _order_digest(value: Mapping[str, Any]) -> str:
+    canonical = json.dumps(
+        _normalize_json_value(value),
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(canonical).hexdigest()
+
+
+def _recomputed_order_review_packet(
+    review_packet: Mapping[str, Any],
+    *,
+    repo_root: Path | str,
+) -> dict[str, Any]:
+    if not isinstance(review_packet, Mapping):
+        raise BuildingCallLoweringError(("order review packet must be an object",))
+    if review_packet.get("kind") != ORDER_REVIEW_PACKET_SCHEMA_VERSION:
+        raise BuildingCallLoweringError(
+            (f"order review packet kind must be {ORDER_REVIEW_PACKET_SCHEMA_VERSION}",)
+        )
+    if review_packet.get("state") != HELD_FOR_COO_REVIEW_STATE:
+        raise BuildingCallLoweringError(("order review packet must be held_for_coo_review",))
+    if review_packet.get("order_digest_algorithm") != ORDER_DIGEST_ALGORITHM:
+        raise BuildingCallLoweringError(("order review packet digest algorithm must be sha256",))
+    basis = review_packet.get("frozen_order_basis")
+    if not isinstance(basis, Mapping):
+        raise BuildingCallLoweringError(("order review packet is missing frozen_order_basis",))
+    answers = basis.get("sizing_answers")
+    authoring_return = basis.get("authoring_return")
+    if not isinstance(answers, Mapping) or not isinstance(authoring_return, Mapping):
+        raise BuildingCallLoweringError(
+            ("order review packet basis must carry sizing_answers and authoring_return",)
+        )
+    canonical = freeze_building_call_order_v1(
+        task_statement=str(basis.get("task_statement") or ""),
+        sizing_answers=answers,
+        authoring_return=authoring_return,
+        repo_root=repo_root,
+        building_id=str(basis.get("building_id") or ""),
+        declared_by=str(basis.get("declared_by") or ""),
+        author_ref=str(basis.get("author_ref") or ""),
+    )
+    if canonical.get("kind") != ORDER_REVIEW_PACKET_SCHEMA_VERSION:
+        raise BuildingCallLoweringError(
+            ("edited source now requires question HOLD; it must be re-lowered before forward",)
+        )
+    if canonical.get("frozen_order_basis") != _normalize_json_value(basis):
+        raise BuildingCallLoweringError(
+            ("frozen order was edited directly or its declarations changed; re-lower the draft",)
+        )
+    if canonical.get("order_digest") != review_packet.get("order_digest"):
+        raise BuildingCallLoweringError(
+            ("frozen order digest mismatch; edit the human draft and re-lower instead",)
+        )
+    for field in ("frozen_order", "declared_casting_table"):
+        if canonical.get(field) != review_packet.get(field):
+            raise BuildingCallLoweringError(
+                (f"order review packet {field} drifted; direct frozen JSON edits are forbidden",)
+            )
+    return canonical
+
+
 def _normalize_json_value(value: Any) -> Any:
     if isinstance(value, Mapping):
         return {str(key): _normalize_json_value(value[key]) for key in sorted(value)}
@@ -920,12 +1431,19 @@ __all__ = [
     "BUILDING_CALL_DIRECT_ADMISSION_SCHEMA_VERSION",
     "CONFIRMED_BUILDING_CALL_REQUEST_KIND",
     "DIRECT_PRESET_TRIAGE_REQUEST_KIND",
+    "ORDER_REVIEW_PACKET_SCHEMA_VERSION",
+    "ORDER_QUESTION_HOLD_SCHEMA_VERSION",
+    "ORDER_FORWARD_PACKET_SCHEMA_VERSION",
+    "ORDER_RELOWER_PACKET_SCHEMA_VERSION",
     "BUILDING_CASE_TO_CHAIN_PRESET_REF",
     "DIRECT_PRESET_CASES",
     "ROSTER_VARIANT_STEP_SELECTIONS",
     "BuildingCallLoweringError",
     "building_call_direct_preset_admission_v1",
     "building_call_lowering_v1",
+    "freeze_building_call_order_v1",
+    "forward_frozen_building_call_order_v1",
+    "relower_building_call_order_v1",
     "lower_building_call_request_v1_1",
     "validate_building_call_direct_preset_admission_request",
     "validate_building_call_lowering_request",

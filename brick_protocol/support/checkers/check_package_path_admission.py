@@ -519,6 +519,10 @@ BUILDING_CALL_AUTHORING0_FIXTURES = {
     "brick_protocol/support/checkers/fixtures/building_call_authoring/negative_sequence_violation.json",
 }
 
+BUILDING_CALL_ORDER_CHAIN0_FIXTURES = {
+    "brick_protocol/support/checkers/fixtures/building_call_order_chain/sizing_answers.json",
+}
+
 BUILDING_CALL_LOWERING0_TARGETS = {
     "brick_protocol/support/operator/building_call.py",
 }
@@ -572,6 +576,7 @@ ROUTE_V2_R1_FIXTURES = {
     "brick_protocol/support/checkers/fixtures/route_v2/concern_kind_seal.json",
     "brick_protocol/support/checkers/fixtures/route_v2/gate_movement_shape.json",
     "brick_protocol/support/checkers/fixtures/route_v2/delta_qa_fact_shape.json",
+    "brick_protocol/support/checkers/fixtures/route_v2/wo4_n2_reroute_graph_decl.json",
     "brick_protocol/support/checkers/check_route_v2_views.py",
 }
 
@@ -915,6 +920,7 @@ ALLOWED_DIRS = {
     "brick_protocol/support/checkers/fixtures/building_call_authoring",
     "brick_protocol/support/checkers/fixtures/building_call_direct_escape",
     "brick_protocol/support/checkers/fixtures/building_call_lowering",
+    "brick_protocol/support/checkers/fixtures/building_call_order_chain",
     "brick_protocol/support/checkers/fixtures/plan_expansion",
     "brick_protocol/support/checkers/fixtures/route_v2",
     "brick_protocol/support/connection",
@@ -1091,6 +1097,7 @@ def is_template0_brick_template_path(path: str, is_dir: bool) -> bool:
         return parts[2] in {
             "building-design-contract.yaml",
             "enforcement-ledger.yaml",
+            "operating-vocabulary-v1.yaml",
             "README.md",
             "reroute-defaults.yaml",
         }
@@ -2202,6 +2209,9 @@ def allowed_path(path: str) -> bool:
         return True
 
     if clean in BUILDING_CALL_AUTHORING0_FIXTURES:
+        return True
+
+    if clean in BUILDING_CALL_ORDER_CHAIN0_FIXTURES:
         return True
 
     if clean in BUILDING_CALL_LOWERING0_TARGETS:

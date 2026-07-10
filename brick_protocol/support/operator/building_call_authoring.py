@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping, Sequence
+from pathlib import Path
 from typing import Any
 
 
@@ -89,6 +90,13 @@ LAUNCH_CONFIRMATION_ALLOWED_VALUES: tuple[str, ...] = (
     "draft_only",
 )
 HELD_FOR_COO_REVIEW_STATE = "held_for_coo_review"
+OPERATING_VOCABULARY_SCHEMA = "brick-operating-vocabulary/v1"
+OPERATING_VOCABULARY_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "brick"
+    / "templates"
+    / "operating-vocabulary-v1.yaml"
+)
 
 STRUCTURE_PLAN_DRAFT_ALLOWED_KEYS = frozenset(
     {
@@ -166,6 +174,96 @@ def validate_building_call_authoring_return(payload: Mapping[str, Any]) -> list[
     _validate_step_sections(payload, violations)
     _validate_launch_confirmation(payload.get("launch_confirmation_state"), violations)
     _scan_forbidden_exposure(payload, violations)
+    violations.extend(operating_vocabulary_violations(payload))
+    return violations
+
+
+def load_operating_vocabulary(path: Path | str | None = None) -> Mapping[str, Any]:
+    """Load the Smith-approved v1 declaration vocabulary from its Brick source.
+
+    The file deliberately uses the JSON subset of YAML so product code can read
+    it deterministically without introducing a second YAML interpretation seam.
+    """
+
+    source = Path(path).resolve() if path is not None else OPERATING_VOCABULARY_PATH
+    try:
+        loaded = json.loads(source.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise BuildingCallAuthoringValidationError(
+            (f"operating vocabulary is unreadable: {source}",)
+        ) from exc
+    if not isinstance(loaded, Mapping) or loaded.get("schema") != OPERATING_VOCABULARY_SCHEMA:
+        raise BuildingCallAuthoringValidationError(
+            (f"operating vocabulary schema must be {OPERATING_VOCABULARY_SCHEMA}",)
+        )
+    for field in ("agent_lanes", "brick_kinds", "chain_presets"):
+        values = loaded.get(field)
+        if (
+            not isinstance(values, list)
+            or not values
+            or not all(isinstance(item, str) and item.strip() for item in values)
+            or len(values) != len(set(values))
+        ):
+            raise BuildingCallAuthoringValidationError(
+                (f"operating vocabulary {field} must be a non-empty unique string list",)
+            )
+    return loaded
+
+
+def operating_vocabulary_violations(payload: Mapping[str, Any]) -> list[str]:
+    """Reject authoring/lowering refs outside the active v1 vocabulary.
+
+    Only explicit vocabulary-bearing fields are inspected.  Free-text task and
+    rationale bodies remain prose and cannot silently create a runnable kind,
+    lane, or preset.
+    """
+
+    vocabulary = load_operating_vocabulary()
+    allowed_lanes = set(vocabulary["agent_lanes"])
+    allowed_kinds = set(vocabulary["brick_kinds"])
+    allowed_presets = set(vocabulary["chain_presets"])
+    violations: list[str] = []
+
+    def _scan(path: str, value: Any) -> None:
+        if isinstance(value, Mapping):
+            for raw_key, child in value.items():
+                key = str(raw_key)
+                child_path = f"{path}.{key}" if path else key
+                if isinstance(child, str):
+                    token = child.strip()
+                    if key in {"brick_kind", "brick_kind_ref"}:
+                        token = token.removeprefix("brick-kind:")
+                        if token not in allowed_kinds:
+                            violations.append(
+                                f"operating vocabulary v1 rejects Brick kind at {child_path}: {child}"
+                            )
+                    elif key == "step_template_ref" and token.startswith(
+                        "building-step-template:"
+                    ):
+                        kind = token.removeprefix("building-step-template:")
+                        if kind not in allowed_kinds:
+                            violations.append(
+                                f"operating vocabulary v1 rejects step kind at {child_path}: {child}"
+                            )
+                    elif key in {"agent_lane", "agent_lane_ref", "agent_object_ref"}:
+                        lane = token.removeprefix("agent-object:").removeprefix("agent-lane:")
+                        if lane not in allowed_lanes:
+                            violations.append(
+                                f"operating vocabulary v1 rejects Agent lane at {child_path}: {child}"
+                            )
+                    elif key in {"chain_preset", "chain_preset_ref"}:
+                        preset = token.removeprefix("building-chain-preset:")
+                        if preset not in allowed_presets:
+                            violations.append(
+                                f"operating vocabulary v1 rejects chain preset at {child_path}: {child}"
+                            )
+                _scan(child_path, child)
+            return
+        if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+            for index, child in enumerate(value):
+                _scan(f"{path}[{index}]", child)
+
+    _scan("payload", payload)
     return violations
 
 
@@ -328,4 +426,8 @@ __all__ = [
     "validate_building_call_authoring_return",
     "render_authoring_sequence_rule",
     "render_building_call_authoring_return_json",
+    "OPERATING_VOCABULARY_PATH",
+    "OPERATING_VOCABULARY_SCHEMA",
+    "load_operating_vocabulary",
+    "operating_vocabulary_violations",
 ]

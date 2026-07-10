@@ -64,6 +64,591 @@ def _assert_brick_cli_probe(
     return packet
 
 
+def _assert_brick_cli_authoring_funnel(cli: Any, repo: Path) -> int:
+    """Pin task triage, direct quick cases, authoring, and confirmed-call dispatch."""
+
+    parser = cli.build_parser()
+    untriaged = parser.parse_args(
+        ["build", "--task", "untriaged write task", "--adapter", "adapter:codex-local"]
+    )
+    try:
+        cli._build_request(untriaged)
+    except ValueError as exc:
+        error_text = str(exc)
+        if "explicit --preset" not in error_text or "--building-case" not in error_text:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: untriaged task refusal omitted explicit "
+                f"preset/triage advisory: {error_text!r}"
+            ) from exc
+        public_error = cli._public_error_packet(untriaged, exc)
+        if public_error.get("public_error_code") != "build_triage_required":
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: untriaged refusal lost its public error code"
+            )
+        advisory = public_error.get("advisory")
+        if not isinstance(advisory, Mapping) or advisory.get("selection_rule") != (
+            "caller_or_coo_declared_only"
+        ):
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: untriaged refusal lost caller/COO advisory evidence"
+            )
+    else:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: task without --preset or explicit triage "
+            "did not fail closed"
+        )
+
+    explicit_preset = parser.parse_args(
+        [
+            "build",
+            "--task",
+            "explicit preset task",
+            "--preset",
+            "building-chain-preset:fast-fix",
+            "--fast-confirm",
+        ]
+    )
+    explicit_intent, explicit_route = cli._build_request(explicit_preset)
+    if explicit_route.get("build_input_mode") != "direct_preset":
+        raise ProfileError("brick_cli_entrypoint_smoke: confirmed quick --preset lost direct_preset mode")
+    if explicit_intent.get("chain_preset_ref") != "building-chain-preset:fast-fix":
+        raise ProfileError("brick_cli_entrypoint_smoke: explicit --preset was not preserved")
+
+    missing_quick_confirmation = parser.parse_args(
+        [
+            "build",
+            "--task",
+            "unconfirmed quick preset",
+            "--preset",
+            "building-chain-preset:quick-check",
+        ]
+    )
+    try:
+        cli._build_request(missing_quick_confirmation)
+    except ValueError as exc:
+        if "--fast-confirm" not in str(exc):
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: unconfirmed quick preset refusal lost "
+                "its explicit confirmation instruction"
+            ) from exc
+    else:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: quick preset launched without --fast-confirm"
+        )
+
+    non_quick_preset = parser.parse_args(
+        [
+            "build",
+            "--task",
+            "non-quick preset must be reviewed",
+            "--preset",
+            "building-chain-preset:app-feature-basic",
+        ]
+    )
+    non_quick_intent, non_quick_route = cli._build_request(non_quick_preset)
+    if non_quick_route.get("build_input_mode") != "building_call_authoring":
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: non-quick explicit preset bypassed order authoring"
+        )
+    if non_quick_intent.get("chain_preset_ref") != cli.BUILDING_CALL_AUTHORING_PRESET_REF:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: non-quick explicit preset did not lower to "
+            "building-call-authoring"
+        )
+    if non_quick_route.get("requested_preset_ref") != "building-chain-preset:app-feature-basic":
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: authoring redirect lost requested preset evidence"
+        )
+
+    direct_cases = (
+        ("quick_fix", "building-chain-preset:fast-fix", False),
+        ("quick_check", "building-chain-preset:quick-check", False),
+    )
+    for building_case, expected_preset, expect_write_scope in direct_cases:
+        direct_args = parser.parse_args(
+            [
+                "build",
+                "--task",
+                f"direct {building_case} fixture",
+                "--building-case",
+                building_case,
+                "--intensity",
+                "easy",
+                "--direct-preset",
+                "--fast-confirm",
+            ]
+        )
+        direct_intent, direct_route = cli._build_request(direct_args)
+        if direct_route.get("build_input_mode") != "direct_preset":
+            raise ProfileError(
+                f"brick_cli_entrypoint_smoke: {building_case} did not use direct_preset mode"
+            )
+        if direct_intent.get("chain_preset_ref") != expected_preset:
+            raise ProfileError(
+                f"brick_cli_entrypoint_smoke: {building_case} lowered to wrong preset: "
+                f"{direct_intent!r}"
+            )
+        has_write_scope = isinstance(direct_intent.get("write_scope"), Mapping)
+        if has_write_scope is not expect_write_scope:
+            raise ProfileError(
+                f"brick_cli_entrypoint_smoke: {building_case} write_scope admission drifted: "
+                f"{direct_intent!r}"
+            )
+
+    forbidden_direct = parser.parse_args(
+        [
+            "build",
+            "--task",
+            "standard delivery cannot bypass authoring",
+            "--building-case",
+            "standard_delivery",
+            "--intensity",
+            "normal",
+            "--direct-preset",
+            "--fast-confirm",
+        ]
+    )
+    try:
+        cli._build_request(forbidden_direct)
+    except ValueError:
+        pass
+    else:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: non-quick building_case bypassed authoring via direct_preset"
+        )
+
+    rejected_cli_shapes = (
+        ["build", "--task", "missing intensity", "--building-case", "quick_fix"],
+        [
+            "build",
+            "--task",
+            "missing fast confirm",
+            "--building-case",
+            "quick_fix",
+            "--intensity",
+            "easy",
+            "--direct-preset",
+        ],
+        [
+            "build",
+            "--task",
+            "conflicting authoring forms",
+            "--preset",
+            "building-chain-preset:fast-fix",
+            "--building-case",
+            "quick_fix",
+            "--intensity",
+            "easy",
+        ],
+    )
+    for argv in rejected_cli_shapes:
+        try:
+            cli._build_request(parser.parse_args(argv))
+        except ValueError:
+            continue
+        raise ProfileError(
+            f"brick_cli_entrypoint_smoke: ambiguous/incomplete authoring shape was accepted: {argv!r}"
+        )
+
+    dispatch_calls: list[dict[str, Any]] = []
+
+    class FakeBuildResult:
+        building_id = "cli-authoring-funnel"
+        isolation_mode = "worktree"
+        isolation_reason = "checker synthetic"
+        base_sha = "abc123"
+        worktree_path = "/tmp/checker-authoring-funnel"
+        evidence_root = "/tmp/checker-authoring-funnel/evidence"
+        frontier_kind = "agent_incomplete"
+        commit_sha = ""
+        worktree_disposed = False
+        intake_result = None
+
+    original_runner = cli.run_customer_building_in_sandbox
+    try:
+        def fake_runner(intent: Mapping[str, Any], **kwargs: Any) -> FakeBuildResult:
+            dispatch_calls.append({"intent": dict(intent), "kwargs": dict(kwargs)})
+            return FakeBuildResult()
+
+        cli.run_customer_building_in_sandbox = fake_runner
+        for intensity in ("normal", "complex", "critical"):
+            authoring_args = parser.parse_args(
+                [
+                    "build",
+                    "--task",
+                    f"{intensity} authoring fixture",
+                    "--building-case",
+                    "standard_delivery",
+                    "--intensity",
+                    intensity,
+                    "--timeout",
+                    "900",
+                ]
+            )
+            authoring_packet = cli._run_build(authoring_args)
+            if authoring_packet.get("build_input_mode") != "building_call_authoring":
+                raise ProfileError(
+                    f"brick_cli_entrypoint_smoke: {intensity} triage did not run authoring Building"
+                )
+            if dispatch_calls[-1]["intent"].get("chain_preset_ref") != (
+                "building-chain-preset:building-call-authoring"
+            ):
+                raise ProfileError(
+                    f"brick_cli_entrypoint_smoke: {intensity} triage did not dispatch "
+                    "building-call-authoring preset"
+                )
+
+        confirmed_path = (
+            repo
+            / "brick_protocol/support/checkers/fixtures/building_call_lowering/positive_confirmed_request.json"
+        )
+        confirmed_args = parser.parse_args(
+            [
+                "build",
+                "--building-call",
+                str(confirmed_path),
+                "--timeout",
+                "900",
+            ]
+        )
+        confirmed_packet = cli._run_build(confirmed_args)
+    finally:
+        cli.run_customer_building_in_sandbox = original_runner
+    if confirmed_packet.get("build_input_mode") != "confirmed_building_call":
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: confirmed Building Call did not expose its input mode"
+        )
+    confirmed_intent = dispatch_calls[-1]["intent"]
+    if confirmed_intent.get("chain_preset_ref") != "building-chain-preset:app-feature-inspected":
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: confirmed Building Call was not canonically lowered"
+        )
+    if confirmed_intent.get("selected_adapter_ref") != "adapter:local":
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: confirmed Building Call lost the CLI-declared adapter binding"
+        )
+    if len(dispatch_calls) != 4:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: authoring/confirmed modes did not converge on one "
+            f"sandbox dispatch seam: {dispatch_calls!r}"
+        )
+    graph_compat = parser.parse_args(["build", "--graph-decl", "compat-graph.yaml"])
+    if graph_compat.graph_decl != "compat-graph.yaml":
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: --graph-decl compatibility transport was removed"
+        )
+    return 17
+
+
+def _assert_brick_cli_recovery_handle_lift(cli: Any, repo: Path) -> int:
+    """Pin preset/graph/resume recovery handles through their CLI packets.
+
+    The provider/approval bodies are replaced with deterministic checker facts;
+    packet construction and resume-result lowering remain the production code.
+    Every filesystem path and HOME used here belongs to the isolated fixture.
+    """
+
+    from types import SimpleNamespace
+
+    schema = {
+        "ref",
+        "sha",
+        "base",
+        "resume_command",
+        "worktree_path",
+        "preservation_state",
+    }
+
+    def assert_lift(label: str, packet: Mapping[str, Any], expected: Mapping[str, str]) -> None:
+        raw = packet.get("recovery_handle")
+        if not isinstance(raw, Mapping):
+            raise ProfileError(
+                f"brick_cli_entrypoint_smoke: {label} omitted recovery_handle mapping"
+            )
+        lifted = dict(raw)
+        if set(lifted) != schema:
+            raise ProfileError(
+                f"brick_cli_entrypoint_smoke: {label} recovery_handle schema drifted: "
+                f"{sorted(lifted)}"
+            )
+        if lifted != dict(expected):
+            raise ProfileError(
+                f"brick_cli_entrypoint_smoke: {label} recovery_handle changed while "
+                f"lifting into the CLI packet: expected={dict(expected)!r} got={lifted!r}"
+            )
+
+    with tempfile.TemporaryDirectory(prefix="bp-cli-recovery-handle-") as raw:
+        root = Path(raw)
+        customer = root / "customer"
+        customer.mkdir()
+        (customer / "tracked.txt").write_text("base\n", encoding="utf-8")
+        subprocess.run(["git", "-C", str(customer), "init", "-q"], check=True, timeout=30)
+        subprocess.run(["git", "-C", str(customer), "add", "tracked.txt"], check=True, timeout=30)
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(customer),
+                "-c",
+                "user.name=cli-recovery-checker",
+                "-c",
+                "user.email=cli-recovery@brick.local",
+                "commit",
+                "-q",
+                "-m",
+                "seed recovery CLI fixture",
+            ],
+            check=True,
+            timeout=30,
+        )
+        base = subprocess.run(
+            ["git", "-C", str(customer), "rev-parse", "HEAD"],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        ).stdout.strip()
+        output_root = root / "buildings"
+        home = root / "home"
+        home.mkdir()
+        parser = cli.build_parser()
+        old_home = os.environ.get("HOME")
+        try:
+            os.environ["HOME"] = str(home)
+
+            # Preset packet lifts the exact handle attached to the shared
+            # CustomerSandboxRunResult.
+            preset_handle = {
+                "ref": "refs/brick/wip/cli-r8-preset",
+                "sha": "1" * 40,
+                "base": base,
+                "resume_command": "brick resume --decl preset-resume.json",
+                "worktree_path": "",
+                "preservation_state": "wip_commit_verified",
+            }
+            preset_result = SimpleNamespace(
+                building_id="cli-r8-preset",
+                isolation_mode="worktree",
+                isolation_reason="checker synthetic result",
+                base_sha=base,
+                worktree_path="",
+                evidence_root=str(output_root / "cli-r8-preset"),
+                frontier_kind="agent_incomplete",
+                commit_sha="",
+                wip_anchor_ref=preset_handle["ref"],
+                wip_commit_sha=preset_handle["sha"],
+                recovery_handle=preset_handle,
+                worktree_disposed=True,
+                intake_result=None,
+            )
+            original_runner = cli.run_customer_building_in_sandbox
+            try:
+                cli.run_customer_building_in_sandbox = (
+                    lambda _intent, **_kwargs: preset_result
+                )
+                preset_args = parser.parse_args(
+                    [
+                        "build",
+                        "--task",
+                        "recovery handle preset fixture",
+                        "--preset",
+                        cli.QUICK_CHECK_PRESET_REF,
+                        "--fast-confirm",
+                        "--building-id",
+                        "cli-r8-preset",
+                        "--repo",
+                        str(customer),
+                        "--output-root",
+                        str(output_root),
+                        "--json",
+                    ]
+                )
+                preset_packet = cli._run_build(preset_args)
+            finally:
+                cli.run_customer_building_in_sandbox = original_runner
+            assert_lift("preset packet", preset_packet, preset_handle)
+
+            # Graph-declaration packet must lift the same handle from the
+            # approval result; approval_result remains a byte-for-value witness.
+            graph_handle = {
+                "ref": "refs/brick/wip/cli-r8-graph",
+                "sha": "2" * 40,
+                "base": base,
+                "resume_command": "brick resume --decl graph-resume.json",
+                "worktree_path": "",
+                "preservation_state": "wip_commit_verified",
+            }
+            graph_decl = root / "graph-declaration.json"
+            graph_decl.write_text("{}\n", encoding="utf-8")
+            proposal = output_root / "cli-r8-graph" / "declared-building-plan.json"
+            proposal.parent.mkdir(parents=True)
+            proposal.write_text('{"brick_steps": []}\n', encoding="utf-8")
+            approval = {
+                "ok": False,
+                "ran": True,
+                "evidence_root": str(output_root / "cli-r8-graph"),
+                "frontier_kind": "agent_incomplete",
+                "isolation_mode": "worktree",
+                "isolation_reason": "checker synthetic approval",
+                "base_sha": base,
+                "worktree_path": "",
+                "worktree_disposed": True,
+                "commit_sha": "",
+                "wip_anchor_ref": graph_handle["ref"],
+                "wip_commit_sha": graph_handle["sha"],
+                "recovery_handle": graph_handle,
+            }
+            composed = SimpleNamespace(
+                building_id="cli-r8-graph",
+                declared_by="coo:cli-recovery-checker",
+                selected_adapter_ref="adapter:local",
+                selected_model_ref="model:default",
+                composed_plan={"plan_shape": "graph"},
+            )
+            graph_patches = {
+                "load_graph_declaration": cli.load_graph_declaration,
+                "assemble_graph_declaration": cli.assemble_graph_declaration,
+                "graph_declaration_output_root": cli.graph_declaration_output_root,
+                "persist_proposed_building_graph": cli.persist_proposed_building_graph,
+                "resolve_build_action": cli.resolve_build_action,
+                "graph_declaration_timeout": cli.graph_declaration_timeout,
+                "graph_declaration_author_ref": cli.graph_declaration_author_ref,
+                "run_goal_approve_entry": cli.run_goal_approve_entry,
+            }
+            try:
+                cli.load_graph_declaration = lambda _path: {"checker": True}
+                cli.assemble_graph_declaration = lambda _decl, **_kwargs: composed
+                cli.graph_declaration_output_root = lambda _decl: str(output_root)
+                cli.persist_proposed_building_graph = (
+                    lambda _composed, _output, **_kwargs: proposal
+                )
+                cli.resolve_build_action = lambda **_kwargs: {
+                    "action": "stop",
+                    "basis": "checker-declared",
+                }
+                cli.graph_declaration_timeout = lambda _decl, _timeout: 30
+                cli.graph_declaration_author_ref = (
+                    lambda _decl: "coo:cli-recovery-checker"
+                )
+                cli.run_goal_approve_entry = lambda *_args, **_kwargs: dict(approval)
+                graph_args = parser.parse_args(
+                    [
+                        "build",
+                        "--graph-decl",
+                        str(graph_decl),
+                        "--repo",
+                        str(customer),
+                        "--output-root",
+                        str(output_root),
+                        "--json",
+                    ]
+                )
+                graph_packet = cli._run_build(graph_args)
+            finally:
+                for name, original in graph_patches.items():
+                    setattr(cli, name, original)
+            assert_lift("graph packet", graph_packet, graph_handle)
+            if graph_packet.get("approval_result", {}).get("recovery_handle") != graph_handle:
+                raise ProfileError(
+                    "brick_cli_entrypoint_smoke: graph packet disagreed with its "
+                    "underlying approval_result recovery_handle"
+                )
+
+            # Resume result lowering is production run_resume_declaration; only
+            # its preflight and already-authorized approval body are fixture facts.
+            resume_module = cli.resume_declaration
+            resume_handle = {
+                "ref": "",
+                "sha": "3" * 40,
+                "base": "2" * 40,
+                "resume_command": "",
+                "worktree_path": "",
+                "preservation_state": "landed_commit_verified",
+            }
+            resume_decl = root / "resume-declaration.json"
+            resume_decl_payload = {
+                "building_ref": str(output_root / "cli-r8-resume"),
+                "dispositions": [{"on": "agent_incomplete", "action": "forward"}],
+                "chain": "single",
+                "author_ref": "coo:cli-recovery-checker",
+            }
+            resume_decl.write_text(
+                json.dumps(resume_decl_payload, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+            original_preflight = resume_module.preflight_resume_declaration
+            original_approve = resume_module._run_approve_entry
+            try:
+                resume_module.preflight_resume_declaration = lambda *_args, **_kwargs: {
+                    "frontier_kind": "agent_incomplete",
+                    "frontier_reason": "checker hold",
+                    "paused_at_ref": "link-transition:cli-r8-resume",
+                    "matched": True,
+                    "selected_disposition": {
+                        "on": "agent_incomplete",
+                        "action": "forward",
+                    },
+                }
+                resume_module._run_approve_entry = lambda *_args, **_kwargs: {
+                    "ok": True,
+                    "ran": True,
+                    "frontier_kind": "complete",
+                    "recovery_handle": dict(resume_handle),
+                }
+                resume_result = resume_module.run_resume_declaration(
+                    resume_decl_payload,
+                    repo_root=customer,
+                )
+            finally:
+                resume_module.preflight_resume_declaration = original_preflight
+                resume_module._run_approve_entry = original_approve
+            assert_lift("resume result", resume_result, resume_handle)
+            rounds = resume_result.get("rounds")
+            if not isinstance(rounds, list) or not rounds or (
+                rounds[0].get("recovery_handle") != resume_handle
+            ):
+                raise ProfileError(
+                    "brick_cli_entrypoint_smoke: resume result disagreed with its "
+                    "underlying approval round recovery_handle"
+                )
+
+            original_run_resume = resume_module.run_resume_declaration
+            original_emit = cli._emit_launch_repo_root_observation
+            try:
+                resume_module.run_resume_declaration = (
+                    lambda *_args, **_kwargs: dict(resume_result)
+                )
+                cli._emit_launch_repo_root_observation = lambda *_args, **_kwargs: None
+                resume_args = parser.parse_args(
+                    [
+                        "resume",
+                        "--decl",
+                        str(resume_decl),
+                        "--repo",
+                        str(customer),
+                        "--json",
+                    ]
+                )
+                stdout = io.StringIO()
+                with contextlib.redirect_stdout(stdout):
+                    resume_exit = cli._cmd_resume(resume_args)
+                resume_packet = json.loads(stdout.getvalue())
+            finally:
+                resume_module.run_resume_declaration = original_run_resume
+                cli._emit_launch_repo_root_observation = original_emit
+            if resume_exit != 0:
+                raise ProfileError(
+                    f"brick_cli_entrypoint_smoke: resume recovery fixture exited {resume_exit}"
+                )
+            assert_lift("resume CLI packet", resume_packet, resume_handle)
+        finally:
+            if old_home is None:
+                os.environ.pop("HOME", None)
+            else:
+                os.environ["HOME"] = old_home
+    return 4
+
+
 def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
     from brick_protocol.support.operator.composition_intent import materialize_building_intent
 
@@ -140,17 +725,26 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
                 f"{graph_stderr.getvalue()!r}"
             )
 
-    local_args = parser.parse_args(["build", "--task", "make x"])
+    local_args = parser.parse_args(
+        [
+            "build",
+            "--task",
+            "make x",
+            "--preset",
+            cli.FAST_FIX_PRESET_REF,
+            "--fast-confirm",
+        ]
+    )
     local_intent = cli._build_intent(local_args)
     if local_intent.get("selected_adapter_ref") != "adapter:local":
         raise ProfileError(
             "brick_cli_entrypoint_smoke: local task default changed adapter "
             f"unexpectedly: {local_intent!r}"
         )
-    if local_intent.get("chain_preset_ref") != cli.DEFAULT_LOCAL_PRESET_REF:
+    if local_intent.get("chain_preset_ref") != cli.FAST_FIX_PRESET_REF:
         raise ProfileError(
-            "brick_cli_entrypoint_smoke: local task default must keep onboarding "
-            f"graph preset, got {local_intent!r}"
+            "brick_cli_entrypoint_smoke: confirmed local quick task changed preset, "
+            f"got {local_intent!r}"
         )
     if "write_scope" in local_intent:
         raise ProfileError(
@@ -171,154 +765,110 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
         cli.preflight_provider = fake_preflight
 
     try:
-        set_preflight(
-            {
-                "adapter:claude-local": {"ok": True},
-                "adapter:codex-local": {"ok": True},
-                "adapter:gemini-local": {"ok": True},
-            }
+        missing_declaration_args = parser.parse_args(
+            [
+                "build",
+                "--task",
+                "make x",
+                "--preset",
+                cli.FAST_FIX_PRESET_REF,
+                "--fast-confirm",
+                "--real-provider",
+            ]
         )
-        real_args = parser.parse_args(["build", "--task", "make x", "--real-provider"])
-        real_intent = cli._build_intent(real_args)
-        if real_intent.get("selected_adapter_ref") != "adapter:claude-local":
+        try:
+            cli._build_intent(missing_declaration_args)
+        except cli.ProviderReadinessStopError as exc:
+            missing_packet = cli._public_error_packet(missing_declaration_args, exc)
+            stop = missing_packet.get("provider_readiness_stop", {})
+            if (
+                missing_packet.get("public_error_code") != "provider_readiness_stop"
+                or stop.get("reason") != "explicit_adapter_required"
+                or stop.get("execution_started") is not False
+                or stop.get("substitution_performed") is not False
+            ):
+                raise ProfileError(
+                    "brick_cli_entrypoint_smoke: missing real-provider declaration "
+                    f"lost typed pre-dispatch stop evidence: {missing_packet!r}"
+                )
+        else:
             raise ProfileError(
-                "brick_cli_entrypoint_smoke: --real-provider omitted --adapter must "
-                f"select first ready provider in declared order, got {real_intent!r}"
+                "brick_cli_entrypoint_smoke: --real-provider without --adapter did not fail closed"
+            )
+
+        set_preflight({"adapter:codex-local": {"ok": True}})
+        explicit_real_args = parser.parse_args(
+            [
+                "build",
+                "--task",
+                "make x",
+                "--preset",
+                cli.FAST_FIX_PRESET_REF,
+                "--fast-confirm",
+                "--real-provider",
+                "--adapter",
+                "adapter:codex-local",
+            ]
+        )
+        explicit_real_intent = cli._build_intent(explicit_real_args)
+        if explicit_real_intent.get("selected_adapter_ref") != "adapter:codex-local":
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: explicit provider declaration changed, "
+                f"got {explicit_real_intent!r}"
+            )
+        observations = explicit_real_intent.get("provider_readiness_observations")
+        if not isinstance(observations, list) or not observations or (
+            observations[0].get("adapter_ref") != "adapter:codex-local"
+        ):
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: declared provider readiness evidence was omitted"
             )
 
         set_preflight(
             {
-                "adapter:claude-local": {"ok": False, "installed": False},
                 "adapter:codex-local": {"ok": False, "installed": False},
                 "adapter:gemini-local": {
                     "ok": True,
+                    "installed": True,
                     "api_key_env_present": True,
                     "credential_validity": "not_proven",
                     "raw_secret": "SHOULD_NOT_APPEAR",
                 },
             }
         )
-        gemini_args = parser.parse_args(["build", "--task", "make x", "--real-provider"])
-        gemini_intent = cli._build_intent(gemini_args)
-        if gemini_intent.get("selected_adapter_ref") != "adapter:gemini-local":
+        try:
+            cli._build_intent(explicit_real_args)
+        except cli.ProviderReadinessStopError as exc:
+            no_ready_packet = cli._public_error_packet(explicit_real_args, exc)
+        else:
             raise ProfileError(
-                "brick_cli_entrypoint_smoke: --real-provider must select ready "
-                f"adapter:gemini-local when it is the first ready provider, got {gemini_intent!r}"
+                "brick_cli_entrypoint_smoke: unready declared adapter was silently "
+                "replaced by another ready provider"
             )
-        if "adapter:gemini-api" in json.dumps(gemini_intent, sort_keys=True):
-            raise ProfileError("brick_cli_entrypoint_smoke: gemini-api appeared in first-ready evidence")
-        readiness_text = json.dumps(
-            gemini_intent.get("provider_readiness_observations", []), sort_keys=True
-        )
+        readiness_text = json.dumps(no_ready_packet, sort_keys=True)
+        stop = no_ready_packet.get("provider_readiness_stop", {})
+        if (
+            stop.get("adapter_ref") != "adapter:codex-local"
+            or stop.get("reason") != "declared_adapter_not_ready"
+            or stop.get("execution_started") is not False
+            or stop.get("substitution_performed") is not False
+            or "adapter:gemini-local" in readiness_text
+        ):
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: unready declared adapter typed stop drifted: "
+                f"{no_ready_packet!r}"
+            )
         if "SHOULD_NOT_APPEAR" in readiness_text or "raw_secret" in readiness_text:
             raise ProfileError(
-                "brick_cli_entrypoint_smoke: provider readiness evidence leaked raw credential data"
-            )
-        # build-unify #12 D2 (표17 casting convergence): the CLI no longer
-        # synthesizes per-node casting. The selected adapter flows to the
-        # PLAN-LEVEL selected_adapter_ref (the building default), and per-step
-        # casting is interpreted at the SINGLE interpretation point (the
-        # agent-object ladder), identically to a bare intent that carried no CLI
-        # override. Pin: (1) no step_selection_overrides survive on the CLI
-        # intent, (2) the selected adapter lands on the plan-level default, and
-        # (3) the materialized step casting equals what the SAME intent WITHOUT
-        # any CLI-authored casting produces (drift would mean the CLI is still
-        # deciding the performer).
-        if "step_selection_overrides" in gemini_intent:
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: CLI intent must not synthesize "
-                f"step_selection_overrides (표17 casting convergence): {gemini_intent!r}"
-            )
-        gemini_plan = materialize_building_intent(gemini_intent, repo_root=repo)
-        if gemini_plan.get("selected_adapter_ref") != "adapter:gemini-local":
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: selected adapter:gemini-local did not "
-                f"flow to the plan-level default: {gemini_plan.get('selected_adapter_ref')!r}"
-            )
-        gemini_step_casting = [
-            (
-                str(step.get("step_template_ref") or ""),
-                str(step.get("selected_adapter_ref") or ""),
-                str(step.get("selected_model_ref") or ""),
-            )
-            for step in gemini_plan.get("brick_steps", [])
-            if isinstance(step, Mapping)
-        ]
-        ladder_only_intent = {
-            key: value
-            for key, value in gemini_intent.items()
-            if key not in ("adapter_choice_basis", "provider_readiness_observations")
-        }
-        ladder_only_intent["building_id"] = "gemini-ladder-parity-probe"
-        ladder_plan = materialize_building_intent(ladder_only_intent, repo_root=repo)
-        ladder_step_casting = [
-            (
-                str(step.get("step_template_ref") or ""),
-                str(step.get("selected_adapter_ref") or ""),
-                str(step.get("selected_model_ref") or ""),
-            )
-            for step in ladder_plan.get("brick_steps", [])
-            if isinstance(step, Mapping)
-        ]
-        if gemini_step_casting != ladder_step_casting:
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: CLI --real-provider casting drifted from "
-                "the single agent-object ladder interpretation point: "
-                f"cli={gemini_step_casting!r} ladder={ladder_step_casting!r}"
-            )
-
-        set_preflight(
-            {
-                "adapter:claude-local": {"ok": True},
-                "adapter:codex-local": {"ok": True},
-                "adapter:gemini-local": {"ok": True},
-            }
-        )
-        explicit_real_args = parser.parse_args(
-            ["build", "--task", "make x", "--real-provider", "--adapter", "adapter:codex-local"]
-        )
-        explicit_real_intent = cli._build_intent(explicit_real_args)
-        if explicit_real_intent.get("selected_adapter_ref") != "adapter:codex-local":
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: explicit --adapter must win over "
-                f"first-ready selection, got {explicit_real_intent!r}"
-            )
-        if explicit_real_intent.get("provider_readiness_observations"):
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: explicit --adapter must not record "
-                "first-ready readiness observations"
-            )
-
-        set_preflight(
-            {
-                "adapter:claude-local": {"ok": False, "installed": False},
-                "adapter:codex-local": {"ok": False, "installed": False},
-                "adapter:gemini-local": {
-                    "ok": False,
-                    "installed": True,
-                    "api_key_env_present": False,
-                    "credential_validity": "not_proven",
-                },
-            }
-        )
-        no_ready_args = parser.parse_args(["build", "--task", "make x", "--real-provider"])
-        no_ready_intent = cli._build_intent(no_ready_args)
-        if no_ready_intent.get("selected_adapter_ref") != "adapter:local":
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: no ready real provider must fall back "
-                f"to adapter:local, got {no_ready_intent!r}"
-            )
-        if "write_scope" in no_ready_intent:
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: no-ready adapter:local fallback must not declare write_scope"
+                "brick_cli_entrypoint_smoke: provider readiness stop leaked raw credential data"
             )
     finally:
         cli.preflight_provider = original_preflight_provider
 
     real_intent = explicit_real_intent
-    if real_intent.get("chain_preset_ref") != cli.DEFAULT_REAL_TASK_PRESET_REF:
+    if real_intent.get("chain_preset_ref") != cli.FAST_FIX_PRESET_REF:
         raise ProfileError(
-            "brick_cli_entrypoint_smoke: explicit real-provider task must default to "
+            "brick_cli_entrypoint_smoke: explicit real-provider preset must preserve "
             f"fast-fix, got {real_intent!r}"
         )
     write_scope = real_intent.get("write_scope")
@@ -383,7 +933,8 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
                     "--task",
                     "task wrapper fixture",
                     "--preset",
-                    cli.DEFAULT_LOCAL_PRESET_REF,
+                    cli.FAST_FIX_PRESET_REF,
+                    "--fast-confirm",
                     "--building-id",
                     "cli-task-wrapper",
                     "--json",
@@ -398,10 +949,10 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
                 os.environ["HOME"] = old_home
 
         legacy_home_root = str(Path(home_tmp) / ".brick" / "builds")
-        if task_result.get("build_input_mode") != "preset_task":
+        if task_result.get("build_input_mode") != "direct_preset":
             raise ProfileError(
-                "brick_cli_entrypoint_smoke: preset/task build did not expose "
-                "build_input_mode=preset_task"
+                "brick_cli_entrypoint_smoke: confirmed quick preset/task build did not "
+                "expose build_input_mode=direct_preset"
             )
         if task_result.get("output_root") != expected_root:
             raise ProfileError(
@@ -421,7 +972,7 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
             raise ProfileError(
                 "brick_cli_entrypoint_smoke: preset/task wrapper dispatch did not receive repo root"
             )
-        if task_call.get("intent", {}).get("chain_preset_ref") != cli.DEFAULT_LOCAL_PRESET_REF:
+        if task_call.get("intent", {}).get("chain_preset_ref") != cli.FAST_FIX_PRESET_REF:
             raise ProfileError(
                 "brick_cli_entrypoint_smoke: preset/task wrapper dispatch changed "
                 f"the local preset intent: {task_call.get('intent')!r}"
@@ -460,6 +1011,9 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
                     "build",
                     "--task",
                     "task explicit fixture",
+                    "--preset",
+                    cli.FAST_FIX_PRESET_REF,
+                    "--fast-confirm",
                     "--building-id",
                     "cli-task-explicit",
                     "--output-root",
@@ -482,7 +1036,18 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
                 "did not receive declared --output-root"
             )
 
-    api_args = parser.parse_args(["build", "--task", "make x", "--adapter", "adapter:gemini-api"])
+    api_args = parser.parse_args(
+        [
+            "build",
+            "--task",
+            "make x",
+            "--preset",
+            cli.FAST_FIX_PRESET_REF,
+            "--fast-confirm",
+            "--adapter",
+            "adapter:gemini-api",
+        ]
+    )
     try:
         cli._build_intent(api_args)
     except ValueError as exc:
@@ -500,7 +1065,7 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
         "repo_root": str(repo),
         "building_id": "cli-frontier-not-ready-probe",
         "adapter_ref": "adapter:gemini-local",
-        "chain_preset_ref": cli.DEFAULT_REAL_TASK_PRESET_REF,
+        "chain_preset_ref": cli.FAST_FIX_PRESET_REF,
         "isolation_mode": "worktree",
         "evidence_root": str(repo / "project" / "brick-protocol" / "buildings" / "probe"),
         "frontier_kind": "agent_incomplete",
@@ -726,9 +1291,30 @@ def _assert_brick_cli_casting_convergence(cli: Any, repo: Path) -> None:
 
     parser = cli.build_parser()
     args = parser.parse_args(
-        ["build", "--task", "converge x", "--adapter", "adapter:claude-local", "--building-id", "conv"]
+        [
+            "build",
+            "--task",
+            "converge x",
+            "--preset",
+            cli.FAST_FIX_PRESET_REF,
+            "--fast-confirm",
+            "--adapter",
+            "adapter:claude-local",
+            "--building-id",
+            "conv",
+        ]
     )
-    cli_intent = cli._build_intent(args)
+    original_preflight = cli.preflight_provider
+    try:
+        cli.preflight_provider = lambda adapter_ref: {
+            "adapter_ref": adapter_ref,
+            "ok": True,
+            "installed": True,
+            "authed": "checker-synthetic",
+        }
+        cli_intent = cli._build_intent(args)
+    finally:
+        cli.preflight_provider = original_preflight
     if "step_selection_overrides" in cli_intent:
         raise ProfileError(
             "brick_cli_entrypoint_smoke: CLI intent must not synthesize step_selection_overrides "
@@ -742,6 +1328,10 @@ def _assert_brick_cli_casting_convergence(cli: Any, repo: Path) -> None:
         task_statement="converge x",
         building_id="conv",
         write_scope=cli_intent.get("write_scope"),
+        adapter_choice_basis=cli_intent.get("adapter_choice_basis", ""),
+        provider_readiness_observations=cli_intent.get(
+            "provider_readiness_observations"
+        ),
     )
     if cli_intent != shared_intent:
         raise ProfileError(
@@ -912,6 +1502,256 @@ def _assert_brick_cli_verify_layering(cli: Any, repo: Path) -> int:
     return 6
 
 
+def _assert_brick_cli_timeout_and_review_packet(cli: Any, repo: Path) -> int:
+    """Pin visible timeout resolution, pre-dispatch stops, and casting review rows."""
+
+    from types import SimpleNamespace
+    from brick_protocol.support.operator.plan_rendering import (
+        DeclaredPerformerUnavailableError,
+    )
+
+    parser = cli.build_parser()
+    calls: list[dict[str, Any]] = []
+    original_runner = cli.run_customer_building_in_sandbox
+    original_preflight = cli.preflight_provider
+
+    default_init = parser.parse_args(["init"])
+    if default_init.example_adapter != cli.onboard.EXAMPLE_DECLARED_ADAPTER_REF:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: init did not expose the bundled example's "
+            "stable adapter declaration"
+        )
+    explicit_init = parser.parse_args(
+        ["init", "--example-adapter", "adapter:codex-local"]
+    )
+    if explicit_init.example_adapter != "adapter:codex-local":
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: init rewrote the explicit example adapter"
+        )
+
+    with tempfile.TemporaryDirectory(prefix="bp-cli-timeout-review-") as raw:
+        root = Path(raw)
+        plan_path = root / "declared-building-plan.json"
+        casting_row = {
+            "step_ref": "building-step:timeout-review-work",
+            "step_template_ref": "building-step-template:work",
+            "selected_adapter_ref": "adapter:codex-local",
+            "selected_model_ref": "model:codex:default",
+            "selected_reasoning_effort_ref": "effort:xhigh",
+        }
+        plan_path.write_text(
+            json.dumps({"brick_steps": [casting_row]}, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        intake = SimpleNamespace(
+            plan_path=plan_path,
+            plan_shape="chain",
+            walker_mode="single",
+            walker_mode_basis="checker synthetic",
+        )
+
+        class FakeResult:
+            building_id = "cli-timeout-review"
+            isolation_mode = "worktree"
+            isolation_reason = "checker synthetic"
+            base_sha = "a" * 40
+            worktree_path = str(root / "worktree")
+            evidence_root = str(root / "evidence")
+            frontier_kind = "agent_incomplete"
+            commit_sha = ""
+            worktree_disposed = False
+            intake_result = intake
+
+        def fake_runner(intent: Mapping[str, Any], **kwargs: Any) -> FakeResult:
+            calls.append({"intent": dict(intent), "kwargs": dict(kwargs)})
+            return FakeResult()
+
+        try:
+            cli.run_customer_building_in_sandbox = fake_runner
+            cli.preflight_provider = lambda adapter_ref: {
+                "adapter_ref": adapter_ref,
+                "ok": True,
+                "installed": True,
+                "authed": "checker-synthetic",
+            }
+
+            quick_args = parser.parse_args(
+                [
+                    "build",
+                    "--task",
+                    "quick timeout fixture",
+                    "--preset",
+                    cli.QUICK_CHECK_PRESET_REF,
+                    "--fast-confirm",
+                    "--output-root",
+                    str(root / "quick-output"),
+                ]
+            )
+            quick_packet = cli._run_build(quick_args)
+            if (
+                calls[-1]["kwargs"].get("adapter_timeout_seconds") != 120
+                or quick_packet.get("resolved_timeout_seconds") != 120
+                or quick_packet.get("timeout_basis") != "local_default"
+            ):
+                raise ProfileError(
+                    "brick_cli_entrypoint_smoke: local/quick timeout did not resolve "
+                    f"visibly to 120 seconds: {quick_packet!r} calls={calls!r}"
+                )
+            if quick_packet.get("resolved_casting_table") != [casting_row]:
+                raise ProfileError(
+                    "brick_cli_entrypoint_smoke: review packet omitted resolved node "
+                    f"casting table: {quick_packet!r}"
+                )
+
+            non_quick_argv = [
+                "build",
+                "--task",
+                "non-quick provider timeout fixture",
+                "--building-case",
+                "standard_delivery",
+                "--intensity",
+                "normal",
+                "--adapter",
+                "adapter:codex-local",
+                "--output-root",
+                str(root / "provider-output"),
+            ]
+            non_quick_args = parser.parse_args(non_quick_argv)
+            call_count = len(calls)
+            try:
+                cli._run_build(non_quick_args)
+            except cli.BuildTimeoutRequiredError as exc:
+                timeout_packet = cli._public_error_packet(non_quick_args, exc)
+            else:
+                raise ProfileError(
+                    "brick_cli_entrypoint_smoke: non-quick provider work inherited "
+                    "a silent timeout instead of stopping"
+                )
+            if len(calls) != call_count:
+                raise ProfileError(
+                    "brick_cli_entrypoint_smoke: timeout-required stop reached dispatch"
+                )
+            if (
+                timeout_packet.get("public_error_code") != "build_timeout_required"
+                or timeout_packet.get("timeout_stop", {}).get("execution_started")
+                is not False
+                or timeout_packet.get("timeout_stop", {}).get("silent_default_applied")
+                is not False
+            ):
+                raise ProfileError(
+                    "brick_cli_entrypoint_smoke: timeout-required typed stop drifted: "
+                    f"{timeout_packet!r}"
+                )
+
+            explicit_timeout_args = parser.parse_args(
+                [*non_quick_argv, "--timeout", "900"]
+            )
+            explicit_packet = cli._run_build(explicit_timeout_args)
+            if (
+                calls[-1]["kwargs"].get("adapter_timeout_seconds") != 900
+                or explicit_packet.get("resolved_timeout_seconds") != 900
+                or explicit_packet.get("timeout_basis") != "cli_explicit"
+            ):
+                raise ProfileError(
+                    "brick_cli_entrypoint_smoke: explicit non-quick timeout was not "
+                    f"preserved in dispatch and packet: {explicit_packet!r}"
+                )
+
+            performer_exc = DeclaredPerformerUnavailableError(
+                label="steps[0]",
+                agent_object_ref="agent-object:dev",
+                adapter_ref="adapter:codex-local",
+            )
+            performer_packet = cli._public_error_packet(explicit_timeout_args, performer_exc)
+            performer_stop = performer_packet.get("declared_performer_unavailable", {})
+            if (
+                performer_packet.get("public_error_code")
+                != "declared_performer_unavailable"
+                or performer_stop.get("step_label") != "steps[0]"
+                or performer_stop.get("agent_object_ref") != "agent-object:dev"
+                or performer_stop.get("adapter_ref") != "adapter:codex-local"
+                or performer_stop.get("execution_started") is not False
+                or performer_stop.get("readiness_observation", {}).get("ready")
+                is not False
+            ):
+                raise ProfileError(
+                    "brick_cli_entrypoint_smoke: declared performer typed stop was "
+                    f"not safely projected: {performer_packet!r}"
+                )
+        finally:
+            cli.run_customer_building_in_sandbox = original_runner
+            cli.preflight_provider = original_preflight
+    return 7
+
+
+def _assert_identical_proposal_reentry(repo: Path) -> int:
+    """Pin stop -> forward reuse for identical proposals and mismatch refusal."""
+
+    del repo
+    from brick_protocol.support.operator import assembly
+
+    plan = {
+        "schema": "declared-building-plan/v1",
+        "building_id": "cli-proposal-reentry",
+        "brick_steps": [],
+    }
+
+    def composed(composed_plan: Mapping[str, Any]) -> Any:
+        return assembly.ComposedGraph(
+            nodes=(),
+            edges=(),
+            groups=(),
+            composed_plan=dict(composed_plan),
+            ungated_write_node_warnings=(),
+            building_id="cli-proposal-reentry",
+            declared_by="coo:checker",
+            selected_adapter_ref="adapter:local",
+            selected_model_ref="model:default",
+            selected_shape_ref="building-shape:chain",
+            transition_concern_adoption="advisory",
+        )
+
+    with tempfile.TemporaryDirectory(prefix="bp-cli-proposal-reentry-") as raw:
+        output_root = Path(raw)
+        proposal = assembly.persist_proposed_building_graph(
+            composed(plan),
+            output_root,
+        )
+        first_bytes = proposal.read_bytes()
+        reused = assembly.persist_proposed_building_graph(
+            composed(plan),
+            output_root,
+        )
+        if reused != proposal or proposal.read_bytes() != first_bytes:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: identical proposal re-entry did not "
+                "reuse the frozen proposal byte-for-byte"
+            )
+
+        changed = dict(plan)
+        changed["declared_by"] = "coo:different"
+        try:
+            assembly.persist_proposed_building_graph(
+                composed(changed),
+                output_root,
+            )
+        except FileExistsError as exc:
+            if "different canonical content" not in str(exc):
+                raise ProfileError(
+                    "brick_cli_entrypoint_smoke: mismatched proposal refusal lost its "
+                    f"canonical-content reason: {exc}"
+                ) from exc
+        else:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: mismatched proposal silently reused or overwrote"
+            )
+        if proposal.read_bytes() != first_bytes:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: mismatched proposal refusal changed frozen bytes"
+            )
+    return 2
+
+
 def run_brick_cli_entrypoint_smoke(repo: Path) -> KernelResult:
     """Bare-entrypoint smoke for the customer-facing ``brick`` CLI.
 
@@ -973,8 +1813,12 @@ raise SystemExit(cli.main(["status", "--json", "--repo", str(repo)]))
     cli = importlib.import_module("brick_protocol.support.operator.cli")
     inspected = (
         2
+        + _assert_brick_cli_authoring_funnel(cli, repo)
+        + _assert_brick_cli_recovery_handle_lift(cli, repo)
         + _assert_brick_cli_customer_task_intent(cli, repo)
         + _assert_brick_cli_verify_layering(cli, repo)
+        + _assert_brick_cli_timeout_and_review_packet(cli, repo)
+        + _assert_identical_proposal_reentry(repo)
     )
 
     return KernelResult(
@@ -983,9 +1827,16 @@ raise SystemExit(cli.main(["status", "--json", "--repo", str(repo)]))
         output=(
             "brick CLI entrypoint smoke passed: direct script and import-identity "
             "console-script simulation ran from outside the repo with PYTHONPATH "
-            "unset and emitted status JSON without ModuleNotFoundError; customer "
-            "task intent defaults keep local runs read-only while --real-provider "
-            "tasks materialize fast-fix with worktree-bounded Brick write_scope; "
+            "unset and emitted status JSON without ModuleNotFoundError; untriaged "
+            "tasks fail closed without preset auto-selection; quick_check/quick_fix "
+            "direct lowering requires explicit direct_preset + fast_confirm; normal, "
+            "complex, and critical triage runs the building-call-authoring preset; "
+            "confirmed Building Call JSON lowers into the same sandbox dispatch; "
+            "preset, graph-declaration, and resume packets preserve the shared "
+            "recovery-handle schema and exact underlying values; "
+            "non-quick provider work requires a visible timeout while local/quick "
+            "defaults and the resolved casting table are packeted; identical "
+            "stop-to-forward proposals reuse frozen bytes while mismatches refuse; "
             "plain verify/check and verify --json use the provider-free core "
             "profile while explicit --all preserves the full profile sweep"
         ),

@@ -334,9 +334,11 @@ def render_coo_operating_chain_context(repo_root: str | Path | None = None) -> d
     design_context = render_building_design_context(repo_root=repo)
     startup_surface_refs = [
         "brick_protocol.support.operator.run.run_building_plan",
-        "brick_protocol.support.operator.driver.run_declared_portfolio",
         "brick_protocol.support.operator.composition_intent.render_declared_step_template_plan",
         "brick_protocol.support.operator.composition_compose.compose_building",
+    ]
+    internal_support_surface_refs = [
+        "brick_protocol.support.operator.driver.run_declared_portfolio",
         "brick_protocol.support.operator.auto_repair_replay.run_declared_auto_repair_replay_case",
     ]
     return {
@@ -396,6 +398,7 @@ def render_coo_operating_chain_context(repo_root: str | Path | None = None) -> d
             "fan-in-first means collect all declared QA bodies before closure synthesis.",
             "In hard fan-in QA cohorts, QA lanes return their own Brick fields without Link-facing transition_concern_evidence; closure-synthesis alone returns Link-facing transition_concern_evidence.",
             "partial QA reuse remains not_proven.",
+            "declared_portfolio and declared_repair_replay are declared route-family plan kinds; their helpers are Builder-internal executors, not customer, MCP startup, or callable tool surfaces.",
         ],
         "startup_paths": [
             "AGENTS.md",
@@ -422,6 +425,8 @@ def render_coo_operating_chain_context(repo_root: str | Path | None = None) -> d
             "brick_protocol/support/operator/run.py",
         ],
         "startup_surface_refs": startup_surface_refs,
+        "internal_support_surface_refs": internal_support_surface_refs,
+        "internal_support_surface_rule": "Builder-internal executors selected only after the declared_portfolio or declared_repair_replay route-family plan kind is declared; not customer startup paths or MCP-callable tools.",
         "runner_surface_ref": startup_surface_refs[0],
         "mcp_resource_uri": _COO_OPERATING_CHAIN_CONTEXT_URI,
         "mcp_tool_name": _COO_OPERATING_CHAIN_CONTEXT_TOOL,

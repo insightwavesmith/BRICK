@@ -1,6 +1,6 @@
 schema: checker-profile/v1
 profile_id: provider-registry-ladder
-description: Fixture-only provider registry persistence, adapter-resolution ladder, and casting-tier fail-closed guard.
+description: Fixture-only provider registry persistence, declared-performer fail-closed readiness, and casting-tier guard.
 kernel_checks:
   - provider_registry_ladder
 path_exists:
@@ -15,9 +15,10 @@ text_contains:
       - 'tempfile.TemporaryDirectory(prefix="bp-provider-registry-")'
       - 'os.environ["BRICK_HOME"] = tmp'
       - 'absent providers.yaml preserves legacy lane preference'
-      - 'unregistered static preference falls back with model update'
-      - 'provider fallback preserves reasoning-effort dial shape'
-      - 'malformed registry model_ref falls back to adapter default'
+      - 'ready non-declared provider cannot replace lane performer'
+      - 'ready codex cannot replace declared inspector performer'
+      - 'malformed non-declared registry row cannot select a performer'
+      - 'automatic adapter substitution is forbidden'
       - 'must be byte-identical for all Agent Objects'
       - 'BRICK_PROVIDER_LADDER=0 forces legacy behavior'
       - 'declared casting tier resolves once through ready providers.yaml'

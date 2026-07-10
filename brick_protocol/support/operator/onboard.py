@@ -7,10 +7,9 @@ plain-Korean, beginner-safe experience:
   2. connect    -> support.connection.connect.render_connect
   3. example    -> support.operator.driver.run_building_intake (the PART-2
                    confirmed-task.md + selected-preset -> running-Building seam).
-                   Driven on adapter:local (read-only, in-process) by default;
-                   when preflight reports the real provider READY and the caller
-                   opts in, the SAME seam runs the example on that provider's
-                   observed-write adapter (codex/claude/gemini local).
+                   The bundled example declares adapter:local. A caller may
+                   explicitly declare a different example adapter; readiness
+                   only verifies that declaration and never substitutes it.
   4. handoff    -> a plain-Korean closing line that NAMES the Phase-1 seam verb
                    (driver.run_building_intake) the beginner uses next.
 
@@ -25,12 +24,11 @@ credentials, auto-edit the user's config, or fabricate provider readiness.
 (The OPT-IN ``--recording`` step is the one explicit exception on config: it
 writes ONLY this checkout's gitignored .claude/.codex machine config, paths
 computed from the actual repo root, idempotently, and never silently
-overwrites a user-modified file -- compare + skip + warn.) The
-real-vs-local example adapter is driven by the PREFLIGHT READINESS EVIDENCE
-(recorded as a structured field), NOT by support guessing -- and the example
-NEVER touches the repo working tree (evidence + any adapter cwd stay under a
-TEMP output_root). The proceed/retry decision stays a human / Link concern;
-onboarding only RECORDS what it observed.
+overwrites a user-modified file -- compare + skip + warn.) The example casting
+comes only from its declaration; provider readiness is verification evidence,
+not casting authority. The example NEVER touches the repo working tree
+(evidence + any adapter cwd stay under a TEMP output_root). The proceed/retry
+decision stays a human / Link concern; onboarding only RECORDS what it observed.
 """
 
 from __future__ import annotations
@@ -119,7 +117,11 @@ EXAMPLE_TASK_SOURCE_REF = "brick_protocol/brick/templates/tasks/source-template.
 # The caller / COO declaration recorded on the confirmed intent. NOT support:.
 EXAMPLE_DECLARED_BY = "coo"
 
-# Preset for the FALLBACK (adapter:local) example: an all-read-only chain
+# The bundled example's explicit casting declaration. This is stable across
+# machine login/readiness state; preflight may verify it but never replace it.
+EXAMPLE_DECLARED_ADAPTER_REF = ADAPTER_LOCAL
+
+# Preset for the explicitly declared adapter:local example: an all-read-only chain
 # (design / review / closure -- NO write_need Brick), so it routes through the
 # seam on the in-process read-only adapter:local with NO write_scope and never
 # touches the repo. NOTE (gate wiring 0610): the example moved OFF
@@ -138,8 +140,8 @@ EXAMPLE_LOCAL_PRESET_REF = "building-chain-preset:onboarding-example-graph"
 # write_need Brick (work). A write_need Brick requires an observed-write-capable
 # adapter (the canonical set agent_adapter._OBSERVED_WRITE_ADAPTER_REFS, read via
 # adapter_is_write_capable),
-# so this preset is only routed when preflight reports an observed-write provider
-# READY and the caller opts in.
+# so this preset is routed only when the caller declares that exact adapter and
+# matching preflight evidence reports it READY.
 EXAMPLE_REAL_PRESET_REF = "building-chain-preset:fast-fix"
 
 # The write_scope declared for the real-provider example. It is confined to the
@@ -299,9 +301,8 @@ def _prepare_resume_adapter_cwd(
         }
     try:
         from brick_protocol.support.operator.worktree_sandbox import (  # noqa: PLC0415
-            WorktreeSandboxError,
-            create_worktree_sandbox,
             probe_worktree_capable,
+            reclaim_wip_recovery_handle,
         )
 
         probe = probe_worktree_capable(repo_root)
@@ -315,26 +316,24 @@ def _prepare_resume_adapter_cwd(
                 "message_ko": "resume adapter_cwd 자동 생성 조건을 만족하지 못했어요.",
                 "adapter_cwd_auto_create_reason": probe.reason,
             }
-        sandbox = create_worktree_sandbox(
-            repo_root,
-            building_id=building_id,
-            base_sha=probe.base_sha,
-        )
-    except WorktreeSandboxError as exc:
+        reclaimed = reclaim_wip_recovery_handle(repo_root, building_id)
+    except (OSError, RuntimeError) as exc:
         return None, {
             "error_kind": "resume_requires_isolated_adapter_cwd",
             "error_message": (
-                "onboard approve could not auto-create an isolated git worktree "
-                f"for resume: {type(exc).__name__}: {exc}"
+                "onboard approve could not preflight the isolated resume lifecycle: "
+                f"{type(exc).__name__}: {exc}"
             ),
-            "message_ko": "resume adapter_cwd 자동 worktree 생성에 실패했어요.",
+            "message_ko": "resume 격리 작업장 사전검사에 실패했어요.",
             "adapter_cwd_auto_create_reason": type(exc).__name__,
         }
-    return sandbox.path, {
-        "adapter_cwd_auto_created": True,
-        "adapter_cwd_source": "engine_worktree",
-        "adapter_cwd_base_sha": sandbox.base_sha,
-        "worktree_path": str(sandbox.path),
+    return None, {
+        "adapter_cwd_auto_created": False,
+        "adapter_cwd_source": "engine_worktree_lifecycle_pending",
+        "adapter_cwd_base_sha": reclaimed.sha if reclaimed is not None else probe.base_sha,
+        "resume_wip_ref": reclaimed.ref if reclaimed is not None else "",
+        "resume_wip_sha": reclaimed.sha if reclaimed is not None else "",
+        "resume_wip_base_sha": reclaimed.base_sha if reclaimed is not None else "",
     }
 
 
@@ -614,58 +613,97 @@ def run_provider_register_step(
     return result
 
 
-def _choose_example_adapter(
+def _resolve_declared_example_casting(
     preflight: dict[str, Any],
     readiness: str,
     *,
-    allow_real_provider: bool,
+    selected_example_adapter_ref: str,
 ) -> dict[str, Any]:
-    """Decide the example adapter FROM the preflight readiness evidence.
+    """Verify one declared example casting without selecting/substituting it.
 
-    Returns a plan dict {adapter_ref, chain_preset_ref, write_scope, real,
-    adapter_choice_basis}. The choice is driven by recorded preflight evidence,
-    NOT by support guessing or fabricating readiness:
-
-    - REAL branch (observed-write adapter): only when the caller opted in AND
-      preflight observed the real provider READY (readiness == "ready") AND that
-      ready provider is in the canonical observed-write adapter set (read via
-      ``adapter_is_write_capable`` -- never a hardcoded provider literal). Uses a preset
-      with a write_need Brick (write_scope confined to the example area).
-    - LOCAL fallback (adapter:local): every other case -- a missing / unauthed /
-      unknown provider, or no opt-in. Uses an all-read-only preset (no
-      write_scope), so it routes through the SAME seam in-process and never
-      needs a provider CLI.
-
-    This records evidence + routes accordingly; it does not claim success, judge
-    quality, or choose Movement.
+    ``selected_example_adapter_ref`` is the only casting authority. Preflight is
+    verification evidence: a provider-backed declaration dispatches only when
+    the same adapter was observed ready. Missing, mismatched, or unready
+    declarations return a fail-closed packet and never fall back to local.
     """
 
-    real_ref = str(preflight.get("adapter_ref") or "")
-    real_ref_ready = readiness == "ready" and adapter_is_write_capable(real_ref)
-    if allow_real_provider and real_ref_ready:
+    declared_ref = str(selected_example_adapter_ref or "").strip()
+    preflight_ref = str(preflight.get("adapter_ref") or "").strip()
+    common: dict[str, Any] = {
+        "adapter_ref": declared_ref,
+        "declared_adapter_ref": declared_ref,
+        "preflight_adapter_ref": preflight_ref,
+        "preflight_readiness": readiness,
+        "substitution_performed": False,
+        "execution_started": False,
+    }
+    if not declared_ref:
         return {
-            "adapter_ref": real_ref,
-            "chain_preset_ref": EXAMPLE_REAL_PRESET_REF,
-            "write_scope": dict(_EXAMPLE_WRITE_SCOPE),
-            "real": True,
-            "adapter_choice_basis": (
-                f"preflight readiness=ready for observed-write adapter {real_ref}"
-                " + caller opt-in -> real-provider example"
+            **common,
+            "dispatch_allowed": False,
+            "error_kind": "missing_example_adapter_declaration",
+            "error_message": (
+                "the onboarding example requires an explicit adapter declaration; "
+                "provider readiness cannot choose one"
             ),
         }
-    if allow_real_provider and not real_ref_ready:
-        basis = (
-            "caller opted in but preflight readiness="
-            f"{readiness} (not a ready observed-write provider) -> adapter:local fallback"
-        )
-    else:
-        basis = "no real-provider opt-in -> adapter:local fallback"
+    if declared_ref == ADAPTER_LOCAL:
+        return {
+            **common,
+            "dispatch_allowed": True,
+            "chain_preset_ref": EXAMPLE_LOCAL_PRESET_REF,
+            "write_scope": None,
+            "real": False,
+            "adapter_declaration_basis": (
+                "bundled/caller declaration adapter:local; provider readiness was "
+                "recorded but did not select casting"
+            ),
+        }
+    try:
+        write_capable = adapter_is_write_capable(declared_ref)
+    except ValueError:
+        write_capable = False
+    if not write_capable:
+        return {
+            **common,
+            "dispatch_allowed": False,
+            "error_kind": "unadmitted_example_adapter_declaration",
+            "error_message": (
+                f"declared example adapter {declared_ref!r} is not an admitted "
+                "observed-write adapter"
+            ),
+        }
+    if preflight_ref != declared_ref:
+        return {
+            **common,
+            "dispatch_allowed": False,
+            "error_kind": "example_adapter_preflight_mismatch",
+            "error_message": (
+                f"declared example adapter {declared_ref!r} does not match host "
+                f"preflight adapter {preflight_ref!r}; support refuses substitution"
+            ),
+        }
+    if readiness != "ready":
+        return {
+            **common,
+            "dispatch_allowed": False,
+            "error_kind": "declared_example_adapter_not_ready",
+            "error_message": (
+                f"declared example adapter {declared_ref!r} readiness is "
+                f"{readiness!r}; execution stopped before dispatch and no adapter "
+                "was substituted"
+            ),
+        }
     return {
-        "adapter_ref": ADAPTER_LOCAL,
-        "chain_preset_ref": EXAMPLE_LOCAL_PRESET_REF,
-        "write_scope": None,
-        "real": False,
-        "adapter_choice_basis": basis,
+        **common,
+        "dispatch_allowed": True,
+        "chain_preset_ref": EXAMPLE_REAL_PRESET_REF,
+        "write_scope": dict(_EXAMPLE_WRITE_SCOPE),
+        "real": True,
+        "adapter_declaration_basis": (
+            f"caller declared {declared_ref}; matching preflight readiness=ready "
+            "verified the declaration without selecting or substituting it"
+        ),
     }
 
 
@@ -693,6 +731,9 @@ def _materialized_step_adapter_evidence(plan_path: Path) -> list[dict[str, str]]
             "step_template_ref": str(step.get("step_template_ref") or ""),
             "selected_adapter_ref": str(step.get("selected_adapter_ref") or ""),
             "selected_model_ref": str(step.get("selected_model_ref") or ""),
+            "selected_reasoning_effort_ref": str(
+                step.get("selected_reasoning_effort_ref") or ""
+            ),
         }
         if any(row.values()):
             evidence.append(row)
@@ -705,28 +746,37 @@ def _example_step(
     output_root: Path | str | None,
     preflight: dict[str, Any],
     readiness: str,
-    allow_real_provider: bool,
+    selected_example_adapter_ref: str,
     command_runner: Any | None = None,
 ) -> dict[str, Any]:
     """Step 3: route the first example through the PART-1 seam. Never raises.
 
-    Builds a confirmed intent (bundled task.md + a registry preset + an adapter
-    chosen FROM the preflight readiness evidence) and runs it through
+    Builds a confirmed intent (bundled task.md + a registry preset + the
+    explicitly declared example adapter) and runs it through
     ``support.operator.driver.run_building_intake`` -- the confirmed-task.md ->
     running-Building verb the beginner uses next. Evidence (and any real-provider
     adapter cwd) lands under ``output_root`` (a TEMP dir by default), never the
     repo working tree.
 
-    The adapter is the LOCAL in-process read-only ``adapter:local`` unless
-    preflight observed the real provider READY and the caller opted in, in which
-    case the SAME seam runs the example on that provider's observed-write adapter
-    (codex/claude/gemini local). Which adapter ran, and WHY, is
-    recorded as evidence.
+    Provider readiness verifies a provider-backed declaration. It never chooses
+    the adapter and never falls back to another adapter.
     """
 
-    choice = _choose_example_adapter(
-        preflight, readiness, allow_real_provider=allow_real_provider
+    choice = _resolve_declared_example_casting(
+        preflight,
+        readiness,
+        selected_example_adapter_ref=selected_example_adapter_ref,
     )
+    if not bool(choice.get("dispatch_allowed")):
+        return {
+            "ok": False,
+            "ran": False,
+            "message_ko": (
+                "선언한 예제 adapter를 그대로 실행할 수 없어 발사 전에 멈췄어요. "
+                "다른 adapter로 바꾸지 않았어요."
+            ),
+            **choice,
+        }
     intent: dict[str, Any] = {
         "declared_by": EXAMPLE_DECLARED_BY,
         "task_source_ref": EXAMPLE_TASK_SOURCE_REF,
@@ -737,15 +787,22 @@ def _example_step(
     if choice["write_scope"] is not None:
         intent["write_scope"] = choice["write_scope"]
 
-    # The common evidence fields recorded on EVERY outcome (ok or not): they make
-    # the routing + the adapter choice auditable, not just a Korean string.
+    # The common evidence fields recorded on EVERY dispatched outcome: they make
+    # the routing + adapter declaration auditable, not just a Korean string.
     base_evidence: dict[str, Any] = {
         "routed_through": SEAM_VERB,
         "task_source_ref": EXAMPLE_TASK_SOURCE_REF,
         "chain_preset_ref": choice["chain_preset_ref"],
         "adapter_ref": choice["adapter_ref"],
         "real_provider": bool(choice["real"]),
-        "adapter_choice_basis": choice["adapter_choice_basis"],
+        "adapter_declaration_basis": choice["adapter_declaration_basis"],
+        # Compatibility evidence key; its content now names a declaration, not
+        # an environment-driven choice.
+        "adapter_choice_basis": choice["adapter_declaration_basis"],
+        "declared_adapter_ref": choice["declared_adapter_ref"],
+        "preflight_adapter_ref": choice["preflight_adapter_ref"],
+        "substitution_performed": False,
+        "execution_started": True,
         "preflight_readiness": readiness,
     }
 
@@ -1827,9 +1884,9 @@ def run_dashboard_provision_step(
 def run_install_wizard(
     repo_root: Path | str | None = None,
     *,
+    example_adapter_ref: str,
     host: str = "codex",
     output_root: Path | str | None = None,
-    allow_real_provider: bool = False,
     run_example: bool = True,
     wire_recording: bool = True,
     register_mcp: bool = True,
@@ -1839,7 +1896,7 @@ def run_install_wizard(
     command_runner: Any | None = None,
     provider_model_ref: str | None = None,
 ) -> dict[str, Any]:
-    """The ONE ordered, idempotent, friendly-fallback install flow (`brick init`).
+    """The ONE ordered, idempotent, fail-closed install flow (`brick init`).
 
     Converges the two previously-disconnected install flows (the thin
     cli.py:_cmd_init and the richer run_onboard) into one ordered sequence:
@@ -1887,9 +1944,9 @@ def run_install_wizard(
     steps["onboard"] = run_onboard(
         host,
         repo_root=repo,
+        selected_example_adapter_ref=example_adapter_ref,
         run_example=run_example,
         output_root=output_root,
-        allow_real_provider=allow_real_provider,
         command_runner=command_runner,
     )
 
@@ -1922,6 +1979,7 @@ def run_install_wizard(
     return {
         "kind": "install-wizard",
         "repo_root": str(repo),
+        "declared_example_adapter_ref": str(example_adapter_ref).strip(),
         "ordered_steps": list(steps.keys()),
         "phase_narrative": ["present", "plugin", "slack", "onboard", "verify"],
         "steps": steps,
@@ -2160,9 +2218,9 @@ def run_onboard(
     host: str,
     repo_root: Path | str | None = None,
     *,
+    selected_example_adapter_ref: str,
     run_example: bool = True,
     output_root: Path | str | None = None,
-    allow_real_provider: bool = False,
     command_runner: Any | None = None,
 ) -> dict[str, Any]:
     """Run the friendly, NEVER-raising onboarding flow.
@@ -2176,25 +2234,16 @@ def run_onboard(
     ``support.operator.driver.run_building_intake`` (recorded as
     ``example_result["routed_through"]``).
 
-    ``preflight_readiness`` records the observed provider readiness
-    (ready / unauthed / missing / unknown) as an auditable field, not just the
-    Korean preflight message. That readiness drives the example adapter:
-
-    - By default (``allow_real_provider=False``) the example runs on the
-      in-process read-only ``adapter:local`` with an all-read-only preset --
-      friendly even when the provider is missing / unauthed, never touching the
-      repo.
-    - With ``allow_real_provider=True`` AND a recorded ``ready`` observed-write
-      provider (codex/claude/gemini local), the SAME seam runs
-      the example on that adapter (a real-provider Building). When the provider
-      is NOT ready it FALLS BACK to ``adapter:local``
-      (still friendly, never raises). The adapter used + WHY are recorded on the
-      example_result.
+    ``preflight_readiness`` records observed provider readiness (ready /
+    unauthed / missing / unknown) as an auditable field. It verifies the exact
+    ``selected_example_adapter_ref`` declaration; it never chooses or
+    substitutes an adapter. The bundled CLI declares ``adapter:local`` unless
+    its caller explicitly supplies another example adapter. A missing,
+    mismatched, or unready provider-backed declaration stops before dispatch.
 
     ``ok`` is True only when both the preflight and (when requested) the example
-    step report ok. (A bogus / missing-provider host makes ``ok`` False even
-    though the friendly adapter:local fallback example still runs without
-    raising.) The connect step never blocks ``ok``.
+    step report ok. A bogus / missing-provider host makes ``ok`` False without
+    raising. The connect step never blocks ``ok``.
     """
 
     normalized_host = _normalize_host(host)
@@ -2210,7 +2259,7 @@ def run_onboard(
             output_root=output_root,
             preflight=preflight,
             readiness=readiness,
-            allow_real_provider=allow_real_provider,
+            selected_example_adapter_ref=selected_example_adapter_ref,
             command_runner=command_runner,
         )
     else:
@@ -2227,6 +2276,7 @@ def run_onboard(
 
     return {
         "host": normalized_host,
+        "declared_example_adapter_ref": str(selected_example_adapter_ref).strip(),
         "preflight": preflight,
         "preflight_readiness": readiness,
         "connect_hint": connect_hint,
@@ -2269,7 +2319,10 @@ def _render_flow_text(result: dict[str, Any]) -> str:
     if routed:
         lines.append(f"   - 통과 경로(seam): {routed}")
         lines.append(f"   - 사용한 adapter: {example_result.get('adapter_ref', '')}")
-        lines.append(f"   - 선택 근거: {example_result.get('adapter_choice_basis', '')}")
+        lines.append(
+            "   - 선언/검증 근거: "
+            f"{example_result.get('adapter_declaration_basis', '')}"
+        )
     if example_result.get("ran"):
         lines.append(f"   - building_id: {example_result.get('building_id', '')}")
         lines.append(f"   - frontier: {example_result.get('frontier_kind', '')}")
@@ -2287,7 +2340,6 @@ def _render_flow_text(result: dict[str, Any]) -> str:
 GOAL_APPROVE_SEAM_VERB = "brick_protocol.support.operator.onboard.run_goal_approve_entry"
 GOAL_APPROVE_ACTIONS = ("forward", "stop")
 _GOAL_PROPOSAL_FILENAME = "proposed-building-graph.json"
-_BUILD_SELECTED_ADAPTER = "codex-local"
 
 
 _RESULT_SUMMARY_PROOF_LIMITS = [
@@ -2695,6 +2747,8 @@ def build_preset(
         "frontier_kind": result.frontier_kind,
         "isolation_mode": result.isolation_mode,
         "commit_sha": result.commit_sha,
+        "landed_ref": result.landed_ref,
+        "recovery_handle": dict(result.recovery_handle),
         "worktree_disposed": result.worktree_disposed,
         "routed_through": "brick_protocol.support.operator.driver.run_customer_building_in_sandbox",
     }
@@ -2704,6 +2758,7 @@ def build(
     graph: Any,
     *,
     goal: str,
+    selected_adapter_ref: str,
     declared_by: str,
     author_ref: str,
     action: str = "forward",
@@ -2719,8 +2774,9 @@ def build(
     """One-call goal build: compose, freeze, render, then route approval.
 
     This is a support convenience wrapper over the existing seams. It keeps the
-    pre-run proposal and approval result visible, but hides repo/output/worktree
-    plumbing and never bypasses the human/COO ``forward`` / ``stop`` gate.
+    pre-run proposal and approval result visible, requires the human/COO adapter
+    declaration, but hides repo/output/worktree plumbing and never bypasses the
+    human/COO ``forward`` / ``stop`` gate.
     """
 
     from brick_protocol.support.operator.assembly import (  # noqa: PLC0415
@@ -2728,12 +2784,19 @@ def build(
         persist_proposed_building_graph,
     )
 
+    adapter_ref = str(selected_adapter_ref).strip()
+    if not adapter_ref:
+        raise ValueError(
+            "build requires a declared selected_adapter_ref; support does not "
+            "choose an adapter"
+        )
+
     composed = assemble(
         graph,
         declared_by=declared_by,
         task=goal,
         repo_root=_REPO_ROOT,
-        adapter=_BUILD_SELECTED_ADAPTER,
+        adapter=adapter_ref,
         gates=gates,
         write_scope=write_scope,
         expansion_budget=expansion_budget,
@@ -2757,6 +2820,7 @@ def build(
     )
     return {
         "building_id": composed.building_id,
+        "selected_adapter_ref": adapter_ref,
         "proposal_ref": str(proposal_path),
         "proposal_render": rendered,
         "ungated_write_node_warnings": [
@@ -2790,6 +2854,8 @@ def run_goal_approve_entry(
 
     from brick_protocol.support.operator.driver import (  # noqa: PLC0415
         BuildingIntakeRunResult,
+        _declares_write_need,
+        _declares_write_capable_provider,
         _run_in_worktree_sandbox,
     )
     from brick_protocol.support.operator.run import run_building_plan  # noqa: PLC0415
@@ -2896,6 +2962,10 @@ def run_goal_approve_entry(
             building_id=building_id,
             durable_output=durable_output,
             run_dispatch=_run_frozen_plan,
+            allow_temp_fallback=not (
+                _declares_write_need(plan)
+                or _declares_write_capable_provider(plan)
+            ),
         )
     except Exception as exc:  # noqa: BLE001 -- friendly support entry
         result.update(
@@ -2905,6 +2975,10 @@ def run_goal_approve_entry(
                 "message_ko": "frozen plan 실행 중 문제가 생겼어요.",
             }
         )
+        recovery_handle = getattr(exc, "recovery_handle", None)
+        if isinstance(recovery_handle, Mapping):
+            result["recovery_handle"] = dict(recovery_handle)
+            result["worktree_path"] = str(recovery_handle.get("worktree_path") or "")
         return result
 
     result.update(
@@ -2920,8 +2994,10 @@ def run_goal_approve_entry(
             "commit_sha": sandbox_result.commit_sha,
             "wip_anchor_ref": sandbox_result.wip_anchor_ref,
             "wip_commit_sha": sandbox_result.wip_commit_sha,
+            "landed_ref": sandbox_result.landed_ref,
             "worktree_path": sandbox_result.worktree_path,
             "worktree_disposed": sandbox_result.worktree_disposed,
+            "recovery_handle": dict(sandbox_result.recovery_handle),
             "result_summary": _result_summary_with_sandbox_anchors(
                 sandbox_result.evidence_root,
                 repo_root=repo,
@@ -3134,6 +3210,7 @@ def launch_assembled_building(
             "commit_sha": sandbox_result.commit_sha,
             "wip_anchor_ref": sandbox_result.wip_anchor_ref,
             "wip_commit_sha": sandbox_result.wip_commit_sha,
+            "landed_ref": sandbox_result.landed_ref,
             "worktree_path": sandbox_result.worktree_path,
             "worktree_disposed": sandbox_result.worktree_disposed,
             "result_summary": _result_summary_with_sandbox_anchors(
@@ -3876,8 +3953,9 @@ def run_approve_entry(
     )
     if adapter_cwd_observation is not None:
         result.update(adapter_cwd_observation)
-    if prepared_adapter_cwd is None:
+    if prepared_adapter_cwd is None and result.get("error_kind"):
         return result
+    engine_managed_resume = prepared_adapter_cwd is None
     if menu_precheck_missing_error is not None:
         result.update(
             {
@@ -3963,32 +4041,72 @@ def run_approve_entry(
             }
         )
         return result
-    try:
+    disposition_persisted = False
+
+    def _persist_disposition_row() -> None:
+        nonlocal disposition_persisted
         with link_path.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(row, separators=(",", ":"), ensure_ascii=False) + "\n")
-    except Exception as exc:  # noqa: BLE001 -- support evidence, no traceback surface
-        result.update(
-            {
-                "error_kind": type(exc).__name__,
-                "error_message": str(exc),
-                "message_ko": "disposition row를 raw/link.jsonl에 쓰지 못했어요.",
-            }
-        )
-        return result
+        disposition_persisted = True
 
-    result["disposition_written"] = True
+    if not engine_managed_resume:
+        try:
+            _persist_disposition_row()
+        except Exception as exc:  # noqa: BLE001 -- support evidence, no traceback surface
+            result.update(
+                {
+                    "error_kind": type(exc).__name__,
+                    "error_message": str(exc),
+                    "message_ko": "disposition row를 raw/link.jsonl에 쓰지 못했어요.",
+                }
+            )
+            return result
+
+    result["disposition_written"] = disposition_persisted
     result["disposition_row"] = row
     try:
-        resume_result = resume_building_plan(
-            building_root,
-            adapter_cwd=prepared_adapter_cwd,
-            adapter_timeout_seconds=adapter_timeout_seconds,
-        )
+        if engine_managed_resume:
+            from brick_protocol.support.operator.driver import (  # noqa: PLC0415
+                run_customer_resume_in_sandbox,
+            )
+
+            sandbox_result = run_customer_resume_in_sandbox(
+                building_root,
+                customer_repo_root=repo,
+                adapter_timeout_seconds=adapter_timeout_seconds,
+                before_resume=_persist_disposition_row,
+            )
+            result["disposition_written"] = disposition_persisted
+            result.update(
+                {
+                    "adapter_cwd_auto_created": True,
+                    "adapter_cwd_source": "engine_worktree_lifecycle",
+                    "adapter_cwd_base_sha": sandbox_result.base_sha,
+                    "worktree_path": sandbox_result.worktree_path,
+                    "worktree_disposed": sandbox_result.worktree_disposed,
+                    "commit_sha": sandbox_result.commit_sha,
+                    "wip_anchor_ref": sandbox_result.wip_anchor_ref,
+                    "wip_commit_sha": sandbox_result.wip_commit_sha,
+                    "landed_ref": sandbox_result.landed_ref,
+                    "recovery_handle": dict(sandbox_result.recovery_handle),
+                }
+            )
+            if sandbox_result.intake_result is None:
+                raise RuntimeError("resume sandbox returned no intake result")
+            resume_result = sandbox_result.intake_result.run_result
+        else:
+            resume_result = resume_building_plan(
+                building_root,
+                adapter_cwd=prepared_adapter_cwd,
+                adapter_timeout_seconds=adapter_timeout_seconds,
+            )
         if getattr(resume_result, "anchored_ref", ""):
             result["anchored_ref"] = resume_result.anchored_ref
         frontier_after = dict(observe_building_frontier(building_root, repo_root=repo))
         if (
-            action_text == "forward"
+            not engine_managed_resume
+            and prepared_adapter_cwd is not None
+            and action_text == "forward"
             and str(frontier_after.get("frontier_kind") or "") == "complete"
         ):
             from brick_protocol.support.operator.driver import (  # noqa: PLC0415
@@ -4059,6 +4177,7 @@ def run_approve_entry(
                 observe_building_frontier(building_root, repo_root=repo)
             )
     except Exception as exc:  # noqa: BLE001 -- disposition is already written
+        result["disposition_written"] = disposition_persisted
         result.update(
             {
                 "error_kind": type(exc).__name__,
@@ -4068,6 +4187,11 @@ def run_approve_entry(
                 ),
             }
         )
+        recovery_handle = getattr(exc, "recovery_handle", None)
+        if isinstance(recovery_handle, Mapping):
+            result["recovery_handle"] = dict(recovery_handle)
+            result["worktree_path"] = str(recovery_handle.get("worktree_path") or "")
+            result["worktree_disposed"] = False
         return result
 
     result["frontier_kind"] = str(frontier_after.get("frontier_kind") or "")
@@ -4330,7 +4454,22 @@ def _render_approve_text(result: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def main(argv: list[str] | None = None) -> int:
+def _retired_module_cli(argv: list[str] | None = None) -> int:
+    """Refuse the retired second CLI before any parser or launch seam runs.
+
+    ``onboard`` remains an import-only support library.  The legacy parser body
+    below is deliberately unreachable compatibility text while downstream
+    packaging transitions to the single ``brick`` console.
+    """
+
+    del argv
+    raise RuntimeError(
+        "brick_protocol.support.operator.onboard module CLI is retired; "
+        "use brick init, brick doctor, brick build, or brick resume"
+    )
+
+    # Unreachable legacy parser retained temporarily for source-compatible
+    # archaeology; no public entrypoint calls this function.
     args_list = list(sys.argv[1:]) if argv is None else list(argv)
     # ``onboard doctor``: diagnosis-only subcommand. Runs the gh probe + every
     # provider preflight, prints the symptom -> prescription table, and ALWAYS
@@ -4497,13 +4636,11 @@ def main(argv: list[str] | None = None) -> int:
         help="Skip running the bundled example Building.",
     )
     parser.add_argument(
-        "--real-provider",
-        action="store_true",
+        "--example-adapter",
+        default=EXAMPLE_DECLARED_ADAPTER_REF,
         help=(
-            "Allow the example to run on the REAL provider's observed-write "
-            "adapter (codex/claude/gemini local) when preflight "
-            "reports it READY; otherwise falls back to adapter:local. "
-            "Default: adapter:local only."
+            "Exact adapter declaration for the bundled example. Provider "
+            "readiness only verifies this value; no substitution occurs."
         ),
     )
     parser.add_argument(
@@ -4535,9 +4672,9 @@ def main(argv: list[str] | None = None) -> int:
     result = run_onboard(
         args.host,
         repo_root=args.repo,
+        selected_example_adapter_ref=args.example_adapter,
         run_example=not args.no_example,
         output_root=example_root,
-        allow_real_provider=args.real_provider,
     )
     sys.stdout.write(_render_flow_text(result))
     sys.stdout.write("\n")
@@ -4559,6 +4696,7 @@ __all__ = [
     "DOCTOR_SYMPTOM_PRESCRIPTIONS_KO",
     "GOAL_APPROVE_ACTIONS",
     "GOAL_APPROVE_SEAM_VERB",
+    "EXAMPLE_DECLARED_ADAPTER_REF",
     "EXAMPLE_DECLARED_BY",
     "EXAMPLE_LOCAL_PRESET_REF",
     "EXAMPLE_PLAN_REL",
@@ -4567,7 +4705,6 @@ __all__ = [
     "RECORDING_HOOK_TEMPLATES",
     "SEAM_VERB",
     "SUPPORTED_HOSTS",
-    "main",
     "run_doctor",
     "run_approve_entry",
     "run_goal_approve_entry",
@@ -4579,7 +4716,3 @@ __all__ = [
     "run_skills_place_step",
     "run_slack_provision_step",
 ]
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())

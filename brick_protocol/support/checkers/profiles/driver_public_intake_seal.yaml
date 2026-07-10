@@ -1,12 +1,20 @@
 schema: checker-profile/v1
 profile_id: driver-public-intake-seal
-description: Seals brick_protocol/support/operator/driver.py public Building-making intake exports to the preset branch only; assemble is owned by brick_protocol/support/operator/assembly.py.
+description: Seals the official customer Building-entry contract; Builder lowering, orchestration packets, declared portfolios, and declared repair/replay executors are internal support mechanics rather than alternate customer/startup entrances.
 kernel_checks:
   - driver_public_intake_seal
 path_exists:
   - brick_protocol/support/operator/driver.py
   - brick_protocol/support/operator/__init__.py
   - brick_protocol/support/operator/onboard.py
+  - brick_protocol/support/operator/building_operation.py
+  - brick_protocol/support/operator/orchestration_packet.py
+  - brick_protocol/support/connection/mcp_projection.py
+  - brick_protocol/agent/prompts/coo.md
+  - brick_protocol/agent/skills/building-coordination/SKILL.md
+  - brick_protocol/brick/templates/skills/building-coordination/SKILL.md
+  - brick_protocol/agent/skills/task_intake/SKILL.md
+  - brick_protocol/brick/templates/skills/task_intake/SKILL.md
   - brick_protocol/support/checkers/check_driver_public_intake_seal.py
   - brick_protocol/support/checkers/profiles/driver_public_intake_seal.yaml
 text_contains:
@@ -25,7 +33,13 @@ text_contains:
       - PUBLIC_BUILDING_MAKING_INTAKES
       - SEALED_INTERNAL_INTAKES
       - SEALED_HELPER_EXPORTS
+      - SEALED_BUILDER_INTERNAL_HELPERS
+      - INTERNAL_ROUTE_FAMILY_EXECUTORS
+      - OFFICIAL_CUSTOMER_ENTRY_MARKER
+      - INTERNAL_ROUTE_FAMILY_MARKER
       - launch_assembled_building public export remains sealed
+      - coo_run_orchestration_packet facade re-export remains sealed
+      - remain excluded from customer startup surfaces
       - mutation RED observed
   - path: brick_protocol/support/operator/__init__.py
     texts:
@@ -34,6 +48,51 @@ text_contains:
     texts:
       - 'Internal/non-customer helper for an already-``assemble()``-d graph.'
       - 'This helper is not the P3 customer Easy Building route.'
+  - path: brick_protocol/support/operator/orchestration_packet.py
+    texts:
+      - def _coo_run_orchestration_packet
+      - Builder-internal read/run material for an already-declared Building Plan.
+      - not a customer/startup entrance
+  - path: AGENTS.md
+    texts:
+      - Official customer execution entrances
+      - Builder-internal declared route-family executors, not customer/startup
+      - declared_portfolio = declared route-family plan kind
+      - declared_repair_replay = declared route-family plan kind
+  - path: brick_protocol/support/connection/mcp_projection.py
+    texts:
+      - internal_support_surface_refs
+      - Builder-internal executors selected only after the declared_portfolio or declared_repair_replay route-family plan kind is declared
+  - path: brick_protocol/agent/prompts/coo.md
+    texts:
+      - Official customer execution entrances
+      - Builder-internal declared route-family executors (not customer/startup entrances)
+      - brick_protocol.support.operator.driver.run_declared_portfolio
+      - brick_protocol.support.operator.auto_repair_replay.run_declared_auto_repair_replay_case
+  - path: brick_protocol/agent/skills/building-coordination/SKILL.md
+    texts:
+      - Official customer execution entrances
+      - Builder-internal declared route-family executors (not customer/startup entrances)
+      - brick_protocol.support.operator.driver.run_declared_portfolio
+      - brick_protocol.support.operator.auto_repair_replay.run_declared_auto_repair_replay_case
+  - path: brick_protocol/brick/templates/skills/building-coordination/SKILL.md
+    texts:
+      - Official customer execution entrances
+      - Builder-internal declared route-family executors (not customer/startup entrances)
+      - brick_protocol.support.operator.driver.run_declared_portfolio
+      - brick_protocol.support.operator.auto_repair_replay.run_declared_auto_repair_replay_case
+  - path: brick_protocol/agent/skills/task_intake/SKILL.md
+    texts:
+      - Official customer execution entrances
+      - Builder-internal declared route-family executors (not customer/startup entrances)
+      - brick_protocol.support.operator.driver.run_declared_portfolio
+      - brick_protocol.support.operator.auto_repair_replay.run_declared_auto_repair_replay_case
+  - path: brick_protocol/brick/templates/skills/task_intake/SKILL.md
+    texts:
+      - Official customer execution entrances
+      - Builder-internal declared route-family executors (not customer/startup entrances)
+      - brick_protocol.support.operator.driver.run_declared_portfolio
+      - brick_protocol.support.operator.auto_repair_replay.run_declared_auto_repair_replay_case
 text_absent:
   - path: brick_protocol/support/operator/driver.py
     texts:
@@ -45,6 +104,35 @@ text_absent:
   - path: brick_protocol/support/operator/onboard.py
     texts:
       - '    "launch_assembled_building",'
+  - path: brick_protocol/support/operator/building_operation.py
+    texts:
+      - coo_run_orchestration_packet
+  - path: brick_protocol/support/operator/orchestration_packet.py
+    texts:
+      - def coo_run_orchestration_packet
+  - path: brick_protocol/agent/prompts/coo.md
+    texts:
+      - 'Startup / handoff path candidates:'
+      - 'E: brick_protocol.support.operator.driver.run_declared_portfolio'
+      - 'F: brick_protocol.support.operator.auto_repair_replay.run_declared_auto_repair_replay_case'
+  - path: brick_protocol/agent/skills/building-coordination/SKILL.md
+    texts:
+      - 'Startup / handoff path candidates:'
+      - 'E: brick_protocol.support.operator.driver.run_declared_portfolio'
+      - 'F: brick_protocol.support.operator.auto_repair_replay.run_declared_auto_repair_replay_case'
+  - path: brick_protocol/brick/templates/skills/building-coordination/SKILL.md
+    texts:
+      - 'Startup / handoff path candidates:'
+      - 'E: brick_protocol.support.operator.driver.run_declared_portfolio'
+      - 'F: brick_protocol.support.operator.auto_repair_replay.run_declared_auto_repair_replay_case'
+  - path: brick_protocol/agent/skills/task_intake/SKILL.md
+    texts:
+      - 'E: brick_protocol.support.operator.driver.run_declared_portfolio'
+      - 'F: brick_protocol.support.operator.auto_repair_replay.run_declared_auto_repair_replay_case'
+  - path: brick_protocol/brick/templates/skills/task_intake/SKILL.md
+    texts:
+      - 'E: brick_protocol.support.operator.driver.run_declared_portfolio'
+      - 'F: brick_protocol.support.operator.auto_repair_replay.run_declared_auto_repair_replay_case'
 proof_limits:
   - support evidence only
   - not source truth

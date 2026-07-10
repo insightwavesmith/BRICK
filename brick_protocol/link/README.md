@@ -5,7 +5,8 @@
 
 **비개발자 비유:** Link은 "작업물을 다음 자리로 **옮기는 컨베이어와, 통과 여부를 재는
 게이트**"다. 무엇을 만들지(Brick)도, 누가 하는지(Agent)도 아닌, *어디로·통과하는가*만 여기 산다.
-충분성+Movement 판정 권위는 오직 이 축(Link 게이트)에 있다.
+게이트는 충분성 사실만 기록한다. 이미 선언된 forward/reroute Movement를 운반·기록하는
+계약은 Link에 있지만, 게이트 사실 자체가 Movement를 고르지는 않는다.
 
 ## 폴더 지도 (git ls-files 실측)
 
@@ -27,11 +28,14 @@
 
 ## 오해 방지
 
-- **Movement 권위는 Link만의 것.** Brick·Agent·support 어느 축도 forward/reroute를 고르지
-  못한다. 게이트가 충분성을 재고 Movement를 정한다.
+- **Movement 의미와 기록 계약은 Link만의 것.** Brick·Agent·support는 게이트 사실만으로
+  forward/reroute를 추론하거나 새로 고르지 못한다.
+- 게이트는 **충분성만 측정**한다. 부족하다는 사실은 이후 caller/COO disposition 또는 선언된
+  Link 정책의 입력이지, 그 자체가 reroute 결정은 아니다.
 - gate·transfer·carry는 **독립 최상위 경로로 존재하지 않는다** — 축(brick_protocol/brick/agent/link) 아래
   선언된 파일로만 산다(루트 `gate.py`·`transfer.py`류는 admission이 거부).
-- README는 **안내 표면**이지 판정이 아니다. 통과·재라우팅 결정은 실행된 게이트 증거가 근거다.
+- README는 **안내 표면**이지 판정이 아니다. forward/reroute 채택에는 선언된 정책 또는
+  caller/COO disposition과 실행 증거가 함께 필요하다.
 
 > support evidence only. not source truth · not success judgment · not quality
 > judgment · not Movement authority.

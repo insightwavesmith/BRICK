@@ -508,11 +508,10 @@ providers:
     reasoning_tier: null
 """,
         )
-        _assert_selection(
-            _selection(repo),
-            adapter_ref="adapter:gemini-local",
-            model_ref="model:gemini:default",
-            label="registered ready static preference stays on lane preference",
+        _assert_raises(
+            "ready non-declared provider cannot replace lane performer",
+            lambda: _selection(repo),
+            "declared performer is not ready",
         )
 
         _write_registry(
@@ -528,15 +527,10 @@ providers:
     reasoning_tier: medium
 """,
         )
-        _assert_selection(
-            observed := _selection(repo),
-            adapter_ref="adapter:codex-local",
-            model_ref="model:codex:default",
-            label="unregistered static preference falls back with model update",
-        )
-        _assert_effort_ref_shape(
-            observed,
-            label="provider fallback preserves reasoning-effort dial shape",
+        _assert_raises(
+            "ready codex cannot replace declared inspector performer",
+            lambda: _selection(repo),
+            "agent-object:inspector requires adapter:claude-local",
         )
 
         _write_registry(
@@ -552,11 +546,10 @@ providers:
     reasoning_tier: medium
 """,
         )
-        _assert_selection(
-            _selection(repo),
-            adapter_ref="adapter:codex-local",
-            model_ref="model:codex:default",
-            label="malformed registry model_ref falls back to adapter default",
+        _assert_raises(
+            "malformed non-declared registry row cannot select a performer",
+            lambda: _selection(repo),
+            "automatic adapter substitution is forbidden",
         )
 
         _write_registry(
@@ -572,11 +565,10 @@ providers:
     reasoning_tier: medium
 """,
         )
-        _assert_selection(
-            _selection(repo),
-            adapter_ref=lane_adapter_ref,
-            model_ref=lane_model_ref,
-            label="fallback outside Agent Object allow-list is rejected",
+        _assert_raises(
+            "unadmitted registry preference cannot replace or mask declared performer readiness",
+            lambda: _selection(repo),
+            "declared performer is not ready",
         )
 
         os.environ["BRICK_PROVIDER_LADDER"] = "0"

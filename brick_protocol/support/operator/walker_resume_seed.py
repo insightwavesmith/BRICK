@@ -270,6 +270,7 @@ def _stamp_resumed_lifecycle_on_held_source(
     replay_step,
     checked_proof_limits: tuple[str, ...],
     held_occurrence_index: int | None = None,
+    building_root: str = "",
 ) -> list[BuildingRunSupportResult]:
     """Stamp the human/COO-authored resumed transition_lifecycle on the held source.
 
@@ -320,6 +321,7 @@ def _stamp_resumed_lifecycle_on_held_source(
             author_ref=resume_seed.author_ref or "human:unknown",
             replay_step=replay_step,
             checked_proof_limits=checked_proof_limits,
+            building_root=building_root,
         )
         return list(head) + step_results[held_occurrence_index + 1 :]
     return _replace_held_source_with_lifecycle(
@@ -331,6 +333,7 @@ def _stamp_resumed_lifecycle_on_held_source(
         author_ref=resume_seed.author_ref or "human:unknown",
         replay_step=replay_step,
         checked_proof_limits=checked_proof_limits,
+        building_root=building_root,
     )
 
 

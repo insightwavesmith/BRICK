@@ -1,0 +1,61 @@
+schema: checker-profile/v1
+profile_id: building-call-order-chain
+description: O1-O3 order chain contract - task + exact eight sizing answers + confirmed authoring draft freeze deterministically into one held review packet with a declared per-node casting table; unresolved remaining_delta HOLDs with questions before lowering; explicit forward hands the frozen graph unchanged to the existing --graph-decl path; revised drafts re-lower with a measured diff; direct frozen-JSON edits and blank actions are rejected.
+kernel_checks:
+  - building_call_order_chain_contract
+  - package_path_admission
+path_exists:
+  - brick_protocol/support/operator/building_call.py
+  - brick_protocol/support/checkers/fixtures/building_call_order_chain/sizing_answers.json
+  - brick_protocol/support/checkers/fixtures/building_call_authoring/positive_return.json
+  - brick_protocol/support/checkers/profiles/building_call_order_chain.yaml
+text_contains:
+  - path: brick_protocol/support/operator/building_call.py
+    texts:
+      - ORDER_REVIEW_PACKET_SCHEMA_VERSION = "building-call-order-review-packet-v1"
+      - ORDER_QUESTION_HOLD_SCHEMA_VERSION = "building-call-order-question-hold-v1"
+      - ORDER_FORWARD_PACKET_SCHEMA_VERSION = "building-call-order-forward-packet-v1"
+      - ORDER_RELOWER_PACKET_SCHEMA_VERSION = "building-call-order-relower-packet-v1"
+      - def freeze_building_call_order_v1(
+      - def forward_frozen_building_call_order_v1(
+      - def relower_building_call_order_v1(
+      - held_for_coo_review
+      - held_for_authoring_questions
+      - environment-driven ladder selection is forbidden
+      - frozen order must omit action so the existing stop default remains authoritative
+  - path: brick_protocol/support/checkers/fixtures/building_call_order_chain/sizing_answers.json
+    texts:
+      - '"walker_adjacent"'
+      - '"size"'
+      - '"splittable"'
+      - '"file_conflict"'
+      - '"failure_cost"'
+      - '"human_approval"'
+      - '"termination_shape"'
+      - '"difficulty"'
+  - path: brick_protocol/support/checkers/check_profile.py
+    texts:
+      - building_call_order_chain_contract
+  - path: brick_protocol/support/checkers/lib/kernel_checks.py
+    texts:
+      - stop and direct-frozen-edit probes RED-fired
+text_absent:
+  - path: brick_protocol/support/operator/building_call.py
+    texts:
+      - route_materialization.py
+      - walker_kernel.py
+      - walker_resume.py
+      - def run_building_plan
+      - run_building_plan(
+      - compose_building(
+      - materialize_transition_concern_disposition
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic fitness of the frozen order for the task
+  - future Building execution behavior
+  - live provider casting readiness at launch time

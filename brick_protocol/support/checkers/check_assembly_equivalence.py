@@ -2767,6 +2767,7 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
             invalid_author = build(
                 _approval_simple_graph(),
                 goal="build invalid author checker task",
+                selected_adapter_ref="codex-local",
                 declared_by=DECLARED_BY,
                 author_ref="smith",
                 action="forward",
@@ -2784,6 +2785,7 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
             stopped = build(
                 _approval_simple_graph(),
                 goal="build stop checker task",
+                selected_adapter_ref="codex-local",
                 declared_by=DECLARED_BY,
                 author_ref="coo:smith",
                 action="stop",
@@ -2814,6 +2816,7 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
             forward_build = build(
                 _approval_simple_graph(),
                 goal="build forward proposal residue checker task",
+                selected_adapter_ref="codex-local",
                 declared_by=DECLARED_BY,
                 author_ref="coo:smith",
                 action="forward",
@@ -2866,6 +2869,7 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
             explicit = build(
                 explicit_graph,
                 goal="build explicit pass-through checker task",
+                selected_adapter_ref="codex-local",
                 declared_by=DECLARED_BY,
                 author_ref="coo:smith",
                 action="stop",
@@ -2908,6 +2912,7 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
                 build(
                     explicit_graph,
                     goal=f"build rejected expansion_budget {rejected_budget!r} checker task",
+                    selected_adapter_ref="codex-local",
                     declared_by=DECLARED_BY,
                     author_ref="coo:smith",
                     action="stop",
@@ -3614,7 +3619,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
     repo = Path(args.repo).resolve() if args.repo else _REPO_ROOT
     try:
-        outputs = run(repo)
+        from brick_protocol.support.operator.import_identity import (
+            mint_official_launch_token,
+            reset_official_launch_token,
+        )
+
+        launch_token = mint_official_launch_token()
+        try:
+            outputs = run(repo)
+        finally:
+            reset_official_launch_token(launch_token)
     except AssemblyEquivalenceError as exc:
         print("assembly equivalence rejected:", file=sys.stderr)
         print(f"- {exc}", file=sys.stderr)

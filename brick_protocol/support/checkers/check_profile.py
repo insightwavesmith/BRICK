@@ -164,6 +164,7 @@ from brick_protocol.support.checkers.lib.kernel_checks import (
     run_building_call_authoring_contract,
     run_building_call_direct_escape_contract,
     run_building_call_lowering_contract,
+    run_building_call_order_chain_contract,
     run_structure_plan_fan_barrier,
 )
 from brick_protocol.support.checkers.lib.mutation_red_manifest_check import run_mutation_red_manifest
@@ -384,10 +385,15 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
     "building_call_authoring_contract": run_building_call_authoring_contract,
     "building_call_direct_escape_contract": run_building_call_direct_escape_contract,
     "building_call_lowering_contract": run_building_call_lowering_contract,
+    "building_call_order_chain_contract": run_building_call_order_chain_contract,
     "structure_plan_fan_barrier": run_structure_plan_fan_barrier,
     "route_v2_views": _repo_main(
         "route_v2_views",
         "brick_protocol.support.checkers.check_route_v2_views",
+    ),
+    "operating_vocabulary_v1": _repo_main(
+        "operating_vocabulary_v1",
+        "brick_protocol.support.checkers.check_operating_vocabulary",
     ),
     "preflight_injection_survival": _repo_main(
         "preflight_injection_survival",
@@ -866,12 +872,11 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
     # The external bare-launch lives in the checker layer (kernel_checks.py),
     # never in mcp_projection.py, which owns no execution surface.
     "mcp_stdio_smoke": run_mcp_stdio_smoke,
-    # R9-MODELLANE-0708. Executes the Agent discipline reconciliation pin
-    # IN-PROCESS: the model-lane discipline must preserve the 0702
-    # codex/sonnet/gemini defaults while retiring active fable dispatch,
-    # pinning Opus 4.8 for Claude design / important QA, and keeping the fugu
-    # high-depth tier. The checker carries built-in mutation-RED probes for
-    # removing the retirement row or reintroducing active fable allowance.
+    # R9-MODELLANE-0710. Executes the Agent discipline reconciliation pin
+    # IN-PROCESS: pm-lead must default to Fable5 xhigh, dev must default to
+    # GPT-5.6-sol xhigh, Opus 4.8 remains the important Claude QA target, and
+    # Fugu remains the explicit high-depth tier. The checker carries built-in
+    # mutation-RED probes for losing either active default or drifting effort.
     "model_lane_matching_discipline": _repo_main(
         "model_lane_matching_discipline",
         "brick_protocol.support.checkers.check_model_lane_matching_discipline",

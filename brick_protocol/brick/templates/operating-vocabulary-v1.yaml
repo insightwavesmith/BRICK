@@ -1,0 +1,94 @@
+{
+  "schema": "brick-operating-vocabulary/v1",
+  "vocabulary_version": "v1",
+  "status": "active",
+  "approved_by": "smith",
+  "approved_at": "2026-07-10",
+  "agent_lanes": [
+    "coo",
+    "cto-lead",
+    "design-lead",
+    "dev",
+    "inspector",
+    "order-author",
+    "pm-lead",
+    "qa-lead",
+    "qa"
+  ],
+  "brick_kinds": [
+    "plan",
+    "design",
+    "deep-design",
+    "work",
+    "development",
+    "review",
+    "code-attack-qa",
+    "axis-attack-qa",
+    "evidence-integrity",
+    "inspect",
+    "building-call-authoring",
+    "closure"
+  ],
+  "chain_presets": [
+    "quick-check",
+    "fast-fix",
+    "one-brick-do",
+    "docs-simple-review",
+    "app-feature-basic",
+    "app-feature-inspected",
+    "design-build-parallel",
+    "design-contract-only",
+    "four-llm-standard-graph",
+    "two-fan-in-graph",
+    "triage-fanout-3",
+    "governed-change-review",
+    "high-risk-change-inspected",
+    "recon-fleet-light",
+    "recon-fleet",
+    "review-fleet",
+    "postmortem",
+    "postmortem-fleet",
+    "repair-loop",
+    "research-report",
+    "portfolio-sequence",
+    "portfolio-reviewed",
+    "building-call-authoring",
+    "onboarding-example-graph",
+    "brick-protocol-engine-feature-hard",
+    "brick-protocol-constitution-change",
+    "brick-protocol-dashboard-dev-basic",
+    "brick-protocol-dashboard-dev-inspected",
+    "brick-protocol-portfolio-driver",
+    "brick-protocol-post-d-cleanup"
+  ],
+  "preset_classifications": {
+    "quick-check": "direct_quick",
+    "fast-fix": "direct_quick",
+    "onboarding-example-graph": "example_only",
+    "default": "order_chain_only"
+  },
+  "v1_implementation_decisions": {
+    "intake_answers": "existing_eight_answer_contract",
+    "order_author_shape": "single_order_author_then_closure",
+    "critical_behavior": "human_gate_first",
+    "lowering_surface": "deterministic_cli_after_authoring_return",
+    "inline_vocabulary_creation": false
+  },
+  "amendment_contract": {
+    "required_steps": [
+      "make-a-resource scaffold",
+      "registry and checker update",
+      "smith approval record",
+      "vocabulary version bump"
+    ],
+    "inline_authoring_amendment_forbidden": true
+  },
+  "proof_limits": [
+    "Brick declaration vocabulary only",
+    "not provider readiness",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ]
+}

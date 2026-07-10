@@ -252,6 +252,10 @@ def _case_paths(tmp: Path, label: str) -> tuple[Path, Path, Path]:
 def _run_driver(repo: Path, portfolio: Mapping[str, Any], output_root: Path, projection_root: Path, proposals: Mapping[str, str]):
     from brick_protocol.support.operator.driver import run_declared_portfolio
 
+    # The deterministic adapter:local callable is read-only. Keep its cwd inside
+    # the checker vessel so portfolio probes never observe or anchor the live
+    # checkout's unrelated dirty bytes under a synthetic Building WIP ref.
+    output_root.mkdir(parents=True, exist_ok=True)
     return run_declared_portfolio(
         portfolio,
         repo_root=repo,
@@ -259,7 +263,7 @@ def _run_driver(repo: Path, portfolio: Mapping[str, Any], output_root: Path, pro
         portfolio_output_root=projection_root,
         overwrite_existing=True,
         local_callables={"callable:local:agent-invoke0-smoke": _callable(proposals)},
-        adapter_cwd=repo,
+        adapter_cwd=output_root,
         adapter_timeout_seconds=30,
     )
 
@@ -723,6 +727,27 @@ def check(repo: Path) -> tuple[list[str], Mapping[str, Any]]:
     # root), never nested in the checker's tmp above and never the live tree.
     _w1_worktree_sandbox_fire(repo, violations, summary)
 
+    # WO-1 lifecycle fail-closed FIRE. This stays inside the existing W1 checker
+    # because worktree preservation is one invariant family, not a new checker.
+    _wo1_worktree_lifecycle_fire(repo, violations, summary)
+
+    # WO-1 R2/R3/R8: a verified WIP generation is the workspace resume base even
+    # after the caller branch advances, and every public sandbox path returns the
+    # same compact, durable recovery-handle shape.
+    _wo1_resume_continuity_and_recovery_fire(repo, violations, summary)
+
+    # WO-4 item 2: one process writes in the real sandbox, reaches a durable
+    # HOLD/WIP, terminates, and a fresh process resumes only through the
+    # installed official `brick resume --decl` entry. The persistent /tmp proof
+    # root is intentionally retained for the caller to inspect.
+    _wo4_subprocess_resume_continuity_fire(repo, violations, summary)
+
+    # 0710d live2 regression lock: the hold re-stamp replay must resolve prior
+    # step-output source_facts against the run's ACTUAL building root (custom
+    # --output-root), or a resumed walk dies "missing step-output source_fact
+    # body/evidence" right before land while the files exist on disk.
+    _holdstamp_source_fact_context_fire(repo, violations, summary)
+
     # Customer graph wrapper FIRE: fluent fan-in packets carry an engine-derived
     # required_return_shape on fan-in source nodes, and omitted output_root must
     # use the default buildings vessel without touching the live customer tree.
@@ -829,7 +854,7 @@ def _fan_dispatch_child_timeout_fire(
                 output_root=output_root,
                 overwrite_existing=True,
                 command_runner=_timeout_runner,
-                adapter_cwd=repo,
+                adapter_cwd=output_root,
                 adapter_timeout_seconds=1,
             )
             elapsed = time.monotonic() - started
@@ -970,7 +995,7 @@ def _fan_dispatch_slow_normal_child_no_false_hold_fire(
                 output_root=output_root,
                 overwrite_existing=True,
                 command_runner=_slow_normal_runner,
-                adapter_cwd=repo,
+                adapter_cwd=output_root,
                 adapter_timeout_seconds=1,
             )
             elapsed = time.monotonic() - started
@@ -1221,8 +1246,30 @@ def _resume_isolation_disposition_fire(
         hold_reason: str,
         budget_exhausted: bool = False,
     ) -> None:
+        from brick_protocol.support.recording.declaration_packets import (
+            _declared_building_plan_packet,
+        )
+
         (root / "evidence").mkdir(parents=True, exist_ok=True)
         (root / "raw").mkdir(parents=True, exist_ok=True)
+        (root / "work").mkdir(parents=True, exist_ok=True)
+        declared_plan = _child_plan(
+            "p2-held",
+            candidate_ref="building-boundary:p2-held-closed",
+        )
+        (root / "work" / "declared-building-plan.json").write_text(
+            json.dumps(
+                _declared_building_plan_packet(
+                    building_id=str(declared_plan["building_id"]),
+                    plan_ref=str(declared_plan["plan_ref"]),
+                    plan=declared_plan,
+                ),
+                indent=2,
+                sort_keys=True,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
         plan = {
             "plan_ref": "building-plan:resume-menu-fixture",
             "dynamic_walker_evidence": {
@@ -1231,6 +1278,7 @@ def _resume_isolation_disposition_fire(
                 "hold": {
                     "hold_reason": hold_reason,
                     "budget_exhausted": budget_exhausted,
+                    "reroute_ref": "p2-held",
                     "pending_target_ref": "brick-p2-held-work",
                     "paused_at_ref": "link-transition:p2-held",
                     "source_step_ref": "p2-source",
@@ -1295,6 +1343,9 @@ def _resume_isolation_disposition_fire(
     summary["resume_adapter_raise_error"] = adapter_raise.get("error_kind")
     summary["resume_adapter_raise_allowed"] = adapter_raise.get("allowed_disposition_actions")
     summary["resume_adapter_stop_error"] = adapter_stop.get("error_kind")
+    summary["resume_adapter_stop_error_message"] = adapter_stop.get("error_message")
+    summary["resume_adapter_stop_ok"] = adapter_stop.get("ok")
+    summary["resume_adapter_stop_frontier"] = adapter_stop.get("frontier_kind")
     summary["resume_adapter_stop_approval_hold_source"] = adapter_stop.get("approval_hold_source")
     if budget_forward.get("error_kind") != "invalid_disposition_for_hold":
         violations.append("resume-menu-RED: budget-exhaustion forward was not refused")
@@ -1302,12 +1353,18 @@ def _resume_isolation_disposition_fire(
         violations.append("resume-menu-RED: budget-exhaustion menu did not publish raise/stop/reroute")
     if adapter_raise.get("error_kind") != "invalid_disposition_for_hold":
         violations.append("resume-menu-RED: adapter-error raise was not refused")
-    if adapter_raise.get("allowed_disposition_actions") != ["stop"]:
-        violations.append("resume-menu-RED: adapter-error menu did not publish stop-only")
-    if adapter_stop.get("error_kind") != "resume_requires_isolated_adapter_cwd":
+    if adapter_raise.get("allowed_disposition_actions") != ["forward", "stop"]:
         violations.append(
-            "resume-menu: adapter-error stop did not pass to later adapter_cwd guard "
-            f"({adapter_stop.get('error_kind')!r})"
+            "resume-menu-RED: adapter-error menu did not publish narrow forward/stop retry"
+        )
+    if (
+        adapter_stop.get("error_kind") is not None
+        or adapter_stop.get("ok") is not True
+    ):
+        violations.append(
+            "resume-menu: adapter-error paper-stop was not admitted without replay "
+            f"(error={adapter_stop.get('error_kind')!r}, "
+            f"frontier={adapter_stop.get('frontier_kind')!r})"
         )
     if adapter_stop.get("approval_hold_source") != "dynamic_walker_evidence.adapter_error_frontier":
         violations.append(
@@ -1420,8 +1477,26 @@ def _sensitive_write_observation_fire(
                     violations.append(
                         "sensitive-commit-RED: sensitive path was staged before the commit block"
                     )
+                dispose_refused = False
+                try:
+                    dispose_worktree_sandbox(sandbox)
+                except WorktreeSandboxError:
+                    dispose_refused = True
+                sensitive_survived = (sandbox.path / ".env").is_file()
+                summary["sensitive_commit_dispose_refused"] = dispose_refused
+                summary["sensitive_commit_bytes_survived"] = sensitive_survived
+                if not dispose_refused or not sensitive_survived:
+                    violations.append(
+                        "sensitive-commit-RED: rejected .env commit still allowed "
+                        "worktree disposal or lost the sensitive bytes"
+                    )
             finally:
-                dispose_worktree_sandbox(sandbox)
+                if sandbox.path.exists():
+                    (sandbox.path / ".env").unlink(missing_ok=True)
+                    try:
+                        dispose_worktree_sandbox(sandbox)
+                    except WorktreeSandboxError:
+                        _wo1_force_cleanup(repo, sandbox.path)
 
             sandbox = create_worktree_sandbox(
                 repo,
@@ -1458,8 +1533,26 @@ def _sensitive_write_observation_fire(
                 anchor_ref = _git_text(repo, "for-each-ref", "--format=%(refname)", "refs/brick/wip/")
                 if "sensitive-anchor-red" in anchor_ref:
                     violations.append("sensitive-anchor-RED: sensitive WIP anchor ref was created")
+                dispose_refused = False
+                try:
+                    dispose_worktree_sandbox(sandbox)
+                except WorktreeSandboxError:
+                    dispose_refused = True
+                sensitive_survived = (sandbox.path / ".env").is_file()
+                summary["sensitive_anchor_dispose_refused"] = dispose_refused
+                summary["sensitive_anchor_bytes_survived"] = sensitive_survived
+                if not dispose_refused or not sensitive_survived:
+                    violations.append(
+                        "sensitive-anchor-RED: rejected .env anchor still allowed "
+                        "worktree disposal or lost the sensitive bytes"
+                    )
             finally:
-                dispose_worktree_sandbox(sandbox)
+                if sandbox.path.exists():
+                    (sandbox.path / ".env").unlink(missing_ok=True)
+                    try:
+                        dispose_worktree_sandbox(sandbox)
+                    except WorktreeSandboxError:
+                        _wo1_force_cleanup(repo, sandbox.path)
 
 
 # ---------------------------------------------------------------------------
@@ -1986,10 +2079,14 @@ def _w1_worktree_sandbox_fire(
     from brick_protocol.support.operator.worktree_sandbox import (
         _ENGINE_WORKTREE_MARKER,
         _engine_worktrees_root,
+        WorktreeSandboxError,
+        anchor_wip_snapshot,
+        dispose_worktree_sandbox,
         reclaim_wip_anchor,
         release_wip_anchor,
         reap_stale_wip_anchors,
         reap_stale_worktrees,
+        reopen_worktree_sandbox,
     )
 
     with tempfile.TemporaryDirectory(prefix="bp-w1-customer-") as cust_raw, \
@@ -2134,51 +2231,98 @@ def _w1_worktree_sandbox_fire(
         land_sensitive = Path(cust_raw) / "customer-land-force-sensitive"
         land_sensitive.mkdir(parents=True, exist_ok=True)
         _seed_customer_repo(repo, land_sensitive)
-        land_sensitive_result = run_customer_building_in_sandbox(
-            _w1_intent("w1-land-force-sensitive-0"),
-            customer_repo_root=land_sensitive,
-            output_root=evidence_root / "land-force-sensitive",
-            overwrite_existing=True,
-            command_runner=_w1_completing_codex_runner(
-                write=True,
-                extra_write_rels=("onboarding-example/provider-session-state.json",),
-            ),
-            adapter_timeout_seconds=30,
+        land_sensitive_building_id = "w1-land-force-sensitive-0"
+        land_sensitive_error = ""
+        try:
+            run_customer_building_in_sandbox(
+                _w1_intent(land_sensitive_building_id),
+                customer_repo_root=land_sensitive,
+                output_root=evidence_root / "land-force-sensitive",
+                overwrite_existing=True,
+                command_runner=_w1_completing_codex_runner(
+                    write=True,
+                    extra_write_rels=("onboarding-example/provider-session-state.json",),
+                ),
+                adapter_timeout_seconds=30,
+            )
+        except Exception as exc:  # noqa: BLE001 -- fail-closed preservation is the contract
+            land_sensitive_error = str(exc)
+        land_sensitive_worktree = engine_root / land_sensitive_building_id
+        land_sensitive_evidence = (
+            evidence_root / "land-force-sensitive" / land_sensitive_building_id
         )
         land_sensitive_link_records = _jsonl_records(
-            Path(land_sensitive_result.evidence_root) / "raw" / "link.jsonl"
+            land_sensitive_evidence / "raw" / "link.jsonl"
         )
         land_sensitive_hold_rows = [
             record
             for record in land_sensitive_link_records
             if record.get("hold_reason") == _LAND_FORCE_COMMIT_ABSENT_REASON
         ]
-        summary["w1_land_force_sensitive_frontier"] = land_sensitive_result.frontier_kind
-        summary["w1_land_force_sensitive_reason"] = land_sensitive_result.frontier_reason
-        summary["w1_land_force_sensitive_commit"] = land_sensitive_result.commit_sha
-        summary["w1_land_force_sensitive_wip_anchor"] = land_sensitive_result.wip_anchor_ref
-        summary["w1_land_force_sensitive_disposed"] = land_sensitive_result.worktree_disposed
+        land_sensitive_frontier = observe_building_frontier(
+            land_sensitive_evidence,
+            repo_root=land_sensitive,
+        )
+        summary["w1_land_force_sensitive_frontier"] = land_sensitive_frontier.get(
+            "frontier_kind"
+        )
+        summary["w1_land_force_sensitive_reason"] = land_sensitive_frontier.get(
+            "frontier_reason"
+        )
+        summary["w1_land_force_sensitive_commit"] = ""
+        summary["w1_land_force_sensitive_wip_anchor"] = ""
+        summary["w1_land_force_sensitive_disposed"] = not land_sensitive_worktree.exists()
+        summary["w1_land_force_sensitive_error"] = land_sensitive_error
         summary["w1_land_force_sensitive_hold_row_count"] = len(land_sensitive_hold_rows)
-        if land_sensitive_result.frontier_kind != "human_review_waiting":
+        if land_sensitive_frontier.get("frontier_kind") != "human_review_waiting":
             violations.append(
                 "w1-land-force-sensitive: commit exception did not return a loud hold "
-                f"(frontier={land_sensitive_result.frontier_kind!r})"
+                f"(frontier={land_sensitive_frontier.get('frontier_kind')!r})"
             )
-        if land_sensitive_result.frontier_reason != _LAND_FORCE_COMMIT_ABSENT_REASON:
+        if land_sensitive_frontier.get("frontier_reason") != _LAND_FORCE_COMMIT_ABSENT_REASON:
             violations.append(
                 "w1-land-force-sensitive: commit exception did not surface land-force reason "
-                f"(reason={land_sensitive_result.frontier_reason!r})"
+                f"(reason={land_sensitive_frontier.get('frontier_reason')!r})"
             )
-        if land_sensitive_result.commit_sha:
-            violations.append("w1-land-force-sensitive: sensitive commit unexpectedly landed")
-        if land_sensitive_result.wip_anchor_ref:
+        if "sensitive" not in land_sensitive_error.lower():
             violations.append(
-                "w1-land-force-sensitive: land-force commit absence fell through to WIP anchor"
+                "w1-land-force-sensitive: sensitive commit/anchor failure did not propagate"
             )
-        if not land_sensitive_result.worktree_disposed:
-            violations.append("w1-land-force-sensitive: worktree was not disposed after hold")
+        if not land_sensitive_worktree.exists():
+            violations.append(
+                "w1-land-force-sensitive: unanchorable sensitive bytes were disposed after hold"
+            )
+        elif not (
+            land_sensitive_worktree / "onboarding-example/provider-session-state.json"
+        ).is_file():
+            violations.append(
+                "w1-land-force-sensitive: preserved worktree lost the sensitive-path bytes"
+            )
         if not land_sensitive_hold_rows:
             violations.append("w1-land-force-sensitive: land-force HOLD row was not persisted")
+        # Checker cleanup: remove only the synthetic sensitive fixture, then
+        # anchor the remaining ordinary WIP and close through the same guard.
+        if land_sensitive_worktree.exists():
+            (
+                land_sensitive_worktree
+                / "onboarding-example/provider-session-state.json"
+            ).unlink(missing_ok=True)
+            reopened = reopen_worktree_sandbox(
+                land_sensitive,
+                land_sensitive_building_id,
+            )
+            if reopened is None:
+                violations.append(
+                    "w1-land-force-sensitive: preserved engine worktree could not be reopened"
+                )
+            else:
+                anchor_wip_snapshot(
+                    reopened,
+                    land_sensitive_building_id,
+                    message=f"BRICK WIP anchor: {land_sensitive_building_id}",
+                )
+                dispose_worktree_sandbox(reopened)
+                release_wip_anchor(land_sensitive, land_sensitive_building_id)
         if not Path(result.evidence_root).is_dir():
             violations.append("w1-live-tree: durable evidence root is missing")
         if result.worktree_path and Path(result.evidence_root).resolve().is_relative_to(
@@ -2903,7 +3047,9 @@ def _w1_worktree_sandbox_fire(
             f"repo_root={customer}\n"
             "building_id=stale-old-marker\n"
             f"base_sha={head_before}\n"
-            f"created_at={old_created}\n",
+            f"created_at={old_created}\n"
+            "owner_pid=999999\n"
+            "lease_id=stale-old-dead-owner\n",
             encoding="utf-8",
         )
         (fresh_marker / _ENGINE_WORKTREE_MARKER).write_text(
@@ -2911,7 +3057,9 @@ def _w1_worktree_sandbox_fire(
             f"repo_root={customer}\n"
             "building_id=stale-fresh-marker\n"
             f"base_sha={head_before}\n"
-            f"created_at={fresh_created}\n",
+            f"created_at={fresh_created}\n"
+            f"owner_pid={os.getpid()}\n"
+            "lease_id=stale-fresh-live-owner\n",
             encoding="utf-8",
         )
         (bad_marker / _ENGINE_WORKTREE_MARKER).write_text(
@@ -2934,40 +3082,37 @@ def _w1_worktree_sandbox_fire(
         if not bad_marker.exists():
             violations.append("w1-stale-liveness: unparseable engine marker did not fail closed")
 
-        # CASE 2 (non-git refuse): point the wrapper at a NON-git dir that still
-        # carries the Brick catalog (a checkout whose .git was removed) -> the
-        # probe fails closed, the wrapper falls back to a temp dir, creates NO
-        # worktree, does NOT mutate the dir, and reports degraded mode. The write
-        # lands in the temp dir (so even a real provider never touches the dir).
+        # CASE 2 (non-git write refuse): a write-capable Building may not use the
+        # destructive temp-dir fallback. The probe fails closed before dispatch,
+        # creates no worktree, and leaves the non-git customer dir byte-identical.
         non_git = Path(cust_raw) / "not-a-repo"
         non_git.mkdir(parents=True, exist_ok=True)
         _seed_customer_repo(repo, non_git)
         _remove_git_dir(non_git)  # now a non-git dir that still has the catalog
         before_snapshot = _dir_snapshot(non_git)
-        degraded = run_customer_building_in_sandbox(
-            _w1_intent("w1-non-git-refuse-0"),
-            customer_repo_root=non_git,
-            output_root=evidence_root / "degraded",
-            overwrite_existing=True,
-            command_runner=_w1_completing_codex_runner(write=True),
-            adapter_timeout_seconds=30,
-        )
+        degraded_error = ""
+        try:
+            run_customer_building_in_sandbox(
+                _w1_intent("w1-non-git-refuse-0"),
+                customer_repo_root=non_git,
+                output_root=evidence_root / "degraded",
+                overwrite_existing=True,
+                command_runner=_w1_completing_codex_runner(write=True),
+                adapter_timeout_seconds=30,
+            )
+        except WorktreeSandboxError as exc:
+            degraded_error = str(exc)
         after_snapshot = _dir_snapshot(non_git)
-        summary["w1_degraded_mode"] = degraded.isolation_mode
-        summary["w1_degraded_reason"] = degraded.isolation_reason
-        summary["w1_degraded_frontier"] = degraded.frontier_kind
-        if degraded.isolation_mode != "temp_dir":
+        summary["w1_degraded_mode"] = "write_refused"
+        summary["w1_degraded_reason"] = degraded_error
+        summary["w1_degraded_frontier"] = ""
+        if (
+            "write-capable Building requires a durable git worktree" not in degraded_error
+            or "not-a-git-work-tree" not in degraded_error
+        ):
             violations.append(
-                f"w1-non-git: expected temp_dir fallback, got {degraded.isolation_mode!r}"
+                f"w1-non-git: write-capable temp fallback was not refused: {degraded_error!r}"
             )
-        if degraded.isolation_reason != "not-a-git-work-tree":
-            violations.append(
-                f"w1-non-git: degraded reason drifted: {degraded.isolation_reason!r}"
-            )
-        if degraded.worktree_path:
-            violations.append("w1-non-git: a worktree was created over a non-git dir")
-        if degraded.commit_sha:
-            violations.append("w1-non-git: a commit was produced in degraded mode")
         if (non_git / _W1_WRITE_REL).exists():
             violations.append("w1-non-git: the write landed in the non-git customer dir")
         if before_snapshot != after_snapshot:
@@ -3356,8 +3501,16 @@ def _w1_worktree_sandbox_fire(
             _git_text(old_wip_customer, "update-ref", old_wip_ref, old_wip_sha)
             reaped_wip = reap_stale_wip_anchors(old_wip_customer, stale_after_seconds=-1)
             summary["w1_stale_wip_reaped_refs"] = list(reaped_wip)
-            if old_wip_ref not in reaped_wip:
-                violations.append("w1-stale-wip-anchor: old refs/brick/wip anchor was not reaped")
+            stale_wip_still_present = bool(
+                _git_text(old_wip_customer, "rev-parse", "--verify", old_wip_ref)
+            )
+            summary["w1_stale_wip_preserved_without_disposition"] = stale_wip_still_present
+            if reaped_wip or not stale_wip_still_present:
+                violations.append(
+                    "w1-stale-wip-anchor: age-only cleanup deleted a recovery ref without "
+                    "land/discard evidence"
+                )
+            _git_text(old_wip_customer, "update-ref", "-d", old_wip_ref, old_wip_sha)
         else:
             violations.append("w1-stale-wip-anchor: could not create stale WIP fixture commit")
 
@@ -3403,6 +3556,2020 @@ def _w1_worktree_sandbox_fire(
                 "w1-mutation-RED: bypassing the worktree did NOT dirty the live tree, so the "
                 "live-tree-untouched proof is vacuous"
             )
+
+
+def _wo1_seed_repo(root: Path, *, ignored_pattern: str = "") -> str:
+    """Create a minimal independent git repo for WO-1 lifecycle probes."""
+
+    root.mkdir(parents=True, exist_ok=True)
+    (root / "tracked.txt").write_text("base\n", encoding="utf-8")
+    if ignored_pattern:
+        (root / ".gitignore").write_text(ignored_pattern, encoding="utf-8")
+    subprocess.run(["git", "-C", str(root), "init", "-q"], check=True, timeout=30)
+    subprocess.run(["git", "-C", str(root), "add", "-A"], check=True, timeout=30)
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(root),
+            "-c",
+            "user.name=wo1-checker",
+            "-c",
+            "user.email=wo1@brick.local",
+            "commit",
+            "-q",
+            "-m",
+            "WO-1 seed",
+        ],
+        check=True,
+        timeout=30,
+    )
+    return _git_text(root, "rev-parse", "HEAD")
+
+
+def _wo1_rewrite_marker(
+    sandbox: Any,
+    *,
+    building_id: str,
+    created_at: str,
+    owner_pid: int,
+) -> None:
+    marker = Path(sandbox.path) / ".brick-engine-worktree"
+    marker.write_text(
+        "engine-created\n"
+        f"repo_root={Path(sandbox.repo_root).resolve()}\n"
+        f"building_id={building_id}\n"
+        f"base_sha={sandbox.base_sha}\n"
+        f"created_at={created_at}\n"
+        f"owner_pid={owner_pid}\n"
+        f"lease_id=wo1-{building_id}\n",
+        encoding="utf-8",
+    )
+
+
+def _wo1_force_cleanup(repo: Path, path: Path) -> None:
+    """Checker-only cleanup after an intentionally refused safe disposal."""
+
+    import shutil
+
+    subprocess.run(
+        ["git", "-C", str(repo), "worktree", "remove", "--force", str(path)],
+        check=False,
+        text=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        timeout=30,
+    )
+    if path.exists():
+        shutil.rmtree(path, ignore_errors=True)
+    subprocess.run(
+        ["git", "-C", str(repo), "worktree", "prune"],
+        check=False,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        timeout=30,
+    )
+
+
+def _wo1_worktree_lifecycle_fire(
+    repo: Path,
+    violations: list[str],
+    summary: dict[str, Any],
+) -> None:
+    """WO-1 R1/R5/R7/R9 fail-closed worktree mechanics.
+
+    These probes do not walk a Building or call a provider. They pin the byte
+    preservation mechanics that the driver/onboard callers must consume.
+    """
+
+    import shutil
+
+    from brick_protocol.support.operator import worktree_sandbox as sandbox_module
+    from brick_protocol.support.operator.worktree_sandbox import (
+        WorktreeSandboxError,
+        anchor_wip_snapshot,
+        create_worktree_sandbox,
+        dispose_worktree_sandbox,
+        reap_stale_worktrees,
+        reclaim_wip_anchor,
+        release_wip_anchor,
+        release_worktree_lease,
+    )
+
+    wo1: dict[str, Any] = {}
+
+    # R1: every anchor primitive failure must make active disposal refuse while
+    # the dirty bytes remain in place. The failure hook stays active during the
+    # disposal call so status failure itself is also fail-closed.
+    r1_results: dict[str, Any] = {}
+    for failure_point in ("status", "add", "write-tree", "commit-tree", "update-ref"):
+        with tempfile.TemporaryDirectory(prefix=f"bp-wo1-r1-{failure_point}-") as raw:
+            root = Path(raw)
+            customer = root / "repo"
+            home = root / "home"
+            base = _wo1_seed_repo(customer)
+            with _TemporaryHome(home):
+                building_id = f"wo1-r1-{failure_point}"
+                sandbox = create_worktree_sandbox(
+                    customer,
+                    building_id=building_id,
+                    base_sha=base,
+                )
+                target = sandbox.path / "partial.txt"
+                target.write_text(f"partial at {failure_point}\n", encoding="utf-8")
+                original_git = sandbox_module._git
+
+                def _failing_git(cwd: Path, *args: str) -> str | None:
+                    command = args[0] if args else ""
+                    should_fail = (
+                        (failure_point == "status" and command == "status")
+                        or (failure_point == "add" and command == "add")
+                        or (failure_point == "write-tree" and command == "write-tree")
+                        or (failure_point == "commit-tree" and "commit-tree" in args)
+                        or (failure_point == "update-ref" and command == "update-ref")
+                    )
+                    if should_fail:
+                        return None
+                    return original_git(cwd, *args)
+
+                anchor_failed = False
+                dispose_refused = False
+                try:
+                    sandbox_module._git = _failing_git
+                    try:
+                        anchor_wip_snapshot(
+                            sandbox,
+                            building_id,
+                            message=f"BRICK WIP anchor: {building_id}",
+                        )
+                    except WorktreeSandboxError:
+                        anchor_failed = True
+                    try:
+                        dispose_worktree_sandbox(sandbox)
+                    except WorktreeSandboxError:
+                        dispose_refused = True
+                finally:
+                    sandbox_module._git = original_git
+                survived = sandbox.path.is_dir() and target.read_text(encoding="utf-8") == (
+                    f"partial at {failure_point}\n"
+                )
+                r1_results[failure_point] = {
+                    "anchor_failed": anchor_failed,
+                    "dispose_refused": dispose_refused,
+                    "bytes_survived": survived,
+                }
+                if not anchor_failed:
+                    violations.append(
+                        f"wo1-r1-{failure_point}: injected anchor failure did not fail"
+                    )
+                if not dispose_refused or not survived:
+                    violations.append(
+                        f"wo1-r1-{failure_point}: anchor failure still allowed dirty worktree disposal"
+                    )
+                if sandbox.path.exists():
+                    try:
+                        anchor_wip_snapshot(
+                            sandbox,
+                            building_id,
+                            message=f"BRICK WIP anchor: {building_id}",
+                        )
+                        dispose_worktree_sandbox(sandbox)
+                    except WorktreeSandboxError:
+                        _wo1_force_cleanup(customer, sandbox.path)
+                release_wip_anchor(customer, building_id)
+    wo1["r1_anchor_failure_fail_closed"] = r1_results
+
+    # R7: replacing the canonical WIP ref must preserve the previous generation;
+    # the verified handle must carry ref/sha/base and release must compare SHA.
+    with tempfile.TemporaryDirectory(prefix="bp-wo1-r7-") as raw:
+        root = Path(raw)
+        customer = root / "repo"
+        base = _wo1_seed_repo(customer)
+        with _TemporaryHome(root / "home"):
+            building_id = "wo1-r7-generation"
+            sandbox = create_worktree_sandbox(customer, building_id=building_id, base_sha=base)
+            reopened_reader = getattr(sandbox_module, "reopen_worktree_sandbox", None)
+            concurrent_reopen_refused = False
+            if callable(reopened_reader):
+                try:
+                    reopened_reader(customer, building_id)
+                except WorktreeSandboxError:
+                    concurrent_reopen_refused = True
+            release_worktree_lease(sandbox)
+            reopened = reopened_reader(customer, building_id) if callable(reopened_reader) else None
+            if not (
+                reopened
+                and reopened.path == sandbox.path
+                and reopened.base_sha == base
+                and reopened.building_id == building_id
+            ):
+                violations.append(
+                    "wo1-r7: same-repo existing engine worktree could not be reopened safely"
+                )
+            else:
+                sandbox = reopened
+            if not concurrent_reopen_refused:
+                violations.append(
+                    "wo1-r7: active in-process worktree lease allowed a concurrent reopen"
+                )
+            target = sandbox.path / "generation.txt"
+            target.write_text("generation one\n", encoding="utf-8")
+            anchor_wip_snapshot(
+                sandbox,
+                building_id,
+                message=f"BRICK WIP anchor: {building_id}",
+            )
+            first = reclaim_wip_anchor(customer, building_id)
+            target.write_text("generation two\n", encoding="utf-8")
+            anchor_wip_snapshot(
+                sandbox,
+                building_id,
+                message=f"BRICK WIP anchor: {building_id}",
+            )
+            second = reclaim_wip_anchor(customer, building_id)
+            backup_rows = _git_text(
+                customer,
+                "for-each-ref",
+                "--format=%(refname) %(objectname)",
+                "refs/brick/wip-backup/",
+            ).splitlines()
+            first_sha = first[1] if first else ""
+            second_sha = second[1] if second else ""
+            old_preserved = any(row.endswith(f" {first_sha}") for row in backup_rows)
+            handle_reader = getattr(sandbox_module, "reclaim_wip_recovery_handle", None)
+            handle = handle_reader(customer, building_id) if callable(handle_reader) else None
+            handle_valid = bool(
+                handle
+                and getattr(handle, "ref", "") == (second[0] if second else "")
+                and getattr(handle, "sha", "") == second_sha
+                and getattr(handle, "base_sha", "") == base
+            )
+            wo1["r7_generation"] = {
+                "first_sha": first_sha,
+                "second_sha": second_sha,
+                "backup_rows": backup_rows,
+                "old_preserved": old_preserved,
+                "verified_handle": handle_valid,
+            }
+            if not first_sha or not second_sha or first_sha == second_sha:
+                violations.append("wo1-r7: two WIP generations were not distinct")
+            if not old_preserved:
+                violations.append("wo1-r7: canonical WIP overwrite did not preserve old generation")
+            if not handle_valid:
+                violations.append("wo1-r7: verified recovery handle did not carry ref/sha/base")
+            try:
+                dispose_worktree_sandbox(sandbox)
+            except WorktreeSandboxError:
+                _wo1_force_cleanup(customer, sandbox.path)
+
+            # _slug collision: a second exact building id may not silently take
+            # over the first Building's canonical recovery address.
+            collision_id = "wo1/r7/generation"
+            collision = create_worktree_sandbox(
+                customer,
+                building_id=collision_id,
+                base_sha=base,
+            )
+            collision_target = collision.path / "collision.txt"
+            collision_target.write_text("collision bytes\n", encoding="utf-8")
+            collision_refused = False
+            try:
+                anchor_wip_snapshot(
+                    collision,
+                    collision_id,
+                    message=f"BRICK WIP anchor: {collision_id}",
+                )
+            except WorktreeSandboxError:
+                collision_refused = True
+            collision_dispose_refused = False
+            try:
+                dispose_worktree_sandbox(collision)
+            except WorktreeSandboxError:
+                collision_dispose_refused = True
+            wo1["r7_generation"]["slug_collision_refused"] = collision_refused
+            wo1["r7_generation"]["slug_collision_bytes_survived"] = (
+                collision_target.is_file()
+            )
+            if not collision_refused or not collision_dispose_refused or not collision_target.is_file():
+                violations.append(
+                    "wo1-r7: slug-colliding Building overwrote/released another recovery address"
+                )
+            release_compared = False
+            try:
+                release_compared = release_wip_anchor(
+                    customer,
+                    building_id,
+                    expected_sha=second_sha,
+                )
+            except TypeError:
+                pass
+            if not release_compared:
+                violations.append("wo1-r7: WIP release lacks atomic expected-SHA comparison")
+                release_wip_anchor(customer, building_id)
+            if collision.path.exists():
+                anchor_wip_snapshot(
+                    collision,
+                    collision_id,
+                    message=f"BRICK WIP anchor: {collision_id}",
+                )
+                dispose_worktree_sandbox(collision)
+                release_wip_anchor(customer, collision_id)
+
+    # R9 ignored-only bytes and dirty submodule content cannot be represented by
+    # a normal git tree anchor. Both must raise explicitly and block disposal.
+    with tempfile.TemporaryDirectory(prefix="bp-wo1-r9-ignored-") as raw:
+        root = Path(raw)
+        customer = root / "repo"
+        base = _wo1_seed_repo(customer, ignored_pattern="ignored-only/\n")
+        with _TemporaryHome(root / "home"):
+            building_id = "wo1-r9-ignored"
+            sandbox = create_worktree_sandbox(customer, building_id=building_id, base_sha=base)
+            ignored = sandbox.path / "ignored-only" / "provider.bin"
+            ignored.parent.mkdir(parents=True)
+            ignored.write_text("ignored provider bytes\n", encoding="utf-8")
+            ignored_error = ""
+            try:
+                anchor_wip_snapshot(
+                    sandbox,
+                    building_id,
+                    message=f"BRICK WIP anchor: {building_id}",
+                )
+            except WorktreeSandboxError as exc:
+                ignored_error = str(exc)
+            dispose_refused = False
+            try:
+                dispose_worktree_sandbox(sandbox)
+            except WorktreeSandboxError:
+                dispose_refused = True
+            ignored_survived = ignored.is_file()
+            wo1["r9_ignored"] = {
+                "error": ignored_error,
+                "dispose_refused": dispose_refused,
+                "bytes_survived": ignored_survived,
+            }
+            if "ignored" not in ignored_error.lower():
+                violations.append("wo1-r9-ignored: ignored-only change was not explicitly reported")
+            if not dispose_refused or not ignored_survived:
+                violations.append("wo1-r9-ignored: ignored-only bytes were silently disposed")
+            if sandbox.path.exists():
+                shutil.rmtree(sandbox.path / "ignored-only", ignore_errors=True)
+                try:
+                    dispose_worktree_sandbox(sandbox)
+                except WorktreeSandboxError:
+                    _wo1_force_cleanup(customer, sandbox.path)
+
+    with tempfile.TemporaryDirectory(prefix="bp-wo1-r9-submodule-") as raw:
+        root = Path(raw)
+        subrepo = root / "subrepo"
+        sub_base = _wo1_seed_repo(subrepo)
+        customer = root / "repo"
+        base = _wo1_seed_repo(customer)
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(customer),
+                "-c",
+                "protocol.file.allow=always",
+                "submodule",
+                "add",
+                "-q",
+                str(subrepo),
+                "deps/sub",
+            ],
+            check=True,
+            timeout=30,
+        )
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(customer),
+                "-c",
+                "user.name=wo1-checker",
+                "-c",
+                "user.email=wo1@brick.local",
+                "commit",
+                "-q",
+                "-am",
+                "add submodule",
+            ],
+            check=True,
+            timeout=30,
+        )
+        base = _git_text(customer, "rev-parse", "HEAD")
+        with _TemporaryHome(root / "home"):
+            building_id = "wo1-r9-submodule"
+            sandbox = create_worktree_sandbox(customer, building_id=building_id, base_sha=base)
+            subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(sandbox.path),
+                    "-c",
+                    "protocol.file.allow=always",
+                    "submodule",
+                    "update",
+                    "--init",
+                    "-q",
+                ],
+                check=True,
+                timeout=30,
+            )
+            sub_target = sandbox.path / "deps/sub/tracked.txt"
+            sub_target.write_text("dirty submodule bytes\n", encoding="utf-8")
+            submodule_error = ""
+            try:
+                anchor_wip_snapshot(
+                    sandbox,
+                    building_id,
+                    message=f"BRICK WIP anchor: {building_id}",
+                )
+            except WorktreeSandboxError as exc:
+                submodule_error = str(exc)
+            dispose_refused = False
+            try:
+                dispose_worktree_sandbox(sandbox)
+            except WorktreeSandboxError:
+                dispose_refused = True
+            submodule_survived = sub_target.is_file() and (
+                sub_target.read_text(encoding="utf-8") == "dirty submodule bytes\n"
+            )
+            wo1["r9_submodule"] = {
+                "error": submodule_error,
+                "dispose_refused": dispose_refused,
+                "bytes_survived": submodule_survived,
+                "sub_seed": sub_base,
+            }
+            if "submodule" not in submodule_error.lower():
+                violations.append("wo1-r9-submodule: dirty submodule was not explicitly refused")
+            if not dispose_refused or not submodule_survived:
+                violations.append("wo1-r9-submodule: dirty submodule bytes were silently disposed")
+            release_wip_anchor(customer, building_id)
+            if sandbox.path.exists():
+                subprocess.run(
+                    ["git", "-C", str(sandbox.path / "deps/sub"), "reset", "--hard", "-q"],
+                    check=False,
+                    timeout=30,
+                )
+                try:
+                    dispose_worktree_sandbox(sandbox)
+                except WorktreeSandboxError:
+                    _wo1_force_cleanup(customer, sandbox.path)
+
+    # R5: the global HOME root must not permit cross-repo deletion; a live owner
+    # survives age alone; a dead-owner dirty worktree is anchored and only then
+    # removed.
+    with tempfile.TemporaryDirectory(prefix="bp-wo1-r5-") as raw:
+        root = Path(raw)
+        repo_a = root / "repo-a"
+        repo_b = root / "repo-b"
+        base_a = _wo1_seed_repo(repo_a)
+        base_b = _wo1_seed_repo(repo_b)
+        with _TemporaryHome(root / "home"):
+            cross_id = "wo1-r5-cross-repo"
+            live_id = "wo1-r5-live"
+            dirty_id = "wo1-r5-dirty"
+            cross = create_worktree_sandbox(repo_b, building_id=cross_id, base_sha=base_b)
+            live = create_worktree_sandbox(repo_a, building_id=live_id, base_sha=base_a)
+            dirty = create_worktree_sandbox(repo_a, building_id=dirty_id, base_sha=base_a)
+            old_created = (datetime.now(timezone.utc) - timedelta(days=2)).isoformat(
+                timespec="microseconds"
+            ).replace("+00:00", "Z")
+            _wo1_rewrite_marker(
+                cross,
+                building_id=cross_id,
+                created_at=old_created,
+                owner_pid=999999,
+            )
+            _wo1_rewrite_marker(
+                live,
+                building_id=live_id,
+                created_at=old_created,
+                owner_pid=os.getpid(),
+            )
+            _wo1_rewrite_marker(
+                dirty,
+                building_id=dirty_id,
+                created_at=old_created,
+                owner_pid=999999,
+            )
+            dirty_file = dirty.path / "last-chance.txt"
+            dirty_file.write_text("last chance bytes\n", encoding="utf-8")
+            reaped = reap_stale_worktrees(repo_a, stale_after_seconds=0)
+            dirty_anchor = reclaim_wip_anchor(repo_a, dirty_id)
+            anchored_body = (
+                _git_text(repo_a, "show", f"{dirty_anchor[1]}:last-chance.txt")
+                if dirty_anchor
+                else ""
+            )
+            wo1["r5_reaper"] = {
+                "reaped": list(reaped),
+                "cross_repo_preserved": cross.path.exists(),
+                "live_preserved": live.path.exists(),
+                "dirty_removed": not dirty.path.exists(),
+                "dirty_anchor": dirty_anchor,
+                "dirty_anchor_body": anchored_body,
+            }
+            if not cross.path.exists():
+                violations.append("wo1-r5: stale sweep deleted another repo's engine worktree")
+            if not live.path.exists():
+                violations.append("wo1-r5: age-only sweep deleted a live-owner worktree")
+            if dirty.path.exists() or anchored_body != "last chance bytes":
+                violations.append("wo1-r5: dirty stale worktree was removed without verified last-chance anchor")
+            if cross.path.exists():
+                try:
+                    dispose_worktree_sandbox(cross)
+                except WorktreeSandboxError:
+                    _wo1_force_cleanup(repo_b, cross.path)
+            if live.path.exists():
+                try:
+                    dispose_worktree_sandbox(live)
+                except WorktreeSandboxError:
+                    _wo1_force_cleanup(repo_a, live.path)
+            release_wip_anchor(repo_a, dirty_id)
+            subprocess.run(
+                ["git", "-C", str(repo_b), "worktree", "prune"],
+                check=False,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=30,
+            )
+
+    summary["wo1_lifecycle"] = wo1
+
+
+def _wo1_exact_recovery_handle(
+    label: str,
+    result: Any,
+    *,
+    violations: list[str],
+) -> dict[str, str]:
+    """Pin the one public recovery-handle schema and its result-field identity."""
+
+    raw = getattr(result, "recovery_handle", None)
+    handle = dict(raw) if isinstance(raw, Mapping) else {}
+    required_keys = {"ref", "sha", "base", "resume_command"}
+    diagnostic_keys = {"worktree_path", "preservation_state"}
+    expected_schema = required_keys | diagnostic_keys
+    if set(handle) != expected_schema:
+        violations.append(
+            f"wo1-r8-{label}: recovery_handle must carry required address keys plus "
+            f"the shared preservation diagnostics {sorted(expected_schema)}, "
+            f"got {sorted(handle)}"
+        )
+        return {str(key): str(value) for key, value in handle.items()}
+    if not all(isinstance(value, str) for value in handle.values()):
+        violations.append(f"wo1-r8-{label}: recovery_handle values must all be text")
+    expected_ref = str(
+        getattr(result, "landed_ref", "")
+        or getattr(result, "wip_anchor_ref", "")
+        or ""
+    )
+    expected_sha = str(
+        getattr(result, "wip_commit_sha", "")
+        or getattr(result, "commit_sha", "")
+        or ""
+    )
+    expected_base = str(getattr(result, "base_sha", "") or "")
+    if handle.get("ref") != expected_ref:
+        violations.append(
+            f"wo1-r8-{label}: recovery_handle.ref did not match landed/WIP result ref"
+        )
+    if handle.get("sha") != expected_sha:
+        violations.append(
+            f"wo1-r8-{label}: recovery_handle.sha did not match the preserved/landed SHA"
+        )
+    if handle.get("base") != expected_base:
+        violations.append(f"wo1-r8-{label}: recovery_handle.base != result.base_sha")
+    if expected_ref and not handle.get("resume_command"):
+        violations.append(
+            f"wo1-r8-{label}: held WIP recovery handle omitted resume_command"
+        )
+    return {str(key): str(value) for key, value in handle.items()}
+
+
+def _wo1_resume_continuity_and_recovery_fire(
+    repo: Path,
+    violations: list[str],
+    summary: dict[str, Any],
+) -> None:
+    """WO-1 R2/R3/R8 filesystem continuity and public result-shape probes.
+
+    The resume body is checker-local so no provider is called, but the repo,
+    detached worktrees, WIP commit/ref, HEAD drift, reopen verification, close,
+    release, and byte reads are all real filesystem/git behavior.
+    """
+
+    from types import SimpleNamespace
+
+    import brick_protocol.support.operator.driver as driver_module
+    import brick_protocol.support.operator.run as run_module
+    from brick_protocol.support.operator.driver import BuildingIntakeRunResult
+    from brick_protocol.support.operator.worktree_sandbox import (
+        WorktreeSandboxError,
+        anchor_wip_snapshot,
+        create_worktree_sandbox,
+        dispose_worktree_sandbox,
+        reclaim_wip_anchor,
+        reclaim_wip_recovery_handle,
+        release_wip_anchor,
+        release_worktree_lease,
+        reopen_worktree_sandbox,
+    )
+
+    _ = repo
+    r2r3: dict[str, Any] = {}
+    exact_handles: dict[str, dict[str, str]] = {}
+    with tempfile.TemporaryDirectory(prefix="bp-wo1-r2-r3-r8-") as raw:
+        root = Path(raw)
+        customer = root / "customer"
+        evidence_root = root / "evidence"
+        evidence_root.mkdir(parents=True)
+        base = _wo1_seed_repo(customer)
+        with _TemporaryHome(root / "home"):
+            building_id = "wo1-r2-r3-resume"
+            held = create_worktree_sandbox(
+                customer,
+                building_id=building_id,
+                base_sha=base,
+            )
+            expected_bytes = b"brick-wip-byte-continuity\x00\xff\n"
+            (held.path / "provider-wip.bin").write_bytes(expected_bytes)
+            anchor_wip_snapshot(
+                held,
+                building_id,
+                message=f"BRICK WIP anchor: {building_id}",
+            )
+            original_handle = reclaim_wip_recovery_handle(customer, building_id)
+            if original_handle is None:
+                violations.append("wo1-r2: real filesystem WIP handle was not created")
+                _wo1_force_cleanup(customer, held.path)
+                return
+            dispose_worktree_sandbox(held)
+
+            # R3: move only the caller branch after HOLD. Resume must not blend
+            # this new HEAD into the WIP generation without explicit adoption.
+            (customer / "main-after-hold.txt").write_text(
+                "main branch advanced after hold\n",
+                encoding="utf-8",
+            )
+            subprocess.run(
+                ["git", "-C", str(customer), "add", "main-after-hold.txt"],
+                check=True,
+                timeout=30,
+            )
+            subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(customer),
+                    "-c",
+                    "user.name=wo1-checker",
+                    "-c",
+                    "user.email=wo1@brick.local",
+                    "commit",
+                    "-q",
+                    "-m",
+                    "advance main after hold",
+                ],
+                check=True,
+                timeout=30,
+            )
+            advanced_main = _git_text(customer, "rev-parse", "HEAD")
+
+            building_root = evidence_root / building_id
+            plan_path = building_root / "work" / "declared-building-plan.json"
+            plan_path.parent.mkdir(parents=True)
+            plan_path.write_text(
+                json.dumps(
+                    {
+                        "building_id": building_id,
+                        "plan_ref": f"building-plan:{building_id}",
+                        "plan_shape": "graph",
+                    },
+                    sort_keys=True,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            observed: dict[str, Any] = {}
+            original_resume = run_module.resume_building_plan
+            original_observe = driver_module.observe_building_frontier
+
+            def _resume_observer(
+                _building_root: Path,
+                *,
+                adapter_cwd: Path,
+                **_kwargs: Any,
+            ) -> Any:
+                cwd = Path(adapter_cwd)
+                observed["bytes"] = (cwd / "provider-wip.bin").read_bytes()
+                observed["head"] = _git_text(cwd, "rev-parse", "HEAD")
+                observed["main_drift_file_present"] = (cwd / "main-after-hold.txt").exists()
+                return SimpleNamespace(
+                    lifecycle_write=SimpleNamespace(root=building_root),
+                    anchored_ref="",
+                )
+
+            def _complete_frontier(_root: Path, *, repo_root: Path) -> Mapping[str, Any]:
+                _ = repo_root
+                return {"frontier_kind": "complete", "frontier_reason": ""}
+
+            try:
+                run_module.resume_building_plan = _resume_observer
+                driver_module.observe_building_frontier = _complete_frontier
+                resumed = driver_module.run_customer_resume_in_sandbox(
+                    building_root,
+                    customer_repo_root=customer,
+                    adapter_timeout_seconds=30,
+                )
+            finally:
+                run_module.resume_building_plan = original_resume
+                driver_module.observe_building_frontier = original_observe
+
+            original_parent = _git_text(
+                customer,
+                "rev-parse",
+                f"{original_handle.sha}^",
+            )
+            wip_ref_after_complete = reclaim_wip_anchor(customer, building_id)
+            landed_ref = str(getattr(resumed, "landed_ref", "") or "")
+            landed_sha = (
+                _git_text(customer, "rev-parse", "--verify", f"{landed_ref}^{{commit}}")
+                if landed_ref
+                else ""
+            )
+            r2r3.update(
+                {
+                    "original_base": base,
+                    "wip_ref": original_handle.ref,
+                    "wip_sha": original_handle.sha,
+                    "wip_parent": original_parent,
+                    "advanced_main": advanced_main,
+                    "resume_head": observed.get("head", ""),
+                    "byte_identical": observed.get("bytes") == expected_bytes,
+                    "main_drift_file_present": bool(observed.get("main_drift_file_present")),
+                    "worktree_disposed": resumed.worktree_disposed,
+                    "wip_released_after_complete": wip_ref_after_complete is None,
+                    "landed_ref": landed_ref,
+                    "landed_sha": landed_sha,
+                }
+            )
+            if observed.get("bytes") != expected_bytes:
+                violations.append("wo1-r2: HOLD bytes were not byte-identical in resume cwd")
+            if observed.get("head") != original_handle.sha:
+                violations.append("wo1-r3: resume cwd did not open at the verified WIP commit")
+            if original_parent != base or original_handle.base_sha != base:
+                violations.append("wo1-r3: WIP generation lost its original base identity")
+            if advanced_main == base or advanced_main == original_handle.sha:
+                violations.append("wo1-r3: fixture did not create independent main HEAD drift")
+            if observed.get("main_drift_file_present"):
+                violations.append("wo1-r3: resume silently blended advanced main into original WIP")
+            if not resumed.worktree_disposed or wip_ref_after_complete is not None:
+                violations.append(
+                    "wo1-r7: completed resume did not dispose and release verified WIP"
+                )
+            if (
+                not landed_ref.startswith("refs/brick/landed/")
+                or landed_sha != resumed.commit_sha
+                or resumed.recovery_handle.get("ref") != landed_ref
+            ):
+                violations.append(
+                    "wo1-r8-resume: completed output was not pinned by the same "
+                    "landed ref carried in recovery_handle"
+                )
+            exact_handles["resume"] = _wo1_exact_recovery_handle(
+                "resume",
+                resumed,
+                violations=violations,
+            )
+
+            # R8 preset + graph: use their public wrappers and real sandbox/WIP
+            # close mechanics, replacing only the provider/plan body.
+            original_preset_intake = driver_module.run_building_intake
+            original_graph_intake = driver_module.run_composed_graph_intake
+            original_observe = driver_module.observe_building_frontier
+
+            def _fake_intake(
+                building: str,
+                adapter_cwd: Path,
+                output_root: Path,
+                filename: str,
+            ) -> BuildingIntakeRunResult:
+                Path(adapter_cwd, filename).write_bytes(
+                    f"{building} held bytes\n".encode("utf-8")
+                )
+                root_path = Path(output_root) / building
+                return BuildingIntakeRunResult(
+                    building_id=building,
+                    plan_path=root_path / "work" / "declared-building-plan.json",
+                    plan_shape="graph",
+                    walker_mode="dynamic",
+                    walker_mode_basis="WO-1 checker provider-body replacement",
+                    run_result=SimpleNamespace(
+                        lifecycle_write=SimpleNamespace(root=root_path),
+                        anchored_ref="",
+                    ),
+                    task_source_basis="task_statement",
+                )
+
+            def _preset_body(intent: Mapping[str, Any], **kwargs: Any) -> BuildingIntakeRunResult:
+                return _fake_intake(
+                    str(intent["building_id"]),
+                    Path(kwargs["adapter_cwd"]),
+                    Path(kwargs["output_root"]),
+                    "preset-held.bin",
+                )
+
+            def _graph_body(
+                _nodes: Any,
+                _edges: Any,
+                **kwargs: Any,
+            ) -> BuildingIntakeRunResult:
+                return _fake_intake(
+                    str(kwargs["building_id"]),
+                    Path(kwargs["adapter_cwd"]),
+                    Path(kwargs["output_root"]),
+                    "graph-held.bin",
+                )
+
+            def _held_frontier(_root: Path, *, repo_root: Path) -> Mapping[str, Any]:
+                _ = repo_root
+                return {
+                    "frontier_kind": "agent_incomplete",
+                    "frontier_reason": "WO-1 R8 checker hold",
+                }
+
+            try:
+                driver_module.run_building_intake = _preset_body
+                driver_module.run_composed_graph_intake = _graph_body
+                driver_module.observe_building_frontier = _held_frontier
+                preset = driver_module.run_customer_building_in_sandbox(
+                    {"building_id": "wo1-r8-preset"},
+                    customer_repo_root=customer,
+                    output_root=evidence_root,
+                )
+                graph = driver_module.run_customer_graph_building_in_sandbox(
+                    {
+                        "building_id": "wo1-r8-graph",
+                        "declared_by": "coo:wo1-checker",
+                        "nodes": [],
+                        "edges": [],
+                    },
+                    customer_repo_root=customer,
+                    output_root=evidence_root,
+                )
+            finally:
+                driver_module.run_building_intake = original_preset_intake
+                driver_module.run_composed_graph_intake = original_graph_intake
+                driver_module.observe_building_frontier = original_observe
+
+            exact_handles["preset"] = _wo1_exact_recovery_handle(
+                "preset",
+                preset,
+                violations=violations,
+            )
+            exact_handles["graph"] = _wo1_exact_recovery_handle(
+                "graph",
+                graph,
+                violations=violations,
+            )
+            release_wip_anchor(
+                customer,
+                "wo1-r8-preset",
+                expected_sha=preset.wip_commit_sha,
+            )
+            release_wip_anchor(
+                customer,
+                "wo1-r8-graph",
+                expected_sha=graph.wip_commit_sha,
+            )
+
+            # R3 identity-WIP: even a clean, non-complete run needs an explicit
+            # WIP generation. Otherwise a later HEAD advance silently changes
+            # what "resume" means despite there being no dirty file to compare.
+            identity_id = "wo1-r3-clean-identity"
+            original_preset_intake = driver_module.run_building_intake
+            original_observe = driver_module.observe_building_frontier
+
+            def _clean_identity_body(
+                _intent: Mapping[str, Any],
+                **kwargs: Any,
+            ) -> BuildingIntakeRunResult:
+                root_path = Path(kwargs["output_root"]) / identity_id
+                return BuildingIntakeRunResult(
+                    building_id=identity_id,
+                    plan_path=root_path / "work" / "declared-building-plan.json",
+                    plan_shape="graph",
+                    walker_mode="dynamic",
+                    walker_mode_basis="WO-1 clean identity-WIP fixture",
+                    run_result=SimpleNamespace(
+                        lifecycle_write=SimpleNamespace(root=root_path),
+                        anchored_ref="",
+                    ),
+                    task_source_basis="task_statement",
+                )
+
+            try:
+                driver_module.run_building_intake = _clean_identity_body
+                driver_module.observe_building_frontier = _held_frontier
+                identity_hold = driver_module.run_customer_building_in_sandbox(
+                    {"building_id": identity_id},
+                    customer_repo_root=customer,
+                    output_root=evidence_root,
+                )
+            finally:
+                driver_module.run_building_intake = original_preset_intake
+                driver_module.observe_building_frontier = original_observe
+            identity_handle = reclaim_wip_recovery_handle(customer, identity_id)
+            identity_tree = (
+                _git_text(customer, "rev-parse", f"{identity_handle.sha}^{{tree}}")
+                if identity_handle is not None
+                else ""
+            )
+            identity_base_tree = _git_text(customer, "rev-parse", f"{advanced_main}^{{tree}}")
+
+            (customer / "main-after-identity-hold.txt").write_text(
+                "second main drift after clean hold\n",
+                encoding="utf-8",
+            )
+            subprocess.run(
+                ["git", "-C", str(customer), "add", "main-after-identity-hold.txt"],
+                check=True,
+                timeout=30,
+            )
+            subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(customer),
+                    "-c",
+                    "user.name=wo1-checker",
+                    "-c",
+                    "user.email=wo1@brick.local",
+                    "commit",
+                    "-q",
+                    "-m",
+                    "advance main after clean identity hold",
+                ],
+                check=True,
+                timeout=30,
+            )
+            identity_advanced_main = _git_text(customer, "rev-parse", "HEAD")
+            identity_plan = (
+                evidence_root / identity_id / "work" / "declared-building-plan.json"
+            )
+            identity_plan.parent.mkdir(parents=True, exist_ok=True)
+            identity_plan.write_text(
+                json.dumps({"building_id": identity_id, "plan_shape": "graph"}) + "\n",
+                encoding="utf-8",
+            )
+            identity_observed: dict[str, Any] = {}
+            original_resume = run_module.resume_building_plan
+            original_observe = driver_module.observe_building_frontier
+
+            def _identity_resume(
+                _building_root: Path,
+                *,
+                adapter_cwd: Path,
+                **_kwargs: Any,
+            ) -> Any:
+                cwd = Path(adapter_cwd)
+                identity_observed["head"] = _git_text(cwd, "rev-parse", "HEAD")
+                identity_observed["tree"] = _git_text(cwd, "rev-parse", "HEAD^{tree}")
+                identity_observed["drift_present"] = (
+                    cwd / "main-after-identity-hold.txt"
+                ).exists()
+                return SimpleNamespace(
+                    lifecycle_write=SimpleNamespace(root=evidence_root / identity_id),
+                    anchored_ref="",
+                )
+
+            try:
+                run_module.resume_building_plan = _identity_resume
+                driver_module.observe_building_frontier = _complete_frontier
+                identity_resumed = driver_module.run_customer_resume_in_sandbox(
+                    evidence_root / identity_id,
+                    customer_repo_root=customer,
+                )
+            finally:
+                run_module.resume_building_plan = original_resume
+                driver_module.observe_building_frontier = original_observe
+            identity_released = reclaim_wip_anchor(customer, identity_id) is None
+            identity_landed_ref = str(
+                getattr(identity_resumed, "landed_ref", "") or ""
+            )
+            identity_landed_sha = (
+                _git_text(
+                    customer,
+                    "rev-parse",
+                    "--verify",
+                    f"{identity_landed_ref}^{{commit}}",
+                )
+                if identity_landed_ref
+                else ""
+            )
+            r2r3["clean_identity_wip"] = {
+                "hold_ref": identity_hold.wip_anchor_ref,
+                "hold_sha": identity_hold.wip_commit_sha,
+                "identity_tree": identity_tree,
+                "base_tree": identity_base_tree,
+                "advanced_main": identity_advanced_main,
+                "resume_head": identity_observed.get("head", ""),
+                "resume_tree": identity_observed.get("tree", ""),
+                "drift_present": bool(identity_observed.get("drift_present")),
+                "disposed": identity_resumed.worktree_disposed,
+                "released": identity_released,
+                "landed_ref": identity_landed_ref,
+                "landed_sha": identity_landed_sha,
+            }
+            if identity_handle is None or not identity_hold.wip_commit_sha:
+                violations.append(
+                    "wo1-r3-clean-identity: non-complete clean run omitted identity WIP"
+                )
+            elif identity_observed.get("head") != identity_handle.sha:
+                violations.append(
+                    "wo1-r3-clean-identity: resume used advanced HEAD instead of identity WIP"
+                )
+            if identity_tree != identity_base_tree or identity_observed.get("tree") != identity_tree:
+                violations.append(
+                    "wo1-r3-clean-identity: identity WIP did not preserve the original tree"
+                )
+            if identity_advanced_main == advanced_main or identity_observed.get("drift_present"):
+                violations.append(
+                    "wo1-r3-clean-identity: fixture drift was absent or blended into resume"
+                )
+            if not identity_resumed.worktree_disposed or not identity_released:
+                violations.append(
+                    "wo1-r3-clean-identity: completed identity resume was not disposed/released"
+                )
+            if (
+                not identity_landed_ref.startswith("refs/brick/landed/")
+                or identity_landed_sha != identity_resumed.commit_sha
+                or identity_resumed.recovery_handle.get("ref") != identity_landed_ref
+            ):
+                violations.append(
+                    "wo1-r3-clean-identity: completed identity output lost its landed ref"
+                )
+
+            # R6: provider capability is sufficient to require a durable git
+            # worktree even when the packet forgot to declare write_scope.
+            non_git = root / "non-git-customer"
+            non_git.mkdir()
+            r6_dispatched: list[str] = []
+            original_preset_intake = driver_module.run_building_intake
+            original_graph_intake = driver_module.run_composed_graph_intake
+
+            def _r6_preset_dispatch(*_args: Any, **_kwargs: Any) -> Any:
+                r6_dispatched.append("preset")
+                raise AssertionError("write-capable preset reached temp fallback")
+
+            def _r6_graph_dispatch(*_args: Any, **_kwargs: Any) -> Any:
+                r6_dispatched.append("graph")
+                raise AssertionError("write-capable graph reached temp fallback")
+
+            r6_errors: dict[str, str] = {}
+            try:
+                driver_module.run_building_intake = _r6_preset_dispatch
+                driver_module.run_composed_graph_intake = _r6_graph_dispatch
+                try:
+                    driver_module.run_customer_building_in_sandbox(
+                        {
+                            "building_id": "wo1-r6-provider-preset",
+                            "selected_adapter_ref": "adapter:codex-local",
+                        },
+                        customer_repo_root=non_git,
+                        output_root=evidence_root,
+                    )
+                except WorktreeSandboxError as exc:
+                    r6_errors["preset"] = str(exc)
+                try:
+                    driver_module.run_customer_graph_building_in_sandbox(
+                        {
+                            "building_id": "wo1-r6-provider-graph",
+                            "declared_by": "coo:wo1-checker",
+                            "selected_adapter_ref": "adapter:codex-local",
+                            "nodes": [],
+                            "edges": [],
+                        },
+                        customer_repo_root=non_git,
+                        output_root=evidence_root,
+                    )
+                except WorktreeSandboxError as exc:
+                    r6_errors["graph"] = str(exc)
+            finally:
+                driver_module.run_building_intake = original_preset_intake
+                driver_module.run_composed_graph_intake = original_graph_intake
+            r2r3["r6_write_capable_without_scope"] = {
+                "errors": r6_errors,
+                "dispatched": r6_dispatched,
+            }
+            if set(r6_errors) != {"preset", "graph"} or r6_dispatched:
+                violations.append(
+                    "wo1-r6: write-capable provider without write_scope reached temp fallback"
+                )
+            if any("temp-dir fallback refused" not in error for error in r6_errors.values()):
+                violations.append(
+                    "wo1-r6: refusal did not identify durable-worktree/temp fallback boundary"
+                )
+
+            # Reopen mismatch RED: a clean old-base workspace must not dispatch
+            # when its canonical WIP ref names different bytes. Both artifacts
+            # remain available after the refusal.
+            mismatch_id = "wo1-r2-reopen-mismatch"
+            mismatch_source = create_worktree_sandbox(
+                customer,
+                building_id=mismatch_id,
+                base_sha=advanced_main,
+            )
+            (mismatch_source.path / "mismatch-wip.bin").write_bytes(b"canonical WIP\n")
+            anchor_wip_snapshot(
+                mismatch_source,
+                mismatch_id,
+                message=f"BRICK WIP anchor: {mismatch_id}",
+            )
+            mismatch_handle = reclaim_wip_recovery_handle(customer, mismatch_id)
+            dispose_worktree_sandbox(mismatch_source)
+            mismatch_existing = create_worktree_sandbox(
+                customer,
+                building_id=mismatch_id,
+                base_sha=advanced_main,
+            )
+            # Model the prior operation ending while the durable worktree and
+            # marker remain for the next resume attempt.
+            release_worktree_lease(mismatch_existing)
+            mismatch_root = evidence_root / mismatch_id
+            mismatch_plan = mismatch_root / "work" / "declared-building-plan.json"
+            mismatch_plan.parent.mkdir(parents=True)
+            mismatch_plan.write_text(
+                json.dumps({"building_id": mismatch_id, "plan_shape": "graph"}) + "\n",
+                encoding="utf-8",
+            )
+            dispatched = False
+            original_resume = run_module.resume_building_plan
+
+            def _must_not_dispatch(*_args: Any, **_kwargs: Any) -> Any:
+                nonlocal dispatched
+                dispatched = True
+                raise AssertionError("mismatched reopened worktree reached resume dispatch")
+
+            mismatch_error = ""
+            try:
+                run_module.resume_building_plan = _must_not_dispatch
+                try:
+                    driver_module.run_customer_resume_in_sandbox(
+                        mismatch_root,
+                        customer_repo_root=customer,
+                    )
+                except WorktreeSandboxError as exc:
+                    mismatch_error = str(exc)
+            finally:
+                run_module.resume_building_plan = original_resume
+            mismatch_ref_after = reclaim_wip_anchor(customer, mismatch_id)
+            mismatch_tree_survived = mismatch_existing.path.is_dir()
+            reclaimed_after_failure = None
+            reclaim_after_failure_error = ""
+            try:
+                reclaimed_after_failure = reopen_worktree_sandbox(customer, mismatch_id)
+            except WorktreeSandboxError as exc:
+                reclaim_after_failure_error = str(exc)
+            r2r3["reopen_mismatch"] = {
+                "error": mismatch_error,
+                "dispatched": dispatched,
+                "worktree_survived": mismatch_tree_survived,
+                "wip_ref_survived": mismatch_ref_after,
+                "reclaim_after_failure_error": reclaim_after_failure_error,
+                "reclaim_after_failure_ok": reclaimed_after_failure is not None,
+            }
+            if not mismatch_error or dispatched:
+                violations.append(
+                    "wo1-r2-reopen-mismatch: mismatched workspace did not fail before dispatch"
+                )
+            if not mismatch_tree_survived or mismatch_ref_after is None:
+                violations.append(
+                    "wo1-r2-reopen-mismatch: refusal released WIP or disposed the workspace"
+                )
+            if reclaimed_after_failure is None:
+                violations.append(
+                    "wo1-r2-reopen-mismatch: failed verification stranded the "
+                    f"in-process recovery lease ({reclaim_after_failure_error!r})"
+                )
+            if mismatch_handle is not None:
+                release_wip_anchor(
+                    customer,
+                    mismatch_id,
+                    expected_sha=mismatch_handle.sha,
+                )
+            release_worktree_lease(reclaimed_after_failure or mismatch_existing)
+            _wo1_force_cleanup(customer, mismatch_existing.path)
+
+    summary["wo1_resume_continuity"] = r2r3
+    summary["wo1_recovery_handles"] = exact_handles
+
+
+_WO4_PROCESS_BUILDING_ID = "wo4-process-resume-continuity"
+_WO4_PROCESS_WRITE_REL = "project/brick-protocol/wo4-probe/process-boundary.bin"
+_WO4_PROCESS_EXPECTED_BYTES = b"wo4-process-boundary\x00\xff\n"
+
+
+def _wo4_process_plan() -> Mapping[str, Any]:
+    """Two-step checker plan: observed-write step -> declared HOLD -> local close."""
+
+    from brick_protocol.support.checkers.lib.case_runners import (
+        _graph_test_plan_from_linear,
+    )
+
+    first_step_ref = f"{_WO4_PROCESS_BUILDING_ID}-write"
+    second_step_ref = f"{_WO4_PROCESS_BUILDING_ID}-close"
+    first_brick_ref = f"brick-{first_step_ref}"
+    second_brick_ref = f"brick-{second_step_ref}"
+    write_scope = {
+        "allowed_paths": [_WO4_PROCESS_WRITE_REL],
+        "forbidden_paths": [
+            ".git/**",
+            "**/.env",
+            "**/.env.*",
+            "**/*.pem",
+            "**/*.key",
+        ],
+        "commit_allowed": False,
+        "push_allowed": False,
+    }
+    return _graph_test_plan_from_linear(
+        {
+            "plan_ref": f"building-plan:{_WO4_PROCESS_BUILDING_ID}",
+            "owner_axis": "Brick",
+            "declared_by": "coo",
+            "building_id": _WO4_PROCESS_BUILDING_ID,
+            "plan_shape": "linear",
+            "selected_adapter_ref": "adapter:codex-local",
+            "proof_limits": [
+                "support evidence only",
+                "checker-local deterministic command runner for the first write",
+                "second process uses the installed official brick resume --decl entry",
+                "not abrupt SIGKILL proof",
+                "not real-provider proof",
+            ],
+            "not_proven": [
+                "abrupt process death before a WIP anchor is durably written",
+                "real-provider process integrity",
+                "semantic correctness",
+            ],
+            "steps": [
+                {
+                    "step_ref": first_step_ref,
+                    "step_template_ref": "",
+                    "selected_adapter_ref": "adapter:codex-local",
+                    "selected_model_ref": "model:codex:default",
+                    "rows": [
+                        {
+                            "axis": "Brick",
+                            "row_ref": f"brick-row:{first_step_ref}",
+                            "brick_work_ref": f"work:{first_step_ref}",
+                            "brick_instance_ref": first_brick_ref,
+                            "work_statement": (
+                                "Write the WO-4 process-boundary byte fixture inside the "
+                                "declared scope, then return deterministic support evidence."
+                            ),
+                            "comparison_rule": (
+                                "Observe field presence only; support does not judge quality."
+                            ),
+                            "required_return_shape": (
+                                "observed_evidence, made_changes, not_proven"
+                            ),
+                            "requires_brick_write_scope": True,
+                            "write_scope": write_scope,
+                        },
+                        {
+                            "axis": "Agent",
+                            "row_ref": f"agent-row:{first_step_ref}",
+                            "agent_object_ref": "agent-object:dev",
+                        },
+                        {
+                            "axis": "Link",
+                            "row_ref": f"link-row:{first_step_ref}",
+                            "movement": "forward",
+                            "target_ref": second_brick_ref,
+                            "next_brick_instance_ref": second_brick_ref,
+                            "declared_gate_refs": [
+                                "link-gate:default-transition",
+                                "link-gate:coo",
+                            ],
+                            "gate_sequence_policy": [
+                                {
+                                    "gate_ref": "link-gate:default-transition",
+                                    "on_missing_required_facts": {
+                                        "action": "hold",
+                                        "pending_target_basis": "target_brick",
+                                        "required_disposition_owner": "caller-or-coo",
+                                        "reason_refs": [
+                                            "observation:wo4-process-default-gate-missing"
+                                        ],
+                                    },
+                                    "on_sufficient": {
+                                        "action": "next",
+                                        "next_gate_ref": "link-gate:coo",
+                                    },
+                                },
+                                {
+                                    "gate_ref": "link-gate:coo",
+                                    "on_missing_required_facts": {
+                                        "action": "hold",
+                                        "pending_target_basis": "target_brick",
+                                        "required_disposition_owner": "caller-or-coo",
+                                        "reason_refs": [
+                                            "observation:wo4-process-boundary-hold"
+                                        ],
+                                    },
+                                    "on_sufficient": {"action": "forward"},
+                                }
+                            ],
+                            "transition_lifecycle": {
+                                "state": "paused",
+                                "progress_state": "in_progress",
+                                "paused_at_ref": (
+                                    f"link-transition:{_WO4_PROCESS_BUILDING_ID}-hold"
+                                ),
+                                "from_brick_ref": first_brick_ref,
+                                "pending_target_ref": second_brick_ref,
+                                "required_disposition_owner": "caller-or-coo",
+                                "reason_refs": [
+                                    "observation:wo4-process-boundary-hold"
+                                ],
+                            },
+                        },
+                    ],
+                },
+                {
+                    "step_ref": second_step_ref,
+                    "step_template_ref": "",
+                    "selected_adapter_ref": "adapter:local",
+                    "selected_model_ref": "model:default",
+                    "rows": [
+                        {
+                            "axis": "Brick",
+                            "row_ref": f"brick-row:{second_step_ref}",
+                            "brick_work_ref": f"work:{second_step_ref}",
+                            "brick_instance_ref": second_brick_ref,
+                            "work_statement": (
+                                "Close the deterministic WO-4 subprocess continuity probe "
+                                "without changing customer bytes."
+                            ),
+                            "comparison_rule": (
+                                "Observe the built-in local callable return only."
+                            ),
+                            "required_return_shape": "returned_summary, evidence_refs",
+                        },
+                        {
+                            "axis": "Agent",
+                            "row_ref": f"agent-row:{second_step_ref}",
+                            "agent_object_ref": "agent-object:dev",
+                        },
+                        {
+                            "axis": "Link",
+                            "row_ref": f"link-row:{second_step_ref}",
+                            "movement": "forward",
+                            "target_ref": (
+                                f"building-boundary:{_WO4_PROCESS_BUILDING_ID}-closed"
+                            ),
+                            "next_brick_instance_ref": (
+                                f"building-boundary:{_WO4_PROCESS_BUILDING_ID}-closed"
+                            ),
+                            "building_lifecycle": {
+                                "state": "closed",
+                                "reason": (
+                                    "WO-4 subprocess continuity checker reached its "
+                                    "declared terminal boundary."
+                                ),
+                            },
+                        },
+                    ],
+                },
+            ],
+        }
+    )
+
+
+def _wo4_process_hold_child(repo: Path, proof_root: Path) -> int:
+    """Child-process phase: real sandbox write + HOLD + WIP anchor, then exit."""
+
+    from brick_protocol.support.checkers.lib.preset_completion_fixture import (
+        _preset_completion_command_runner,
+    )
+    from brick_protocol.support.connection.agent_adapter import LocalCliCompleted
+    from brick_protocol.support.operator.driver import (
+        BuildingIntakeRunResult,
+        _run_in_worktree_sandbox,
+        _write_and_run_declared_graph_plan,
+    )
+
+    customer = proof_root / "customer"
+    output_root = proof_root / "buildings"
+    plan = _wo4_process_plan()
+    completion_runner = _preset_completion_command_runner(LocalCliCompleted)
+
+    def _write_then_complete(args: Sequence[str], cwd: Path, timeout_seconds: int):
+        # Provider version probes reuse this command_runner with cwd=_REPO_ROOT
+        # (the live checkout). Writing the fixture there pollutes the real repo
+        # (0710d: untracked project/brick-protocol/wo4-probe/process-boundary.bin).
+        # Only a real sandbox dispatch (cwd = the fixture's engine worktree, never
+        # the live repo) may receive the byte fixture.
+        target_cwd = Path(cwd).resolve()
+        if target_cwd != Path(repo).resolve():
+            target = target_cwd / _WO4_PROCESS_WRITE_REL
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(_WO4_PROCESS_EXPECTED_BYTES)
+        return completion_runner(args, Path(cwd), timeout_seconds)
+
+    def _run_declared(_repo_root: Path, adapter_cwd: Path) -> BuildingIntakeRunResult:
+        building_id, plan_path, run_result = _write_and_run_declared_graph_plan(
+            plan,
+            output=output_root,
+            overwrite_existing=False,
+            local_callables=None,
+            command_runner=_write_then_complete,
+            adapter_cwd=adapter_cwd,
+            adapter_timeout_seconds=30,
+            proof_limits=("WO-4 subprocess continuity support evidence only",),
+            building_id_label="WO-4 subprocess fixture building_id",
+            shape_error="WO-4 subprocess fixture requires plan_shape: graph",
+        )
+        return BuildingIntakeRunResult(
+            building_id=building_id,
+            plan_path=plan_path,
+            plan_shape="graph",
+            walker_mode="dynamic",
+            walker_mode_basis="WO-4 subprocess lifecycle checker fixture",
+            run_result=run_result,
+            task_source_basis="checker_process_fixture",
+        )
+
+    result = _run_in_worktree_sandbox(
+        customer,
+        building_id=_WO4_PROCESS_BUILDING_ID,
+        durable_output=output_root,
+        run_dispatch=_run_declared,
+        allow_temp_fallback=False,
+    )
+    recovery = dict(result.recovery_handle)
+    packet = {
+        "phase": "hold",
+        "process_pid": os.getpid(),
+        "repo_root": str(repo),
+        "customer_repo": str(customer),
+        "evidence_root": result.evidence_root,
+        "frontier_kind": result.frontier_kind,
+        "frontier_reason": result.frontier_reason,
+        "base_sha": result.base_sha,
+        "worktree_path": result.worktree_path,
+        "worktree_disposed": result.worktree_disposed,
+        "wip_anchor_ref": result.wip_anchor_ref,
+        "wip_commit_sha": result.wip_commit_sha,
+        "recovery_handle": recovery,
+        "proof_limits": [
+            "checker-local deterministic command runner",
+            "normal child-process termination after durable HOLD anchoring",
+            "not abrupt SIGKILL proof",
+            "not real-provider proof",
+        ],
+        "not_proven": [
+            "abrupt process death before WIP anchoring completes",
+            "real-provider process integrity",
+        ],
+    }
+    result_path = proof_root / "hold-result.json"
+    result_path.write_text(
+        json.dumps(packet, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    print(json.dumps({"hold_result": str(result_path)}, sort_keys=True))
+    if (
+        result.frontier_kind != "link_paused"
+        or not result.worktree_disposed
+        or not result.wip_anchor_ref.startswith("refs/brick/wip/")
+        or recovery.get("ref") != result.wip_anchor_ref
+        or recovery.get("sha") != result.wip_commit_sha
+    ):
+        return 3
+    return 0
+
+
+_HOLDSTAMP_CTX_BUILDING_ID = "loss-ctx-holdstamp-regression"
+
+
+def _holdstamp_ctx_plan() -> Mapping[str, Any]:
+    """Two-step linear plan: s1 returns evidence; s2 declares s1's step-output as
+    a source_fact so the hold re-stamp replay MUST resolve it from the custom
+    building root (the 0710d live2 crash trigger)."""
+
+    from brick_protocol.support.checkers.lib.case_runners import (
+        _graph_test_plan_from_linear,
+    )
+
+    bid = _HOLDSTAMP_CTX_BUILDING_ID
+    s1 = f"{bid}-s1"
+    s2 = f"{bid}-s2"
+    return _graph_test_plan_from_linear(
+        {
+            "plan_ref": f"building-plan:{bid}",
+            "owner_axis": "Brick",
+            "declared_by": "coo",
+            "building_id": bid,
+            "plan_shape": "linear",
+            "selected_adapter_ref": "adapter:codex-local",
+            "proof_limits": [
+                "support evidence only",
+                "deterministic checker-local command runner",
+            ],
+            "not_proven": ["semantic correctness", "real provider behavior"],
+            "steps": [
+                {
+                    "step_ref": s1,
+                    "step_template_ref": "",
+                    "selected_adapter_ref": "adapter:codex-local",
+                    "selected_model_ref": "model:codex:default",
+                    "rows": [
+                        {
+                            "axis": "Brick",
+                            "row_ref": f"brick-row:{s1}",
+                            "brick_work_ref": f"work:{s1}",
+                            "brick_instance_ref": f"brick-{s1}",
+                            "work_statement": "Return deterministic step-one support evidence.",
+                            "comparison_rule": "Observe field presence only.",
+                            "required_return_shape": "observed_evidence, not_proven",
+                        },
+                        {
+                            "axis": "Agent",
+                            "row_ref": f"agent-row:{s1}",
+                            "agent_object_ref": "agent-object:dev",
+                        },
+                        {
+                            "axis": "Link",
+                            "row_ref": f"link-row:{s1}",
+                            "movement": "forward",
+                            "target_ref": f"brick-{s2}",
+                            "next_brick_instance_ref": f"brick-{s2}",
+                        },
+                    ],
+                },
+                {
+                    "step_ref": s2,
+                    "step_template_ref": "",
+                    "selected_adapter_ref": "adapter:codex-local",
+                    "selected_model_ref": "model:codex:default",
+                    "rows": [
+                        {
+                            "axis": "Brick",
+                            "row_ref": f"brick-row:{s2}",
+                            "brick_work_ref": f"work:{s2}",
+                            "brick_instance_ref": f"brick-{s2}",
+                            "work_statement": (
+                                "HOLDSTAMP-CTX-MARKER: observe step one output and "
+                                "return evidence."
+                            ),
+                            "comparison_rule": "Observe field presence only.",
+                            "required_return_shape": "observed_evidence, not_proven",
+                            "source_facts": [
+                                f"work/step-outputs/{s1}-attempt-1/step-output.json"
+                            ],
+                        },
+                        {
+                            "axis": "Agent",
+                            "row_ref": f"agent-row:{s2}",
+                            "agent_object_ref": "agent-object:qa",
+                        },
+                        {
+                            "axis": "Link",
+                            "row_ref": f"link-row:{s2}",
+                            "movement": "forward",
+                            "target_ref": f"building-boundary:{bid}-closed",
+                            "next_brick_instance_ref": f"building-boundary:{bid}-closed",
+                            "building_lifecycle": {
+                                "state": "closed",
+                                "reason": "holdstamp source-fact context probe terminal boundary.",
+                            },
+                        },
+                    ],
+                },
+            ],
+        }
+    )
+
+
+def _holdstamp_ctx_scenario(simulate_prefix_bug: bool) -> Mapping[str, Any]:
+    """Run the live2-shaped scenario once. simulate_prefix_bug=True replays the
+    pre-fix candidate-root behavior (declared building_root ignored) so the
+    regression stays RED-provable; False exercises the shipped fix."""
+
+    from brick_protocol.support.checkers.lib.preset_completion_fixture import (
+        _preset_completion_command_runner,
+    )
+    from brick_protocol.support.connection.agent_adapter import LocalCliCompleted
+    from brick_protocol.support.operator import run as run_mod
+    from brick_protocol.support.operator.driver import _write_and_run_declared_graph_plan
+    from brick_protocol.support.operator.frontier_observation import (
+        observe_building_frontier,
+    )
+    from brick_protocol.support.operator.run import resume_building_plan
+    from brick_protocol.support.operator.walker_hold import _hold_paused_at_ref
+    from brick_protocol.support.operator.walker_resume import _read_written_dynamic_plan
+
+    bid = _HOLDSTAMP_CTX_BUILDING_ID
+    s2 = f"{bid}-s2"
+    tmp = Path(tempfile.mkdtemp(prefix="brick-holdstamp-ctx-")).resolve()
+    out_root = tmp / "buildings"
+    cwd = tmp / "adapter-cwd"
+    cwd.mkdir(parents=True)
+    inner = _preset_completion_command_runner(LocalCliCompleted)
+    state = {"fails_left": 1}
+
+    def flaky_runner(args: Sequence[str], run_cwd: Path, timeout_seconds: int):
+        checked = tuple(str(arg) for arg in args)
+        joined = " ".join(checked)
+        if (
+            "--version" not in checked
+            and "HOLDSTAMP-CTX-MARKER" in joined
+            and state["fails_left"] > 0
+        ):
+            state["fails_left"] -= 1
+            return LocalCliCompleted(
+                args=checked,
+                return_code=1,
+                stdout="",
+                stderr="synthetic adapter failure (holdstamp ctx probe)",
+            )
+        return inner(checked, Path(run_cwd), timeout_seconds)
+
+    _write_and_run_declared_graph_plan(
+        _holdstamp_ctx_plan(),
+        output=out_root,
+        overwrite_existing=False,
+        local_callables=None,
+        command_runner=flaky_runner,
+        adapter_cwd=cwd,
+        adapter_timeout_seconds=30,
+        proof_limits=("holdstamp source-fact context probe support evidence only",),
+        building_id_label="holdstamp ctx probe building_id",
+        shape_error="holdstamp ctx probe requires plan_shape: graph",
+    )
+    root = out_root / bid
+    hold_frontier = observe_building_frontier(root, repo_root=str(_REPO_ROOT))
+    _plan_w, evidence_w = _read_written_dynamic_plan(root)
+    raw_hold = evidence_w.get("hold") or {}
+    hold_record = raw_hold if isinstance(raw_hold, Mapping) else {}
+    paused_at_ref = _hold_paused_at_ref(hold_record)
+    pending_target = str(hold_record.get("pending_target_ref") or f"brick-{s2}")
+    disposition_row = {
+        "raw_ref": "raw:link:disposition:forward",
+        "building_id": bid,
+        "step_ref": "human-disposition-forward",
+        "transition_lifecycle_state": "resumed",
+        "transition_lifecycle_progress_state": "in_progress",
+        "transition_lifecycle_resumed_from_ref": paused_at_ref,
+        "transition_lifecycle_pending_target_ref": pending_target,
+        "transition_lifecycle_required_disposition_owner": "caller-or-coo",
+        "transition_lifecycle_disposition_action": "forward",
+        "author_ref": "coo:holdstamp-ctx-probe",
+    }
+    with (root / "raw" / "link.jsonl").open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(disposition_row, sort_keys=True) + "\n")
+
+    original_roots = run_mod._candidate_source_fact_building_roots
+    if simulate_prefix_bug:
+
+        def _legacy_roots(packet: Mapping[str, Any], *, building_id: str):
+            filtered = {
+                key: value
+                for key, value in dict(packet).items()
+                if key != "building_root"
+            }
+            return original_roots(filtered, building_id=building_id)
+
+        run_mod._candidate_source_fact_building_roots = _legacy_roots
+    resume_error = ""
+    try:
+        resume_building_plan(
+            root,
+            command_runner=flaky_runner,
+            adapter_cwd=cwd,
+            adapter_timeout_seconds=30,
+        )
+    except Exception as exc:  # noqa: BLE001 - probe records the failure verbatim
+        import traceback as _tb  # noqa: PLC0415
+
+        resume_error = f"{type(exc).__name__}: {exc}"
+        resume_traceback = _tb.format_exc()
+        (tmp / "resume-traceback.txt").write_text(resume_traceback, encoding="utf-8")
+    else:
+        resume_traceback = ""
+    finally:
+        run_mod._candidate_source_fact_building_roots = original_roots
+
+    final_frontier = observe_building_frontier(root, repo_root=str(_REPO_ROOT))
+    returns_path = root / "raw" / "agent-return.jsonl"
+
+    def _frontier_kind_of(observation: Any) -> str:
+        if isinstance(observation, Mapping):
+            return str(observation.get("frontier_kind") or "")
+        return str(getattr(observation, "frontier_kind", "") or "")
+
+    return {
+        "hold_frontier_kind": _frontier_kind_of(hold_frontier),
+        "probe_root": str(tmp),
+        "resume_error": resume_error,
+        "resume_traceback": resume_traceback,
+        "final_frontier_kind": _frontier_kind_of(final_frontier),
+        "agent_return_rows": (
+            sum(1 for _ in returns_path.open(encoding="utf-8"))
+            if returns_path.is_file()
+            else 0
+        ),
+    }
+
+
+def _holdstamp_source_fact_context_fire(
+    repo: Path,
+    violations: list[str],
+    summary: dict[str, Any],
+) -> None:
+    """0710d live2 regression lock — RED (pre-fix behavior reproduced by ignoring
+    the declared building_root) then GREEN (shipped fix lands the resumed walk)."""
+
+    red = _holdstamp_ctx_scenario(simulate_prefix_bug=True)
+    if "missing step-output source_fact body/evidence" not in red["resume_error"]:
+        violations.append(
+            "holdstamp-ctx: pre-fix root-guessing no longer reproduces the "
+            "missing step-output crash — the RED probe lost its trigger "
+            f"(observed error: {red['resume_error'][:160]!r}, "
+            f"final frontier: {red['final_frontier_kind']!r})"
+        )
+    green = _holdstamp_ctx_scenario(simulate_prefix_bug=False)
+    if green["resume_error"]:
+        violations.append(
+            "holdstamp-ctx: resumed walk still fails with the building_root fix: "
+            + green["resume_error"][:200]
+            + " || traceback tail: "
+            + green.get("resume_traceback", "")[-900:]
+        )
+    if green["final_frontier_kind"] != "complete":
+        violations.append(
+            "holdstamp-ctx: resumed walk did not reach a complete frontier "
+            f"(observed: {green['final_frontier_kind']!r})"
+        )
+    if green["agent_return_rows"] < 2:
+        violations.append(
+            "holdstamp-ctx: raw/agent-return.jsonl did not record the resumed "
+            f"step (rows: {green['agent_return_rows']})"
+        )
+    summary["holdstamp_source_fact_context"] = {
+        "red_error": red["resume_error"][:160],
+        "green_frontier": green["final_frontier_kind"],
+        "green_agent_return_rows": green["agent_return_rows"],
+    }
+
+
+def _wo4_git_blob(repo: Path, revision: str, relative_path: str) -> bytes | None:
+    completed = subprocess.run(
+        ["git", "-C", str(repo), "show", f"{revision}:{relative_path}"],
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        timeout=30,
+    )
+    return completed.stdout if completed.returncode == 0 else None
+
+
+def _wo4_git_ref(repo: Path, ref: str) -> str:
+    completed = subprocess.run(
+        ["git", "-C", str(repo), "rev-parse", "--verify", f"{ref}^{{commit}}"],
+        check=False,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        timeout=30,
+    )
+    return completed.stdout.strip() if completed.returncode == 0 else ""
+
+
+def _wo4_subprocess_resume_continuity_fire(
+    repo: Path,
+    violations: list[str],
+    summary: dict[str, Any],
+) -> None:
+    """WO-4 item 2: terminate one writer process, resume via official CLI."""
+
+    proof_root = Path(tempfile.mkdtemp(prefix="brick-wo4-process-proof-")).resolve()
+    customer = proof_root / "customer"
+    home = proof_root / "home"
+    home.mkdir(parents=True)
+    base_sha = _wo1_seed_repo(customer)
+    child_env = dict(os.environ)
+    child_env["HOME"] = str(home)
+    child = subprocess.run(
+        [
+            sys.executable,
+            str(Path(__file__).resolve()),
+            "--repo",
+            str(repo),
+            "--wo4-process-phase",
+            "hold",
+            "--proof-root",
+            str(proof_root),
+        ],
+        cwd=str(repo),
+        env=child_env,
+        check=False,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        timeout=180,
+    )
+    (proof_root / "hold-stdout.txt").write_text(child.stdout, encoding="utf-8")
+    (proof_root / "hold-stderr.txt").write_text(child.stderr, encoding="utf-8")
+    hold_path = proof_root / "hold-result.json"
+    if child.returncode != 0 or not hold_path.is_file():
+        violations.append(
+            "wo4-process: writer/HOLD child process failed before durable result "
+            f"capture (rc={child.returncode}, stderr={child.stderr[-500:]!r})"
+        )
+        summary["wo4_process_resume_continuity"] = {
+            "proof_root": str(proof_root),
+            "hold_returncode": child.returncode,
+            "remaining_not_proven": [
+                "abrupt process death before WIP anchoring completes",
+                "real-provider process integrity",
+            ],
+        }
+        return
+
+    hold = json.loads(hold_path.read_text(encoding="utf-8"))
+    wip_ref = str(hold.get("wip_anchor_ref") or "")
+    wip_sha = str(hold.get("wip_commit_sha") or "")
+    evidence_root = Path(str(hold.get("evidence_root") or ""))
+    hold_worktree_path = Path(str(hold.get("worktree_path") or ""))
+    wip_ref_after_exit = _wo4_git_ref(customer, wip_ref) if wip_ref else ""
+    wip_bytes_after_exit = (
+        _wo4_git_blob(customer, wip_ref, _WO4_PROCESS_WRITE_REL)
+        if wip_ref
+        else None
+    )
+
+    declaration = {
+        "building_ref": str(evidence_root),
+        "author_ref": "coo:wo4-process-checker",
+        "chain": "until-terminal",
+        "adapter_timeout_seconds": 30,
+        "dispositions": [{"on": "link_paused", "action": "forward"}],
+    }
+    declaration_path = proof_root / "resume-declaration.json"
+    declaration_path.write_text(
+        json.dumps(declaration, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    brick_entry = repo / ".venv" / "bin" / "brick"
+    if brick_entry.is_file():
+        brick_command = [str(brick_entry)]
+    else:
+        import shutil
+
+        uv_entry = shutil.which("uv")
+        brick_command = (
+            [uv_entry, "run", "--project", str(repo), "brick"]
+            if uv_entry
+            else []
+        )
+    if not brick_command:
+        violations.append(
+            "wo4-process: neither an installed brick entry nor uv project runner is available"
+        )
+        return
+    resumed_process = subprocess.run(
+        [
+            *brick_command,
+            "resume",
+            "--repo",
+            str(customer),
+            "--decl",
+            str(declaration_path),
+            "--json",
+            "--non-interactive",
+        ],
+        cwd=str(repo),
+        env=child_env,
+        check=False,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        timeout=180,
+    )
+    (proof_root / "resume-stdout.json").write_text(
+        resumed_process.stdout,
+        encoding="utf-8",
+    )
+    (proof_root / "resume-stderr.txt").write_text(
+        resumed_process.stderr,
+        encoding="utf-8",
+    )
+    try:
+        resumed = json.loads(resumed_process.stdout)
+    except json.JSONDecodeError:
+        resumed = {}
+
+    landed_ref = str(resumed.get("landed_ref") or "")
+    commit_sha = str(resumed.get("commit_sha") or "")
+    landed_sha = _wo4_git_ref(customer, landed_ref) if landed_ref else ""
+    landed_bytes = (
+        _wo4_git_blob(customer, landed_ref, _WO4_PROCESS_WRITE_REL)
+        if landed_ref
+        else None
+    )
+    wip_ref_after_resume = _wo4_git_ref(customer, wip_ref) if wip_ref else ""
+    resume_worktree_raw = str(resumed.get("worktree_path") or "")
+    resume_worktree_exists = bool(
+        resume_worktree_raw and Path(resume_worktree_raw).exists()
+    )
+    recovery = resumed.get("recovery_handle")
+    recovery_map = recovery if isinstance(recovery, Mapping) else {}
+    proof = {
+        "schema": "brick-wo4-process-resume-proof/v1",
+        "proof_root": str(proof_root),
+        "customer_repo": str(customer),
+        "evidence_root": str(evidence_root),
+        "base_sha": base_sha,
+        "hold_process_pid": hold.get("process_pid"),
+        "hold_process_returncode": child.returncode,
+        "hold_frontier_kind": hold.get("frontier_kind"),
+        "hold_worktree_disposed": hold.get("worktree_disposed"),
+        "hold_worktree_absent_after_exit": not hold_worktree_path.exists(),
+        "wip_ref": wip_ref,
+        "wip_sha": wip_sha,
+        "wip_ref_after_process_exit": wip_ref_after_exit,
+        "wip_bytes_identical_after_process_exit": (
+            wip_bytes_after_exit == _WO4_PROCESS_EXPECTED_BYTES
+        ),
+        "resume_entry": " ".join(brick_command),
+        "resume_process_returncode": resumed_process.returncode,
+        "resume_ok": resumed.get("ok") is True,
+        "resume_frontier_kind": resumed.get("frontier_kind"),
+        "resume_worktree_disposed": resumed.get("worktree_disposed"),
+        "resume_worktree_absent": not resume_worktree_exists,
+        "wip_released_after_resume": not bool(wip_ref_after_resume),
+        "landed_ref": landed_ref,
+        "landed_sha": landed_sha,
+        "commit_sha": commit_sha,
+        "landed_bytes_identical": landed_bytes == _WO4_PROCESS_EXPECTED_BYTES,
+        "recovery_handle_ref": str(recovery_map.get("ref") or ""),
+        "recovery_handle_sha": str(recovery_map.get("sha") or ""),
+        "proof_limits": [
+            "support evidence only",
+            "normal child-process termination after durable HOLD anchoring",
+            "resume uses installed official brick resume --decl entry",
+            "first write uses a checker-local deterministic command runner",
+            "not abrupt SIGKILL proof",
+            "not real-provider proof",
+        ],
+        "remaining_not_proven": [
+            "abrupt process death before WIP anchoring completes",
+            "real-provider process integrity",
+            "semantic correctness of an arbitrary caller disposition",
+        ],
+    }
+    (proof_root / "proof-summary.json").write_text(
+        json.dumps(proof, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    summary["wo4_process_resume_continuity"] = proof
+
+    if hold.get("frontier_kind") != "link_paused":
+        violations.append("wo4-process: first process did not stop on declared link_paused")
+    if not hold.get("worktree_disposed") or hold_worktree_path.exists():
+        violations.append("wo4-process: held process did not dispose only after durable WIP")
+    if wip_ref_after_exit != wip_sha or not wip_sha:
+        violations.append("wo4-process: WIP ref/commit did not survive process termination")
+    if wip_bytes_after_exit != _WO4_PROCESS_EXPECTED_BYTES:
+        violations.append("wo4-process: WIP bytes changed across the process boundary")
+    if resumed_process.returncode != 0 or resumed.get("ok") is not True:
+        violations.append(
+            "wo4-process: official brick resume --decl process did not complete "
+            f"(rc={resumed_process.returncode}, error={resumed.get('error_kind')!r})"
+        )
+    if resumed.get("frontier_kind") != "complete":
+        violations.append("wo4-process: official resume did not reach complete frontier")
+    if resumed.get("worktree_disposed") is not True or resume_worktree_exists:
+        violations.append("wo4-process: completed resume worktree was not disposed")
+    if wip_ref_after_resume:
+        violations.append("wo4-process: completed resume did not release the verified WIP ref")
+    if (
+        not landed_ref.startswith("refs/brick/landed/")
+        or landed_sha != commit_sha
+        or recovery_map.get("ref") != landed_ref
+        or recovery_map.get("sha") != commit_sha
+    ):
+        violations.append("wo4-process: completed bytes lost landed-ref recovery identity")
+    if landed_bytes != _WO4_PROCESS_EXPECTED_BYTES:
+        violations.append("wo4-process: landed bytes differ from the pre-termination WIP bytes")
 
 
 def _d1_park_stop_graph_plan(building_id: str) -> Mapping[str, Any]:
@@ -3520,6 +5687,7 @@ def _park_stop_anchor_and_launch_dirty_fire(
     from brick_protocol.support.operator import run as run_module
     from brick_protocol.support.operator.run import (
         ChatSessionParkFrontierEvidenceWritten,
+        resume_building_plan,
         run_building_plan,
     )
     from brick_protocol.support.operator.worktree_sandbox import (
@@ -3581,6 +5749,58 @@ def _park_stop_anchor_and_launch_dirty_fire(
                         f"({anchored_files!r})"
                     )
             release_wip_anchor(customer, park_building_id)
+
+            # --- R4 RED: resume's chat-session branch currently evaluates the
+            # inner resume call before _with_close_wip_anchor and has no matching
+            # ChatSessionParkFrontierEvidenceWritten catch. A second park must
+            # still anchor the resumed adapter_cwd before propagating the signal.
+            resume_customer = Path(cust_raw) / "customer-resume-park"
+            resume_customer.mkdir(parents=True, exist_ok=True)
+            _seed_customer_repo(repo, resume_customer)
+            resume_building_id = "d1-resume-park-stop-anchor-red"
+            resume_root = evidence_root / "resume-park-red" / resume_building_id
+            original_observe_frontier = run_module.observe_building_frontier
+            original_resume_chat = run_module._resume_chat_session_parked_building_plan
+
+            def _resume_parks_again(*_args: Any, **_kwargs: Any) -> Any:
+                target = resume_customer / "resume-provider-wip.txt"
+                target.write_text("resume bytes before second park\n", encoding="utf-8")
+                raise ChatSessionParkFrontierEvidenceWritten(
+                    "WO-1 R4 resumed chat session parked again",
+                    building_id=resume_building_id,
+                    building_root=resume_root,
+                    written_files=(),
+                )
+
+            try:
+                run_module.observe_building_frontier = lambda *_args, **_kwargs: {
+                    "frontier_kind": "chat_session_parked"
+                }
+                run_module._resume_chat_session_parked_building_plan = _resume_parks_again
+                try:
+                    resume_building_plan(
+                        resume_root,
+                        adapter_cwd=resume_customer,
+                        local_callables={},
+                    )
+                except ChatSessionParkFrontierEvidenceWritten:
+                    pass
+            finally:
+                run_module.observe_building_frontier = original_observe_frontier
+                run_module._resume_chat_session_parked_building_plan = original_resume_chat
+            resume_park_anchor = reclaim_wip_anchor(resume_customer, resume_building_id)
+            summary["d1_resume_park_stop_anchor_red"] = {
+                "anchor": resume_park_anchor,
+                "bytes_exist": (resume_customer / "resume-provider-wip.txt").is_file(),
+                "expected_current_state": "RED until run.py mirrors run_building_plan park anchoring",
+            }
+            if resume_park_anchor is None:
+                violations.append(
+                    "wo1-r4-resume-park-RED: resume_building_plan propagated a second "
+                    "chat-session park without a WIP anchor"
+                )
+            else:
+                release_wip_anchor(resume_customer, resume_building_id)
 
             # --- park-stop anchor MUTATION-RED: neuter the anchor -> ref absent. ---
             (customer / "d1-provider-wip.txt").write_text(
@@ -3698,10 +5918,25 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
     )
     parser.add_argument("--repo", default=None)
+    parser.add_argument("--wo4-process-phase", choices=("hold",), help=argparse.SUPPRESS)
+    parser.add_argument("--proof-root", default="", help=argparse.SUPPRESS)
     args = parser.parse_args(list(argv) if argv is not None else None)
     repo = _repo_root_from_arg(args.repo)
     try:
-        violations, summary = check(repo)
+        from brick_protocol.support.operator.import_identity import (
+            mint_official_launch_token,
+            reset_official_launch_token,
+        )
+
+        launch_token = mint_official_launch_token()
+        try:
+            if args.wo4_process_phase == "hold":
+                if not args.proof_root:
+                    raise ValueError("--proof-root is required for WO-4 hold phase")
+                return _wo4_process_hold_child(repo, Path(args.proof_root).resolve())
+            violations, summary = check(repo)
+        finally:
+            reset_official_launch_token(launch_token)
     except Exception as exc:  # noqa: BLE001 - checker should surface any driver break
         print(f"building operator driver checker rejected: {exc}", file=sys.stderr)
         return 1
@@ -3781,6 +6016,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"park_mutation_red={summary.get('d1_park_stop_anchor_mutation_red_execution_log')} "
         f"launch_dirty_warned={summary.get('d1_launch_dirty_warned')} "
         f"launch_mutation_red={summary.get('d1_launch_dirty_mutation_red_execution_log')}."
+    )
+    wo4_process = summary.get("wo4_process_resume_continuity", {})
+    print(
+        "WO-4 subprocess resume continuity FIRE passed: "
+        f"proof_root={wo4_process.get('proof_root')} "
+        f"hold_pid={wo4_process.get('hold_process_pid')} "
+        f"wip_survived={bool(wo4_process.get('wip_ref_after_process_exit'))} "
+        f"byte_identical={wo4_process.get('landed_bytes_identical')} "
+        f"landed_ref={wo4_process.get('landed_ref')} "
+        f"wip_released={wo4_process.get('wip_released_after_resume')} "
+        f"remaining_not_proven={wo4_process.get('remaining_not_proven')}."
     )
     print(
         "H2a direct-graph intake FIRE passed: "

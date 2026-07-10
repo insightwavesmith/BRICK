@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Seal brick_protocol/support/operator/driver.py public Building-making intake exports.
+"""Seal the public customer Building-entry surface.
 
-This checker is support evidence only. It parses driver.py instead of importing
-it, and does not call providers, choose Movement, judge source truth, judge
-success or quality, or classify Building outcomes. The assemble public branch is
-owned by brick_protocol/support/operator/assembly.py and is outside this checker scope.
+This checker is support evidence only. It parses operator and projection
+surfaces instead of importing or invoking them, and does not call providers,
+choose Movement, judge source truth, judge success or quality, or classify
+Building outcomes. Builder lowering and declared route-family executors remain
+internal mechanics behind the official customer entry contract.
 """
 
 from __future__ import annotations
@@ -20,9 +21,30 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 _DRIVER_REL = Path("brick_protocol/support/operator/driver.py")
 _OPERATOR_INIT_REL = Path("brick_protocol/support/operator/__init__.py")
 _ONBOARD_REL = Path("brick_protocol/support/operator/onboard.py")
+_BUILDING_OPERATION_REL = Path("brick_protocol/support/operator/building_operation.py")
+_ORCHESTRATION_PACKET_REL = Path("brick_protocol/support/operator/orchestration_packet.py")
+_MCP_PROJECTION_REL = Path("brick_protocol/support/connection/mcp_projection.py")
+_COO_PROMPT_REL = Path("brick_protocol/agent/prompts/coo.md")
+_BUILDING_COORDINATION_RELS = (
+    Path("brick_protocol/agent/skills/building-coordination/SKILL.md"),
+    Path("brick_protocol/brick/templates/skills/building-coordination/SKILL.md"),
+)
+_TASK_INTAKE_RELS = (
+    Path("brick_protocol/agent/skills/task_intake/SKILL.md"),
+    Path("brick_protocol/brick/templates/skills/task_intake/SKILL.md"),
+)
 PUBLIC_BUILDING_MAKING_INTAKES = frozenset({"run_building_intake"})
 SEALED_INTERNAL_INTAKES = frozenset({"run_composed_graph_intake"})
 SEALED_HELPER_EXPORTS = frozenset({"launch_assembled_building"})
+SEALED_BUILDER_INTERNAL_HELPERS = frozenset({"coo_run_orchestration_packet"})
+INTERNAL_ROUTE_FAMILY_EXECUTORS = (
+    "brick_protocol.support.operator.driver.run_declared_portfolio",
+    "brick_protocol.support.operator.auto_repair_replay.run_declared_auto_repair_replay_case",
+)
+OFFICIAL_CUSTOMER_ENTRY_MARKER = "Official customer execution entrances"
+INTERNAL_ROUTE_FAMILY_MARKER = (
+    "Builder-internal declared route-family executors (not customer/startup entrances)"
+)
 ASSEMBLE_PUBLIC_SURFACE_OUT_OF_SCOPE = "brick_protocol/support/operator/assembly.py::assemble"
 PROOF_LIMIT = (
     "proof limit: driver public-intake seal checker support evidence only; it "
@@ -49,6 +71,13 @@ def _parse_python(repo: Path, relative: Path) -> tuple[ast.Module, str]:
         raise DriverPublicIntakeSealError(f"could not read {relative}: {exc}") from exc
     except SyntaxError as exc:
         raise DriverPublicIntakeSealError(f"{relative} is not valid Python: {exc}") from exc
+
+
+def _read_text(repo: Path, relative: Path) -> str:
+    try:
+        return (repo / relative).read_text(encoding="utf-8")
+    except OSError as exc:
+        raise DriverPublicIntakeSealError(f"could not read {relative}: {exc}") from exc
 
 
 def _literal_string_sequence(node: ast.AST, label: str) -> tuple[str, ...]:
@@ -177,6 +206,185 @@ def _assert_no_helper_public_export(repo: Path) -> str:
     return "mutation RED observed: launch_assembled_building public export remains sealed"
 
 
+def _assert_orchestration_packet_internal(repo: Path) -> str:
+    facade_module, facade_text = _parse_python(repo, _BUILDING_OPERATION_REL)
+    packet_module, packet_text = _parse_python(repo, _ORCHESTRATION_PACKET_REL)
+    facade_exports = set(_all_exports(facade_module, str(_BUILDING_OPERATION_REL)))
+    facade_imports = {
+        alias.name
+        for node in facade_module.body
+        if isinstance(node, ast.ImportFrom)
+        and node.module == "brick_protocol.support.operator.orchestration_packet"
+        for alias in node.names
+    }
+
+    def assert_no_facade_leak(exports: set[str], imports: set[str]) -> None:
+        leaked_exports = sorted(SEALED_BUILDER_INTERNAL_HELPERS & exports)
+        leaked_imports = sorted(SEALED_BUILDER_INTERNAL_HELPERS & imports)
+        if leaked_exports or leaked_imports:
+            raise DriverPublicIntakeSealError(
+                "Builder-internal orchestration helper leaked through building_operation: "
+                f"exports={leaked_exports}, imports={leaked_imports}"
+            )
+
+    assert_no_facade_leak(facade_exports, facade_imports)
+    functions = _defined_functions(packet_module)
+    if "coo_run_orchestration_packet" in functions:
+        raise DriverPublicIntakeSealError(
+            "orchestration_packet retains public coo_run_orchestration_packet; "
+            "the Builder-internal helper must be underscore-sealed"
+        )
+    internal_name = "_coo_run_orchestration_packet"
+    if internal_name not in functions:
+        raise DriverPublicIntakeSealError(
+            f"orchestration_packet missing sealed Builder-internal helper {internal_name}"
+        )
+    node = next(
+        item
+        for item in packet_module.body
+        if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)) and item.name == internal_name
+    )
+    docstring = ast.get_docstring(node) or ""
+    required_doc = "Builder-internal read/run material for an already-declared Building Plan."
+    if not docstring.strip().startswith(required_doc):
+        raise DriverPublicIntakeSealError(
+            "_coo_run_orchestration_packet must open with the Builder-internal seal"
+        )
+    if "coo_run_orchestration_packet" in facade_text:
+        raise DriverPublicIntakeSealError(
+            "building_operation must not advertise coo_run_orchestration_packet"
+        )
+    if "customer/startup entrance" not in packet_text:
+        raise DriverPublicIntakeSealError(
+            "orchestration_packet module must state it is not a customer/startup entrance"
+        )
+    try:
+        assert_no_facade_leak(
+            facade_exports | SEALED_BUILDER_INTERNAL_HELPERS,
+            facade_imports,
+        )
+    except DriverPublicIntakeSealError:
+        return "mutation RED observed: coo_run_orchestration_packet facade re-export remains sealed"
+    raise DriverPublicIntakeSealError(
+        "mutation RED failed: coo_run_orchestration_packet facade export was accepted"
+    )
+
+
+def _literal_assignment_in_function(
+    module: ast.Module,
+    *,
+    function_name: str,
+    variable_name: str,
+) -> tuple[str, ...]:
+    function = next(
+        (
+            node
+            for node in module.body
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+            and node.name == function_name
+        ),
+        None,
+    )
+    if function is None:
+        raise DriverPublicIntakeSealError(f"missing function {function_name}")
+    assignments = [
+        node
+        for node in function.body
+        if isinstance(node, (ast.Assign, ast.AnnAssign))
+        and (
+            (
+                isinstance(node, ast.Assign)
+                and any(
+                    isinstance(target, ast.Name) and target.id == variable_name
+                    for target in node.targets
+                )
+            )
+            or (
+                isinstance(node, ast.AnnAssign)
+                and isinstance(node.target, ast.Name)
+                and node.target.id == variable_name
+            )
+        )
+    ]
+    if len(assignments) != 1:
+        raise DriverPublicIntakeSealError(
+            f"{function_name}.{variable_name} must have exactly one literal assignment"
+        )
+    value = assignments[0].value
+    if value is None:
+        raise DriverPublicIntakeSealError(f"{function_name}.{variable_name} has no value")
+    return _literal_string_sequence(value, f"{function_name}.{variable_name}")
+
+
+def _assert_mcp_route_family_executor_classification(repo: Path) -> None:
+    module, _text = _parse_python(repo, _MCP_PROJECTION_REL)
+    startup_refs = _literal_assignment_in_function(
+        module,
+        function_name="render_coo_operating_chain_context",
+        variable_name="startup_surface_refs",
+    )
+    internal_refs = _literal_assignment_in_function(
+        module,
+        function_name="render_coo_operating_chain_context",
+        variable_name="internal_support_surface_refs",
+    )
+    leaked = sorted(set(INTERNAL_ROUTE_FAMILY_EXECUTORS) & set(startup_refs))
+    missing = sorted(set(INTERNAL_ROUTE_FAMILY_EXECUTORS) - set(internal_refs))
+    if leaked or missing:
+        raise DriverPublicIntakeSealError(
+            "MCP route-family executor classification drifted: "
+            f"startup_leaks={leaked}, missing_internal_refs={missing}"
+        )
+
+
+def _assert_entry_document(relative: Path, text: str) -> None:
+    legacy_header = "Startup / handoff path candidates:"
+    legacy_rows = tuple(
+        f"{label}: {ref}"
+        for label, ref in zip(("E", "F"), INTERNAL_ROUTE_FAMILY_EXECUTORS, strict=True)
+    )
+    missing_markers = [
+        marker
+        for marker in (OFFICIAL_CUSTOMER_ENTRY_MARKER, INTERNAL_ROUTE_FAMILY_MARKER)
+        if marker not in text
+    ]
+    legacy_hits = [marker for marker in (legacy_header, *legacy_rows) if marker in text]
+    missing_executor_refs = [
+        ref for ref in INTERNAL_ROUTE_FAMILY_EXECUTORS if ref not in text
+    ]
+    if missing_markers or legacy_hits or missing_executor_refs:
+        raise DriverPublicIntakeSealError(
+            f"{relative} entry classification drifted: "
+            f"missing_markers={missing_markers}, legacy_startup_advertisements={legacy_hits}, "
+            f"missing_internal_executor_refs={missing_executor_refs}"
+        )
+
+
+def _assert_skill_entry_contract(repo: Path) -> str:
+    rels = (*_BUILDING_COORDINATION_RELS, *_TASK_INTAKE_RELS, _COO_PROMPT_REL)
+    for relative in rels:
+        text = _read_text(repo, relative)
+        _assert_entry_document(relative, text)
+    _assert_mcp_route_family_executor_classification(repo)
+    sample_rel = _BUILDING_COORDINATION_RELS[0]
+    sample = _read_text(repo, sample_rel)
+    mutated = sample.replace(
+        INTERNAL_ROUTE_FAMILY_MARKER,
+        "Startup / handoff path candidates:",
+        1,
+    )
+    try:
+        _assert_entry_document(sample_rel, mutated)
+    except DriverPublicIntakeSealError:
+        return (
+            "mutation RED observed: declared portfolio and repair/replay executors "
+            "remain excluded from customer startup surfaces"
+        )
+    raise DriverPublicIntakeSealError(
+        "mutation RED failed: route-family executors were accepted as startup paths"
+    )
+
+
 def check(repo: Path) -> list[str]:
     module, _text = _parse_driver(repo)
     exports = _driver_all_exports(module)
@@ -185,6 +393,8 @@ def check(repo: Path) -> list[str]:
     _assert_export_seal(exports, functions)
     mutation_line = _assert_mutation_red(exports, functions)
     helper_export_line = _assert_no_helper_public_export(repo)
+    orchestration_line = _assert_orchestration_packet_internal(repo)
+    entry_contract_line = _assert_skill_entry_contract(repo)
     return [
         "driver public-intake seal green: "
         f"making_intake_exports={sorted(_building_making_intake_exports(exports))}; "
@@ -193,6 +403,8 @@ def check(repo: Path) -> list[str]:
         f"assembly_scope={ASSEMBLE_PUBLIC_SURFACE_OUT_OF_SCOPE}.",
         mutation_line,
         helper_export_line,
+        orchestration_line,
+        entry_contract_line,
         PROOF_LIMIT,
     ]
 

@@ -26,6 +26,7 @@ DEFAULT_DENY_PATTERNS = (
     r"\bresume_building_plan\b",
     r"\blaunch_assembled_building\b",
     r"\brun_customer_graph_building_in_sandbox\b",
+    r"\bpython(?:3(?:\.\d+)?)?\s+-m\s+brick_protocol\.support\.operator\.onboard\b",
 )
 
 WRAPPER_PATTERNS = (

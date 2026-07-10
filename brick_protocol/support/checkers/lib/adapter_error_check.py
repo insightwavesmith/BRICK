@@ -296,7 +296,7 @@ def run_adapter_error_path_hardening(repo: Path) -> KernelResult:
         )
         _assert_adapter_error_diagnostics_preserved(diagnostic_root)
         _assert_adapter_error_frontier_report_root_admission(run_module, repo, output_root)
-        inspected += 15
+        inspected += 19
         try:
             run_module.resume_building_plan(root, command_runner=failing_codex_runner)
         except ValueError as exc:
@@ -564,7 +564,9 @@ def run_adapter_error_path_hardening(repo: Path) -> KernelResult:
             "codex adapter probe, resume no longer birth-certificate-refuses the "
             "first-step adapter-error root, stop disposition paper-closed without "
             "adapter invocation for flat and legacy reason-ref holds, pre-frontier "
-            "report and adapter-error raw logs are admitted only for the same Building, codex "
+            "report, proposed graph, and adapter-error raw logs are admitted only "
+            "for the same Building while missing-id/malformed/foreign proposals "
+            "fail closed, codex "
             "--ephemeral is env-gated, overwrite cleared stale claim_trace/raw "
             "manifest refs, and F16/F16b/F19 mutation probes fired RED."
         ),
@@ -589,6 +591,17 @@ def _assert_adapter_error_frontier_report_root_admission(
     )
     (root / "work" / "declared-building-plan.json").write_text(
         json.dumps({"building_id": base_building_id}, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    (root / "work" / "proposed-building-graph.json").write_text(
+        json.dumps(
+            {
+                "building_id": base_building_id,
+                "plan_ref": f"plan:{base_building_id}",
+            },
+            sort_keys=True,
+        )
+        + "\n",
         encoding="utf-8",
     )
     (root / "raw" / "report-delivery.jsonl").write_text(
@@ -677,11 +690,77 @@ def _assert_adapter_error_frontier_report_root_admission(
         not full_raw_records
         or full_raw_records[-1].get("type") != "bp.raw.adapter_error"
         or full_raw_records[-1].get("adapter_error_ref") in (None, "")
+        or full_raw_records[-1].get("message_excerpt") != "timeout"
     ):
         raise ProfileError(
             "adapter_error_path_hardening P0: walking-vessel root did not retain a "
-            "full adapter-error raw record"
+            "full adapter-error raw record with its redacted message excerpt"
         )
+
+    for proposal_kind, proposal_body in (
+        (
+            "foreign",
+            json.dumps(
+                {
+                    "building_id": "other-building",
+                    "plan_ref": "plan:other-building",
+                },
+                sort_keys=True,
+            )
+            + "\n",
+        ),
+        (
+            "missing-id",
+            json.dumps({"plan_ref": "plan:missing-id"}, sort_keys=True) + "\n",
+        ),
+        ("malformed", "{not-json\n"),
+    ):
+        proposal_id = f"adapter-error-hardening-{proposal_kind}-proposal-root"
+        proposal_root = output_root / proposal_id
+        (proposal_root / "work").mkdir(parents=True, exist_ok=True)
+        (proposal_root / "declared-building-plan.json").write_text(
+            json.dumps({"building_id": proposal_id}, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        (proposal_root / "work" / "declared-building-plan.json").write_text(
+            json.dumps({"building_id": proposal_id}, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        proposal_path = proposal_root / "work" / "proposed-building-graph.json"
+        proposal_path.write_text(proposal_body, encoding="utf-8")
+        if (
+            adapter_error_frontier._adapter_error_existing_root_state(
+                proposal_root,
+                building_id=proposal_id,
+            )
+            != "partial_write_risk"
+        ):
+            raise ProfileError(
+                "adapter_error_path_hardening P0: "
+                f"{proposal_kind} proposed-building-graph was not fail-closed as "
+                "partial_write_risk"
+            )
+        proposal_result = _write_adapter_error_frontier_direct(
+            run_module,
+            repo=repo,
+            output_root=output_root,
+            building_id=proposal_id,
+            overwrite_existing=True,
+        )
+        proposal_marker = (
+            proposal_root / "adapter-error-frontier-partial-write-risk.json"
+        )
+        if proposal_result.written_files != (proposal_marker,) or not proposal_marker.is_file():
+            raise ProfileError(
+                "adapter_error_path_hardening P0: "
+                f"{proposal_kind} proposed-building-graph did not stay on the "
+                "partial-write-risk marker path"
+            )
+        if not proposal_path.is_file():
+            raise ProfileError(
+                "adapter_error_path_hardening P0: "
+                f"{proposal_kind} proposed-building-graph was clobbered"
+            )
 
     foreign_id = "adapter-error-hardening-foreign-raw-root"
     foreign_root = output_root / foreign_id

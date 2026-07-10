@@ -12,7 +12,7 @@ from __future__ import annotations
 import json
 
 from collections.abc import Callable, Iterable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -25,6 +25,7 @@ from brick_protocol.link.transition import DISPOSITION_ACTIONS
 from brick_protocol.support.connection.agent_adapter import (
     AgentBrainCallable,
     CommandRunner,
+    adapter_is_write_capable,
 )
 from brick_protocol.support.operator.building_operation import observe_building_frontier
 from brick_protocol.support.operator.composition_compose import compose_building
@@ -44,16 +45,22 @@ from brick_protocol.support.operator.run import (
     run_building_plan,
 )
 from brick_protocol.support.operator.worktree_sandbox import (
+    WipRecoveryHandle,
     WorktreeSandboxError,
     _git,
     _git_status_paths,
+    anchor_landed_output,
     anchor_wip_snapshot,
     commit_sandbox_output,
     create_worktree_sandbox,
     dispose_worktree_sandbox,
     probe_worktree_capable,
-    reclaim_wip_anchor,
+    reclaim_wip_recovery_handle,
+    release_worktree_lease,
+    release_wip_anchor,
+    reopen_worktree_sandbox,
     temp_dir_fallback,
+    verify_worktree_recovery_handle,
 )
 from brick_protocol.support.operator.assembly import _write_path_covered_by
 from brick_protocol.support.operator.walker_hold import _hold_paused_at_ref
@@ -175,9 +182,71 @@ class CustomerSandboxRunResult:
     commit_sha: str  # "" unless frontier_kind == "complete" with a real change
     wip_anchor_ref: str  # "" unless a non-complete worktree run preserved WIP
     wip_commit_sha: str  # "" unless wip_anchor_ref resolves to a commit
+    landed_ref: str  # verified refs/brick/landed/* pin for completed output
     worktree_disposed: bool
     intake_result: BuildingIntakeRunResult | None = None
     frontier_reason: str = ""
+    recovery_handle: Mapping[str, str] = field(default_factory=dict)
+
+
+def _sandbox_recovery_handle(
+    *,
+    building_id: str,
+    base_sha: str,
+    ref: str = "",
+    sha: str = "",
+    worktree_path: str = "",
+    preservation_state: str = "",
+) -> dict[str, str]:
+    """Return one path-neutral recovery handle for every sandbox close mode."""
+
+    return {
+        "ref": str(ref),
+        "sha": str(sha),
+        "base": str(base_sha),
+        "resume_command": (
+            f"brick resume --decl <resume-declaration-for-{building_id}.json>"
+            if ref or worktree_path
+            else ""
+        ),
+        "worktree_path": str(worktree_path),
+        "preservation_state": str(preservation_state),
+    }
+
+
+def _declares_write_need(value: Any) -> bool:
+    """Mechanically observe an explicit write declaration in compact/plan input."""
+
+    if isinstance(value, Mapping):
+        if value.get("requires_brick_write_scope") is True or value.get("write") is True:
+            return True
+        raw_scope = value.get("write_scope")
+        if isinstance(raw_scope, Mapping) and raw_scope:
+            return True
+        return any(_declares_write_need(item) for item in value.values())
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+        return any(_declares_write_need(item) for item in value)
+    return False
+
+
+def _declares_write_capable_provider(value: Any) -> bool:
+    """Observe whether a declared adapter could write unexpected temp bytes."""
+
+    if isinstance(value, Mapping):
+        for key in ("selected_adapter_ref", "adapter_ref", "adapter"):
+            raw_adapter = value.get(key)
+            if not isinstance(raw_adapter, str) or not raw_adapter.strip():
+                continue
+            try:
+                if adapter_is_write_capable(raw_adapter.strip()):
+                    return True
+            except ValueError:
+                # Unknown adapter declarations are not evidence of read-only safety.
+                return True
+        return any(_declares_write_capable_provider(item) for item in value.values())
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+        return any(_declares_write_capable_provider(item) for item in value)
+    return False
 
 
 def _customer_graph_node_items(value: Any) -> tuple[Mapping[str, Any], ...]:
@@ -735,6 +804,9 @@ def run_customer_building_in_sandbox(
         building_id=building_id,
         durable_output=durable_output,
         run_dispatch=_run_preset,
+        allow_temp_fallback=not (
+            _declares_write_need(intent) or _declares_write_capable_provider(intent)
+        ),
     )
 
 
@@ -797,6 +869,9 @@ def run_customer_graph_building_in_sandbox(
         building_id=building_id,
         durable_output=durable_output,
         run_dispatch=_run_graph,
+        allow_temp_fallback=not (
+            _declares_write_need(packet) or _declares_write_capable_provider(packet)
+        ),
     )
 
 
@@ -806,6 +881,12 @@ def _run_in_worktree_sandbox(
     building_id: str,
     durable_output: Path,
     run_dispatch: "Callable[[Path, Path], BuildingIntakeRunResult]",
+    base_sha_override: str = "",
+    base_carries_wip: bool = False,
+    allow_temp_fallback: bool = True,
+    reuse_existing_worktree: bool = False,
+    expected_reopen_base_sha: str = "",
+    expected_reopen_wip_handle: WipRecoveryHandle | None = None,
 ) -> CustomerSandboxRunResult:
     """Shared W1 worktree-sandbox lifecycle bracket around an inner dispatch.
 
@@ -832,6 +913,25 @@ def _run_in_worktree_sandbox(
     6. REAL isolation: adapter_cwd AND repo_root point at the worktree (or temp
        dir); ``durable_output`` (evidence) stays OUTSIDE it.
     """
+
+    def _known_resume_recovery_handle(
+        *, state: str, worktree_path: str = ""
+    ) -> dict[str, str]:
+        if expected_reopen_wip_handle is None:
+            return _sandbox_recovery_handle(
+                building_id=building_id,
+                base_sha=str(base_sha_override),
+                worktree_path=worktree_path,
+                preservation_state=state,
+            )
+        return _sandbox_recovery_handle(
+            building_id=building_id,
+            base_sha=expected_reopen_wip_handle.base_sha,
+            ref=expected_reopen_wip_handle.ref,
+            sha=expected_reopen_wip_handle.sha,
+            worktree_path=worktree_path,
+            preservation_state=state,
+        )
 
     def _run_with_temp_dir(reason: str) -> CustomerSandboxRunResult:
         temp_dir = temp_dir_fallback()
@@ -921,9 +1021,15 @@ def _run_in_worktree_sandbox(
                 commit_sha="",  # a temp dir is not a repo: no commit, by design
                 wip_anchor_ref="",
                 wip_commit_sha="",
+                landed_ref="",
                 worktree_disposed=False,
                 intake_result=intake,
                 frontier_reason=frontier_reason,
+                recovery_handle=_sandbox_recovery_handle(
+                    building_id=intake.building_id,
+                    base_sha="",
+                    preservation_state="temp_dir_read_only",
+                ),
             )
         finally:
             temp_dir.cleanup()
@@ -933,26 +1039,91 @@ def _run_in_worktree_sandbox(
     # is blocked by host/sandbox metadata permissions, degrade the same way.
     probe = probe_worktree_capable(repo)
     if not probe.ok:
+        if not allow_temp_fallback:
+            exc = WorktreeSandboxError(
+                "write-capable Building requires a durable git worktree; "
+                f"temp-dir fallback refused ({probe.reason})"
+            )
+            if expected_reopen_wip_handle is not None:
+                setattr(
+                    exc,
+                    "recovery_handle",
+                    _known_resume_recovery_handle(state="worktree_probe_refused"),
+                )
+            raise exc
         return _run_with_temp_dir(probe.reason)
 
     # MITIGATION 1: create the engine worktree detached at the resolved BASE SHA.
+    reopened_existing = False
     try:
-        sandbox = create_worktree_sandbox(
-            repo,
-            building_id=building_id,
-            base_sha=probe.base_sha,
+        sandbox = (
+            reopen_worktree_sandbox(repo, building_id)
+            if reuse_existing_worktree
+            else None
         )
+        if sandbox is None:
+            sandbox = create_worktree_sandbox(
+                repo,
+                building_id=building_id,
+                base_sha=str(base_sha_override or probe.base_sha),
+            )
+        else:
+            reopened_existing = True
+            if expected_reopen_wip_handle is not None:
+                verify_worktree_recovery_handle(
+                    sandbox,
+                    expected_reopen_wip_handle,
+                )
+                base_carries_wip = sandbox.base_sha == expected_reopen_wip_handle.sha
+            else:
+                expected_reopen_base = str(expected_reopen_base_sha).strip()
+                if expected_reopen_base and sandbox.base_sha != expected_reopen_base:
+                    raise WorktreeSandboxError(
+                        "existing resume worktree base does not match the expected "
+                        f"base: {sandbox.base_sha} != {expected_reopen_base}"
+                    )
     except WorktreeSandboxError as exc:
+        claimed_sandbox = locals().get("sandbox")
+        if hasattr(claimed_sandbox, "path"):
+            release_worktree_lease(claimed_sandbox)
+        if not allow_temp_fallback:
+            wrapped = WorktreeSandboxError(
+                "write-capable Building requires a durable git worktree; "
+                f"temp-dir fallback refused after {type(exc).__name__}: {exc}"
+            )
+            if expected_reopen_wip_handle is not None:
+                setattr(
+                    wrapped,
+                    "recovery_handle",
+                    _known_resume_recovery_handle(
+                        state="reopen_verification_refused",
+                        worktree_path=str(getattr(locals().get("sandbox"), "path", "")),
+                    ),
+                )
+            raise wrapped from exc
         return _run_with_temp_dir(f"worktree-create-failed:{type(exc).__name__}")
     commit_sha = ""
     wip_anchor_ref = ""
     wip_commit_sha = ""
+    landed_ref = ""
     land_force_commit_absent = False
     frontier_kind = ""
     frontier_reason = ""
     evidence_root = ""
     intake_result: BuildingIntakeRunResult | None = None
+    disposed = False
+    recovery_handle: dict[str, str] = {}
+    run_error: Exception | None = None
     try:
+        try:
+            durable_output.resolve().relative_to(sandbox.path.resolve())
+        except ValueError:
+            pass
+        else:
+            raise WorktreeSandboxError(
+                "durable evidence output must stay outside the disposable engine "
+                f"worktree: {durable_output} is under {sandbox.path}"
+            )
         # MITIGATION 6 (real isolation): the dispatch runs with BOTH adapter_cwd
         # AND repo_root pointing at the worktree, but evidence lands under the
         # durable output_root OUTSIDE the worktree.
@@ -998,9 +1169,13 @@ def _run_in_worktree_sandbox(
             )
             frontier_kind = _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_FRONTIER
             frontier_reason = _WRITE_SCOPE_OUTSIDE_DIFF_PRESENT_REASON
-        elif frontier_kind == "complete" and _write_need_complete_without_scoped_diff(
+        elif (
+            frontier_kind == "complete"
+            and not base_carries_wip
+            and _write_need_complete_without_scoped_diff(
             sandbox.path,
             intake_result.plan_path,
+            )
         ):
             _record_fake_landing_hold(
                 intake_result.run_result.lifecycle_write.root,
@@ -1056,13 +1231,17 @@ def _run_in_worktree_sandbox(
                     )
                     frontier_kind = _FAKE_LANDING_WRITE_SCOPE_DIFF_ABSENT_FRONTIER
                     frontier_reason = _LAND_FORCE_COMMIT_ABSENT_REASON
+                elif not commit_sha and frontier_kind == "complete":
+                    # A genuinely complete read-only/no-new-diff run lands on an
+                    # already verified base commit. For resume that base may be
+                    # the WIP commit itself. Recording it prevents clean
+                    # completion from falling through the non-complete WIP path.
+                    commit_sha = sandbox.base_sha
+    except Exception as exc:  # preserve first, then propagate with recovery facts
+        run_error = exc
     finally:
         try:
-            if (
-                not commit_sha
-                and frontier_kind != "complete"
-                and not land_force_commit_absent
-            ):
+            if not commit_sha:
                 wip_anchor_ref = anchor_wip_snapshot(
                     sandbox,
                     building_id,
@@ -1072,18 +1251,176 @@ def _run_in_worktree_sandbox(
                         f"frontier_reason={frontier_reason}\n"
                         f"evidence_root={evidence_root}\n"
                     ),
+                    include_clean=(frontier_kind != "complete" or run_error is not None),
                 )
                 if wip_anchor_ref:
-                    reclaimed = reclaim_wip_anchor(sandbox.repo_root, building_id)
-                    if reclaimed is not None:
-                        wip_anchor_ref, wip_commit_sha = reclaimed
-        finally:
+                    reclaimed = reclaim_wip_recovery_handle(
+                        sandbox.repo_root,
+                        building_id,
+                        expected_base_sha=sandbox.base_sha,
+                    )
+                    if reclaimed is None or not reclaimed.sha:
+                        raise WorktreeSandboxError(
+                            "WIP anchor did not resolve to a verified commit; "
+                            "worktree preserved"
+                        )
+                    wip_anchor_ref, wip_commit_sha = reclaimed.ref, reclaimed.sha
+                    recovery_handle = _sandbox_recovery_handle(
+                        building_id=building_id,
+                        base_sha=reclaimed.base_sha,
+                        ref=wip_anchor_ref,
+                        sha=wip_commit_sha,
+                        preservation_state="wip_commit_verified",
+                    )
+                else:
+                    status = _git(
+                        sandbox.path,
+                        "status",
+                        "--porcelain",
+                        "--untracked-files=all",
+                    )
+                    if status is None:
+                        raise WorktreeSandboxError(
+                            "could not verify a clean sandbox after empty WIP anchor; "
+                            "worktree preserved"
+                        )
+                    if status.strip():
+                        raise WorktreeSandboxError(
+                            "dirty sandbox produced no verified WIP anchor; worktree preserved"
+                        )
+                    recovery_handle = _sandbox_recovery_handle(
+                        building_id=building_id,
+                        base_sha=sandbox.base_sha,
+                        preservation_state="clean_no_changes",
+                    )
+            else:
+                landed_ref = anchor_landed_output(
+                    sandbox,
+                    building_id,
+                    commit_sha,
+                )
+                # ``run_building_plan`` close-anchors dirty adapter bytes before
+                # this outer sandbox bracket turns the same tree into a landed
+                # commit.  That close-time anchor is a sibling commit (both use
+                # ``sandbox.base_sha`` as parent), so ancestry is not a valid
+                # release test.  Release only the exact canonical generation
+                # whose verified tree is byte-identical to the landed tree.  A
+                # concurrently replaced/different generation is preserved and
+                # completion fails closed with both recovery addresses intact.
+                close_anchor_ref = str(
+                    getattr(intake_result.run_result, "anchored_ref", "") or ""
+                )
+                if close_anchor_ref and not base_carries_wip:
+                    current_wip = reclaim_wip_recovery_handle(
+                        sandbox.repo_root,
+                        building_id,
+                        expected_base_sha=sandbox.base_sha,
+                    )
+                    landed_tree = _git(
+                        sandbox.repo_root,
+                        "rev-parse",
+                        "--verify",
+                        f"{commit_sha}^{{tree}}",
+                    )
+                    if landed_tree is None or not landed_tree.strip():
+                        raise WorktreeSandboxError(
+                            "completed output landed but its tree could not be verified; "
+                            f"WIP preserved at {close_anchor_ref}"
+                        )
+                    if current_wip is not None:
+                        if (
+                            current_wip.ref != close_anchor_ref
+                            or current_wip.tree_sha != landed_tree.strip()
+                        ):
+                            mismatch = WorktreeSandboxError(
+                                "completed output landed but the canonical WIP generation "
+                                "is not byte-identical to that landed output; newer/different "
+                                f"WIP preserved at {current_wip.ref}"
+                            )
+                            setattr(
+                                mismatch,
+                                "recovery_handle",
+                                {
+                                    **_sandbox_recovery_handle(
+                                        building_id=building_id,
+                                        base_sha=sandbox.base_sha,
+                                        ref=landed_ref,
+                                        sha=commit_sha,
+                                        worktree_path=str(sandbox.path),
+                                        preservation_state=(
+                                            "landed_output_and_different_wip_generation_preserved"
+                                        ),
+                                    ),
+                                    "concurrent_wip_ref": current_wip.ref,
+                                    "concurrent_wip_sha": current_wip.sha,
+                                    "concurrent_wip_base": current_wip.base_sha,
+                                },
+                            )
+                            raise mismatch
+                        released = release_wip_anchor(
+                            sandbox.repo_root,
+                            building_id,
+                            expected_sha=current_wip.sha,
+                        )
+                        if not released:
+                            raise WorktreeSandboxError(
+                                "completed output landed but its verified close-time WIP "
+                                f"generation could not be released: {close_anchor_ref}"
+                            )
+                recovery_handle = _sandbox_recovery_handle(
+                    building_id=building_id,
+                    base_sha=sandbox.base_sha,
+                    ref=landed_ref,
+                    sha=commit_sha,
+                    preservation_state="landed_commit_verified",
+                )
+        except Exception as exc:
+            recovery_handle = _sandbox_recovery_handle(
+                building_id=building_id,
+                base_sha=sandbox.base_sha,
+                ref=(landed_ref or wip_anchor_ref),
+                sha=(commit_sha or wip_commit_sha),
+                worktree_path=str(sandbox.path),
+                preservation_state="worktree_preserved_after_close_failure",
+            )
+            try:
+                setattr(exc, "recovery_handle", recovery_handle)
+            except (AttributeError, TypeError):
+                pass
+            release_worktree_lease(sandbox)
+            if run_error is not None:
+                raise exc from run_error
+            raise
+        try:
             disposed = dispose_worktree_sandbox(sandbox)
+        except Exception as exc:
+            recovery_handle = {
+                **recovery_handle,
+                "worktree_path": str(sandbox.path),
+                "preservation_state": "worktree_preserved_after_dispose_failure",
+            }
+            try:
+                setattr(exc, "recovery_handle", recovery_handle)
+            except (AttributeError, TypeError):
+                pass
+            release_worktree_lease(sandbox)
+            if run_error is not None:
+                raise exc from run_error
+            raise
+
+    if run_error is not None:
+        try:
+            setattr(run_error, "recovery_handle", recovery_handle)
+        except (AttributeError, TypeError):
+            pass
+        raise run_error
 
     return CustomerSandboxRunResult(
         building_id=building_id,
         isolation_mode="worktree",
-        isolation_reason=probe.reason,
+        isolation_reason=(
+            "reopened-verified-engine-worktree" if reopened_existing else probe.reason
+        ),
         base_sha=sandbox.base_sha,
         worktree_path=str(sandbox.path),
         evidence_root=evidence_root,
@@ -1091,10 +1428,147 @@ def _run_in_worktree_sandbox(
         commit_sha=commit_sha,
         wip_anchor_ref=wip_anchor_ref,
         wip_commit_sha=wip_commit_sha,
+        landed_ref=landed_ref,
         worktree_disposed=disposed,
         intake_result=intake_result,
         frontier_reason=frontier_reason,
+        recovery_handle=recovery_handle,
     )
+
+
+def run_customer_resume_in_sandbox(
+    building_root: Path | str,
+    *,
+    customer_repo_root: Path | str,
+    adapter_timeout_seconds: int = 120,
+    proof_limits: Iterable[str] | str | None = None,
+    before_resume: Callable[[], None] | None = None,
+) -> CustomerSandboxRunResult:
+    """Resume one held Building through the same verified close bracket.
+
+    Evidence history remains under ``building_root``.  Workspace bytes resume
+    from the current verified WIP commit when one exists; only a Building with
+    no WIP ref starts from the caller repository HEAD.
+    """
+
+    from brick_protocol.support.operator.run import resume_building_plan  # noqa: PLC0415
+
+    repo = Path(customer_repo_root).resolve()
+    root = Path(building_root).expanduser().resolve()
+    plan_path = root / "work" / _DECLARED_PLAN_FILENAME
+    if not plan_path.is_file():
+        raise FileNotFoundError(
+            f"resume requires the declared plan birth certificate: {plan_path}"
+        )
+    plan = _load_declared_plan_mapping(plan_path)
+    building_id = _required_text(plan.get("building_id") or root.name, "building_id")
+    reclaimed = reclaim_wip_recovery_handle(repo, building_id)
+    resume_base_sha = reclaimed.sha if reclaimed is not None else ""
+
+    def _run_resume(_repo_root: Path, adapter_cwd: Path) -> BuildingIntakeRunResult:
+        if before_resume is not None:
+            before_resume()
+        resumed = resume_building_plan(
+            root,
+            adapter_cwd=adapter_cwd,
+            adapter_timeout_seconds=adapter_timeout_seconds,
+            proof_limits=proof_limits,
+        )
+        return BuildingIntakeRunResult(
+            building_id=building_id,
+            plan_path=plan_path,
+            plan_shape=str(plan.get("plan_shape") or "graph"),
+            walker_mode="dynamic",
+            walker_mode_basis=(
+                "resume restored the verified WIP commit before walking the "
+                "caller/COO disposition"
+            ),
+            run_result=resumed,
+            task_source_basis="resume",
+        )
+
+    sandbox_result = _run_in_worktree_sandbox(
+        repo,
+        building_id=building_id,
+        durable_output=root.parent,
+        run_dispatch=_run_resume,
+        base_sha_override=resume_base_sha,
+        base_carries_wip=reclaimed is not None,
+        allow_temp_fallback=False,
+        reuse_existing_worktree=True,
+        expected_reopen_base_sha=(reclaimed.base_sha if reclaimed is not None else ""),
+        expected_reopen_wip_handle=reclaimed,
+    )
+    if (
+        reclaimed is not None
+        and sandbox_result.frontier_kind == "complete"
+        and sandbox_result.commit_sha
+    ):
+        try:
+            current = reclaim_wip_recovery_handle(repo, building_id)
+            expected_release_sha = reclaimed.sha
+            if current is not None and current.sha != reclaimed.sha:
+                landed_tree = _git(
+                    repo,
+                    "rev-parse",
+                    "--verify",
+                    f"{sandbox_result.commit_sha}^{{tree}}",
+                )
+                if (
+                    landed_tree is None
+                    or not landed_tree.strip()
+                    or current.base_sha != reclaimed.sha
+                    or current.tree_sha != landed_tree.strip()
+                ):
+                    raise WorktreeSandboxError(
+                        "completed resume landed, but the canonical WIP changed to "
+                        "a generation not proven byte-identical to the landed output; "
+                        f"WIP preserved at {current.ref}"
+                    )
+                # A resumed write can close-anchor its final tree after starting
+                # from the reclaimed WIP.  That verified child generation, not
+                # the starting SHA, is now the exact generation to release.
+                expected_release_sha = current.sha
+            released = (
+                True
+                if current is None
+                else release_wip_anchor(
+                    repo,
+                    building_id,
+                    expected_sha=expected_release_sha,
+                )
+            )
+        except WorktreeSandboxError as release_exc:
+            try:
+                current = reclaim_wip_recovery_handle(repo, building_id)
+            except WorktreeSandboxError:
+                current = None
+            failure_handle = dict(sandbox_result.recovery_handle)
+            if current is not None:
+                failure_handle.update(
+                    {
+                        "concurrent_wip_ref": current.ref,
+                        "concurrent_wip_sha": current.sha,
+                        "concurrent_wip_base": current.base_sha,
+                        "preservation_state": (
+                            "landed_output_and_newer_wip_generation_preserved_after_release_refusal"
+                        ),
+                    }
+                )
+            setattr(release_exc, "recovery_handle", failure_handle)
+            raise
+        if not released:
+            release_exc = WorktreeSandboxError(
+                "completed resume could not verify WIP ref release; completion is not "
+                f"reported as closed for {reclaimed.ref}"
+            )
+            setattr(
+                release_exc,
+                "recovery_handle",
+                dict(sandbox_result.recovery_handle),
+            )
+            raise release_exc
+    return sandbox_result
 
 
 def _write_need_complete_without_scoped_diff(
@@ -2552,5 +3026,6 @@ __all__ = [
     "run_building_intake",
     "run_customer_building_in_sandbox",
     "run_customer_graph_building_in_sandbox",
+    "run_customer_resume_in_sandbox",
     "run_declared_portfolio",
 ]
