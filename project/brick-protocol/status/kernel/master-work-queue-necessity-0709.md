@@ -508,3 +508,58 @@ family: 0702 onecall-worktree-loss family(2) 재발(non-complete stop→dispose)
 - shipped shape_b 태그가 SHAPE-A-only 승인 위반인지: 미확정.
 - rerouted route-walker-6e-7 QA-repair 세그먼트 green closure: 없음(미확인).
 ```
+
+### 9.6 ★축2 확정 (0710d · 정적 워크플로우 적대검증 + 프로브A 실행증거 — §9.2 "안전" 최종 판정)
+
+방법: 0710c 워크플로우(wf_631b8b7f-429)는 세션사멸로 미완(에이전트 제출단계 tool-call 형식불량
+루프에 갇힘, 하니스 버그 아님). read 2건의 분석 전문을 transcript에서 회수 → 0710d 검증
+워크플로우(wf_18472e05-0b4, 에이전트 7, Q1/Q2 각 2렌즈 적대검증 + Q3 신규 read+verify + 종합)로
+확정. COO가 결정적 인용 3곳(reaper·resume갭·onboard삼킴) 스팟체크 재확인.
+
+```text
+경로별 판정:
+  driver worktree-run 미완 close       = SAFE_ANCHORED  driver.py:1059-1081 anchor→dispose 중첩 finally 구조보장
+  run_building_plan park/stop close    = SAFE_ANCHORED  run.py:750-761 앵커 후 re-raise
+  proposal-approval 첫발사(forward)    = SAFE_ANCHORED  onboard.py:2894 → driver bracket 공유 (프로브A 정정 아래)
+  resume_building_plan 재park          = ★LOSS_RISK    run.py:854 유일 except=AdapterFrontier — park는 무앵커 탈출
+  승인후 continuation(onboard approve) = ★LOSS_RISK    onboard.py:3982 direct call = driver bracket 밖.
+                                                       worktree는 onboard.py:318 자동생성(engine-owned),
+                                                       dispose 주체 없음(전코드 유일 dispose=driver.py:1081),
+                                                       크래시는 onboard.py:4061 generic 삼킴(무앵커)
+  24h stale reaper                     = ★LOSS_RISK    worktree_sandbox.py:148(모든 create마다 실행)·
+                                                       :65(24h)·:568-576(marker나이만, liveness 검사 없음).
+                                                       앵커 없는 강제삭제 — "unanchored 잔존"을
+                                                       실제 무소음 바이트 소실로 바꾸는 집행자.
+  temp-dir 폴백                        = 워크트리경로아님 driver.py:915-929 설계상 소멸, isolation_mode 기록
+  coo_gate_runner.sh:192               = 소형 LOSS      앵커 없는 force-remove (게이트 잔재 한정)
+  wip ref 덮어쓰기(재발사/_slug 충돌)    = UNCERTAIN     worktree_sandbox.py:276 overwrite — 고아커밋 gc 타이밍 미실험
+```
+
+```text
+★0710b 전제 폐기: "driver finally가 미완이면 무조건 dispose" = 거짓. anchor-before-dispose 구조 보장.
+  단서(맹점) 3종: ①gitignored-only 변경은 앵커 무대상(무소음) ②서브모듈 dirty 바이트는 앵커 ref
+  보고돼도 미포착(무소음) ③complete+commit예외+scoped-dirt없음(driver.py:1032-1034)은 앵커 생략
+  (예외 전파=유소음). 앵커 자체가 raise해도 dispose는 실행됨(유소음 소실).
+
+★프로브A 재해석(0710c "worktree 안 만듦" 오판 정정): 실행증거 = agent-return worktree_observation
+  branch=HEAD(detached)·head=dce5160d0·clean·5725파일 → 본체크아웃(main·dirty) 아닌 워크트리 안 실행.
+  첫발사도 worktree 생성→(클린이라 앵커 무행동)→dispose. 이벤트가 안 보인 이유: worktree_sandbox는
+  이벤트 무발행, 사실은 approval_result에만 중첩(onboard.py:2916-2924), CLI "isolation_mode:
+  proposal-approval"은 하드코딩 렌더 기본값(cli.py:656).
+
+∴ 최종판정: "정식 build 안전"은 [run_building_plan 직접 / graph-decl 첫발사]에 한해 참(앵커됨).
+  [onboard approve 승인후 재개]가 소실위험 경로: park/크래시 시 무앵커 잔존 → ≥24h 후 다음 create의
+  reaper가 무소음 파괴. 0708 fugu 3h 이주 소멸과 기전 정합(하드크래시→무앵커 잔존→후속 reap 추정) —
+  단 그 건의 인과 확증은 아님(당시 런타임 로그 부재, §9.5).
+  #2 발주 수리표면: ①run.py:750-761 미러를 resume 두 분기(run.py:818-831·854 주변)에
+  ②reaper에 앵커 시도+liveness 검사 ③gitignored/서브모듈 앵커 맹점 처리. #24와 한 덩어리 유지.
+
+잔여 not_proven(정직): 살아있는 >24h 빌딩 worktree를 reaper가 mid-run 실제 reap하는지(코드 함의,
+  미실험) · wip ref 덮어쓰기 후 고아커밋 gc 소실 타이밍 · brick_protocol 밖(cron/데몬) dispose 표면 ·
+  같은빌딩 비-stale 잔존 시 재승인 fail-closed(worktree_sandbox.py:159 함의) 미실행 · 라이브파이어 무실시.
+
+### 9.7 0710e 개발 마감 포인터
+
+★정본 = `CLOSURE-report-0710e-fable5-dev.md`. 요약: live2 사인=HOLD 재생의 문맥유실(수리+회귀잠금
+GREEN) · O1-O3 배선+CLI 이중열쇠 스모크 · 오염 수리 · --all delta-green(신규 RED 1건→수리→0,
+기준선 클래스 A deku/B admission/C 기타 분해) · 보호앵커 052c008db · 커밋/골전환=Smith 대기.

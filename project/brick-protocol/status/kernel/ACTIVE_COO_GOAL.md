@@ -40,8 +40,9 @@ pure-dev는 ΦII 한 구간 — 단독 ACTIVE 골 아님.
 ACTIVE = MASTER (Smith /goal pin — do NOT re-pin pure-dev-only)
 
 #1 DONE  n1-land-force-complete-write-0709 · main da14f95f8 · F✓W✓P✓ (이 세션 재검증 X)
-#2 NEXT — hold/dispose 보존 정합 · ★근본원인: 워크트리 유실 뿌리 (미착수)
-#3 NEXT — graph-decl 미완 WIP 앵커
+#2 구현착지 main f71d67db2 — WO-1 lifecycle(코덱스) + 소실문맥 수리(파블5, live2 회귀잠금 GREEN)
+   · 정본=CLOSURE-report-0710e-fable5-dev.md · DONE 전환은 Smith (E1-E6 잔여)
+#3 구현착지 main f71d67db2 — WO-1에 포함 (graph-decl 미완 WIP 앵커 = driver close 앵커 계약)
 
 ΦII (parallel OK during ΦI):
   D1 body-reland 0709c main 243da7ff0 (post-strip classifier body · probe 재검증 X)
@@ -53,10 +54,11 @@ ACTIVE = MASTER (Smith /goal pin — do NOT re-pin pure-dev-only)
 ## 0710 COO 인계 실측 (상세 = master 큐 §9)
 ```text
 ★ 첫 발주 후보 = 기반 3종: #2 hold/dispose · #24 L3-3b raise 수리 · #1 land강제
-★ 판단(0710 정정): 축1(L3 게이트)만 참=정식진입은 게이트 통과. 축2(미완 시 WIP앵커
-   비대칭 소실)=미확정. → "정식 build 안전"은 소실 프로브로 축2 확증 후 확정. (§9.2)
+★ 판단(0710d 확정 §9.6): 축1 참 + 축2 확정. 직접run/첫발사=SAFE_ANCHORED("무조건 dispose" 폐기).
+   소실루트 = 승인후 resume(onboard.py:3982, 무앵커 park/크래시 잔존) + 24h reaper
+   (worktree_sandbox.py:148, 앵커·liveness 없는 강제삭제). #2 수리표면 = resume 앵커 미러 + reaper 앵커/liveness.
    방향: #2/#24는 정식 빌딩으로. 서브에이전트/워크플로 walker 직접호출 우회=비정식진입=금지.
-★ 순서: 소실 프로브 먼저 → 기반 3종. 지뢰: charter/queue UNTRACKED · 가짜EXIT f2fd50a35/8f7d03b16 잔존.
+★ 순서: 기반 3종(#2·#24·#1) 발주 논의 → 발사. 지뢰: 가짜EXIT f2fd50a35/8f7d03b16 잔존 (charter/queue는 tracked 확인됨).
 ```
 
 ## HARD FAILS
