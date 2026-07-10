@@ -34,7 +34,7 @@ from .adapter_validation import _reject_secret_text
 if TYPE_CHECKING:
     from .agent_adapter import AgentAdapterRequest, LocalCliSpec
 
-_RETIRED_ACTIVE_MODEL_REFS = frozenset({"model:claude:claude-fable-5"})
+_RETIRED_ACTIVE_MODEL_REFS = frozenset()
 
 
 # Lazy CASTING_FIELDS / NODE_CASTING_FIELDS access (E2/S6★). ``agent.spec``

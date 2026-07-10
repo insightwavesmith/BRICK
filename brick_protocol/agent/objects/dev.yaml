@@ -35,5 +35,6 @@
     "adapter:chat-session"
   ],
   "preferred_adapter_ref": "adapter:codex-local",
-  "preferred_model_ref": "model:codex:default"
+  "preferred_model_ref": "model:codex:gpt-5.6-sol",
+  "preferred_reasoning_effort_ref": "effort:xhigh"
 }

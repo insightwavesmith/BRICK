@@ -115,6 +115,10 @@ declared_step_template_plan_case:
     expected:
       movement: forward
       target_ref: brick-review
+      agent_object_ref: agent-object:dev
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:codex:gpt-5.6-sol
+      selected_reasoning_effort_ref: effort:xhigh
       brick_capability_class: source_write
       declared_gate_refs:
         - link-gate:default-transition
@@ -224,7 +228,8 @@ declared_step_template_plan_case:
       target_ref: brick-closure
       agent_object_ref: agent-object:pm-lead
       selected_adapter_ref: adapter:claude-local
-      selected_model_ref: model:claude:opus
+      selected_model_ref: model:claude:claude-fable-5
+      selected_reasoning_effort_ref: effort:xhigh
       declared_gate_refs:
         - link-gate:default-transition
 declared_step_template_plan_rejects:

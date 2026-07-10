@@ -1,13 +1,14 @@
 # Model-Lane Matching Discipline
 
 Declared model-aptitude policy for lane dispatch (Smith, 0702; reconciled
-0705/0706):
+0705/0706; Smith 0710 direct recast):
 
 ```text
-codex = default implementation, finishing, and code QA lane
+pm-lead planning/synthesis = adapter:claude-local / model:claude:claude-fable-5 / effort:xhigh
+development work/repair = adapter:codex-local / model:codex:gpt-5.6-sol / effort:xhigh
 claude sonnet (xhigh effort) = default investigation, axis analysis, and evidence QA lane
 gemini = default low-risk review lens; never assign heavy work by default
-claude-fable-5 = retired from active Building dispatch; design/synthesis and important Claude QA use model:claude:claude-opus-4-8 xhigh (0708 fable5 토큰 소진)
+claude design and important Claude QA = model:claude:claude-opus-4-8 / effort:xhigh
 codex-fugu-local / model:sakana:fugu-ultra = admitted high-depth work/design tier when explicitly cast
 ```
 
@@ -18,31 +19,31 @@ Agent-axis deviation to surface, not a silent adjustment.
 
 Code-attack-QA and closure may escalate by declared, risk-proportional casting
 when the Building Plan carries the adapter/model selection explicitly. The
-defaults above still control omitted casting: work and code QA start on Codex,
+defaults above still control omitted casting: PM planning/synthesis starts on
+Fable5 xhigh, GPT-5.6-sol xhigh is the active dev work/repair default,
 investigation/evidence QA start on Claude Sonnet, broad low-risk review
 stays Gemini-shaped, and Claude design / important QA casting uses
-model:claude:claude-opus-4-8 xhigh. Direct active selection of
-model:claude:claude-fable-5 is retired.
+model:claude:claude-opus-4-8 xhigh. Fable5 is active only as the pm-lead
+planning/synthesis default or an explicit planning cast. Fable5 remains
+excluded from work and QA promotion.
 
 This discipline records dispatch-aptitude declarations only. It does not judge
 the work, grants no write or Movement authority, and does not choose providers.
 
-## 0707 tier reconciliation (Smith; walk-results-adopted-0707 §K·§G·§I)
+## 0710 active recast over the 0707/0708 lineage (Smith)
 
-The 0705/0706 defaults above stay recorded verbatim; the 0707 casting-tier
-judgments below refine them without deleting any prior clause. They transcribe
-the adopted §K, §G, and §I text and add no new policy.
+The Smith 0710 direct recast supersedes the 0708 Fable5 active-dispatch
+retirement. It supersedes the 0707 Codex development-retirement row. The older
+rows remain historical evidence only; they do not control active dispatch.
 
 ```text
-development work/repair lane (0707 §K) = codex excluded from development; opus-4.8 xhigh for simple-to-medium work, fugu (codex-fugu-local / model:sakana:fugu-ultra) for complex, entangled, or engine-grade work
-codex development retirement (0707 §K) = codex leaves the work and repair lanes only and finishes walking its current building; QA lens and closure keep codex
-claude QA active target (0708 token-retire update to 0707 §G) = engine-side or very-important claude QA on model:claude:claude-opus-4-8 xhigh, replacing the prior fable5 branch and the prior sonnet QA default
+active PM lane (0710) = pm-lead uses model:claude:claude-fable-5 xhigh
+active development lane (0710) = dev uses model:codex:gpt-5.6-sol xhigh
+active high-depth exception = fugu remains available when explicitly cast for complex, entangled, or engine-grade work/design
+claude QA active target = engine-side or very-important claude QA on model:claude:claude-opus-4-8 xhigh; Fable5 remains excluded from work and QA promotion
 claude-local throttle-window rule (0707 §I) = claude-local concurrency 1 is the safe line; route new dispatch onto codex or gemini lenses to avoid it, and attach-QA recovery is the standard salvage
 ```
 
-0708 대체: the claude QA active target row supersedes the earlier fable5 QA
-branch and the claude-sonnet QA default for the QA-lens case, and the codex
-development-retirement row narrows the codex work/finishing default to code QA
-and closure only. These rows record dispatch-aptitude declarations only; they
-do not judge the work, grant no write or Movement authority, and do not choose
-providers.
+These rows record dispatch-aptitude declarations only. They do not prove live
+provider availability or quality, judge the work, grant write or Movement
+authority, or choose providers outside declared casting.

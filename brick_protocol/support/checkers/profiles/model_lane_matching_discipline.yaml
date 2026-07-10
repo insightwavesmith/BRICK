@@ -1,42 +1,65 @@
 schema: checker-profile/v1
 profile_id: model-lane-matching-discipline
-description: Agent model-lane matching discipline pin for 0708 fable retirement and fugu policy.
+description: Agent model-lane matching discipline pin for Smith 0710 Fable5 PM and GPT-5.6-sol development recast.
 kernel_checks:
   - model_lane_matching_discipline
 path_exists:
   - brick_protocol/agent/disciplines/model-lane-matching.md
-  - brick_protocol/agent/objects/design-lead.yaml
+  - brick_protocol/agent/objects/pm-lead.yaml
+  - brick_protocol/agent/objects/dev.yaml
+  - brick_protocol/support/connection/adapter_model_casting.py
   - brick_protocol/support/checkers/check_model_lane_matching_discipline.py
+adapter_model_selection_case:
+  - adapter_ref: adapter:claude-local
+    selected_model_ref: model:claude:claude-fable-5
+    expected_cli_arg: claude-fable-5
+  - adapter_ref: adapter:codex-local
+    selected_model_ref: model:codex:gpt-5.6-sol
+    expected_cli_arg: gpt-5.6-sol
 text_contains:
   - path: brick_protocol/agent/disciplines/model-lane-matching.md
     texts:
       - Smith, 0702; reconciled
-      - codex = default implementation, finishing, and code QA lane
+      - Smith 0710 direct recast
+      - pm-lead planning/synthesis = adapter:claude-local / model:claude:claude-fable-5 / effort:xhigh
+      - development work/repair = adapter:codex-local / model:codex:gpt-5.6-sol / effort:xhigh
       - claude sonnet (xhigh effort) = default investigation, axis analysis, and evidence QA lane
       - gemini = default low-risk review lens; never assign heavy work by default
-      - claude-fable-5 = retired from active Building dispatch; design/synthesis and important Claude QA use model:claude:claude-opus-4-8 xhigh (0708 fable5 토큰 소진)
       - codex-fugu-local / model:sakana:fugu-ultra = admitted high-depth work/design tier when explicitly cast
       - Code-attack-QA and closure may escalate by declared, risk-proportional casting
-      - work and code QA start on Codex
       - investigation/evidence QA start on Claude Sonnet
       - broad low-risk review
-      - Direct active selection of
-      - model:claude:claude-fable-5 is retired
+      - Fable5 is active only as the pm-lead
+      - GPT-5.6-sol xhigh is the active dev work/repair default
+      - supersedes the 0708 Fable5 active-dispatch
+      - supersedes the 0707 Codex development-retirement row
       - engine-side or very-important claude QA on model:claude:claude-opus-4-8 xhigh
-      - replacing the prior fable5 branch and the prior sonnet QA default
-  - path: brick_protocol/agent/objects/design-lead.yaml
+      - Fable5 remains excluded from work and QA promotion
+  - path: brick_protocol/agent/objects/pm-lead.yaml
     texts:
       - '"preferred_adapter_ref": "adapter:claude-local"'
-      - '"preferred_model_ref": "model:claude:claude-opus-4-8"'
+      - '"preferred_model_ref": "model:claude:claude-fable-5"'
+      - '"preferred_reasoning_effort_ref": "effort:xhigh"'
+  - path: brick_protocol/agent/objects/dev.yaml
+    texts:
+      - '"preferred_adapter_ref": "adapter:codex-local"'
+      - '"preferred_model_ref": "model:codex:gpt-5.6-sol"'
+      - '"preferred_reasoning_effort_ref": "effort:xhigh"'
+  - path: brick_protocol/support/connection/adapter_model_casting.py
+    texts:
+      - _RETIRED_ACTIVE_MODEL_REFS = frozenset()
 text_absent:
   - path: brick_protocol/agent/disciplines/model-lane-matching.md
     texts:
       - fable5 = never a Building / workflow lane model
       - fable5 = never a lane model
-      - claude-fable-5 = admitted design/synthesis casting when explicitly cast
-      - engine-side or very-important claude QA on claude-fable-5 xhigh
-      - fable5 클래스 명시 캐스팅은 유지
-      - Fable-class use is admitted
+      - claude-fable-5 = retired from active Building dispatch
+      - model:claude:claude-fable-5 is retired
+      - codex excluded from development
+      - codex leaves the work and repair lanes only
+  - path: brick_protocol/support/connection/adapter_model_casting.py
+    texts:
+      - _RETIRED_ACTIVE_MODEL_REFS = frozenset({"model:claude:claude-fable-5"})
 proof_limits:
   - checker profile support evidence only
   - not source truth
@@ -46,4 +69,5 @@ proof_limits:
   - not provider behavior
 not_proven:
   - live provider dispatch quality
+  - live Fable5 availability or capacity
   - future Building Plan casting correctness outside this discipline pin

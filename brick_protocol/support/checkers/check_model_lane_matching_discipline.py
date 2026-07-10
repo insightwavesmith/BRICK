@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Pin the model-lane matching discipline against retired fable dispatch.
+"""Pin the Smith 0710 PM/development model-lane recast.
 
 Support checker mechanics only. This observes the Agent-owned discipline text
 and Agent Object defaults; it does not call providers, choose lanes, choose
@@ -17,41 +17,40 @@ from pathlib import Path
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _DISCIPLINE_REL = Path("brick_protocol/agent/disciplines/model-lane-matching.md")
-_DESIGN_LEAD_REL = Path("brick_protocol/agent/objects/design-lead.yaml")
+_PM_LEAD_REL = Path("brick_protocol/agent/objects/pm-lead.yaml")
+_DEV_REL = Path("brick_protocol/agent/objects/dev.yaml")
 _OLD_ABSOLUTE_BANS = (
     "fable5 = never a Building / workflow lane model",
     "fable5 = never a lane model",
     "fable5 = never a Building",
-)
-_RETIRED_ACTIVE_ALLOWANCES = (
-    "claude-fable-5 = admitted design/synthesis casting when explicitly cast",
-    "engine-side or very-important claude QA on claude-fable-5 xhigh",
-    "fable5 클래스 명시 캐스팅은 유지",
-    "Fable-class use is admitted",
+    "claude-fable-5 = retired from active Building dispatch",
+    "model:claude:claude-fable-5 is retired",
+    "codex excluded from development",
+    "codex leaves the work and repair lanes only",
 )
 _REQUIRED_TEXT = (
     "Smith, 0702; reconciled\n0705/0706",
-    "codex = default implementation, finishing, and code QA lane",
+    "Smith 0710 direct recast",
+    "pm-lead planning/synthesis = adapter:claude-local / model:claude:claude-fable-5 / effort:xhigh",
+    "development work/repair = adapter:codex-local / model:codex:gpt-5.6-sol / effort:xhigh",
     "claude sonnet (xhigh effort) = default investigation, axis analysis, and evidence QA lane",
     "gemini = default low-risk review lens; never assign heavy work by default",
-    "claude-fable-5 = retired from active Building dispatch; design/synthesis and important Claude QA use model:claude:claude-opus-4-8 xhigh (0708 fable5 토큰 소진)",
     "codex-fugu-local / model:sakana:fugu-ultra = admitted high-depth work/design tier when explicitly cast",
     "Code-attack-QA and closure may escalate by declared, risk-proportional casting",
-    "work and code QA start on Codex",
     "investigation/evidence QA start on Claude Sonnet",
     "broad low-risk review\nstays Gemini-shaped",
-    "Direct active selection of\nmodel:claude:claude-fable-5 is retired",
-    # 0707 tier reconciliation rows (walk-results-adopted-0707 K/G/I).
-    "codex excluded from development; opus-4.8 xhigh for simple-to-medium work",
-    "codex leaves the work and repair lanes only and finishes walking its current building",
+    "Fable5 is active only as the pm-lead",
+    "GPT-5.6-sol xhigh is the active dev work/repair default",
+    "supersedes the 0708 Fable5 active-dispatch",
+    "supersedes the 0707 Codex development-retirement row",
     "engine-side or very-important claude QA on model:claude:claude-opus-4-8 xhigh",
-    "replacing the prior fable5 branch and the prior sonnet QA default",
+    "Fable5 remains excluded from work and QA promotion",
     "claude-local concurrency 1 is the safe line",
     "attach-QA recovery is the standard salvage",
 )
 _PROOF_LIMIT = (
     "proof limit: model-lane matching checker support evidence only; it proves "
-    "discipline text and design-lead default consistency, not provider behavior, "
+    "discipline text and pm-lead/dev default consistency, not provider behavior, "
     "source truth, success judgment, quality judgment, or Movement authority."
 )
 
@@ -67,15 +66,17 @@ def _resolve_path(repo: Path, value: str | None) -> Path:
     return path if path.is_absolute() else repo / path
 
 
-def _read_design_lead(repo: Path) -> dict[str, object]:
+def _read_agent_object(repo: Path, relative: Path) -> dict[str, object]:
     try:
-        data = json.loads((repo / _DESIGN_LEAD_REL).read_text(encoding="utf-8"))
+        data = json.loads((repo / relative).read_text(encoding="utf-8"))
     except OSError as exc:
-        raise ModelLaneMatchingDisciplineError(f"could not read {_DESIGN_LEAD_REL}: {exc}") from exc
+        raise ModelLaneMatchingDisciplineError(f"could not read {relative}: {exc}") from exc
     except json.JSONDecodeError as exc:
-        raise ModelLaneMatchingDisciplineError(f"{_DESIGN_LEAD_REL} is not JSON-compatible YAML: {exc}") from exc
+        raise ModelLaneMatchingDisciplineError(
+            f"{relative} is not JSON-compatible YAML: {exc}"
+        ) from exc
     if not isinstance(data, dict):
-        raise ModelLaneMatchingDisciplineError(f"{_DESIGN_LEAD_REL} must contain an object")
+        raise ModelLaneMatchingDisciplineError(f"{relative} must contain an object")
     return data
 
 
@@ -83,51 +84,77 @@ def _check_text(text: str) -> list[str]:
     violations: list[str] = []
     for banned in _OLD_ABSOLUTE_BANS:
         if banned in text:
-            violations.append(f"stale absolute fable-class ban remains: {banned!r}")
-    for retired in _RETIRED_ACTIVE_ALLOWANCES:
-        if retired in text:
-            violations.append(f"retired active fable dispatch allowance remains: {retired!r}")
+            violations.append(f"superseded model-lane clause remains active: {banned!r}")
     for required in _REQUIRED_TEXT:
         if required not in text:
             violations.append(f"missing reconciled model-lane clause: {required!r}")
     return violations
 
 
-def _check_design_lead_default(repo: Path) -> list[str]:
-    design_lead = _read_design_lead(repo)
+def _check_agent_default_values(
+    pm_lead: dict[str, object], dev: dict[str, object]
+) -> list[str]:
     violations: list[str] = []
-    if design_lead.get("preferred_adapter_ref") != "adapter:claude-local":
+    if pm_lead.get("preferred_adapter_ref") != "adapter:claude-local":
         violations.append(
-            "design-lead preferred_adapter_ref must remain adapter:claude-local "
-            "for the active Claude design/synthesis default"
+            "pm-lead preferred_adapter_ref must be adapter:claude-local"
         )
-    if design_lead.get("preferred_model_ref") != "model:claude:claude-opus-4-8":
+    if pm_lead.get("preferred_model_ref") != "model:claude:claude-fable-5":
         violations.append(
-            "design-lead preferred_model_ref must remain model:claude:claude-opus-4-8 "
-            "for the active design/synthesis default"
+            "pm-lead preferred_model_ref must be model:claude:claude-fable-5"
         )
+    if pm_lead.get("preferred_reasoning_effort_ref") != "effort:xhigh":
+        violations.append("pm-lead preferred_reasoning_effort_ref must be effort:xhigh")
+    if dev.get("preferred_adapter_ref") != "adapter:codex-local":
+        violations.append("dev preferred_adapter_ref must be adapter:codex-local")
+    if dev.get("preferred_model_ref") != "model:codex:gpt-5.6-sol":
+        violations.append("dev preferred_model_ref must be model:codex:gpt-5.6-sol")
+    if dev.get("preferred_reasoning_effort_ref") != "effort:xhigh":
+        violations.append("dev preferred_reasoning_effort_ref must be effort:xhigh")
     return violations
 
 
-def _mutation_red_probe(text: str) -> str:
-    missing_retirement = text.replace(
-        "claude-fable-5 = retired from active Building dispatch; design/synthesis and important Claude QA use model:claude:claude-opus-4-8 xhigh (0708 fable5 토큰 소진)",
+def _check_agent_defaults(repo: Path) -> list[str]:
+    return _check_agent_default_values(
+        _read_agent_object(repo, _PM_LEAD_REL),
+        _read_agent_object(repo, _DEV_REL),
+    )
+
+
+def _mutation_red_probe(text: str, repo: Path) -> str:
+    missing_fable = text.replace(
+        "pm-lead planning/synthesis = adapter:claude-local / model:claude:claude-fable-5 / effort:xhigh",
         "",
     )
-    active_allowance = text.replace(
-        "claude-fable-5 = retired from active Building dispatch; design/synthesis and important Claude QA use model:claude:claude-opus-4-8 xhigh (0708 fable5 토큰 소진)",
-        "claude-fable-5 = admitted design/synthesis casting when explicitly cast",
+    missing_dev = text.replace(
+        "development work/repair = adapter:codex-local / model:codex:gpt-5.6-sol / effort:xhigh",
+        "",
     )
-    missing_retirement_red = bool(_check_text(missing_retirement))
-    active_allowance_red = bool(_check_text(active_allowance))
-    if not (missing_retirement_red and active_allowance_red):
+    pm_lead = _read_agent_object(repo, _PM_LEAD_REL)
+    dev = _read_agent_object(repo, _DEV_REL)
+    wrong_pm = dict(pm_lead)
+    wrong_pm["preferred_model_ref"] = "model:claude:claude-opus-4-8"
+    wrong_pm_effort = dict(pm_lead)
+    wrong_pm_effort["preferred_reasoning_effort_ref"] = "effort:high"
+    wrong_dev_model = dict(dev)
+    wrong_dev_model["preferred_model_ref"] = "model:codex:default"
+    wrong_dev = dict(dev)
+    wrong_dev["preferred_reasoning_effort_ref"] = "effort:high"
+    observations = (
+        bool(_check_text(missing_fable)),
+        bool(_check_text(missing_dev)),
+        bool(_check_agent_default_values(wrong_pm, dev)),
+        bool(_check_agent_default_values(wrong_pm_effort, dev)),
+        bool(_check_agent_default_values(pm_lead, wrong_dev_model)),
+        bool(_check_agent_default_values(pm_lead, wrong_dev)),
+    )
+    if not all(observations):
         raise ModelLaneMatchingDisciplineError(
-            "mutation RED failed: "
-            f"missing_retirement_red={missing_retirement_red}, active_allowance_red={active_allowance_red}"
+            "mutation RED failed: " + repr(observations)
         )
     return (
-        "mutation RED observed: removing the fable retirement and "
-        "reintroducing active fable dispatch both reject."
+        "mutation RED observed: missing Fable5/GPT-5.6-sol clauses and "
+        "wrong PM/dev model-effort defaults all reject."
     )
 
 
@@ -138,12 +165,12 @@ def check(repo: Path, discipline_path: Path) -> list[str]:
         raise ModelLaneMatchingDisciplineError(f"could not read {discipline_path}: {exc}") from exc
     violations = _check_text(text)
     if discipline_path.resolve() == (repo / _DISCIPLINE_REL).resolve():
-        violations.extend(_check_design_lead_default(repo))
+        violations.extend(_check_agent_defaults(repo))
     if violations:
         raise ModelLaneMatchingDisciplineError("\n- ".join(violations))
     return [
-        "model-lane matching discipline green: fable retired from active dispatch and opus target observed.",
-        _mutation_red_probe(text),
+        "model-lane matching discipline green: Fable5 xhigh PM and GPT-5.6-sol xhigh dev defaults observed.",
+        _mutation_red_probe(text, repo),
         _PROOF_LIMIT,
     ]
 
