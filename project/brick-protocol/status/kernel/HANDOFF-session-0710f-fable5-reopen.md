@@ -11,6 +11,23 @@
 | This | `HANDOFF-session-0710f-fable5-reopen.md` |
 | 규율 | **믿지 말고 실측 대조.** 좌표는 HEAD 3e3b40975 기준 |
 
+## 0-갱신 (마감 직전 회수 완료 — 아래 원문 §0의 "실행 중"은 종료됨)
+
+```text
+★발주1 reroute 완주 회수됨: 공식 reroute 처분 ok:True · 11/11 반환(재주행 포함) ·
+  work2(gpt-5.6-sol)가 실제 구현함 — refs/brick/wip/l3-admission-allowlist-0710e에
+  검증 앵커(wip_commit_verified): check_import_identity_modes.py +118 + 대상 체커 7파일
+  allowlist 등록(+15씩) + adapter_capability_checks +30.
+  frontier = link_paused (human-review 게이트 재대기).
+  ★다음 세션 첫 작업: 이 WIP 내용 검수 → forward 처분(brick resume --decl) → land
+  → import_identity_modes + 대상 프로파일 focused로 admission RED 소거 검증.
+  (수리된 anchor 가드가 혼합 dirt를 정상 앵커한 첫 실전이기도 함)
+★병렬 세션 주의: 마감 시점에 live repo에 내 것 아닌 dirty 2파일 관측
+  (check_building_operator_driver0.py +82 · worktree_sandbox.py ±62/-49 재작업 흔적)
+  + 미지 커밋 d721b697f — 다른 파블 세션이 이미 작업 중인 정황. 한 트리 두 손 금지:
+  재개 세션은 먼저 어느 세션이 살아있는지/그 dirty가 누구 것인지 실측 대조부터.
+```
+
 ## 0. ★지금 실행 중 — 죽이지 말 것 (최우선 회수 대상)
 
 ```text
