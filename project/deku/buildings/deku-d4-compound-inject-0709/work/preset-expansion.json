@@ -42,9 +42,6 @@
   ],
   "kind": "preset_expansion_provenance",
   "not_proven": [
-    "semantic fitness of selected shape",
-    "future Building run correctness",
-    "future Agent or provider quality",
     "selected preset ref was not exposed by the plan"
   ],
   "plan_ref": "building-plan:composed-graph",

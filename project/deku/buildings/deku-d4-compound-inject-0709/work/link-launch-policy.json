@@ -42,11 +42,7 @@
     "brick-deku-d4-compound-inject-0709-code-attack-qa": 5,
     "brick-deku-d4-compound-inject-0709-work": 5
   },
-  "not_proven": [
-    "semantic fitness of selected shape",
-    "future Building run correctness",
-    "future Agent or provider quality"
-  ],
+  "not_proven": [],
   "plan_ref": "building-plan:composed-graph",
   "plan_shape": "graph",
   "proof_limits": [

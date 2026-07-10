@@ -6,13 +6,6 @@
     "xsd": "http://www.w3.org/2001/XMLSchema#"
   },
   "@id": "urn:bp:building:deku-d4-compound-inject-0709::work/step-outputs/deku-d4-compound-inject-0709-work-attempt-1/step-output.json",
-  "adapter_dispatch_timing": {
-    "dispatch_ended_at": "2026-07-09T15:34:47Z",
-    "dispatch_started_at": "2026-07-09T15:26:56Z",
-    "duration_ms": 470716.515,
-    "timing_scope": "adapter_dispatch",
-    "timing_source": "brick_protocol/support/operator/walker_kernel.py:process_one_node"
-  },
   "agent_fact_fields": [
     "received_work",
     "returned"
@@ -24,7 +17,6 @@
   "datacontenttype": "application/json",
   "dataschema": "urn:bp:schema:graph-ready-v1",
   "evidence_refs": {
-    "adapter_dispatch_timing_raw_ref": "raw:adapter-dispatch-timing:deku-d4-compound-inject-0709-work:attempt-1",
     "building_map_ref": "work/building-map.json",
     "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
     "raw_ref": "raw:agent:01",

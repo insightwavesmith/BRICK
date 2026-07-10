@@ -8,21 +8,26 @@
 
 로컬 Nemotron-8B 지휘자가 구독 워커(Opus/GPT-5.5/Grok)를 지휘해, 재학습 없이 Fugu-Ultra를 완전 재현한다
 
-## 빌딩 집계 — 총 10개
+## 빌딩 집계 — 총 14개
 
 board_state 기준:
-- closed: 2
-- evidence_incomplete: 8
+- closed: 3
+- evidence_incomplete: 9
+- link_paused: 2
 
 frontier_kind 기준:
-- complete: 2
-- evidence_incomplete: 8
+- agent_incomplete: 2
+- complete: 3
+- evidence_incomplete: 9
 
 ## 최근 증거 빌딩 (last_evidence_at 상위 10)
 
+- deku-d3-real-orchestrate-0709 — 2026-07-09T15:25:38Z — link_paused
+- deku-d2-real-conduct-0709c — 2026-07-09T15:04:12Z — link_paused
+- deku-d1-real-face-0709b — 2026-07-09T14:14:40Z — closed
 - deku-g1-g4-verify-official-0709 — 2026-07-09T13:21:48Z — closed
 - deku-g0-face-official-0709 — 2026-07-09T13:21:43Z — closed
-- (타임스탬프 없는 빌딩 8개는 이 목록에서 제외 — 집계에는 포함)
+- (타임스탬프 없는 빌딩 9개는 이 목록에서 제외 — 집계에는 포함)
 
 ## 이 파일이 증명하지 않는 것
 
